@@ -4805,6 +4805,10 @@ sub bgdir_load {
 	# update list of available backdrops
 	debug("Loading new preview images from: "
 		. $directory . "\n");
+
+	# Disable dir buttons
+	$widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(FALSE);
+
 	my $a = $globals->{'bgpath_system'};
 	my $b = $globals->{'bgpath_user'};
 	$a =~ s/\//\\\//g;
@@ -4851,6 +4855,9 @@ sub bgdir_load {
 		}
 	}
 	$widgets->{'main'}->get_widget('hboxBackImage')->show();
+	# Enable dir buttons
+	$widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(TRUE);
+
 }
 
 #***
