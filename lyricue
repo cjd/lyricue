@@ -636,10 +636,10 @@ sub popup_avail_menu {
 	debug("Button clicked\n");
 	if ($event->button == 3) {
 		my @items = ();
-		if ($globals->{'access'} = /e/) {
+		if ($globals->{'access'} =~ /e/) {
 			push @items, ['/Edit Song', undef, 'edit_song', 1, '', ''];
 		}
-		if ($globals->{'access'} = /d/) {
+		if ($globals->{'access'} =~ /d/) {
 			push @items, ['/Delete Song', undef, 'delete_song', 1, '', ''];
 		}
 		push @items,
@@ -651,7 +651,7 @@ sub popup_avail_menu {
 		  ],
 		  ['/Order - Songbook -> Name.', undef, 'change_sort_order', 1, '', '']
 		);
-		if ($globals->{'access'} = /p/) {
+		if ($globals->{'access'} =~ /p/) {
 			push @items,
 			  (['/Add to Playlist', undef, 'add_to_playlist', 1, '', '']);
 		}
