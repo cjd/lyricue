@@ -223,12 +223,14 @@ foreach (keys %$config) {
 	}
 }
 
-my $pid = `ps -e -o pid,cmd | grep "Lyricue Server on port $globals->{'use_port'}" | grep -v "grep" |cut -f2 -d" " `;
+my $pid =
+`ps -e -o pid,cmd | grep "Lyricue Server on port $globals->{'use_port'}" | grep -v "grep" |cut -f2 -d" " `;
 chomp($pid);
 if ($pid) {
 	debug("Lyricue Server was already running on given port, killing");
 	kill 9, $pid;
 }
+
 # Open lyricDB and bibleDB
 my $lyricDbh =
   DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}", "lyric",
@@ -242,7 +244,7 @@ my $bibleDbh =
 # Create the window
 debug("Creating window");
 my ($window);
-my ($headerText, $mainText, $footerText);
+my ($headerText, $mainText, $mainTextShadow, $footerText);
 
 my ($pixmap, $textcol);
 
@@ -334,82 +336,22 @@ if ($@) {
 
 debug("Creating text areas");
 
-# Create the areas for text and set styles
-
-# Song name - Top of screen
-$headerText = Gnome2::Canvas::Item->new(
-	$root, 'Gnome2::Canvas::RichText',
-	x                => $config->{'Width'} / 2,
-	y                => $config->{'OverscanV'},
-	anchor           => 'GTK_ANCHOR_N',
-	width            => $config->{'Width'},
-	height           => 20,
-	'cursor-visible' => FALSE
-);
-
-my $buffer = $headerText->get_buffer();
-my $tag    = $buffer->create_tag(
-	"Header",            "font",      $config->{'Header'}, "foreground",
-	$config->{'Colour'}, "wrap-mode", "word",              "editable-set",
-	TRUE,                "editable",  FALSE
-);
-$buffer->apply_tag_by_name("Header", $buffer->get_bounds);
-
+# Create the area for lyrics and set styles
 # Song lyrics - Middle of screen
 $mainText = Gnome2::Canvas::Item->new(
-	$root, 'Gnome2::Canvas::RichText',
-	x      => $config->{'Width'} / 2 - ($config->{'ShadowSize'} / 2),
-	y      => $config->{'Height'} / 2,
-	anchor => 'GTK_ANCHOR_CENTER',
-	width  => $config->{'Width'} - ($config->{'OverscanH'} * 2) -
-	$config->{'ShadowSize'},
-	height => $config->{'Height'} - $headhigh - ($config->{'OverscanV'} * 2) -
-	$config->{'ShadowSize'},
+	$root, 'Gnome2::Canvas::RichText', x => 0,
+	y                => 0,
+	width            => 0,
+	height           => 0,
+	anchor           => 'GTK_ANCHOR_CENTER',
 	'cursor-visible' => FALSE
 );
-$buffer = $mainText->get_buffer();
-my $tag2    =
+my $buffer = $mainText->get_buffer();
+my $tag2   =
   $buffer->create_tag("Main", "font", $config->{'Main'}, "foreground",
 	$config->{'Colour'}, "wrap-mode", "word", "editable-set", TRUE, "editable",
 	FALSE);
 $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-
-# Add the main text shadow
-my $mainTextShadow = Gnome2::Canvas::Item->new(
-	$root, 'Gnome2::Canvas::RichText',
-	x      => ($config->{'Width'} / 2) + ($config->{'ShadowSize'} / 2),
-	y      => ($config->{'Height'} / 2) + ($config->{'ShadowSize'} / 2),
-	anchor => 'GTK_ANCHOR_CENTER',
-	width  => $config->{'Width'} - ($config->{'OverscanH'} * 2) -
-	$config->{'ShadowSize'},
-	height => $config->{'Height'} - $headhigh - ($config->{'OverscanV'} * 2) -
-	$config->{'ShadowSize'},
-	'cursor-visible' => FALSE
-);
-my $buffers = $mainTextShadow->get_buffer();
-my $tags    =
-  $buffers->create_tag("Main", "font", $config->{'Main'}, "foreground",
-	$config->{'ShadowColour'}, "wrap-mode", "word", "editable-set", TRUE,
-	"editable", FALSE);
-$buffers->apply_tag_by_name("Main", $buffers->get_bounds);
-
-# Song Artist - Bottom of screen
-$footerText = Gnome2::Canvas::Item->new(
-	$root, 'Gnome2::Canvas::RichText',
-	x                => $config->{'Width'} / 2,
-	y                => $config->{'Height'} - $config->{'OverscanV'},
-	anchor           => 'GTK_ANCHOR_S',
-	width            => $config->{'Width'},
-	height           => 20,
-	'cursor-visible' => FALSE
-);
-$buffer = $footerText->get_buffer();
-my $tag3    = $buffer->create_tag(
-	"Footer",            "font",      $config->{'Footer'}, "foreground",
-	$config->{'Colour'}, "wrap-mode", "word",              "editable-set",
-	TRUE,                "editable",  FALSE
-);
-$buffer->apply_tag_by_name("Footer", $buffer->get_bounds);
 
 # callback registration
 $window->signal_connect("delete_event", \&CloseAppWindow);
@@ -462,7 +404,7 @@ $socket = IO::Socket::INET->new(
 	Proto     => 'tcp'
 );
 $socket or display_fatal($errorcodes->{'socketopen'}, $!);
-$0 = "Lyricue Server on port ".$globals->{'use_port'};
+$0 = "Lyricue Server on port " . $globals->{'use_port'};
 my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
@@ -1408,6 +1350,7 @@ sub load_config {
 
 sub set_maintext {
 	my ($text, $transition) = @_;
+	my ($oldText);
 	if (!defined $text)       { $text       = ""; }
 	if (!defined $transition) { $transition = 0; }
 
@@ -1418,7 +1361,7 @@ sub set_maintext {
 	my $effect        = $transition >> 5;
 
 	# Copy the old mainText to oldText
-	my $oldText = $mainText;
+	$oldText = $mainText;
 
 	# Create a new mainText;
 	$mainText = Gnome2::Canvas::Item->new(
@@ -1440,7 +1383,8 @@ sub set_maintext {
 		"editable", FALSE);
 	$buffer->apply_tag_by_name("Main", $buffer->get_bounds);
 
-	$mainTextShadow->hide();
+	# Hide the shadow during the transition
+	if ($mainTextShadow) { $mainTextShadow->hide(); }
 	my $widget = Gtk2::Label->new();
 	my $layout = $widget->create_pango_layout("");
 	$layout->set_wrap('word');
@@ -1594,21 +1538,39 @@ sub set_maintext {
 	# Make sure text in right spot
 	$buffer->set_text($text);
 	$buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-	$mainText->set(width => $w, height => $h);
-	$mainText->set(x => $centreX - ($config->{'ShadowSize'} / 2));
-	$mainText->set(y => $centreY - ($config->{'ShadowSize'} / 2));
+	$mainText->set(
+		x      => $centreX - ($config->{'ShadowSize'} / 2),
+		y      => $centreY - ($config->{'ShadowSize'} / 2),
+		width  => $w,
+		height => $h,
+	);
 	$mainText->set_buffer($buffer);
 	$mainText->show();
 
 	# Add the shadow
+	$mainTextShadow = Gnome2::Canvas::Item->new(
+		$root, 'Gnome2::Canvas::RichText',
+		x                => $centreX + ($config->{'ShadowSize'} / 2),
+		y                => $centreY + ($config->{'ShadowSize'} / 2),
+		width            => $w,
+		height           => $h,
+		anchor           => 'GTK_ANCHOR_CENTER',
+		'cursor-visible' => FALSE
+	);
 	my $buffer2 = $mainTextShadow->get_buffer();
+	my $tags    = $buffer2->create_tag(
+		"MainShadow",              "font",
+		$config->{'Main'},         "foreground",
+		$config->{'ShadowColour'}, "wrap-mode",
+		"word",                    "editable-set",
+		TRUE,                      "editable",
+		FALSE
+	);
 	$buffer2->set_text($text);
-	$buffer2->apply_tag_by_name("Main", $buffer2->get_bounds);
-	$mainTextShadow->set(width => $w, height => $h);
-	$mainTextShadow->set(x => $centreX + ($config->{'ShadowSize'} / 2));
-	$mainTextShadow->set(y => $centreY + ($config->{'ShadowSize'} / 2));
+	$buffer2->apply_tag_by_name("MainShadow", $buffer2->get_bounds);
 	$mainTextShadow->set_buffer($buffer2);
-	#$mainTextShadow->show();
+	$mainText->raise_to_top();
+	$mainTextShadow->show();
 }
 
 sub Configure_event {
@@ -1657,8 +1619,25 @@ sub set_footer {
 	$layout->set_font_description($desc);
 	$layout->set_text($text);
 	my ($w, $h) = $layout->get_pixel_size;
-	$footerText->set(width => $w, height => $h);
+	if ($footerText) { $footerText->destroy(); }
+	$footerText = Gnome2::Canvas::Item->new(
+		$root, 'Gnome2::Canvas::RichText',
+		x                => $config->{'Width'} / 2,
+		y                => $config->{'Height'} - $config->{'OverscanV'},
+		anchor           => 'GTK_ANCHOR_S',
+		width            => $w,
+		height           => $h,
+		'cursor-visible' => FALSE
+	);
 	my $buffer = $footerText->get_buffer();
+	my $tag3   = $buffer->create_tag(
+		"Footer",            "font",
+		$config->{'Footer'}, "foreground",
+		$config->{'Colour'}, "wrap-mode",
+		"word",              "editable-set",
+		TRUE,                "editable",
+		FALSE
+	);
 	$buffer->set_text($text);
 	$buffer->apply_tag_by_name("Footer", $buffer->get_bounds);
 }
@@ -1675,8 +1654,25 @@ sub set_header {
 	$layout->set_font_description($desc);
 	$layout->set_text($text);
 	my ($w, $h) = $layout->get_pixel_size;
-	$headerText->set(width => $w, height => $h);
+	if ($headerText) { $headerText->destroy(); }
+	$headerText = Gnome2::Canvas::Item->new(
+		$root, 'Gnome2::Canvas::RichText',
+		x                => $config->{'Width'} / 2,
+		y                => $config->{'OverscanV'},
+		anchor           => 'GTK_ANCHOR_N',
+		width            => $w,
+		height           => $h,
+		'cursor-visible' => FALSE
+	);
 	my $buffer = $headerText->get_buffer();
+	my $tag3   = $buffer->create_tag(
+		"Header",            "font",
+		$config->{'Header'}, "foreground",
+		$config->{'Colour'}, "wrap-mode",
+		"word",              "editable-set",
+		TRUE,                "editable",
+		FALSE
+	);
 	$buffer->set_text($text);
 	$buffer->apply_tag_by_name("Header", $buffer->get_bounds);
 }
