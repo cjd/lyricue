@@ -5535,7 +5535,7 @@ sub quick_show {
 	my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
 	my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
 	$songtext =~ s/\n/#BREAK#/g;
-	$songtext =~ s/:/#SEMI#/g;
+	$songtext =~ s/;/#SEMI#/g;
 	update_display("preview", "", $songtext);
 }
 
