@@ -1,0 +1,1 @@
+for F in *.po;do LANG=`basename $F .po`; sudo mkdir /usr/share/locale/$LANG/LC_MESSAGES 2>/dev/null; sudo msgfmt $LANG -o /usr/share/locale/$LANG/LC_MESSAGES/lyricue.mo;done
