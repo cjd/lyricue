@@ -183,7 +183,8 @@ if ($ARGV[0]) {
 			if (!$MINISERV =~ /\d+$/) {
 				$MINISERV = 0;
 			}
-			$globals->{'use_port'} = $ARGV[$_ + 2];
+		} elsif ($ARGV[$_] eq "-p") {
+			$globals->{'use_port'} = $ARGV[$_ + 1];
 		} elsif ($ARGV[$_] =~ /^\d+$/) {
 		} else {
 			print "\nUsage: lyricue_server <-v> <-m> <-c> <-d>\n\n";
@@ -361,7 +362,7 @@ $mainText = Gnome2::Canvas::Item->new(
 	'cursor-visible' => FALSE
 );
 $buffer = $mainText->get_buffer();
-$tag    =
+my $tag2    =
   $buffer->create_tag("Main", "font", $config->{'Main'}, "foreground",
 	$config->{'Colour'}, "wrap-mode", "word", "editable-set", TRUE, "editable",
 	FALSE);
@@ -397,7 +398,7 @@ $footerText = Gnome2::Canvas::Item->new(
 	'cursor-visible' => FALSE
 );
 $buffer = $footerText->get_buffer();
-$tag    = $buffer->create_tag(
+my $tag3    = $buffer->create_tag(
 	"Footer",            "font",      $config->{'Footer'}, "foreground",
 	$config->{'Colour'}, "wrap-mode", "word",              "editable-set",
 	TRUE,                "editable",  FALSE
@@ -456,6 +457,7 @@ $socket = IO::Socket::INET->new(
 	Proto     => 'tcp'
 );
 $socket or display_fatal($errorcodes->{'socketopen'}, $!);
+$0 = "Lyricue Server on port ".$globals->{'use_port'};
 my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
@@ -1601,7 +1603,7 @@ sub set_maintext {
 	$mainTextShadow->set(x => $centreX + ($config->{'ShadowSize'} / 2));
 	$mainTextShadow->set(y => $centreY + ($config->{'ShadowSize'} / 2));
 	$mainTextShadow->set_buffer($buffer2);
-	$mainTextShadow->show();
+	#$mainTextShadow->show();
 }
 
 sub Configure_event {
