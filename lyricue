@@ -148,6 +148,7 @@ my $HEIGHT       = 0;
 my $mainfont     = "";
 my $LOOP         = "Loop";
 my $UPDATE_TIMER = FALSE;
+my $preview_pid;
 my $TIMER;
 my $config;
 my $widgets;
@@ -319,9 +320,12 @@ exit(0);
 #   Closes the interface
 # SOURCE
 sub close_main {
+	
 	$lyricDbh->disconnect;
 	$bibleDbh->disconnect;
 	Gtk2->main_quit;
+	kill 9, $preview_pid;
+	exit();
 	return FALSE;
 }
 
@@ -2467,9 +2471,6 @@ sub preview_display {
 		$primary = "";
 	}
 
-	my $forked = 0;
-	my $wait   = 1;
-
 	PUPDATE: {
 		if (my $server = IO::Socket::INET->new(
 				Proto    => "tcp",
@@ -2516,21 +2517,8 @@ sub preview_display {
 		} else {
 
 			#tcp/ip socket failure so server must be not running yet!
-			if ($forked == 0) {
-				debug("Preview server not running - forking and executing!\n");
-				system("lyricue_server -m &");
-				sleep 1;
-				$forked = 1;
-				redo PUPDATE;
-			} elsif ($wait < 5) {
-				debug("Preview server not running - waiting " . $wait
-					. " seconds!\n");
-				sleep $wait;
-				$wait++;
-				redo PUPDATE;
-			} else {
-				debug("Preview server did not launch... giving up!!!");
-			}
+			init_preview();
+			redo PUPDATE;
 		}
 	}
 }
@@ -5395,13 +5383,14 @@ sub init_preview {
 	$widgets->{'main'}->get_widget('framePreview')->add($socket);
 	printf("$^X ./lyricue_server -m %d\n", $socket->get_id);
 
-	my $pid = fork;
-	if ($pid<0) {
+	$preview_pid = fork;
+	if ($preview_pid<0) {
 		display_fatal ("Unable to start the lyricue server as a preview window",$!);
 	}
-	if ($pid == 0) {
+	if ($preview_pid == 0) {
 		exec (sprintf("$^X ./lyricue_server -m %d\n", $socket->get_id));
 	}
+	print $preview_pid." - pid\n";
 
 	$socket->signal_connect('plug-removed' => sub {
 		debug ("Lyricue preview died..restarting\n");
