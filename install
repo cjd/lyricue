@@ -37,7 +37,7 @@ my %addonly = (	$etcdir."access.conf" => 0644,
 		);
 
 print "Creating directories:\n";
-foreach my $dir ( $bindir,$etcdir,$sharedir,$docdir) {
+foreach my $dir ( $bindir,$etcdir,$sharedir,$docdir,$sharedir."images",$sharedir."backgrounds") {
 	print "dir -> ".$dir."\n";
 	mkdir $dir,0755;
 }
@@ -83,7 +83,7 @@ if (! $mysql ) {
 if (@ary == 0 ) {
 	die "Mysql doesn't appear to be running, please restart it\n";
 }
-print "please enter your root password: ";
+print "Please enter the password for your root mysql user: ";
 my $rootpw=<STDIN>;
 chomp $rootpw;
 
@@ -148,8 +148,23 @@ if (! $bibledb) {
 	system ("cat mysql/MySQL_create_bible_KJV.sql | mysql -u root --password=$rootpw");
 }
 
+print "Please enter the user that you will be administering Lyricue from: ";
+my $defuser=<STDIN>;
+chomp $defuser;
+open (ACCESS, $etcdir."access.conf");
+open (OUT, ">".$etcdir."access.conf.tmp");
+while (<ACCESS>) {
+	if (! /^$defuser/) {
+		print OUT $_;
+	}
+}
+print OUT $defuser." = spade\n";
+close OUT;
+close ACCESS;
+system ("mv ".$etcdir."access.conf.tmp ".$etcdir."access.conf");
+
 print "\n\n";
-print "Finished installing Lyricue\n";
+print "Finished installing Lyricue\n\n";
 print "Run /usr/bin/lyricue_server on one screen\n";
 print "and load up /usr/bin/lyricue on the other\n";
 

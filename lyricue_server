@@ -130,15 +130,17 @@ my $bgimage_changed = FALSE;
 my @points;
 
 my ($globals);
-$globals->{'etcdir'}      = "/etc/lds";
-$globals->{'basedir'}     = $ENV{'HOME'} . "/.lds";
-$globals->{'sharedir'}    = "/usr/share/lds";
-$globals->{'accessfile'}  = $globals->{'etcdir'} . "/access.conf";
-$globals->{'defaultconf'} = $globals->{'etcdir'} . "/default.conf";
-$globals->{'configfile'}  = $globals->{'basedir'} . "/config2";
-$globals->{'bgpath'}      = $globals->{'basedir'} . "/backgrounds";
-$globals->{'imgpath'}     = $globals->{'basedir'} . "/images";
-$globals->{'gladefile'}   = $globals->{'sharedir'} . "/lyricue.glade";
+$globals->{'etcdir'}      = "/etc/lds/";
+$globals->{'basedir'}     = $ENV{'HOME'} . "/.lds/";
+$globals->{'sharedir'}    = "/usr/share/lds/";
+$globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
+$globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
+$globals->{'configfile'}  = $globals->{'basedir'} . "config2";
+$globals->{'bgpath_user'}      = $globals->{'basedir'} . "backgrounds/";
+$globals->{'imgpath_user'}     = $globals->{'basedir'} . "images/";
+$globals->{'bgpath_system'}      = $globals->{'sharedir'} . "backgrounds/";
+$globals->{'imgpath_system'}     = $globals->{'sharedir'} . "images/";
+$globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 $globals->{'host'}        = "localhost";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "bibleDb";
@@ -205,9 +207,13 @@ if (!$CHILD) {
 
 # Read the config file
 if (!-w $globals->{'configfile'}) {
+	if (! -d $globals->{'basedir'} ) {
+		mkdir $globals->{'basedir'}, 0777;
+		mkdir $globals->{'bgpath_user'}, 0777;
+		mkdir $globals->{'imgpath_user'}, 0777;
+	}
 	system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
 }
-debug("Should do now!\n");
 my $config = load_config();
 my ($contents, @preset);
 if (!($config->{'Colour'})) {
@@ -245,22 +251,14 @@ my ($pixmap, $textcol);
 $window = new Gtk2::Window->new('toplevel');
 $window->set_title("Lyric Server");
 
-$window->fullscreen();
-
-#$window->set_default_size(640, 480);
 $window->signal_connect("configure_event", \&Configure_event);
 
 while (Gtk2->events_pending) {
 	Gtk2->main_iteration;
 }
 
-if ($config->{'Width'} == 0 || $config->{'Height'} == 0) {
-	($config->{'Width'}, $config->{'Height'}) = $window->get_size();
-}
-my ($width, $height) = $window->get_size();
-print "W * H:" . $config->{'Width'} . "*" . $config->{'Height'} . "\n";
-
 if ($MINISERV) {
+	$window->show();
 	$window->realize();
 	$config->{'Width'}  /= $MINISCALE;
 	$config->{'Height'} /= $MINISCALE;
@@ -270,21 +268,18 @@ if ($MINISERV) {
 
 	debug("Running in MINISERV (preview window) mode\n");
 } else {
-	if (($config->{'Height'} * 2) < $config->{'Width'}) {
+	$window->show();
+	$window->fullscreen();
 
-		# Must be using xinerama
-		$config->{'Width'} = $config->{'Width'} / 2;
-		$XINERAMA = TRUE;
-		$window->set_uposition($config->{'Width'}, 0);
-	} else {
-
-		#normal server mode, non-xinerama
-		$window->set_default_size($config->{'Width'}, $config->{'Height'});
-	}
 	debug("Running in SERVER (normal) mode\n");
 }
 
-$window->show();
+while (Gtk2->events_pending) {
+	Gtk2->main_iteration;
+}
+
+($config->{'Width'},$config->{'Height'}) = $window->get_size();
+print "W * H:" . $config->{'Width'} . "*" . $config->{'Height'} . "\n";
 
 my $canvas = Gnome2::Canvas->new();
 $canvas->set_scroll_region(1, 1, $config->{'Width'}, $config->{'Height'});
@@ -305,14 +300,21 @@ my ($headhigh, $headwide) = $layout->get_pixel_size;
 debug("Loading background\n");
 
 my ($background, $pixbuf);
+my $backdrop = $config->{'BGImage'};
+if (-e $globals->{'bgpath_user'}.$backdrop && -r $globals->{'bgpath_user'}.$backdrop) {
+	$backdrop = $globals->{'bgpath_user'}.$backdrop
+} elsif  (-e $globals->{'bgpath_system'}.$backdrop && -r $globals->{'bgpath_system'}.$backdrop) {
+	$backdrop = $globals->{'bgpath_system'}.$backdrop
+} else {
+	debug ("Unable to read ".$backdrop." in any background directories\n");
+}
+
 eval {
-	$pixbuf =
-	  Gtk2::Gdk::Pixbuf->new_from_file(
-		$globals->{'bgpath'} . "/" . $config->{'BGImage'});
+	$pixbuf = Gtk2::Gdk::Pixbuf->new_from_file( $backdrop);
 };
 
 if ($@) {
-	debug("Unable to load background " . $config->{'BGImage'} . "\n");
+	debug("Unable to load background " . $backdrop . "\n");
 } else {
 	$background = Gnome2::Canvas::Item->new(
 		$root, 'Gnome2::Canvas::Pixbuf', pixbuf => $pixbuf,
@@ -505,7 +507,7 @@ sub process_input {
 			$status = "Configuration reloaded";
 		} elsif (/^backdrop$/) {
 			$config->{'BGImage'} = $line[1];
-			change_backdrop($globals->{'bgpath'} . "/" . $config->{'BGImage'});
+			change_backdrop("bg", $config->{'BGImage'});
 			$status = "Backdrop changed to " . $config->{'BGImage'};
 		} elsif (/^blank$/) {
 			$headerText->set(text => "");
@@ -890,7 +892,7 @@ sub process_input {
 			$imgsth->execute || die "Error : $!";
 
 			if (my $imgrow = $imgsth->fetchrow_hashref()) {
-				change_backdrop($globals->{'bgpath'} . $imgrow->{'imagename'});
+				change_backdrop("bg", $imgrow->{'imagename'});
 			}
 
 			if ($pid > 0) {
@@ -904,7 +906,7 @@ sub process_input {
 				if ($row->{'type'} eq "back") {
 					my $file = $row->{'data'};
 					$config->{'BGImage'} = $file;
-					change_backdrop($globals->{'bgpath'} . $file);
+					change_backdrop("bg" . $file);
 				} elsif ($row->{'type'} eq "file") {
 					if (-r $row->{'data'}) {
 						my ($fileobj, @fileexts);
@@ -917,7 +919,7 @@ sub process_input {
 								$footerText->set(text => "");
 								set_maintext("", NONE);
 								$headerText->set(text => "");
-								change_backdrop($row->{'data'});
+								change_backdrop("full",$row->{'data'});
 							}
 						}
 
@@ -940,8 +942,7 @@ sub process_input {
 					$footerText->set(text => "");
 					set_maintext("", NONE);
 					$headerText->set(text => "");
-					change_backdrop(
-						$globals->{'imgpath'} . "/" . $row->{'data'});
+					change_backdrop("img", $row->{'data'});
 				} elsif ($row->{'type'} eq "vers") {
 
 					# Kill invalid points from previous songs
@@ -951,8 +952,7 @@ sub process_input {
 					#Reset background if an image was shown
 					if ($bgimage_changed) {
 						$bgimage_changed = FALSE;
-						change_backdrop(
-							$globals->{'bgpath'} . "/" . $config->{'BGImage'});
+						change_backdrop( "bg" , $config->{'BGImage'});
 					}
 
 					my $query =
@@ -1034,7 +1034,7 @@ sub process_input {
 					if ($bgimage_changed) {
 						$bgimage_changed = FALSE;
 						change_backdrop(
-							$globals->{'bgpath'} . "/" . $config->{'BGImage'});
+							"bg", $config->{'BGImage'});
 					}
 					my $query2 =
 "SELECT title,artist,lyrics,copyright,pagenum FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid="
@@ -1174,17 +1174,43 @@ sub HandleKey {
 # NAME
 #   change_backdrop
 # SYNOPSIS
-#   change_backdrop ( $backdrop )
+#   change_backdrop ( $type, $backdrop )
 # FUNCTION
 #   Loads an image and sets it as the screens background
 # INPUTS
+#   $type - where to find it
 #   $backdrop - filename of image
 # OUTPUT
 #   Updates screen
 # SOURCE
 #
 sub change_backdrop {
-	my ($backdrop) = @_;
+	my ($type,$backdrop) = @_;
+	if ($type eq "img") {
+		if (-e $globals->{'imgpath_user'}.$backdrop && -r $globals->{'imgpath_user'}.$backdrop) {
+			$backdrop = $globals->{'imgpath_user'}.$backdrop
+		} elsif  (-e $globals->{'imgpath_system'}.$backdrop && -r $globals->{'imgpath_system'}.$backdrop) {
+			$backdrop = $globals->{'imgpath_system'}.$backdrop
+		} else {
+			debug ("Unable to read ".$backdrop." in any image directories\n");
+		}
+	} elsif ($type eq "bg") {
+		if (-e $globals->{'bgpath_user'}.$backdrop && -r $globals->{'bgpath_user'}.$backdrop) {
+			$backdrop = $globals->{'bgpath_user'}.$backdrop
+		} elsif  (-e $globals->{'bgpath_system'}.$backdrop && -r $globals->{'bgpath_system'}.$backdrop) {
+			$backdrop = $globals->{'bgpath_system'}.$backdrop
+		} else {
+			debug ("Unable to read ".$backdrop." in any background directories\n");
+		}
+	} else {
+		if (-e $backdrop && -r $backdrop) {
+			# All OK
+		} else {
+			debug ("Unable to read ".$backdrop."\n");
+		}
+	}
+
+
 	debug("Changing backdrop to " . $backdrop . "\n");
 	eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
 	if ($@) {
@@ -1551,7 +1577,7 @@ sub Configure_event {
 	my ($width, $height) = $window->get_size();
 	if ($canvas) {
 		$canvas->set_pixels_per_unit($width / $config->{'Width'});
-		print $width/ $config->{'Width'} . "\n";
+	#	print $width/ $config->{'Width'} . "\n";
 	}
 }
 

@@ -96,15 +96,17 @@ use Gtk2::TrayIcon;
 # edit this section.
 #
 my ($globals);
-$globals->{'etcdir'}      = "/etc/lds";
-$globals->{'basedir'}     = $ENV{'HOME'} . "/.lds";
-$globals->{'sharedir'}    = "/usr/share/lds";
-$globals->{'accessfile'}  = $globals->{'etcdir'} . "/access.conf";
-$globals->{'defaultconf'} = $globals->{'etcdir'} . "/default.conf";
-$globals->{'configfile'}  = $globals->{'basedir'} . "/config2";
-$globals->{'bgpath'}      = $globals->{'basedir'} . "/backgrounds";
-$globals->{'imgpath'}     = $globals->{'basedir'} . "/images";
-$globals->{'gladefile'}   = $globals->{'sharedir'} . "/lyricue.glade";
+$globals->{'etcdir'}      = "/etc/lds/";
+$globals->{'basedir'}     = $ENV{'HOME'} . "/.lds/";
+$globals->{'sharedir'}    = "/usr/share/lds/";
+$globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
+$globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
+$globals->{'configfile'}  = $globals->{'basedir'} . "config2";
+$globals->{'bgpath_user'}      = $globals->{'basedir'} . "backgrounds/";
+$globals->{'imgpath_user'}     = $globals->{'basedir'} . "images/";
+$globals->{'bgpath_system'}      = $globals->{'sharedir'} . "backgrounds/";
+$globals->{'imgpath_system'}     = $globals->{'sharedir'} . "images/";
+$globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 $globals->{'host'}        = "localhost";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "bibleDb";
@@ -251,10 +253,14 @@ if (-e $globals->{'basedir'}) {
 		print
 		  "Old ~/.lds existed but was not a directory, moving to ~/.lds.orig\n";
 		rename $globals->{'basedir'}, $globals->{'basedir'} . ".orig";
-		mkdir $globals->{'basedir'}, 077;
+		mkdir $globals->{'basedir'}, 0777;
+		mkdir $globals->{'bgpath_user'}, 0777;
+		mkdir $globals->{'imgpath_user'}, 0777;
 	}
 } else {
 	mkdir $globals->{'basedir'}, 0777;
+	mkdir $globals->{'bgpath_user'}, 0777;
+	mkdir $globals->{'imgpath_user'}, 0777;
 }
 
 $widgets->{'main'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain');
@@ -264,16 +270,6 @@ if (-d $globals->{'basedir'}) {
 	if (!-e $globals->{'configfile'}) {
 		system(
 			"cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
-		system("ln -s "
-			. $globals->{'sharedir'}
-			. "/images "
-			. $globals->{'imgpath'});
-		system("ln -s "
-			. $globals->{'sharedir'}
-			. "/backgrounds "
-			. $globals->{'bgpath'});
-		print
-		  "User-specific config/directories setup as links to global items\n";
 		create_dialog_prefs();
 	}
 }
@@ -1367,9 +1363,9 @@ sub do_add_verse {
 	if ($config->{'Main'} eq "") {
 		$config = load_config();
 	}
-	if ($config->{'width'} == 0) {
-		$config->{'width'}  = 800;
-		$config->{'height'} = 600;
+	if ($config->{'Width'} == 0) {
+		$config->{'Width'}  = 800;
+		$config->{'Height'} = 600;
 	}
 
 	my $pagenum    = 1;
@@ -1406,7 +1402,7 @@ sub do_add_verse {
 		$layout->set_text($page . "\n" . $line);
 		my ($pageWidth, $pageHeight) = $layout->get_pixel_size;
 
-		if ($pageHeight > $config->{'height'} - 100) {
+		if ($pageHeight > $config->{'Height'} - 100) {
 			my $maxv = $row->{'versenum'} - 1;
 			$query =
 			  "INSERT INTO playlist SET playlist="
@@ -2289,28 +2285,33 @@ sub add_image {
 		  ->signal_connect('clicked', "do_add_image");
 	}
 
-	update_imagedir($globals->{'imgpath'});
+	update_imagedir("img","");
 }
 
 sub update_imagedir {
-	my ($dir) = @_;
+	my ($type,$dir) = @_;
 
 	debug("changing to $dir\n");
 
 	# update list of available images
 	$widgets->{'image'}->get_widget('labelImage')->set_text($dir);
+	$widgets->{'image'}->get_widget('labelImage')->{'user_data'} = $type;
 	my $store = Gtk2::ListStore->new('Glib::String');
-	opendir(DIR, $dir) || return 0;
-	my @items = ();
-	while ($_ = readdir(DIR)) {
-		if (!(/^\./)) {
-			$_ =~ s/\.*?$//g;
-			debug($_ . "\n");
-			if (-f $dir . "/" . $_) {
-				push (@items, $_);
-			}
-		}
+	my ($a,$b,$c,$d);
+	if ($type eq "bg") {
+		$a = $globals->{'bgpath_system'};
+		$b = $globals->{'bgpath_user'};
+	} else {
+		$a = $globals->{'imgpath_system'};
+		$b = $globals->{'imgpath_user'};
 	}
+	$c = $a;
+	$c =~ s/\//\\\//g;
+	$d = $b;
+	$d =~ s/\//\\\//g;
+	my $dirlisting  = `find $a $b -type f -maxdepth 1 | sed -e 's/^$c//g' | sed -e 's/^$d//g' | sort -u`;
+
+	my @items = split(/\n/, $dirlisting);
 
 	# display sorted list
 	my $iter = $store->append;
@@ -2381,9 +2382,9 @@ sub update_display {
 				foreach (@line) {
 					my @item = split (/:/, $_);
 					if ($item[0] eq "W") {
-						$config->{'width'} = $item[1];
+						$config->{'Width'} = $item[1];
 					} elsif ($item[0] eq "H") {
-						$config->{'height'} = $item[1];
+						$config->{'Height'} = $item[1];
 					} elsif ($item[0] eq "F") {
 						$config->{'Main'} = $item[1];
 					} elsif ($item[0] eq "B") {
@@ -2486,9 +2487,9 @@ sub preview_display {
 					foreach (@line) {
 						my @item = split (/:/, $_);
 						if ($item[0] eq "W") {
-							$config->{'width'} = $item[1];
+							$config->{'Width'} = $item[1];
 						} elsif ($item[0] eq "H") {
-							$config->{'height'} = $item[1];
+							$config->{'Height'} = $item[1];
 						} elsif ($item[0] eq "F") {
 							$config->{'Main'} = $item[1];
 						}
@@ -2837,15 +2838,14 @@ sub change_preview {
 			# go up a dir
 			my $dir = $widgets->{'image'}->get_widget('labelImage')->get_text;
 			$dir =~ s/^(.*)\/.*$/$1/g;
-			update_imagedir($dir);
+			update_imagedir($widgets->{'image'}->get_widget('labelImage')->{'user_data'},$dir);
 		} else {
 			if ($globals->{'bg_previews'}) {
 				my ($pixbuf);
+				my $image = find_image($widgets->{'image'}->get_widget('labelImage')->{'user_data'}, $widgets->{'image'}->get_widget('labelImage')->get_text."/".$filename);
 				eval {
 					$pixbuf =
-					  Gtk2::Gdk::Pixbuf->new_from_file(
-						$widgets->{'image'}->get_widget('labelImage')
-						->get_text() . "/" . $filename);
+					  Gtk2::Gdk::Pixbuf->new_from_file( $image);
 				};
 				if ($@) {
 					debug("Unable to load " . $filename . "\n");
@@ -2882,10 +2882,10 @@ sub set_default_backdrop {
 	my $image = $widgets->{'image'}->get_widget('imageImage')->{user_data};
 	if ($image) {
 		my ($pixbuf);
+		$image = find_image ("bg", $image);
 		eval {
 			$pixbuf =
-			  Gtk2::Gdk::Pixbuf->new_from_file(
-				$globals->{'bgpath'} . "/" . $image);
+			  Gtk2::Gdk::Pixbuf->new_from_file( $image);
 		};
 		if ($@) {
 			debug("Error loading " . $image . "\n");
@@ -2982,10 +2982,10 @@ sub backdrop_clicked {
 			my $prevFile = $widget->{user_data};
 			$prevFile =~ s/^BG://g;
 			my ($pixbuf);
+			my $image = find_image("bg", $widgets->{'buttonCurr'}->{user_data});
 			eval {
 				$pixbuf =
-				  Gtk2::Gdk::Pixbuf->new_from_file($globals->{'bgpath'} . "/"
-					. $widgets->{'buttonCurr'}->{user_data});
+				  Gtk2::Gdk::Pixbuf->new_from_file($image);
 			};
 			if ($@) {
 				debug("Error loading "
@@ -2996,10 +2996,10 @@ sub backdrop_clicked {
 				$widgets->{'buttonPrev'}->{user_data} =
 				  $widgets->{'buttonCurr'}->{user_data};
 			}
+			$image = find_image("bg", $prevFile);
 			eval {
 				$pixbuf =
-				  Gtk2::Gdk::Pixbuf->new_from_file(
-					$globals->{'bgpath'} . "/" . $prevFile);
+				  Gtk2::Gdk::Pixbuf->new_from_file($image);
 			};
 			if ($@) {
 				debug("Error loading " . $prevFile . "\n");
@@ -3124,10 +3124,10 @@ sub create_dialog_prefs {
 	$widgets->{'prefs'}->get_widget('checkPrefAudit')
 	  ->set_active($config->{'Audit'});
 	my ($pixbuf);
+	my $image = find_image("bg",$config->{'BGImage'});
 	eval {
 		$pixbuf =
-		  Gtk2::Gdk::Pixbuf->new_from_file(
-			$globals->{'bgpath'} . "/" . $config->{'BGImage'});
+		  Gtk2::Gdk::Pixbuf->new_from_file($image);
 	};
 
 	if ($@) {
@@ -3180,7 +3180,7 @@ sub create_dialog_prefs {
 sub execute_app {
 	my ($widget, $app, $xinerama) = @_;
 	if ($xinerama) {
-		fork && exec($app. " -geometry +" . $config->{'width'} . "+0");
+		fork && exec($app. " -geometry +" . $config->{'Width'} . "+0");
 	} else {
 		fork && exec("DISPLAY=:0.1 " . $app);
 	}
@@ -4640,10 +4640,11 @@ sub init_mainWindow {
 
 	# Load bg thumbnails
 	my ($pixbuf);
+	my $backdrop = find_image("bg",$config->{'BGImage'});
+
 	eval {
 		$pixbuf =
-		  Gtk2::Gdk::Pixbuf->new_from_file(
-			$globals->{'bgpath'} . "/" . $config->{'BGImage'});
+		  Gtk2::Gdk::Pixbuf->new_from_file( $backdrop) ;
 	};
 	if ($@) {
 		debug("Error loading bg\n");
@@ -4661,10 +4662,10 @@ sub init_mainWindow {
 		$widgets->{'buttonCurr'}->signal_connect("clicked", "backdrop_clicked");
 	}
 	my ($pixbuf2);
+	my $image = find_image("bg",$config->{'BGImage'});
 	eval {
 		$pixbuf2 =
-		  Gtk2::Gdk::Pixbuf->new_from_file(
-			$globals->{'bgpath'} . "/" . $config->{'BGImage'});
+		  Gtk2::Gdk::Pixbuf->new_from_file($image);
 	};
 	if ($@) {
 		debug("Error loading bg\n");
@@ -4728,9 +4729,6 @@ sub init_mainWindow {
 sub bgdir_list {
 	debug("Loading directory list\n");
 	my $counter     = 0;
-	my $dirpath     = $globals->{'bgpath'} . "/";
-	my $dirlisting  = `find $dirpath -type d | sort`;
-	my @directories = split (/\n/, $dirlisting);
 	debug("Adding Main image dir button\n");
 	$widgets->{'dirbuttons'}[$counter] = new Gtk2::Button("Main");
 	$widgets->{'main'}->get_widget('vboxBackDir')
@@ -4740,8 +4738,13 @@ sub bgdir_list {
 	$widgets->{'dirbuttons'}[$counter]->show;
 	$counter++;
 
+	my $a = $globals->{'bgpath_system'};
+	my $b = $globals->{'bgpath_user'};
+	$a =~ s/\//\\\//g;
+	$b =~ s/\//\\\//g;
+	my $dirlisting  = `find $globals->{'bgpath_system'} $globals->{'bgpath_user'} -type d -maxdepth 1| sed -e 's/^$a//g' | sed -e 's/^$b//g' | sort -u`;
+	my @directories =  split (/\n/, $dirlisting);
 	foreach (@directories) {
-		$_ =~ s/$dirpath//;
 		if ($_ ne "") {
 			debug("Adding image dir button for " . $_ . "\n");
 			$widgets->{'dirbuttons'}[$counter] = new Gtk2::Button($_);
@@ -4776,7 +4779,7 @@ sub bgdir_change {
 		. "\nDestroying old images\n");
 	my $count = 0;
 	if ($widgets->{'buttons'}) {
-		while ($widgets->{'buttons'}[$count] != NULL) {
+		while (defined $widgets->{'buttons'}[$count] && $widgets->{'buttons'}[$count] != NULL) {
 			$widgets->{'buttons'}[$count]->destroy();
 			$widgets->{'pixmaps'}[$count]->destroy();
 			$count++;
@@ -4806,18 +4809,14 @@ sub bgdir_load {
 
 	# update list of available backdrops
 	debug("Loading new preview images from: "
-		. $globals->{'bgpath'}
 		. $directory . "\n");
-	opendir(DIR, $globals->{'bgpath'} . $directory) || return 0;
-	my @items = ();
-	while ($_ = readdir(DIR)) {
+	my $a = $globals->{'bgpath_system'};
+	my $b = $globals->{'bgpath_user'};
+	$a =~ s/\//\\\//g;
+	$b =~ s/\//\\\//g;
+	my $dirlisting  = `find $globals->{'bgpath_system'}/$directory $globals->{'bgpath_user'}/$directory -maxdepth 1 -type f -name \\*\\.\\* | sed -e 's/^$a//g' | sed -e 's/^$b//g' | sort -u`;
+	my @items =  split (/\n/, $dirlisting);
 
-		# ignore hidden files and files without extensions (ie. README)
-		if ((!(/^\./)) && ((/\./))) {
-			$_ =~ s/\.*?$//g;
-			push (@items, $_);
-		}
-	}
 	$widgets->{'main'}->get_widget('hboxBackImage')->hide();
 	my $counter = 0;
 	if ($globals->{'bg_previews'}) {
@@ -4827,11 +4826,10 @@ sub bgdir_load {
 				Gtk2->main_iteration;
 			}
 			my ($pixbuf);
+			my $image = find_image("bg", $_);
 			eval {
 				$pixbuf =
-				  Gtk2::Gdk::Pixbuf->new_from_file(
-					$globals->{'bgpath'} . $directory . "/" . $_)
-				  || print "error";
+				  Gtk2::Gdk::Pixbuf->new_from_file($image) || print "error";
 			};
 			if ($@) {
 				debug("error loading bg\n");
@@ -4853,17 +4851,6 @@ sub bgdir_load {
 				  ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE,
 					0);
 
-				# Add drag'n'drop stuff
-				#				$oldwidgets->{'buttons'}[$counter]
-				#				  ->drag_source_set('button1_mask', ['copy', 'move'],
-				#					{ target => 'STRING', flags => 0, info => 0 });
-				#				$oldwidgets->{'buttons'}[$counter]->signal_connect(
-				#					'drag_data_get', sub {
-				#						my ($w, $context, $data, $info, $time) = @_;
-				#						$data->set($data->target, 8, "background");
-				#						return 1;
-				#					}
-				#				);
 				$counter++;
 			}
 		}
@@ -4961,7 +4948,7 @@ sub change_bgimage {
 		$column->signal_connect("clicked", "change_preview");
 		$widgets->{'image'}->get_widget('treeImage')->append_column($column);
 	}
-	update_imagedir($globals->{'bgpath'});
+	update_imagedir("bg","");
 }
 
 #****m* lyricue/create_dialogSublist
@@ -5328,3 +5315,30 @@ sub search_changed {
 	$UPDATE_TIMER = Glib::Timeout->add(500, \&update_available);
 }
 
+sub find_image {
+	my ($type, $backdrop) = @_;
+	if ($type eq "img") {
+		if (-e $globals->{'imgpath_user'}.$backdrop && -r $globals->{'imgpath_user'}.$backdrop) {
+			$backdrop = $globals->{'imgpath_user'}.$backdrop
+		} elsif  (-e $globals->{'imgpath_system'}.$backdrop && -r $globals->{'imgpath_system'}.$backdrop) {
+			$backdrop = $globals->{'imgpath_system'}.$backdrop
+		} else {
+			debug ("Unable to read ".$backdrop." in any image directories\n");
+		}
+	} elsif ($type eq "bg") {
+		if (-e $globals->{'bgpath_user'}.$backdrop && -r $globals->{'bgpath_user'}.$backdrop) {
+			$backdrop = $globals->{'bgpath_user'}.$backdrop
+		} elsif  (-e $globals->{'bgpath_system'}.$backdrop && -r $globals->{'bgpath_system'}.$backdrop) {
+			$backdrop = $globals->{'bgpath_system'}.$backdrop
+		} else {
+			debug ("Unable to read ".$backdrop." in any background directories\n");
+		}
+	} else {
+		if (-e $backdrop && -r $backdrop) {
+			# All OK
+		} else {
+			debug ("Unable to read ".$backdrop."\n");
+		}
+	}
+	return $backdrop;
+}

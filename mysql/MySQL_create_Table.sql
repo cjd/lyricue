@@ -20,8 +20,8 @@ CREATE TABLE associations (
 
 CREATE TABLE audit (
   id int(24) NOT NULL auto_increment,
-  songid int(11) NOT NULL,
-  playdate datetime NOT NULL,
+  songid int(11) NOT NULL default '0',
+  playdate datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY (id)
 ); 
 
@@ -37,10 +37,10 @@ CREATE TABLE lyricMain (
   artist varchar(100) default '',
   written timestamp(14) NOT NULL,
   keywords text,
-  entered timestamp(14) NOT NULL,
+  entered timestamp(14) NOT NULL default '00000000000000',
   copyright varchar(100) default '',
   PRIMARY KEY  (id)
-) TYPE=MyISAM;
+);
 
 --
 -- Dumping data for table 'lyricMain'
@@ -204,7 +204,7 @@ CREATE TABLE page (
   pagenum int(11) NOT NULL default '0',
   lyrics text,
   PRIMARY KEY  (pageid)
-) TYPE=MyISAM;
+);
 
 --
 -- Dumping data for table 'page'
@@ -846,8 +846,9 @@ CREATE TABLE playlist (
   playlist int(11) NOT NULL default '1',
   data varchar(50) NOT NULL default '',
   type varchar(4) default 'song',
+  transition int(11) default '0',
   PRIMARY KEY  (playorder)
-) TYPE=MyISAM;
+);
 
 --
 -- Table structure for table 'playlists'
