@@ -219,13 +219,16 @@ if ($ARGV[0] eq "-u") {
 	if (! $mediadb) {
 	    	print "Creating media database\n";
 	    	system ("cat mysql/MySQL_create_media.sql | mysql -u root --password=$rootpw");
+	}
+
+	system("mysqladmin -uroot --password=$rootpw reload");
+
+	if (! $mediadb) {
 		print "Importing existing backgrounds/images\n";
 		system ("./import_media img $sharedir/images");
 		system ("./import_media bg $sharedir/backgrounds");
 		print "Done\n";
 	}
-
-	system("mysqladmin -uroot --password=$rootpw reload");
 	
 	print "Please enter the user that you will be administering Lyricue from: ";
 	my $defuser=<STDIN>;

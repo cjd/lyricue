@@ -3398,7 +3398,7 @@ sub execute_app {
 	if ($config->{'Xinerama'}) {
 		system($command. " -geometry +" . $config->{'Width'} . "+0 &");
 	} else {
-		system("DISPLAY=:0.1 " . $command . " &");
+		system("DISPLAY=:1.0 " . $command . " &");
 	}
 }
 
