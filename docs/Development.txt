@@ -2,7 +2,7 @@
 DEBUGGING OPTIONS
 -----------------
 If you run lyricue with -d then debugging is on but use -dq to see all SQL queries as well
-If debugging is on then both server and interface will not go fullscreen/maximize
+If debugging is on then the interface will not go fullscreen/maximize
 
 --------------------------------
 NETWORK COMMUNICATIONS INTERFACE
@@ -11,6 +11,7 @@ NETWORK COMMUNICATIONS INTERFACE
 This document describes the Client<->Server communications.
 By default the server opens a socket on port 2346 on localhost.
 The preview window opens a socket on port 2347 on localhost.
+The miniview window opens a socket on port 2347 on localhost.
 All communications are initiated by the client.
 The format for sending messages is <command>:<first parameter>:<second parameter>
 Communications are not case sensitive other than filenames/db names
@@ -196,6 +197,23 @@ playlists (
   PRIMARY KEY  (id)
 )
 
+# Page->image associations
+associations (
+  id int(11) NOT NULL auto_increment,      # Unique id
+  playlist int(11) NOT NULL default '0',   # playorder this item is linked to
+  imagename varchar(255) NOT NULL default '', # Imageid from mediaDb
+  absoluteparent int(11) NOT NULL default '0', # don't know (Clint?)
+  PRIMARY KEY  (id)
+)
+
+# Song usage auditing
+audit (
+  id int(24) NOT NULL auto_increment,      # Unique id
+  songid int(11) NOT NULL default '0',     # Id of song
+  playdate datetime NOT NULL default '0000-00-00 00:00:00', # When it was used
+  PRIMARY KEY  (id)
+)
+
 Database: bibleDb
 -----------------
 
@@ -207,5 +225,23 @@ verse (
   book        varchar(30)  not null,                  # Book title
   verse       text,                                   # Verse text
   PRIMARY KEY (verseid)
+)
+
+Database: mediaDb
+-----------------
+
+# Media Database
+media (
+  id int(10) unsigned NOT NULL auto_increment,   # Unique media id
+  category varchar(100) NOT NULL default '',     # Main category
+  subcategory varchar(100) NOT NULL default '',  # Sub category
+  type varchar(10) NOT NULL default '',          # [img|bg]
+  format varchar(10) NOT NULL default '',        # file format
+  insertedby varchar(100) NOT NULL default '',   # Who added this
+  insertdate datetime NOT NULL default '0000-00-00 00:00:00', # When they did it
+  description varchar(100) default '',           # Description of media
+  data mediumblob,                               # The media contents
+  PRIMARY KEY  (id),
+  UNIQUE KEY data (data(100),description,category,subcategory,type,format)
 )
 
