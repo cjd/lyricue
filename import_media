@@ -46,6 +46,7 @@ if ( $owner eq "root") { $owner="general" }
 my $type = $ARGV[0];
 my $dir = $ARGV[1]."/";
 $dir =~ s/\//\\\//g;
+$dir =~ s/ /\\ /g;
 my $dirlisting = `find $dir -follow -type f | sed -e 's/^$dir//g' | grep -v ".thumbnails/" | grep -v ".xvpics/" | grep -v "thumbnails/"`;
 my @items = split (/\n/, $dirlisting);
 my @date = localtime(time);
