@@ -115,8 +115,6 @@ use constant WAIT  => 16;
 
 my $VERSION  = "1.9";
 my $DEBUG           = FALSE;
-my $XINERAMA        = FALSE;
-my $LOOP            = "";
 my $pid             = 0;
 my $MINISERV        = FALSE;
 my $LOOPPARENT      = -1;      #Absolute parent for looping in sublists
@@ -261,13 +259,16 @@ while (Gtk2->events_pending) {
 if ($MINISERV) {
 	$window->show();
 	$window->realize();
-	$config->{'Width'}  /= $MINISCALE;
-	$config->{'Height'} /= $MINISCALE;
-	$window->set_default_size($config->{'Width'}, $config->{'Height'});
+	my $width  = $config->{'Width'};
+	my $height = $config->{'Height'};
+	$width  /= $MINISCALE;
+	$height /= $MINISCALE;
+	$window->resize($width, $height);
 	$window->set_title("Display preview");
 	$window->set_position("center");
 
 	debug("Running in MINISERV (preview window) mode\n");
+	print "W * H:" . $width . "*" . $height . "\n";
 } else {
 	$window->show();
 	$window->fullscreen();
@@ -279,23 +280,20 @@ while (Gtk2->events_pending) {
 	Gtk2->main_iteration;
 }
 
-($config->{'Width'}, $config->{'Height'}) = $window->get_size();
 print "W * H:" . $config->{'Width'} . "*" . $config->{'Height'} . "\n";
 
 my $canvas = Gnome2::Canvas->new();
 $canvas->set_scroll_region(1, 1, $config->{'Width'}, $config->{'Height'});
-$canvas->set_pixels_per_unit(1);
+$canvas->set_pixels_per_unit(1 / $MINISCALE);
 
 $window->add($canvas);
 my $root = $canvas->root;
+$canvas->show();
 
 # Find font sizes
 my $layout  = $window->create_pango_layout("lj");
 my $tmpdesc = Gtk2::Pango::FontDescription->from_string($config->{'Header'});
 $layout->set_font_description($tmpdesc);
-if ($MINISERV) {
-	$tmpdesc->set_size($tmpdesc->get_size() / $MINISCALE);
-}
 my ($headhigh, $headwide) = $layout->get_pixel_size;
 
 debug("Loading background\n");
@@ -336,13 +334,22 @@ debug("Creating text areas\n");
 
 # Song name - Top of screen
 $headerText = Gnome2::Canvas::Item->new(
-	$root, 'Gnome2::Canvas::Text',
-	x          => $config->{'Width'} / 2,
-	y          => $config->{'OverscanV'},
-	fill_color => $config->{'Colour'},
-	font       => $config->{'Header'},
-	anchor     => 'GTK_ANCHOR_N'
+	$root, 'Gnome2::Canvas::RichText',
+	x                => $config->{'Width'} / 2,
+	y                => $config->{'OverscanV'},
+	anchor           => 'GTK_ANCHOR_N',
+	width            => $config->{'Width'},
+	height           => 20,
+	'cursor-visible' => FALSE
 );
+
+my $buffer = $headerText->get_buffer();
+my $tag    = $buffer->create_tag(
+	"Header",            "font",      $config->{'Header'}, "foreground",
+	$config->{'Colour'}, "wrap-mode", "word",              "editable-set",
+	TRUE,                "editable",  FALSE
+);
+$buffer->apply_tag_by_name("Header", $buffer->get_bounds);
 
 # Song lyrics - Middle of screen
 $mainText = Gnome2::Canvas::Item->new(
@@ -356,8 +363,8 @@ $mainText = Gnome2::Canvas::Item->new(
 	$config->{'ShadowSize'},
 	'cursor-visible' => FALSE
 );
-my $buffer = $mainText->get_buffer();
-my $tag    =
+$buffer = $mainText->get_buffer();
+$tag    =
   $buffer->create_tag("Main", "font", $config->{'Main'}, "foreground",
 	$config->{'Colour'}, "wrap-mode", "word", "editable-set", TRUE, "editable",
 	FALSE);
@@ -384,13 +391,21 @@ $buffers->apply_tag_by_name("Main", $buffers->get_bounds);
 
 # Song Artist - Bottom of screen
 $footerText = Gnome2::Canvas::Item->new(
-	$root, 'Gnome2::Canvas::Text',
-	x          => $config->{'Width'} / 2,
-	y          => $config->{'Height'} - $config->{'OverscanV'},
-	fill_color => $config->{'Colour'},
-	font       => $config->{'Footer'},
-	anchor     => 'GTK_ANCHOR_S'
+	$root, 'Gnome2::Canvas::RichText',
+	x                => $config->{'Width'} / 2,
+	y                => $config->{'Height'} - $config->{'OverscanV'},
+	anchor           => 'GTK_ANCHOR_S',
+	width            => $config->{'Width'},
+	height           => 20,
+	'cursor-visible' => FALSE
 );
+$buffer = $footerText->get_buffer();
+$tag    = $buffer->create_tag(
+	"Footer",            "font",      $config->{'Footer'}, "foreground",
+	$config->{'Colour'}, "wrap-mode", "word",              "editable-set",
+	TRUE,                "editable",  FALSE
+);
+$buffer->apply_tag_by_name("Footer", $buffer->get_bounds);
 
 # callback registration
 $window->signal_connect("delete_event", \&CloseAppWindow);
@@ -456,6 +471,8 @@ my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
 
+Gtk2->do_event("expose");
+
 while (1) {
 	my @ready = $s->can_read(1);
 	foreach $h (@ready) {
@@ -489,6 +506,7 @@ sub process_input {
 	my ($input) = @_;
 	my $status = "";
 
+	debug("Received :" . $input . "\n");
 	if ($input) {
 		chomp($input);
 		my @line = split (/:/, $input);
@@ -513,9 +531,9 @@ sub process_input {
 			change_backdrop("bg", $config->{'BGImage'});
 			$status = "Backdrop changed to " . $config->{'BGImage'};
 		} elsif (/^blank$/) {
-			$headerText->set(text => "");
+			set_header("");
 			set_maintext("", NONE);
-			$footerText->set(text => "");
+			set_footer("");
 			$status = "Screen blanked";
 		} elsif (/^change_to_db$/) {
 			my $newdb = $line[1];
@@ -555,14 +573,17 @@ sub process_input {
 		} elsif (/^preview$/) {
 			$line[1] =~ s/#SEMI#/:/g;
 			my @extras = split (/#BREAK#/, $line[1]);
-			$headerText->set(text => $extras[0]);
+			set_header($extras[0]);
 			$line[2] =~ s/#BREAK#/\n/g;
 			$line[2] =~ s/#SEMI#/:/g;
 			$line[2] =~ s/<.*?>//g;
 			set_maintext($line[2], NONE);
 
-			$footerText->set(
-				text => "Written by " . $extras[1] . " - " . $extras[2]);
+			if ($extras[2]) {
+				set_footer("Written by " . $extras[1] . " - " . $extras[2]);
+			} else {
+				set_footer("Written by " . $extras[1]);
+			}
 		} elsif (/^loopparent$/) {
 			$LOOPPARENT = $line[1];
 			debug("Set loop parent to: " . $LOOPPARENT . "\n");
@@ -920,9 +941,9 @@ sub process_input {
 						for $fileobj (@fileexts) {
 							if ($row->{'data'} =~ /$fileobj/i) {
 								$bgimage_changed = TRUE;
-								$footerText->set(text => "");
+								set_footer("");
 								set_maintext("", NONE);
-								$headerText->set(text => "");
+								set_header("");
 								change_backdrop("full", $row->{'data'});
 							}
 						}
@@ -943,9 +964,9 @@ sub process_input {
 					}
 				} elsif ($row->{'type'} eq "imag") {
 					$bgimage_changed = TRUE;
-					$footerText->set(text => "");
+					set_footer("");
 					set_maintext("", NONE);
-					$headerText->set(text => "");
+					set_header("");
 					change_backdrop("img", $row->{'data'});
 				} elsif ($row->{'type'} eq "vers") {
 
@@ -1017,8 +1038,8 @@ sub process_input {
 					}
 					set_maintext($verse, $transition);
 
-					$headerText->set(text => $versetext);
-					$footerText->set(text => $globals->{'biblename'});
+					set_header($versetext);
+					set_footer($globals->{'biblename'});
 					$status = "Displaying " . $versetext . " verses " . $verses;
 				} elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
 					my $query =
@@ -1086,10 +1107,10 @@ sub process_input {
 						$current_point = -1;
 						@points        = ();
 					}
-					$headerText->set(text => $row2->{'title'});
+					set_header($row2->{'title'});
 					$row2->{'lyrics'} =~ s/<.*?>//g;
 					set_maintext($row2->{'lyrics'}, $row->{'transition'});
-					$footerText->set(text => $footer);
+					set_footer($footer);
 					$status =
 					  "Displaying "
 					  . $row2->{'title'} . " page "
@@ -1150,7 +1171,7 @@ sub HandleKey {
 	if (($data->{'keyval'} == 65361) || ($data->{'keyval'} == 65460)) {
 
 		#left
-		update_display("display", "prev_page", $LOOP);
+		update_display("display", "prev_page", $config->{'Loop'});
 	} elsif (($data->{'keyval'} == 65362) || ($data->{'keyval'} == 65464)) {
 
 		# up
@@ -1158,7 +1179,7 @@ sub HandleKey {
 	} elsif (($data->{'keyval'} == 65363) || ($data->{'keyval'} == 65462)) {
 
 		# right
-		update_display("display", "next_page", $LOOP);
+		update_display("display", "next_page", $config->{'Loop'});
 	} elsif (($data->{'keyval'} == 65364) || ($data->{'keyval'} == 65458)) {
 
 		# down
@@ -1337,7 +1358,6 @@ sub check_socket {
 	my ($socket, $condition, $flags) = @_;
 	my $new_sock = $socket->accept();
 	while (defined($_ = <$new_sock>)) {
-		debug($_);
 		my $stat = process_input($_);
 		chomp($stat);
 		print $new_sock $stat . "\n";
@@ -1373,11 +1393,6 @@ sub load_config {
 	}
 	$conf->{'BibleCount'} = $bibleCount;
 	$conf->{'AppCount'}   = $appCount;
-	if ($conf->{'Loop'}) {
-		$LOOP = "loop";
-	} else {
-		$LOOP = "";
-	}
 	return $conf;
 }
 
@@ -1420,9 +1435,6 @@ sub set_maintext {
 	$layout->set_width(($config->{'Width'} - ($config->{'OverscanH'} * 2) -
 		$config->{'ShadowSize'}) * PANGO_SCALE);
 	my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Main'});
-	if ($MINISERV) {
-		$desc->set_size($desc->get_size() / $MINISCALE);
-	}
 
 	# Find old/new dimensions
 	$layout->set_font_description($desc);
@@ -1592,7 +1604,6 @@ sub Configure_event {
 	if ($canvas) {
 		$canvas->set_pixels_per_unit($width / $config->{'Width'});
 
-		#	print $width/ $config->{'Width'} . "\n";
 	}
 }
 
@@ -1616,5 +1627,39 @@ sub mod {
 	my ($inp, $div) = @_;
 	my $rem = (($inp / $div) - (int($inp / $div))) * $div;
 	return $rem;
+}
+
+sub set_footer {
+	my ($text) = @_;
+	my $widget = Gtk2::Label->new();
+	my $layout = $widget->create_pango_layout("");
+	$layout->set_wrap('word');
+	$layout->set_width(($config->{'Width'} - ($config->{'OverscanH'} * 2) -
+		$config->{'ShadowSize'}) * PANGO_SCALE);
+	my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
+	$layout->set_font_description($desc);
+	$layout->set_text($text);
+	my ($w, $h) = $layout->get_pixel_size;
+	$footerText->set(width => $w, height => $h);
+	my $buffer = $footerText->get_buffer();
+	$buffer->set_text($text);
+	$buffer->apply_tag_by_name("Footer", $buffer->get_bounds);
+}
+
+sub set_header {
+	my ($text) = @_;
+	my $widget = Gtk2::Label->new();
+	my $layout = $widget->create_pango_layout("");
+	$layout->set_wrap('word');
+	$layout->set_width(($config->{'Width'} - ($config->{'OverscanH'} * 2) -
+		$config->{'ShadowSize'}) * PANGO_SCALE);
+	my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
+	$layout->set_font_description($desc);
+	$layout->set_text($text);
+	my ($w, $h) = $layout->get_pixel_size;
+	$headerText->set(width => $w, height => $h);
+	my $buffer = $headerText->get_buffer();
+	$buffer->set_text($text);
+	$buffer->apply_tag_by_name("Header", $buffer->get_bounds);
 }
 
