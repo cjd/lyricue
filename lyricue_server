@@ -224,7 +224,7 @@ foreach (keys %$config) {
 }
 
 my $pid =
-`ps -e -o pid,cmd | grep "Lyricue Server on port $globals->{'use_port'}" | grep -v "grep" |cut -f2 -d" " `;
+`ps -e -o pid,cmd | grep "Lyricue Server on port $globals->{'use_port'}" | grep -v "grep" |sed -e 's/^ *//g' | cut -f1 -d" " `;
 chomp($pid);
 if ($pid) {
 	debug("Lyricue Server was already running on given port, killing");
@@ -855,6 +855,13 @@ sub process_input {
 			my $imgsth = $lyricDbh->prepare($imgquery) || die "Error : $!";
 			$imgsth->execute || die "Error : $!";
 
+
+			#Reset background if an image was shown
+			if ($bgimage_changed) {
+				$bgimage_changed = FALSE;
+				change_backdrop("bg", $config->{'BGImage'});
+			}
+
 			if (my $imgrow = $imgsth->fetchrow_hashref()) {
 				change_backdrop("bg", $imgrow->{'imagename'});
 			}
@@ -993,12 +1000,6 @@ sub process_input {
 					update_display("display", $row->{'playorder'}, 0);
 
 				} else {
-
-					#Reset background if an image was shown
-					if ($bgimage_changed) {
-						$bgimage_changed = FALSE;
-						change_backdrop("bg", $config->{'BGImage'});
-					}
 					my $query2 =
 "SELECT title,artist,lyrics,copyright,pagenum FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid="
 					  . $row->{'data'};

@@ -482,10 +482,32 @@ sub add_playlist {
 		my $newiter = $model->append($iter);
 		$model->set(
 			$newiter, 0 => $title,
-			1 => $imagename,
+			1 => "",
 			2 => $row->{'playorder'},
 			3 => $row->{'transition'}
 		);
+
+		# Set sub-item if image associated
+		if ($imagename) {
+			my $imgiter = $model->append($newiter);
+			$model->set(
+				$imgiter, 0=>"* Image: ".$imagename,
+				1 => "",
+				2 => $row->{'playorder'},
+				3 => $row->{'transition'}
+			);
+		}
+
+		# Set sub-item if transition associated
+		if ($row->{'transition'}) {
+			my $imgiter = $model->append($newiter);
+			$model->set(
+				$imgiter, 0=>"* Page Transition Set",
+				1 => "",
+				2 => $row->{'playorder'},
+				3 => $row->{'transition'}
+			);
+		}
 		if (defined $id && $row->{'playorder'} == $id) {
 			$widgets->{'main'}->get_widget('treePlaylist')
 			  ->get_selection->select_iter($newiter);
@@ -5146,15 +5168,32 @@ sub apply_transition {
 			$trans_type = $trans_type + WAIT;
 		}
 
-		my $query =
-		  "UPDATE playlist SET transition="
-		  . $trans_type
-		  . " WHERE playorder="
-		  . $model->get($iter, 1);
-		debug($query);
+		my $query = "SELECT type,data FROM playlist WHERE playorder="
+			. $model->get($iter,2);
+		debug ($query);
 		my $sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		my $rv = $sth->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my @row = $sth->fetchrow_array();
+		if ($row[0] eq "play") {
+			$query = "UPDATE playlist SET transition="
+		  	. $trans_type
+		  	. " WHERE playorder="
+		  	. $model->get($iter, 2)
+			. " OR playlist="
+			. $row[1];
+		} else { 
+			$query =
+		  	"UPDATE playlist SET transition="
+		  	. $trans_type
+		  	. " WHERE playorder="
+		  	. $model->get($iter, 2);
+		}
+		debug($query);
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute
 		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 	}
 
@@ -5477,7 +5516,7 @@ sub quick_show {
 
 sub resize_preview {
 	my ($widget,$event) = @_;
-	print $event."\n";
+	#print $event."\n";
 	#debug ("Resizing previews");
 	#my $pos = $widgets->{'main'}->get_widget('hpanedMainRight')->get_position();
 	#my ($width,$height) = $widgets->{'preview'}->get_size();
