@@ -352,7 +352,7 @@ $window->show_all();
 $window->signal_connect("configure_event", \&Configure_event);
 Configure_event();
 
-if (!$MINISERV ) {
+if (!$MINISERV) {
 	$canvas->update_now();
 }
 
@@ -421,8 +421,8 @@ sub process_input {
 			  . $config->{'Main'} . ",B:"
 			  . $globals->{'bibledb'};
 		} elsif (/^reconfig$/) {
-		    	$config = load_config();
-				$status = "Configuration reloaded"
+			$config = load_config();
+			$status = "Configuration reloaded";
 		} elsif (/^backdrop$/) {
 			$config->{'BGImage'} = $line[1];
 			change_backdrop("bg", $config->{'BGImage'});
@@ -506,7 +506,8 @@ sub process_input {
 				debug("Changing playlist to " . $line[2]);
 				$current_list = $line[2];
 			} elsif ($line[1] eq "current") {
-			    	# ignore and just display same page
+
+				# ignore and just display same page
 			} elsif ($line[1] eq "next_page") {
 				my $query =
 				  "SELECT playlist FROM playlist WHERE playorder="
@@ -877,17 +878,23 @@ sub process_input {
 							if ($row->{'data'} =~ /$fileobj/i) {
 								$exec_pid = fork;
 								if ($exec_pid > 0) {
-									#my $wid = `xwininfo -name "Lyric Server" |grep "Window id:" | cut -f4 -d" "`;
+
+#my $wid = `xwininfo -name "Lyric Server" |grep "Window id:" | cut -f4 -d" "`;
 									my $command = "mplayer " . $row->{'data'};
 									if ($MINISERV >= 0) {
-										my ($x,$y,$wid,$high,$depth) = $window->window->get_geometry;
-										($x,$y) = $window->window->get_root_origin;
-										$command .= " -ao null -nofs -geometry ".$wid."x".$high."+".$x."+".$y;
+										my ($x, $y, $wid, $high, $depth) =
+										  $window->window->get_geometry;
+										($x, $y) =
+										  $window->window->get_root_origin;
+										$command .=
+										  " -ao null -nofs -geometry " . $wid
+										  . "x" . $high . "+" . $x . "+" . $y;
 									} else {
-										system ($command);
-										print $command."\n";
+										system($command);
+										print $command. "\n";
 									}
-									#system('mplayer ' . $row->{'data'} . ' -wid ' . $wid);
+
+#system('mplayer ' . $row->{'data'} . ' -wid ' . $wid);
 								}
 							}
 						}
@@ -1351,8 +1358,8 @@ sub load_config {
 		chomp;
 		my @line = split (/=/);
 		$line[0] =~ s/ *$//g;
-		if (! $line[1]) {
-			$line[1]="";
+		if (!$line[1]) {
+			$line[1] = "";
 		}
 		$line[1] =~ s/^ *//g;
 		if ($line[0] eq "Bible") {
@@ -1613,7 +1620,8 @@ sub display_fatal {
 	print STDERR "Error description\n";
 	print STDERR $message . "\n";
 	print STDERR "------------------\n";
-	my $errorxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError','lyricue');
+	my $errorxml =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
 	$errorxml->signal_autoconnect_from_package('');
 	$errorxml->get_widget('labelError')->set_text($message);
 	my $confirm = $errorxml->get_widget('dialogError')->run();
