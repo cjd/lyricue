@@ -5841,6 +5841,22 @@ sub init_miniview {
 }
 
 sub quick_save {
+    debug("Quick Save");
+    my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
+    my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
+    my $playorder = $widgets->{'main'}->get_widget('textQuick')->{user_data};
+    my $query = "SELECT data FROM playlist WHERE playorder=".$playorder;
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    my @row = $sth->fetchrow_array();
+    if (!defined $row[0]) { $row[0] = ""; }
+    $query = "UPDATE page SET lyrics=".$lyricDbh->quote(Encode::encode("iso-8859-1",$songtext))." WHERE pageid=".$row[0];
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 }
 
 # Just put the text in the quickview section onto the screen
@@ -6035,6 +6051,7 @@ sub update_quickedit {
         if (!defined $row[0]) { $row[0] = ""; }
         $widgets->{'main'}->get_widget('textQuick')
           ->get_buffer->set_text($row[0]);
+	$widgets->{'main'}->get_widget('textQuick')->{user_data}=$model->get($iter,2);
         $sth->finish;
     }
 }
