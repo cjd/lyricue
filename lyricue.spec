@@ -1,5 +1,5 @@
 %define name	lyricue
-%define version	1.9.2cvs20041001
+%define version	1.9.2
 %define release	1mdk
 
 Name:           %{name} 
@@ -53,5 +53,5 @@ cd /usr/share/lyricue
 /usr/share/lyricue/install -d
 
 %changelog 
-* Thu Oct 07 2004 Chris Debenham <chris@adebenham.com> 1.9.2cvs20041001-1mdk
+* Tue Mar 15 2004 Chris Debenham <chris@adebenham.com> 1.9.2
 - initial rpm release
