@@ -344,6 +344,9 @@ if ($globals->{'fast'}) {
     $headerText = Gtk2::Label->new();
     $mainText   = Gtk2::Label->new();
     $footerText = Gtk2::Label->new();
+    $headerText->set_line_wrap(TRUE);
+    $mainText->set_line_wrap(TRUE);
+    $footerText->set_line_wrap(TRUE);
     $vbox->pack_start($headerText, FALSE, FALSE, 0);
     $vbox->pack_start($mainText,   TRUE,  TRUE,  0);
     $vbox->pack_start($footerText, FALSE, FALSE, 0);
@@ -1050,7 +1053,7 @@ sub process_input {
                             $row->{'chapternum'} . ":"
                           . $row->{'versenum'} . "   "
                           . $row->{'verse'};
-                        $verse .= $line;
+                        $verse .= $line . "\n";
                     }
                     set_maintext($verse, $transition);
 
@@ -1500,6 +1503,9 @@ sub set_maintext {
         $mainText->modify_fg('normal', $colour);
         $mainText->modify_font($font_desc);
         $mainText->set_text($text);
+	$mainText->set_line_wrap(TRUE);
+	my ($x,$y) = $mainText->get_size_request();
+	print $x."x".$y." -pad\n";
     } else {
         if (!defined $transition) { $transition = 0; }
 
