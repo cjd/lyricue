@@ -2658,7 +2658,6 @@ sub add_image {
         my $column =
           Gtk2::TreeViewColumn->new_with_attributes("Filename", $renderer,
             text => 0);
-        $column->signal_connect("clicked", "change_preview");
         $widgets->{'image'}->get_widget('treeImage')->append_column($column);
         $widgets->{'image'}->get_widget('treeImage')
           ->get_selection->set_mode('multiple');
@@ -3270,7 +3269,7 @@ sub changeVerseStatus {
 # SOURCe
 #
 sub change_preview {
-    my (undef, $event) = @_;
+    debug ("Changing Preview");
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
     my @selecteditems = $selection->get_selected_rows();
     if ($selecteditems[0]) {
@@ -5371,7 +5370,6 @@ sub change_bgimage {
         my $column =
           Gtk2::TreeViewColumn->new_with_attributes("Filename", $renderer,
             text => 0);
-        $column->signal_connect("clicked", "change_preview");
         $widgets->{'image'}->get_widget('treeImage')->append_column($column);
     }
     update_imagedir("bg", "");
