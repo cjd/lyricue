@@ -763,8 +763,8 @@ sub popup_play_menu {
 			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 			my $row2 = $sth2->fetchrow_hashref();
 			my ($text);
-			$text->{'data'} = $row->{'data'};
-			$text->{'title'} = $row->{'title'};
+			$text->{'data'} = $row2->{'data'};
+			$text->{'title'} = $row2->{'title'};
 			push @list, $text;
 		}
 	}
@@ -2380,18 +2380,52 @@ sub add_image {
 	# Fill sublists dropbox
 	my $menu = Gtk2::Menu->new();
 	$widgets->{'image'}->get_widget('optionImageSublist')->set_menu($menu);
-	foreach ("test","test2","test3") {
-		my $item = Gtk2::MenuItem->new_with_label($_);
+	my $playlist = $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+	my $query = "SELECT title, data FROM playlist, playlists WHERE playlist.data = playlists.id AND playlist = " . $playlist . " AND type = 'sub'";
+	qdebug($query);
+	my $sth = $lyricDbh->prepare($query)
+	|| display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute
+	|| display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my $item = Gtk2::MenuItem->new_with_label("Main");
+	$item->{'user_data'} = $playlist;
+	$item->show();
+	$menu->append($item);
+	my (@list);
+	while ($row = $sth->fetchrow_hashref()) {
+		my $item = Gtk2::MenuItem->new_with_label($row->{'title'});
+		$item->{'user_data'} = $row->{'data'};
 		$item->show();
 		$menu->append($item);
+		my @childid = find_more_children($row->{'data'});
+		foreach (@childid) {
+			debug("Child sublist found. ID: " . $_);
+			my $query2 = "SELECT title FROM playlists WHERE id=" . $_;
+			qdebug($query2);
+			my $sth2 = $lyricDbh->prepare($query2)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			my $rv2 = $sth2->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			my $row2 = $sth2->fetchrow_hashref();
+			my $item = Gtk2::MenuItem->new_with_label($row2->{'title'});
+			$item->{'user_data'} = $row2->{'data'};
+			$item->show();
+			$menu->append($item);
+		}
 	}
+	$widgets->{'image'}->get_widget('optionImageSublist')->set_history(0);
+
 	update_imagedir("img", "");
 }
 
 sub update_imagedir {
 	my ($type, $dir) = @_;
 
-	debug("changing to $dir");
+	if ($dir eq "" ) {
+		debug("changing to basedir");
+	} else {
+		debug("changing to $dir");
+	}
 
 	# update list of available images
 	$widgets->{'image'}->get_widget('labelImage')->set_text($dir);
@@ -2907,12 +2941,12 @@ sub changeVerseStatus {
 # SYNOPSIS
 #   change_preview ($widget)
 # FUNCTION
-#   Change the preview of the background at the bottom of the main dialog
+#   Change the preview in the image dialog
 # INPUTS
 #   $widget - Calling widget
 # OUTPUT
 #   Change previews
-# SOURCE
+# SOURCe
 #
 sub change_preview {
 	my (undef, $event) = @_;
@@ -2931,12 +2965,9 @@ sub change_preview {
 		} else {
 			if ($globals->{'bg_previews'}) {
 				my $image =
-				  find_image($widgets->{'image'}->get_widget('labelImage')
-					->{'user_data'},
-					$widgets->{'image'}->get_widget('labelImage')->get_text
-					. "/"
-					. $filename);
-				my $scaled = create_pixbuf($filename, 480, 360);
+				  find_image($widgets->{'image'}->get_widget('labelImage')->{'user_data'}, $widgets->{'image'}->get_widget('labelImage')->get_text . "/" . $filename);
+				debug ($image);
+				my $scaled = create_pixbuf($image, 480, 360);
 				if ($scaled) {
 					$widgets->{'image'}->get_widget('imageImage')
 					  ->set_from_pixbuf($scaled);
@@ -3100,8 +3131,7 @@ sub do_add_image {
 	my ($widget) = @_;
 	my $playorder = 1;
 	my $image     = $widgets->{'image'}->get_widget('imageImage')->{user_data};
-	my $main_playlist =
-	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+	my $playlist = $widgets->{'image'}->get_widget('optionImageSublist')->get_menu->get_active->{'user_data'};
 	$query = "SELECT MAX(playorder) FROM playlist";
 	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
@@ -3117,7 +3147,7 @@ sub do_add_image {
 	$query =
 	  "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
 	  . $playorder . ", "
-	  . $main_playlist
+	  . $playlist
 	  . ", \"imag\", \"" . $image . "\")";
 	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
