@@ -2260,7 +2260,7 @@ sub clear_playlist {
 #
 sub display_song {
     my (undef, $event) = @_;
-    debug ("event $event");
+    #debug ("event $event");
     if (defined($event->type)) {
         if ($event->type eq '2button-press') {
             if ($globals->{'timer'}) {
@@ -5882,6 +5882,7 @@ sub quick_save {
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my @row = $sth->fetchrow_array();
     if (!defined $row[0]) { $row[0] = ""; }
+    
     $query =
         "UPDATE page SET lyrics="
       . $lyricDbh->quote(Encode::encode("iso-8859-1", $songtext))
@@ -6072,19 +6073,70 @@ sub update_quickedit {
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
+        my $quicktext = "";
 
+	my $plnumber = $model->get($iter,2);
+	my $loop = 0;
         # Find the items lyrics for Quick Editing
-        my $query =
-"SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder="
-          . $model->get($iter, 2);
-        qdebug($query);
-        $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-        my @row = $sth->fetchrow_array();
-        if (!defined $row[0]) { $row[0] = ""; }
+	while ($loop == 0) {
+	    my $query = "SELECT type,data,playlist FROM playlist WHERE playorder=".$plnumber;
+            qdebug($query);
+            $sth = $lyricDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            my @row = $sth->fetchrow_array();
+	    if ($row[0] eq "song") {
+                $query = "SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder=" . $plnumber;
+                qdebug($query);
+                $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row2 = $sth->fetchrow_array();
+                if (!defined $row2[0]) { $row2[0] = ""; }
+                $quicktext=$row2[0];
+		$loop = 1;
+                $widgets->{'main'}->get_widget('textQuick')->set_wrap_mode('none');
+	    } elsif ($row[0] eq "play") {
+		$query = "SELECT playorder FROM playlist WHERE playlist=".$row[1]." ORDER BY playorder";
+                qdebug($query);
+                $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row = $sth->fetchrow_array();
+		$plnumber=$row[0];
+		$loop = 0;
+	    } elsif ($row[0] eq "vers") {
+	    	my ($startv,$endv) =split(/-/,$row[1],2);
+	        $query = "SELECT title FROM playlists WHERE id=".$row[2];
+                qdebug($query);
+                $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row = $sth->fetchrow_array();
+		my @line = split(/:/,$row[0]);
+		$query = "SELECT chapternum,versenum,verse FROM verse WHERE book=\"".$line[0]."\" AND chapternum=".$line[1]." AND versenum>=".$startv." AND versenum <= ".$endv;
+                qdebug($query);
+                $sth = $bibleDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                while (@row = $sth->fetchrow_array()) {
+                    $quicktext .= $row[0].":".$row[1]."   ".$row[2]."\n";
+		}
+		$loop = 1;
+                $widgets->{'main'}->get_widget('textQuick')->set_wrap_mode('word');
+	    } elsif ($row[0] eq "imag") {
+	        $quicktext="Image";
+		$loop = 1;
+	    } elsif ($row[0] eq "back") {
+	        $quicktext="Background";
+		$loop = 1;
+	    } else {
+	    	$loop = 1;
+	    }
+	}
+
         $widgets->{'main'}->get_widget('textQuick')
-          ->get_buffer->set_text($row[0]);
+          ->get_buffer->set_text($quicktext);
         $widgets->{'main'}->get_widget('textQuick')->{user_data} =
           $model->get($iter, 2);
         $sth->finish;
