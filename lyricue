@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #****** lyricue/pod
 # NAME
@@ -94,18 +94,24 @@ die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
   unless (Gtk2->init_check);
 use Gtk2::GladeXML;
 use Gtk2::Pango;
-use Gtk2::Spell;
-use Gtk2::TrayIcon;
-use Locale::gettext;
-textdomain('lyricue');
-
-# Hack to get this working under mandrake
-use lib qw(/usr/lib/libDrakX);
-eval { require c::stuff };
+eval {require Locale::gettext};
 if ($@) {
-    bind_textdomain_codeset('lyricue', "UTF-8");
+    print "Gettext not available, english text only\n";
+    sub gettext {
+	return $@;
+    }
 } else {
-    c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
+    import Locale::gettext;
+    textdomain('lyricue');
+
+    # Hack to get this working under mandrake
+    use lib qw(/usr/lib/libDrakX);
+    eval { require c::stuff };
+    if ($@) {
+        bind_textdomain_codeset('lyricue', "UTF-8");
+    } else {
+        c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
+    }
 }
 
 #
@@ -143,6 +149,25 @@ $globals->{'miniview_port'} = "2348";    #port used for miniview
 $globals->{'update_timer'}  = FALSE;
 $globals->{'timer'}         = FALSE;
 $globals->{'debugging'}     = FALSE;
+$globals->{'spell'}         = TRUE;
+$globals->{'trayicon'}      = TRUE;
+
+# Optional modules
+eval {require Gtk2::Spell};
+if ($@) {
+    print "Gtk-Spell not available, spell checking turned off\n";
+    $globals->{'spell'} = FALSE;
+} else {
+    import Gtk2::Spell;
+}
+eval {require Gtk2::TrayIcon};
+if ($@) {
+    print "Gtk-Trayicon not available, Tray icon turned off\n";
+    $globals->{'trayicon'} = FALSE;
+} else {
+    import Gtk2::TrayIcon;
+}
+
 
 # Transitions
 use constant NORMAL     => 0;
@@ -344,17 +369,19 @@ $config = load_config();
 $globals->{'access'} = load_access();
 
 # Create tray icon
-debug("Creating Tray icons");
-my ($tray);
-eval { $tray = Gtk2::TrayIcon->new("Lyricue"); };
-if ($@) {
-    debug("Unable to load system tray");
-} else {
-    my $trayxml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'trayBar', 'lyricue');
-    $trayxml->signal_autoconnect_from_package('');
-    $tray->add($trayxml->get_widget('trayBar'));
-    $tray->show_all;
+if ($globals->{'trayicon'} ) {
+    debug("Creating Tray icons");
+    my ($tray);
+    eval { $tray = Gtk2::TrayIcon->new("Lyricue"); };
+    if ($@) {
+        debug("Unable to load system tray");
+    } else {
+        my $trayxml =
+          Gtk2::GladeXML->new($globals->{'gladefile'}, 'trayBar', 'lyricue');
+        $trayxml->signal_autoconnect_from_package('');
+        $tray->add($trayxml->get_widget('trayBar'));
+        $tray->show_all;
+    }
 }
 $0 = "Lyricue Interface";
 
@@ -5321,14 +5348,16 @@ sub bgdir_load {
 sub spell_check {
     my ($widget) = @_;
     my ($page);
-    debug("Running spell checker");
+    if ($globals->{'spell'}) {
+        debug("Running spell checker");
 
-    foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} } keys %pageOrder) {
-        if (!defined $widgets->{'spellAPage'}{$page}) {
-            $widgets->{'spellAPage'}{$page} =
-              Gtk2::Spell->new($widgets->{'textAPage'}{$page});
+        foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} } keys %pageOrder) {
+            if (!defined $widgets->{'spellAPage'}{$page}) {
+                $widgets->{'spellAPage'}{$page} =
+                  Gtk2::Spell->new($widgets->{'textAPage'}{$page});
+            }
+    
         }
-
     }
 }
 

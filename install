@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # Will try to load all needed perl modules, fails if any not available
 use Data::Dumper;
 use strict;
@@ -9,9 +9,12 @@ use Encode;
 use Gtk2;
 use Gtk2::GladeXML;
 use Gtk2::Pango;
-use Gtk2::Spell;
-use Gtk2::TrayIcon;
-use Gnome2::Canvas;
+eval {require Gtk2::Spell};
+if ($@) { print "Optional module Gtk2::Spell not available, please install for spell checking\n" };
+eval {require Gtk2::TrayIcon};
+if ($@) { print "Optional module Gtk2::TrayIcon not available, please install for Tray Icon\n" };
+eval {require Gnome2::Canvas};
+if ($@) { print "Optional module Gnome2::Canvas not available, please install for Fullserver\n" };
 use Getopt::Std;
 use Glib;
 

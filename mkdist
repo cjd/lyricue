@@ -29,10 +29,10 @@ cd ../..
 
 echo Creating lyricue-$VERSION.tar.bz2
 cd dist
-tar cfj lyricue-$VERSION.tar.bz2 lyricue-$VERSION
+tar cf - lyricue-$VERSION | bzip2 -c > lyricue-$VERSION.tar.bz2
 rm lyricue-$VERSION/mysql/MySQL_create_bible_KJV.sql
 echo Creating lyricue-upgrade-$VERSION.tar.bz2
-tar cfj lyricue-upgrade-$VERSION.tar.bz2 lyricue-$VERSION
+tar cf - lyricue-$VERSION | bzip2 -c > lyricue-upgrade-$VERSION.tar.bz2
 cd ..
 rm -rf dist/lyricue-$VERSION
 rm dist/*.dsc dist/*.changes
