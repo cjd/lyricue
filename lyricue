@@ -99,6 +99,10 @@ my ($globals);
 $globals->{'etcdir'}         = "/etc/lds/";
 $globals->{'basedir'}        = $ENV{'HOME'} . "/.lds/";
 $globals->{'sharedir'}       = "/usr/share/lds/";
+#
+# You shouldn't have to change anything after this line
+#
+$globals->{'version'}        = "1.9.1";
 $globals->{'accessfile'}     = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'}    = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}     = $globals->{'basedir'} . "config2";
@@ -112,23 +116,21 @@ $globals->{'lyricdb'}        = "lyricDb";
 $globals->{'bibledb'}        = "bibleDb";
 $globals->{'sortby'}         = "title";
 $globals->{'bg_previews'}    = 1;
+$globals->{'server_port'}  = "2346";  #port used for lyric server
+$globals->{'preview_port'} = "2347";  #port used for preview
+$globals->{'miniview_port'} = "2348"; #port used for miniview
 
-$globals->{'server_port'} = "2346";    #port used for lyric server communications
-$globals->{'preview_port'} = "2347";    #port used for preview window communications
-$globals->{'miniview_port'} = "2348";    #port used for preview window communications
-
-#
-# You shouldn't have to change anything after this line
-#
 # convenience variables for true and false
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
+# Transitions
 use constant NORMAL     => 0;
 use constant SLIDE_TEXT => 1;
 use constant WIPE       => 2;
 use constant CLIP       => 3;
 
+# Transition directions
 use constant NONE  => 0;
 use constant UP    => 1;
 use constant DOWN  => 2;
@@ -136,8 +138,6 @@ use constant RIGHT => 4;
 use constant LEFT  => 8;
 use constant WAIT  => 16;
 
-# Globals
-$globals->{'version'} = "1.9";
 
 # Local to this file only
 my ($mainxml, $choosexml, $prefsxml, $aboutxml);
@@ -322,7 +322,7 @@ exit(0);
 #   Closes the interface
 # SOURCE
 sub close_main {
-	
+
 	$lyricDbh->disconnect;
 	$bibleDbh->disconnect;
 	Gtk2->main_quit;
@@ -475,8 +475,6 @@ sub add_playlist {
 		my $imagename = "";
 		while (my $row3 = $sth3->fetchrow_hashref()) {
 			$imagename = $row3->{'imagename'};
-
-			#$title .= " ## A: " . $imagename . " ##";
 		}
 
 		my $newiter = $model->append($iter);
@@ -1932,8 +1930,7 @@ sub display_song {
 			} else {
 				if ($widgets->{'transitions'}
 					&& $widgets->{'transitions'}->get_widget(
-						'windowTransitions'))
-				{
+						'windowTransitions')) {
 					my $selection =
 					  $widgets->{'main'}->get_widget('treePlaylist')
 					  ->get_selection;
@@ -1983,6 +1980,8 @@ sub display_song {
 						$widgets->{'transitions'}->get_widget('entryTransNew')
 						  ->set_text($directions[$new_direction]);
 					}
+				} else {
+					preview_playlist_item();
 				}
 			}
 		}
@@ -2359,7 +2358,7 @@ sub update_imagedir {
 #
 sub update_display {
 	my ($command, $primary, $secondary) = @_;
-	debug ("Command: ".$command.":".$primary.":".$secondary."\n");
+	debug("Command: " . $command . ":" . $primary . ":" . $secondary . "\n");
 
 	if ($globals->{'access'} !~ /s/) {
 
@@ -2434,8 +2433,6 @@ sub update_display {
 #   1. Set bg in preview window to current bg in server
 #   2. Send command to show playlist item to server
 sub preview_playlist_item {
-	my ($widget) = @_;
-
 	debug("Previewing a playlist item...\n");
 
 	my $selection =
@@ -2467,13 +2464,13 @@ sub preview_playlist_item {
 #
 sub preview_display {
 	my ($command, $primary, $secondary) = @_;
-	debug ("Preview command: ".$command.":".$primary.":".$secondary."\n");
 	if (!defined($secondary)) {
 		$secondary = "";
 	}
 	if (!defined($primary)) {
 		$primary = "";
 	}
+	debug("Preview command: " . $command . ":" . $primary . ":" . $secondary . "\n");
 
 	PUPDATE: {
 		if (my $server = IO::Socket::INET->new(
@@ -2509,7 +2506,7 @@ sub preview_display {
 		} else {
 
 			#tcp/ip socket failure so server must be not running yet!
-			debug ("Preview not running?\n");
+			debug("Preview not running?\n");
 			init_preview();
 			redo PUPDATE;
 		}
@@ -2991,7 +2988,7 @@ sub backdrop_clicked {
 			if ($@) {
 				debug("Error loading " . $prevFile . "\n");
 			} else {
-				update_display("backdrop", $prevFile, "");
+				update_display("backdrop",  $prevFile, "");
 				preview_display("backdrop", $prevFile, "");
 				my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
 				$widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
@@ -4718,9 +4715,9 @@ sub init_mainWindow {
 	$widgets->{'main'}->get_widget('treePlaylist')
 	  ->drag_dest_set('all', ['copy'], @target_table);
 
-
 	init_preview();
 	init_miniview();
+
 	# Show the window finally
 	$widgets->{'main'}->get_widget('windowMain')->show;
 	if (!$globals->{'debugging'}) {
@@ -4850,8 +4847,7 @@ sub bgdir_load {
 				$widgets->{'buttons'}[$counter] = new Gtk2::Button();
 				$widgets->{'buttons'}[$counter]
 				  ->add($widgets->{'pixmaps'}[$counter]);
-				$widgets->{'buttons'}[$counter]->{user_data} =
-				  ("BG:" . $_);
+				$widgets->{'buttons'}[$counter]->{user_data} = ("BG:" . $_);
 				$widgets->{'pixmaps'}[$counter]->show();
 				$widgets->{'buttons'}[$counter]->show();
 				$widgets->{'buttons'}[$counter]
@@ -4892,7 +4888,7 @@ sub spell_check {
 	debug("Running spell checker\n");
 
 	foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} } keys %pageOrder) {
-		if (! defined $widgets->{'spellAPage'}{$page}) {
+		if (!defined $widgets->{'spellAPage'}{$page}) {
 			$widgets->{'spellAPage'}{$page} =
 			  Gtk2::Spell->new($widgets->{'textAPage'}{$page});
 		}
@@ -5373,47 +5369,61 @@ sub find_image {
 sub init_preview {
 	my $socket = Gtk2::Socket->new;
 	$socket->show;
-	$socket->set_size_request(280,210);
+	$socket->set_size_request(280, 210);
 	$widgets->{'main'}->get_widget('framePreview')->add($socket);
-	debug(sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id,$globals->{'preview_port'}));
+	debug(
+		sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id,
+			$globals->{'preview_port'}));
 
 	$preview_pid = fork;
-	if ($preview_pid<0) {
-		display_fatal ("Unable to start the lyricue server as a preview window",$!);
+	if ($preview_pid < 0) {
+		display_fatal("Unable to start the lyricue server as a preview window",
+			$!);
 	}
 	if ($preview_pid == 0) {
-		exec (sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id, $globals->{'preview_port'}));
+		exec(
+			sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id,
+				$globals->{'preview_port'}));
 	}
-	print $preview_pid." - pid\n";
+	print $preview_pid. " - pid\n";
 
-	$socket->signal_connect('plug-removed' => sub {
-		debug ("Lyricue preview died..restarting\n");
-		$widgets->{'main'}->get_widget('framePreview')->remove($socket);
-		init_preview();
-		1;
-	});
+	$socket->signal_connect(
+		'plug-removed' => sub {
+			debug("Lyricue preview died..restarting\n");
+			$widgets->{'main'}->get_widget('framePreview')->remove($socket);
+			init_preview();
+			1;
+		}
+	);
 }
 
-sub init_miniview{
+sub init_miniview {
 	my $socket = Gtk2::Socket->new;
 	$socket->show;
-	$socket->set_size_request(280,210);
+	$socket->set_size_request(280, 210);
 	$widgets->{'main'}->get_widget('frameCurrent')->add($socket);
-	debug(sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id,$globals->{'miniview_port'}));
+	debug(
+		sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id,
+			$globals->{'miniview_port'}));
 
 	$miniview_pid = fork;
-	if ($miniview_pid<0) {
-		display_fatal ("Unable to start the lyricue server as a preview window",$!);
+	if ($miniview_pid < 0) {
+		display_fatal("Unable to start the lyricue server as a preview window",
+			$!);
 	}
 	if ($miniview_pid == 0) {
-		exec (sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id, $globals->{'miniview_port'}));
+		exec(
+			sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id,
+				$globals->{'miniview_port'}));
 	}
-	print $miniview_pid." - pid\n";
+	print $miniview_pid. " - pid\n";
 
-	$socket->signal_connect('plug-removed' => sub {
-		debug ("Lyricue Currentview died..restarting\n");
-		$widgets->{'main'}->get_widget('frameCurrent')->remove($socket);
-		init_preview();
-		1;
-	});
+	$socket->signal_connect(
+		'plug-removed' => sub {
+			debug("Lyricue Currentview died..restarting\n");
+			$widgets->{'main'}->get_widget('frameCurrent')->remove($socket);
+			init_preview();
+			1;
+		}
+	);
 }
