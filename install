@@ -64,6 +64,7 @@ my %replace = ( $sharedir."lyricue.png" => 0644,
 		$sharedir."lyricue-icon.png" => 0644,
 		$sharedir."lyricue.glade" => 0644,
 		$bindir."lyricue" => 0644,
+		$bindir."lyricue_remote" => 0644,
 		$bindir."lyricue_server" =>0644);
 
 my %addonly = (	$etcdir."access.conf" => 0644,
@@ -95,7 +96,7 @@ if ($ARGV[0] eq "-u") {
 		exit;
 	}
 	print "Removing executables\n";
-	system ("rm $bindir/lyricue $bindir/lyricue_server");
+	system ("rm $bindir/lyricue $bindir/lyricue_server $bindir/lyricue_remote");
 	print "Removing most files in share directory\n";
 	system ("rm $sharedir/*");
 	print "Removing Documentation\n";
