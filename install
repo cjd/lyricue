@@ -36,6 +36,7 @@ my $etcdir   = $prefix."/etc/lds/";
 my $sharedir = $prefix."/usr/share/lds/";
 my $docdir = $prefix."/usr/share/doc/lds/";
 my $localedir = $prefix."/usr/share/locale/";
+my @parentdirs = ($prefix."/etc",$prefix."/usr", $prefix."/usr/share", $prefix."/usr/share/doc", $prefix."/usr/share/locale");
 
 my %replace = ( $sharedir."lyricue.png" => 0644,
 		$sharedir."lyricue-icon.png" => 0644,
@@ -94,9 +95,9 @@ if ($ARGV[0] eq "-u") {
 	}
 	print "\n\nUninstalled\n";
 } else {
-	if ($install_db) {
+	if ($install_files) {
 		print "Creating directories:\n";
-		foreach my $dir ( $bindir,$etcdir,$sharedir,$docdir) {
+		foreach my $dir (@parentdirs, $bindir,$etcdir,$sharedir,$docdir) {
 			print "dir -> ".$dir."\n";
 			mkdir $dir,0755;
 		}
@@ -138,6 +139,7 @@ if ($ARGV[0] eq "-u") {
 		    	my $locale=$_;
 		    	$locale =~ s/\.mo$//g;
 		    	my $locdir = $localedir.$locale."/LC_MESSAGES";
+		    	mkdir $localedir.$locale;
 		    	mkdir $locdir;
 		    	print "translation -> ".$locdir."\n";
 		    	system ("cp po/".$locale.".mo ".$locdir."/lyricue.mo");
