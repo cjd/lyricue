@@ -3540,6 +3540,8 @@ sub create_dialog_prefs {
       ->set_value($config->{'OverscanH'});
     $widgets->{'prefs'}->get_widget('checkPrefXinerama')
       ->set_active($config->{'Xinerama'});
+    $widgets->{'prefs'}->get_widget('checkPrefCentreY')
+      ->set_active($config->{'CentreY'});
     $widgets->{'prefs'}->get_widget('entryPrefHeader')
       ->set_text($config->{'Header'});
     $widgets->{'prefs'}->get_widget('entryPrefMain')
@@ -4649,6 +4651,9 @@ sub save_preferences {
       . "\n";
     print CONFIG "Xinerama = "
       . $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
+      . "\n";
+    print CONFIG "CentreY = "
+      . $widgets->{'prefs'}->get_widget('checkPrefCentreY')->get_active()
       . "\n";
     print CONFIG "BGImage = "
       . $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} . "\n";

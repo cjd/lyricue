@@ -153,6 +153,7 @@ my $preview_item    = 0;
 my $current_point   = -1;
 my $steps           = 20;
 my $bgimage_changed = FALSE;
+my $headerHeight    = 0;
 my ($background);
 my @points;
 
@@ -1451,11 +1452,16 @@ sub set_maintext {
     # Copy the old mainText to oldText
     $oldText = $mainText;
 
+    my $top_y = ($config->{'Height'} - $config->{'ShadowSize'}) / 2;
+    if (defined $config->{'CenterY'} && $config->{'CentreY'} eq "" ){
+    	$top_y = $headerHeight;
+    }
+
     # Create a new mainText;
     $mainText = Gnome2::Canvas::Item->new(
         $root, 'Gnome2::Canvas::RichText',
         x      => ($config->{'Width'} - $config->{'ShadowSize'}) / 2,
-        y      => ($config->{'Height'} - $config->{'ShadowSize'}) / 2,
+        y      => $top_y,
         anchor => 'GTK_ANCHOR_CENTER',
         width  => $config->{'Width'} - ($config->{'OverscanH'} * 2) -
           $config->{'ShadowSize'},
@@ -1501,6 +1507,9 @@ sub set_maintext {
     $h = $h + 10;
     my $centreX = $config->{'Width'} / 2;
     my $centreY = $config->{'Height'} / 2;
+    if (defined $config->{'CentreY'} && $config->{'CentreY'} == 0) {
+    	$centreY = ($h/2) + $headerHeight;
+    }
 
     my @items = ();
     if ($effect == SLIDE_TEXT) {
@@ -1686,8 +1695,8 @@ sub Configure_event {
 
     }
     $window->set_size_request($width, $config->{'Height'} / $MINISCALE);
-    debug($width . "x" . ($config->{'Height'} / $MINISCALE));
-    debug("Scale: " . $MINISCALE);
+    #debug($width . "x" . ($config->{'Height'} / $MINISCALE));
+    #debug("Scale: " . $MINISCALE);
 }
 
 sub display_fatal {
@@ -1780,6 +1789,7 @@ sub set_header {
     my ($w, $h) = $layout->get_pixel_size;
     $w = $w + 10;
     $h = $h + 10;
+    $headerHeight=$h;
     if ($headerText) { $headerText->destroy(); }
     $headerText = Gnome2::Canvas::Item->new(
         $root, 'Gnome2::Canvas::RichText',
