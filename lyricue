@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 #****** lyricue/pod
 # NAME
@@ -14,7 +14,7 @@ lyricue
 
 =head1 SYNOPSIS
 
-lyricue [ C<-v|-b|-l> C<-d> C<-s> I<server>]
+lyricue [ C<-v|-b|-l> C<-d[q]> C<-s> I<server>]
 
 =head1 DESCRIPTION
 
@@ -31,6 +31,10 @@ Get lyricue version
 =item B<-d>
 
 Turn on debugging mode. Prints out debugging information
+
+=item B<-dq>
+
+Turn on query debugging mode. Prints out debugging information and all db queries
 
 =item B<-l>
 
@@ -62,7 +66,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyric_interface Version 1.9.1
+Lyric_interface Version 1.9.2
 
 =cut
 
@@ -81,6 +85,7 @@ Lyric_interface Version 1.9.1
 # Modules we use.
 #
 use strict;
+use warnings;
 use DBI;
 use POSIX;
 use IO::Socket::INET;
@@ -109,20 +114,17 @@ $globals->{'sharedir'} = "/usr/share/lds/";
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}        = "1.9.1";
-$globals->{'accessfile'}     = $globals->{'etcdir'} . "access.conf";
-$globals->{'defaultconf'}    = $globals->{'etcdir'} . "default.conf";
-$globals->{'configfile'}     = $globals->{'basedir'} . "config2";
-$globals->{'bgpath_user'}    = $globals->{'basedir'} . "backgrounds/";
-$globals->{'imgpath_user'}   = $globals->{'basedir'} . "images/";
-$globals->{'bgpath_system'}  = $globals->{'sharedir'} . "backgrounds/";
-$globals->{'imgpath_system'} = $globals->{'sharedir'} . "images/";
-$globals->{'gladefile'}      = $globals->{'sharedir'} . "lyricue.glade";
-$globals->{'host'}           = "localhost";
-$globals->{'lyricdb'}        = "lyricDb";
-$globals->{'bibledb'}        = "bibleDb";
-$globals->{'sortby'}         = "title";
-$globals->{'bg_previews'}    = 1;
+$globals->{'version'}     = "1.9.2";
+$globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
+$globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
+$globals->{'configfile'}  = $globals->{'basedir'} . "config2";
+$globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
+$globals->{'host'}        = "localhost";
+$globals->{'lyricdb'}     = "lyricDb";
+$globals->{'bibledb'}     = "bibleDb";
+$globals->{'mediadb'}     = "mediaDb";
+$globals->{'sortby'}      = "title";
+$globals->{'bg_previews'} = 1;
 $globals->{'server_port'}   = "2346";    #port used for lyric server
 $globals->{'preview_port'}  = "2347";    #port used for preview
 $globals->{'miniview_port'} = "2348";    #port used for miniview
@@ -156,7 +158,10 @@ $errorcodes->{'lyricdbopen'} =
 "I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running";
 $errorcodes->{'bibledbopen'} =
 "I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named ";
-$errorcodes->{'sqlprepare'} = "Unable to prepare query.\nHas mysql died?";
+$errorcodes->{'mediadbopen'} =
+"I'm sorry but I could not open the media database.\nPlease confirm that Lyricue is installed correctly and MySql is running";
+$errorcodes->{'sqlprepare'} =
+  "Unable to prepare query.\nHas mysql died?";
 $errorcodes->{'sqlexecute'} = "Unable to execute query.\nHas mysql died?";
 $errorcodes->{'socketopen'} =
 "Sorry, I was unable to listen on the network.\nPlease make sure I am not already running";
@@ -217,19 +222,20 @@ if ($ARGV[0]) {
 
 			# ignore
 		} else {
-			print "\nUsage: lyricue <-v|-l> <-b> <-k> <-d> <-s>\n\n";
-			print "\t-v: Prints Lyricue version information & exits\n";
-			print "\t-l: Outputs song list in HTML & exits\n";
-			print "\t-b: Loads Lyricue without background previews\n";
+			print "\nUsage: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n\n";
+			print "\t-v:  Prints Lyricue version information & exits\n";
+			print "\t-l:  Outputs song list in HTML & exits\n";
+			print "\t-b:  Loads Lyricue without background previews\n";
 			print
-			  "\t-s: Specify the host on which the lyric server is located\n";
-			print "\t-d: Prints debugging messages\n\n";
+			  "\t-s:  Specify the host on which the lyric server is located\n";
+			print "\t-d:  Prints debugging messages\n";
+			print "\t-dq: Prints debugging messages + sql\n\n";
 			exit;
 		}
 	}
 }
 
-# Open lyricDB and bibleDB
+# Open lyricDB, bibleDB and mediaDb
 my $lyricDbh =
   DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}", "lyric",
 	"") || display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
@@ -238,6 +244,9 @@ my $bibleDbh =
 	"")
   || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
 	$DBI::errstr);
+my $mediaDbh =
+  DBI->connect("DBI:mysql:$globals->{'mediadb'}:$globals->{'host'}", "lyric",
+	"") || display_fatal($errorcodes->{'mediadbopen'}, $DBI::errstr);
 
 # Some global stuff
 my ($query, $row, $sth, $rv);
@@ -251,14 +260,10 @@ if (-e $globals->{'basedir'}) {
 		print
 		  "Old ~/.lds existed but was not a directory, moving to ~/.lds.orig\n";
 		rename $globals->{'basedir'}, $globals->{'basedir'} . ".orig";
-		mkdir $globals->{'basedir'},      0777;
-		mkdir $globals->{'bgpath_user'},  0777;
-		mkdir $globals->{'imgpath_user'}, 0777;
+		mkdir $globals->{'basedir'}, 0777;
 	}
 } else {
-	mkdir $globals->{'basedir'},      0777;
-	mkdir $globals->{'bgpath_user'},  0777;
-	mkdir $globals->{'imgpath_user'}, 0777;
+	mkdir $globals->{'basedir'}, 0777;
 }
 
 $widgets->{'main'} =
@@ -320,11 +325,13 @@ exit(0);
 #   Closes the interface
 # SOURCE
 sub close_main {
-
+	debug("Quitting");
+    	$sth->destroy();
 	$lyricDbh->disconnect;
 	$bibleDbh->disconnect;
+	$mediaDbh->disconnect;
 	Gtk2->main_quit;
-	if ($globals->{'preview_pid'}) { kill 9, $globals->{'preview_pid'}; }
+	if ($globals->{'preview_pid'})  { kill 9, $globals->{'preview_pid'}; }
 	if ($globals->{'miniview_pid'}) { kill 9, $globals->{'miniview_pid'}; }
 	exit();
 	return FALSE;
@@ -421,11 +428,27 @@ sub add_playlist {
 
 		my $title = "";
 		if ($row->{'type'} eq "back") {
-			$title = "Background : " . $row->{'data'};
+			my $query2 =
+			  "SELECT description FROM media WHERE id=\""
+			  . $row->{'data'} . "\"";
+			my $sth2 = $mediaDbh->prepare($query2)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			my $rv2 = $sth2->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			my $row2 = $sth2->fetchrow_hashref();
+			$title = "Background : " . $row2->{'description'};
 		} elsif ($row->{'type'} eq "file") {
 			$title = "File: " . $row->{'data'};
 		} elsif ($row->{'type'} eq "imag") {
-			$title = "Image: " . $row->{'data'};
+			my $query2 =
+			  "SELECT description FROM media WHERE id=\""
+			  . $row->{'data'} . "\"";
+			my $sth2 = $mediaDbh->prepare($query2)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			my $rv2 = $sth2->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			my $row2 = $sth2->fetchrow_hashref();
+			$title = "Image: " . $row2->{'description'};
 		} elsif ($row->{'type'} eq "vers") {
 			$title = $row->{'data'};
 		} elsif ($row->{'type'} eq "song") {
@@ -497,9 +520,16 @@ sub add_playlist {
 
 		# Set sub-item if image associated
 		if ($imagename) {
+			my $query2 =
+			  "SELECT description FROM media WHERE id=\"" . $imagename . "\"";
+			my $sth2 = $mediaDbh->prepare($query2)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			my $rv2 = $sth2->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			my $row2    = $sth2->fetchrow_hashref();
 			my $imgiter = $model->append($newiter);
 			$model->set(
-				$imgiter, 0 => "* Image: " . $imagename,
+				$imgiter, 0 => "* Background: " . $row2->{'description'},
 				1 => "",
 				2 => $row->{'playorder'},
 				3 => $row->{'transition'}
@@ -2009,7 +2039,7 @@ sub display_song {
 	my (undef, $event) = @_;
 	if (defined($event->type)) {
 		if ($event->type eq '2button-press') {
-			if (defined $globals->{'timer'}) {
+			if ($globals->{'timer'}) {
 
 				#Cancel any loop timers
 				debug("Cancelling loop timers");
@@ -2453,41 +2483,47 @@ sub add_image {
 }
 
 sub update_imagedir {
-	my ($type, $dir) = @_;
+	my ($type, $category) = @_;
 
-	if ($dir eq "") {
-		debug("changing to basedir");
+	if ($category eq "") {
+		debug("changing to Main");
+		$category = "Main";
 	} else {
-		debug("changing to $dir");
+		debug("changing to $category");
 	}
-
-	# update list of available images
-	$widgets->{'image'}->get_widget('labelImage')->set_text($dir);
-	$widgets->{'image'}->get_widget('labelImage')->{'user_data'} = $type;
-	my $store = Gtk2::ListStore->new('Glib::String');
-	my ($sys, $user, $sys_sed, $user_sed);
-	if ($type eq "bg") {
-		$sys  = $globals->{'bgpath_system'};
-		$user = $globals->{'bgpath_user'};
-	} else {
-		$sys  = $globals->{'imgpath_system'};
-		$user = $globals->{'imgpath_user'};
-	}
-	$sys_sed = $sys;
-	$sys_sed =~ s/\//\\\//g;
-	$user_sed = $user;
-	$user_sed =~ s/\//\\\//g;
-	my $dirlisting =
-`find $sys $user -follow -type f -maxdepth 1 | sed -e 's/^$sys_sed//g' | sed -e 's/^$user_sed//g' | sort -u`;
-
-	my @items = split (/\n/, $dirlisting);
 
 	# display sorted list
+
+	# update list of available images
+	$widgets->{'image'}->get_widget('labelImage')->set_text($category);
+	$widgets->{'image'}->get_widget('labelImage')->{'user_data'} = $type;
+	my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
 	my $iter = $store->append;
-	$store->set($iter, 0, "..");
-	foreach (sort { uc($a) cmp uc($b) } @items) {
+	$store->set($iter, 0, "CATEGORY: Main", 1, "0");
+
+	$query =
+	  "SELECT DISTINCT category FROM media WHERE type=\"" . $type
+	  . "\" AND category != \"Main\"";
+	qdebug($query);
+	$sth = $mediaDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while ($row = $sth->fetchrow_hashref()) {
 		$iter = $store->append;
-		$store->set($iter, 0, $_);
+		$store->set($iter, 0, "CATEGORY: " . $row->{'category'}, 1, "0");
+	}
+
+	$query =
+	  "SELECT * FROM media WHERE category LIKE \""
+	  . $category
+	  . "\" AND type=\"" . $type . "\"";
+	qdebug($query);
+	$sth = $mediaDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while ($row = $sth->fetchrow_hashref()) {
+		$iter = $store->append;
+		$store->set($iter, 0, $row->{'description'}, 1, $row->{'id'});
 	}
 	$widgets->{'image'}->get_widget('treeImage')->set_model($store);
 }
@@ -2994,32 +3030,26 @@ sub change_preview {
 		  $widgets->{'image'}->get_widget('treeImage')
 		  ->get_model->get_iter($selecteditems[0]);
 
-		my $filename =
+		my $id =
 		  $widgets->{'image'}->get_widget('treeImage')
-		  ->get_model->get($iter, 0);
-		if ($filename eq "..") {
+		  ->get_model->get($iter, 1);
+		if ($id == 0) {
 
-			# go up a dir
-			my $dir = $widgets->{'image'}->get_widget('labelImage')->get_text;
-			$dir =~ s/^(.*)\/.*$/$1/g;
+			my $category =
+			  $widgets->{'image'}->get_widget('treeImage')
+			  ->get_model->get($iter, 0);
+			$category =~ s/^CATEGORY: //g;
 			update_imagedir(
 				$widgets->{'image'}->get_widget('labelImage')->{'user_data'},
-				$dir);
+				$category);
 		} else {
 			if ($globals->{'bg_previews'}) {
-				my $image =
-				  find_image($widgets->{'image'}->get_widget('labelImage')
-					->{'user_data'},
-					$widgets->{'image'}->get_widget('labelImage')->get_text
-					. "/"
-					. $filename);
-				debug($image);
-				my $scaled = create_pixbuf($image, 480, 360);
+				my $scaled = create_pixbuf($id, 480, 360);
 				if ($scaled) {
 					$widgets->{'image'}->get_widget('imageImage')
 					  ->set_from_pixbuf($scaled);
 					$widgets->{'image'}->get_widget('imageImage')->{user_data} =
-					  $filename;
+					  $id;
 				}
 			}
 		}
@@ -3046,7 +3076,6 @@ sub set_default_backdrop {
 	my ($widget) = @_;
 	my $image = $widgets->{'image'}->get_widget('imageImage')->{user_data};
 	if ($image) {
-		$image = find_image("bg", $image);
 		my $scaled = create_pixbuf($image, 100, 75);
 		if ($scaled) {
 			$widgets->{'prefs'}->get_widget('imagePrefBG')
@@ -3138,9 +3167,8 @@ sub backdrop_clicked {
 		debug("Changing backdrop to " . $widget->{user_data});
 		if ($globals->{'bg_previews'}) {
 			my $prevFile = $widget->{user_data};
-			$prevFile =~ s/^BG://g;
-			my $image = find_image("bg", $widgets->{'buttonCurr'}->{user_data});
-			my $scaled = create_pixbuf($image, 72, 54);
+			my $scaled   =
+			  create_pixbuf($widgets->{'buttonCurr'}->{user_data}, 72, 54);
 
 			if ($scaled) {
 				$widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
@@ -3148,8 +3176,7 @@ sub backdrop_clicked {
 				  $widgets->{'buttonCurr'}->{user_data};
 			}
 
-			$image = find_image("bg", $prevFile);
-			$scaled = create_pixbuf($image, 72, 54);
+			$scaled = create_pixbuf($prevFile, 72, 54);
 			if ($scaled) {
 				$widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
 				$widgets->{'buttonCurr'}->{user_data} = $prevFile;
@@ -3197,7 +3224,7 @@ sub do_add_image {
 	}
 
 	foreach (@list) {
-		my $image = $model->get($model->get_iter($_), 0);
+		my $image = $model->get($model->get_iter($_), 1);
 		debug($image);
 		$query =
 		  "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
@@ -3285,8 +3312,7 @@ sub create_dialog_prefs {
 	  ->set_active($config->{'DynamicPreview'});
 	$widgets->{'prefs'}->get_widget('checkPrefMiniview')
 	  ->set_active($config->{'Miniview'});
-	my $image = find_image("bg", $config->{'BGImage'});
-	my $scaled = create_pixbuf($image, 72, 54);
+	my $scaled = create_pixbuf($config->{'BGImage'}, 72, 54);
 
 	if ($scaled) {
 		$widgets->{'prefs'}->get_widget('imagePrefBG')
@@ -4629,8 +4655,6 @@ sub find_more_children {
 sub associate_bg {
 	my ($imagefile) = @_;
 
-	$imagefile =~ s/BG://;
-
 	debug("Associating bg " . $imagefile . " with " . $ASSOCIATE[0]);
 
 	my $query = "DELETE FROM associations WHERE playlist=" . $ASSOCIATE[0];
@@ -4752,9 +4776,7 @@ sub init_mainWindow {
 	debug("Initializing main window");
 
 	# Load bg thumbnails
-	my $backdrop = find_image("bg", $config->{'BGImage'});
-
-	my $scaled = create_pixbuf($backdrop, 72, 52);
+	my $scaled = create_pixbuf($config->{'BGImage'}, 72, 52);
 	if ($scaled) {
 		my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
 		$widgets->{'pixmapCurr'} = $pixmap;
@@ -4767,8 +4789,7 @@ sub init_mainWindow {
 		$widgets->{'buttonCurr'}->show();
 		$widgets->{'buttonCurr'}->signal_connect("clicked", "backdrop_clicked");
 	}
-	my $image = find_image("bg", $config->{'BGImage'});
-	$scaled = create_pixbuf($image, 72, 52);
+	$scaled = create_pixbuf($config->{'BGImage'}, 72, 52);
 	if ($scaled) {
 		my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
 		$widgets->{'pixmapPrev'} = $pixmap;
@@ -4858,32 +4879,20 @@ sub bgdir_list {
 	debug("Loading directory list");
 	my $counter = 0;
 	debug("Adding Main image dir button");
-	$widgets->{'dirbuttons'}[$counter] = new Gtk2::Button("Main");
-	$widgets->{'main'}->get_widget('vboxBackDir')
-	  ->add($widgets->{'dirbuttons'}[$counter]);
-	$widgets->{'dirbuttons'}[$counter]
-	  ->signal_connect("clicked", \&bgdir_change, '/');
-	$widgets->{'dirbuttons'}[$counter]->show;
-	$counter++;
-
-	my $a = $globals->{'bgpath_system'};
-	my $b = $globals->{'bgpath_user'};
-	$a =~ s/\//\\\//g;
-	$b =~ s/\//\\\//g;
-	my $dirlisting =
-`find $globals->{'bgpath_system'} $globals->{'bgpath_user'} -follow -type d -maxdepth 1| sed -e 's/^$a//g' | sed -e 's/^$b//g' | sort -u`;
-	my @directories = split (/\n/, $dirlisting);
-	foreach (@directories) {
-		if ($_ ne "") {
-			debug("Adding image dir button for " . $_);
-			$widgets->{'dirbuttons'}[$counter] = new Gtk2::Button($_);
-			$widgets->{'main'}->get_widget('vboxBackDir')
-			  ->add($widgets->{'dirbuttons'}[$counter]);
-			$widgets->{'dirbuttons'}[$counter]
-			  ->signal_connect("clicked", \&bgdir_change, '/' . $_);
-			$widgets->{'dirbuttons'}[$counter]->show;
-			$counter++;
-		}
+	my $query = "SELECT DISTINCT category FROM media WHERE type=\"bg\"";
+	my $sth   = $mediaDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while ($row = $sth->fetchrow_hashref()) {
+		debug("Adding image dir button for " . $row->{'category'});
+		$widgets->{'dirbuttons'}[$counter] =
+		  new Gtk2::Button($row->{'category'});
+		$widgets->{'main'}->get_widget('vboxBackDir')
+		  ->add($widgets->{'dirbuttons'}[$counter]);
+		$widgets->{'dirbuttons'}[$counter]
+		  ->signal_connect("clicked", \&bgdir_change, $row->{'category'});
+		$widgets->{'dirbuttons'}[$counter]->show;
+		$counter++;
 	}
 }
 
@@ -4896,15 +4905,15 @@ sub bgdir_list {
 #   Clears background image preview buttions
 #   Calls bgdir_load to create new buttons
 # INPUTS
-#   $directory - background image directory to load images from
+#   $category - background image category to load images from
 # OUTPUT
 #   Updated background preview buttons
 # SOURCE
 #
 sub bgdir_change {
-	my ($widget, $directory) = @_;
-	debug("Changing background source directory to "
-		. $directory
+	my ($widget, $category) = @_;
+	debug("Changing background source category to "
+		. $category
 		. "\nDestroying old images");
 	my $count = 0;
 	if ($widgets->{'buttons'}) {
@@ -4916,8 +4925,8 @@ sub bgdir_change {
 			$count++;
 		}
 	}
-	bgdir_load($directory);
-	debug("Background directory change complete");
+	bgdir_load($category);
+	debug("Background category change complete");
 }
 
 #***
@@ -4926,60 +4935,55 @@ sub bgdir_change {
 # NAME
 #   bgdir_load --
 # SYNOPSIS
-#   bgdir_load ($directory)
+#   bgdir_load ($category)
 # FUNCTION
 #   Create new preview pixmaps and buttons
 # INPUTS
-#   $directory - background image directory to load images from
+#   $category - background image category to load images from
 # OUTPUT
 #   Updated background preview buttons
 # SOURCE
 #
 sub bgdir_load {
-	my ($directory) = @_;
+	my ($category) = @_;
 
 	# update list of available backdrops
-	debug("Loading new preview images from: " . $directory);
+	debug("Loading new preview images from: " . $category);
 
 	# Disable dir buttons
 	$widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(FALSE);
-
-	my $sys  = $globals->{'bgpath_system'};
-	my $user = $globals->{'bgpath_user'};
-	$sys  =~ s/\//\\\//g;
-	$user =~ s/\//\\\//g;
-	my $dirlisting =
-`find $globals->{'bgpath_system'}/$directory $globals->{'bgpath_user'}/$directory -maxdepth 1 -follow -type f -name \\*\\.\\* | sed -e 's/^$sys//g' | sed -e 's/^$user//g' | sort -u`;
-	my @items = split (/\n/, $dirlisting);
-
 	$widgets->{'main'}->get_widget('hboxBackImage')->hide();
+
+	my $query =
+	  "SELECT id FROM media WHERE category=\""
+	  . $category
+	  . "\" AND type=\"bg\"";
+	my $sth = $mediaDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 	my $counter = 0;
-	if ($globals->{'bg_previews'}) {
-		foreach (sort { uc($b) cmp uc($a) } @items) {
+	while ($row = $sth->fetchrow_hashref()) {
 
-			while (Gtk2->events_pending) {
-				Gtk2->main_iteration;
-			}
-			my $image = find_image("bg", $_);
-			my $scaled = create_pixbuf($image, 64, 48);
-			if ($scaled) {
-				my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
+		while (Gtk2->events_pending) {
+			Gtk2->main_iteration;
+		}
+		my $scaled = create_pixbuf($row->{'id'}, 64, 48);
+		if ($scaled) {
+			my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
 
-				$widgets->{'pixmaps'}[$counter] = $pixmap;
-				$widgets->{'buttons'}[$counter] = new Gtk2::Button();
-				$widgets->{'buttons'}[$counter]
-				  ->add($widgets->{'pixmaps'}[$counter]);
-				$widgets->{'buttons'}[$counter]->{user_data} = ("BG:" . $_);
-				$widgets->{'pixmaps'}[$counter]->show();
-				$widgets->{'buttons'}[$counter]->show();
-				$widgets->{'buttons'}[$counter]
-				  ->signal_connect("clicked", "backdrop_clicked", \$widgets);
-				$widgets->{'main'}->get_widget('hboxBackImage')
-				  ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE,
-					0);
+			$widgets->{'pixmaps'}[$counter] = $pixmap;
+			$widgets->{'buttons'}[$counter] = new Gtk2::Button();
+			$widgets->{'buttons'}[$counter]
+			  ->add($widgets->{'pixmaps'}[$counter]);
+			$widgets->{'buttons'}[$counter]->{user_data} = ($row->{'id'});
+			$widgets->{'pixmaps'}[$counter]->show();
+			$widgets->{'buttons'}[$counter]->show();
+			$widgets->{'buttons'}[$counter]
+			  ->signal_connect("clicked", "backdrop_clicked", \$widgets);
+			$widgets->{'main'}->get_widget('hboxBackImage')
+			  ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE, 0);
 
-				$counter++;
-			}
+			$counter++;
 		}
 	}
 	$widgets->{'main'}->get_widget('hboxBackImage')->show();
@@ -5083,6 +5087,7 @@ sub change_bgimage {
 		$widgets->{'image'}->get_widget('treeImage')->append_column($column);
 	}
 	update_imagedir("bg", "");
+	return TRUE;
 }
 
 #****m* lyricue/create_dialogSublist
@@ -5471,45 +5476,6 @@ sub search_changed {
 	$globals->{'update_timer'} = Glib::Timeout->add(500, \&update_available);
 }
 
-sub find_image {
-	my ($type, $backdrop) = @_;
-	if ($type eq "img") {
-		if (-e $globals->{'imgpath_user'} . $backdrop
-			&& -r $globals->{'imgpath_user'} . $backdrop)
-		{
-			$backdrop = $globals->{'imgpath_user'} . $backdrop;
-		} elsif (-e $globals->{'imgpath_system'} . $backdrop
-			&& -r $globals->{'imgpath_system'} . $backdrop)
-		{
-			$backdrop = $globals->{'imgpath_system'} . $backdrop;
-		} else {
-			debug("Unable to read " . $backdrop . " in any image directories");
-		}
-	} elsif ($type eq "bg") {
-		if (-e $globals->{'bgpath_user'} . $backdrop
-			&& -r $globals->{'bgpath_user'} . $backdrop)
-		{
-			$backdrop = $globals->{'bgpath_user'} . $backdrop;
-		} elsif (-e $globals->{'bgpath_system'} . $backdrop
-			&& -r $globals->{'bgpath_system'} . $backdrop)
-		{
-			$backdrop = $globals->{'bgpath_system'} . $backdrop;
-		} else {
-			debug("Unable to read "
-				. $backdrop
-				. " in any background directories");
-		}
-	} else {
-		if (-e $backdrop && -r $backdrop) {
-
-			# All OK
-		} else {
-			debug("Unable to read " . $backdrop);
-		}
-	}
-	return $backdrop;
-}
-
 sub init_preview {
 
 	# Start/stop miniview as needed
@@ -5625,19 +5591,29 @@ sub resize_preview {
 	return FALSE;
 }
 
-# Return a Gdk::Pixbuf of the given file at the given res
+# Return a Gdk::Pixbuf of the given media at the given res
 sub create_pixbuf {
-	my ($filename, $width, $height) = @_;
+	my ($id, $width, $height) = @_;
 	my ($pixbuf);
-	if ($filename =~ /\.bg$/) {
-		$filename =~ s/^.*\/(.*?)\.bg$/$1/g;
-		my @xpm = ("1 1 1 1", "  c " . $filename, " ");
+	my $query =
+	  "SELECT format, description, data FROM media WHERE id=\"" . $id . "\"";
+	qdebug($query);
+	my $sth = $mediaDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my $row = $sth->fetchrow_hashref();
+	if ($row->{'format'} eq "bg") {
+		my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
 		$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
 	} else {
-		eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($filename); };
+		my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+		eval { $pixbuf_loader->write($row->{'data'}); };
+		eval { $pixbuf_loader->close() };
 		if ($@) {
-			debug("Error loading " . $filename . "\n");
-			return FALSE;
+			my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
+			$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
+		} else {
+			$pixbuf = $pixbuf_loader->get_pixbuf();
 		}
 	}
 
@@ -5648,27 +5624,37 @@ sub create_pixbuf {
 	}
 }
 
-
 sub import_media {
-	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
+	my $filexml =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
 	$filexml->signal_autoconnect_from_package('');
-	$filexml->get_widget('buttonFileOK')->signal_connect("clicked", "do_import_media", $filexml);
+	$filexml->get_widget('buttonFileOK')
+	  ->signal_connect("clicked", "select_category", $filexml);
 }
 
-sub do_import_media {
+sub select_category {
 	my ($widget, $filexml) = @_;
 	my $hashnum  = 0;
 	my $filename = $filexml->get_widget('dialogFile')->get_filename;
-	my $description = $filename;
-	$description =~ s/^.*\/([^\/]*)\.(.*?)$/$1/g;
-	my $type = $filename;
-	$type =~ s/^.*\.(.*?)$/$1/g;
-	debug ("Full filename: $filename");
-	debug ("Description: $description");
-	debug ("Type: $type");
-	debug ("Category: $category");
+	debug($filename);
+	my $choosexml =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
+	$choosexml->get_widget('buttonLoad')->set_label("Select");
+	$choosexml->get_widget('buttonDelete')->hide();
+	$choosexml->get_widget('buttonRename')->hide();
+	$choosexml->get_widget('buttonLoad')
+	  ->signal_connect("clicked", "do_import_media", $choosexml);
+	$choosexml->get_widget('buttonNew')
+	  ->signal_connect("clicked", "new_category");
+	$choosexml->get_widget('buttonCancel')
+	  ->signal_connect("clicked", "close_dialog");
+	$choosexml->get_widget('windowChoosePlay')->show;
+	$choosexml->get_widget('windowChoosePlay')->{'user_data'} = $filename;
+	close_dialog($widget);
+}
 
-	open(MEDIA, $filename) || close_dialog($widget);
-	close MEDIA;
+sub do_import_media {
+	my ($widget, $choosexml) = @_;
+	debug("Loading media");
 	close_dialog($widget);
 }

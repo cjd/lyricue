@@ -173,6 +173,7 @@ if ($ARGV[0] eq "-u") {
 	my @ary = DBI->data_sources("mysql");
 	my $lyricdb = 0;
 	my $bibledb = 0;
+	my $mediadb = 0;
 	foreach ( @ary ) {
 		if (/lyricDb/) {
 			print "Found lyricDb\n";
@@ -180,6 +181,9 @@ if ($ARGV[0] eq "-u") {
 		} elsif (/bibleDb/) {
 			print "Found bibleDb\n";
 			$bibledb = 1;
+		} elsif (/mediaDb/) {
+		    	print "Found mediaDb\n";
+			$mediadb = 1;
 		}
 	}
 	
@@ -210,11 +214,21 @@ if ($ARGV[0] eq "-u") {
 			system ("cat mysql/Update_1.9.sql | mysql -u root --password=$rootpw");
 			print "Done\n";
 		}
+
 	}
 	
 	if (! $bibledb) {
 		system ("cat mysql/MySQL_create_bible_KJV.sql | mysql -u root --password=$rootpw");
 	}
+
+	if (! $mediadb) {
+		print "Importing backgrounds/images";
+	    	system ("cat mysql/Update_1.9.2.sql | mysql -u root --password=$rootpw");
+		system ("./import_media img $sharedir/images");
+		system ("./import_media bg $sharedir/backgrounds");
+		print "Done\n";
+	}
+
 	system("mysqladmin -uroot --password=$rootpw reload");
 	
 	print "Please enter the user that you will be administering Lyricue from: ";

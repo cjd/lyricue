@@ -55,7 +55,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyricue_server Version 1.9.1
+Lyricue_server Version 1.9.2
 
 =cut
 
@@ -113,19 +113,16 @@ $globals->{'sharedir'} = "/usr/share/lds/";
 # You shouldn't have to change anything after this line
 #
 
-$globals->{'version'}        = "1.9.1";
-$globals->{'accessfile'}     = $globals->{'etcdir'} . "access.conf";
-$globals->{'defaultconf'}    = $globals->{'etcdir'} . "default.conf";
-$globals->{'configfile'}     = $globals->{'basedir'} . "config2";
-$globals->{'bgpath_user'}    = $globals->{'basedir'} . "backgrounds/";
-$globals->{'imgpath_user'}   = $globals->{'basedir'} . "images/";
-$globals->{'bgpath_system'}  = $globals->{'sharedir'} . "backgrounds/";
-$globals->{'imgpath_system'} = $globals->{'sharedir'} . "images/";
-$globals->{'gladefile'}      = $globals->{'sharedir'} . "lyricue.glade";
-$globals->{'host'}           = "localhost";
-$globals->{'lyricdb'}        = "lyricDb";
-$globals->{'bibledb'}        = "bibleDb";
-$globals->{'biblename'}      = "King James Version";
+$globals->{'version'}     = "1.9.2";
+$globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
+$globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
+$globals->{'configfile'}  = $globals->{'basedir'} . "config2";
+$globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
+$globals->{'host'}        = "localhost";
+$globals->{'lyricdb'}     = "lyricDb";
+$globals->{'mediadb'}     = "mediaDb";
+$globals->{'bibledb'}     = "bibleDb";
+$globals->{'biblename'}   = "King James Version";
 $globals->{'use_port'}      = "2346";    #port used for lyric server socket
 $globals->{'server_port'}   = "2346";    #port used for lyric server socket
 $globals->{'preview_port'}  = "2347";    #port used for lyric server socket
@@ -200,9 +197,7 @@ if ($ARGV[0]) {
 # Read the config file
 if (!-w $globals->{'configfile'}) {
 	if (!-d $globals->{'basedir'}) {
-		mkdir $globals->{'basedir'},      0777;
-		mkdir $globals->{'bgpath_user'},  0777;
-		mkdir $globals->{'imgpath_user'}, 0777;
+		mkdir $globals->{'basedir'}, 0777;
 	}
 	system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
 }
@@ -236,6 +231,10 @@ if ($pid) {
 my $lyricDbh =
   DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}", "lyric",
 	"") || display_fatal($errorcodes->{'lyricdbopen'}, $!);
+
+my $mediaDbh =
+  DBI->connect("DBI:mysql:$globals->{'mediadb'}:$globals->{'host'}", "lyric",
+	"") || display_fatal($errorcodes->{'mediadbopen'}, $!);
 
 my $bibleDbh =
   DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}", "lyric",
@@ -275,8 +274,10 @@ if ($MINISERV >= 0) {
 } else {
 	$window->show();
 	$window->fullscreen();
-	my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef,0,1,1);
-	my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap($bitmap,$bitmap,Gtk2::Gdk::Color->new(0,0,0),Gtk2::Gdk::Color->new(0,0,0),0,0);
+	my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
+	my $cursor =
+	  Gtk2::Gdk::Cursor->new_from_pixmap($bitmap, $bitmap,
+		Gtk2::Gdk::Color->new(0, 0, 0), Gtk2::Gdk::Color->new(0, 0, 0), 0, 0);
 	$window->window->set_cursor($cursor);
 
 	debug("Running in SERVER (normal) mode");
@@ -308,7 +309,7 @@ $layout->set_font_description($tmpdesc);
 my ($headhigh, $headwide) = $layout->get_pixel_size;
 
 debug("Loading background");
-change_backdrop("bg", $config->{'BGImage'});
+change_backdrop($config->{'BGImage'});
 
 debug("Creating text areas");
 
@@ -428,7 +429,7 @@ sub process_input {
 			$status = "Configuration reloaded";
 		} elsif (/^backdrop$/) {
 			$config->{'BGImage'} = $line[1];
-			change_backdrop("bg", $config->{'BGImage'});
+			change_backdrop($config->{'BGImage'});
 			$status = "Backdrop changed to " . $config->{'BGImage'};
 		} elsif (/^blank$/) {
 			set_header("");
@@ -840,11 +841,11 @@ sub process_input {
 			#Reset background if an image was shown
 			if ($bgimage_changed) {
 				$bgimage_changed = FALSE;
-				change_backdrop("bg", $config->{'BGImage'});
+				change_backdrop($config->{'BGImage'});
 			}
 
 			if (my $imgrow = $imgsth->fetchrow_hashref()) {
-				change_backdrop("bg", $imgrow->{'imagename'});
+				change_backdrop($imgrow->{'imagename'});
 			}
 
 			if ($exec_pid > 0) {
@@ -858,7 +859,7 @@ sub process_input {
 				if ($row->{'type'} eq "back") {
 					my $file = $row->{'data'};
 					$config->{'BGImage'} = $file;
-					change_backdrop("bg" . $file);
+					change_backdrop($file);
 				} elsif ($row->{'type'} eq "file") {
 					if (-r $row->{'data'}) {
 						my ($fileobj, @fileexts);
@@ -871,7 +872,7 @@ sub process_input {
 								set_footer("");
 								set_maintext("", NONE);
 								set_header("");
-								change_backdrop("full", $row->{'data'});
+								change_backdrop($row->{'data'});
 							}
 						}
 
@@ -907,7 +908,7 @@ sub process_input {
 					set_footer("");
 					set_maintext("", NONE);
 					set_header("");
-					change_backdrop("img", $row->{'data'});
+					change_backdrop($row->{'data'});
 				} elsif ($row->{'type'} eq "vers") {
 
 					# Kill invalid points from previous songs
@@ -917,7 +918,7 @@ sub process_input {
 					#Reset background if an image was shown
 					if ($bgimage_changed) {
 						$bgimage_changed = FALSE;
-						change_backdrop("bg", $config->{'BGImage'});
+						change_backdrop($config->{'BGImage'});
 					}
 
 					my $query =
@@ -1140,52 +1141,22 @@ sub HandleKey {
 # FUNCTION
 #   Loads an image and sets it as the screens background
 # INPUTS
-#   $type - where to find it
-#   $backdrop - filename of image
+#   $id - id of image
 # OUTPUT
 #   Updates screen
 # SOURCE
 #
 sub change_backdrop {
-	my ($type, $backdrop) = @_;
-	if ($type eq "img") {
-		if (-e $globals->{'imgpath_user'} . $backdrop
-			&& -r $globals->{'imgpath_user'} . $backdrop)
-		{
-			$backdrop = $globals->{'imgpath_user'} . $backdrop;
-		} elsif (-e $globals->{'imgpath_system'} . $backdrop
-			&& -r $globals->{'imgpath_system'} . $backdrop)
-		{
-			$backdrop = $globals->{'imgpath_system'} . $backdrop;
-		} else {
-			debug("Unable to read " . $backdrop . " in any image directories");
-		}
-	} elsif ($type eq "bg") {
-		if (-e $globals->{'bgpath_user'} . $backdrop
-			&& -r $globals->{'bgpath_user'} . $backdrop)
-		{
-			$backdrop = $globals->{'bgpath_user'} . $backdrop;
-		} elsif (-e $globals->{'bgpath_system'} . $backdrop
-			&& -r $globals->{'bgpath_system'} . $backdrop)
-		{
-			$backdrop = $globals->{'bgpath_system'} . $backdrop;
-		} else {
-			debug("Unable to read "
-				. $backdrop
-				. " in any background directories");
-		}
-	} else {
-		if (-e $backdrop && -r $backdrop) {
-
-			# All OK
-		} else {
-			debug("Unable to read " . $backdrop);
-		}
-	}
-
-	if ($backdrop =~ /\.bg$/) {
-		$backdrop =~ s/^.*\/(.*?)\.bg$/$1/g;
-		debug("Changing backdrop colour to " . $backdrop);
+	my ($id) = @_;
+	my $query =
+	  "SELECT format, description, data FROM media WHERE id=\"" . $id . "\"";
+	debug($query);
+	my $sth = $mediaDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my $row = $sth->fetchrow_hashref();
+	if ($row->{'format'} eq "bg") {
+		debug("Changing backdrop colour to " . $row->{'description'});
 		if (defined $background) {
 			$background->destroy;
 		}
@@ -1195,14 +1166,18 @@ sub change_backdrop {
 			y1          => 0,
 			x2          => $config->{'Width'},
 			y2          => $config->{'Height'},
-			fill_color  => $backdrop,
+			fill_color  => $row->{'description'},
 			width_units => 0
 		);
 	} else {
-		debug("Changing backdrop image to " . $backdrop);
-		my $pixbuf = create_pixbuf($backdrop, 0, 0);
-
-		if ($pixbuf) {
+		debug("Changing backdrop image to " . $row->{'description'});
+		my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+		eval { $pixbuf_loader->write($row->{'data'}); };
+		eval { $pixbuf_loader->close() };
+		if ($@) {
+			debug("Unable to load background: $row->{'description'}");
+		} else {
+			my $pixbuf = $pixbuf_loader->get_pixbuf();
 			if (defined $background) {
 				$background->destroy;
 			}
@@ -1714,28 +1689,5 @@ sub set_header {
 	);
 	$buffer->set_text($text);
 	$buffer->apply_tag_by_name("Header", $buffer->get_bounds);
-}
-
-# Return a Gdk::Pixbuf of the given file at the given res
-sub create_pixbuf {
-	my ($filename, $width, $height) = @_;
-	my ($pixbuf);
-	if ($filename =~ /\.bg$/) {
-		$filename =~ s/^.*\/(.*?)\.bg$/$1/g;
-		my @xpm = ("1 1 1 1", "  c " . $filename, " ");
-		$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
-	} else {
-		eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($filename); };
-		if ($@) {
-			debug("Error loading " . $filename . "\n");
-			return FALSE;
-		}
-	}
-
-	if ($width == 0) {
-		return $pixbuf;
-	} else {
-		return $pixbuf->scale_simple($width, $height, 'bilinear');
-	}
 }
 
