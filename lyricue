@@ -2735,11 +2735,8 @@ sub update_imagedir {
     $widgets->{'image'}->get_widget('optionImageCategory')->set_menu($menu);
     my $item = Gtk2::MenuItem->new_with_label("Main");
     $item->show();
+    $item->{user_data} = "Main";
     $menu->append($item);
-
-    #my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
-    #my $iter = $store->append;
-    #$store->set($iter, 0, "CATEGORY: Main", 1, "0");
 
     $query =
         "SELECT DISTINCT category FROM media WHERE type=\"" . $type
@@ -2754,8 +2751,6 @@ sub update_imagedir {
 	$item->show();
 	$menu->append($item);
 
-        #$iter = $store->append;
-        #$store->set($iter, 0, "CATEGORY: " . $row->{'category'}, 1, "0");
     }
     $widgets->{'image'}->get_widget('optionImageCategory')->set_history($history);
 
@@ -6064,6 +6059,9 @@ q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate,
             $description, $data);
     }
     close_dialog($widget);
+    my $category = $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data};
+    update_imagedir(
+    $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'},$category);
 }
 
 sub update_category {
