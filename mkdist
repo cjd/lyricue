@@ -1,36 +1,38 @@
 #!/bin/sh
 
+VERSION=`head -1 debian/changelog |sed -e 's/^.*(\(.*\)).*$/\1/g'`
+
 echo Removing old dist files
 rm -rf dist/lyricue*
 
 echo Copying new dist files
-mkdir dist/lyricue-$1
-cp images/black.png import_media install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server access.conf default.conf dist/lyricue-$1
+mkdir dist/lyricue-$VERSION
+cp images/black.png import_media install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server access.conf default.conf dist/lyricue-$VERSION
 
-for F in black white gray red green blue yellow orange;do touch dist/lyricue-$1/$F.bg;done
+for F in black white gray red green blue yellow orange;do touch dist/lyricue-$VERSION/$F.bg;done
 
-mkdir dist/lyricue-$1/po
-for F in po/*.po;do LANG=`basename $F .po`; msgfmt po/$LANG.po -o dist/lyricue-$1/po/$LANG.mo;done
+mkdir dist/lyricue-$VERSION/po
+for F in po/*.po;do LANG=`basename $F .po`; msgfmt po/$LANG.po -o dist/lyricue-$VERSION/po/$LANG.mo;done
 
-mkdir dist/lyricue-$1/docs
-cp docs/AUTHORS docs/COPYING docs/Development.txt docs/example_song.txt docs/INSTALL docs/NEWS docs/README docs/song_template.txt docs/TODO docs/User_Guide.pdf dist/lyricue-$1/docs
+mkdir dist/lyricue-$VERSION/docs
+cp docs/AUTHORS docs/COPYING docs/Development.txt docs/example_song.txt docs/INSTALL docs/NEWS docs/README docs/song_template.txt docs/TODO docs/User_Guide.pdf dist/lyricue-$VERSION/docs
 
-mkdir dist/lyricue-$1/mysql
-cp mysql/MySQL_create_bible_KJV.sql mysql/MySQL_create_Table.sql mysql/Update_1.2.sql mysql/Update_1.9.sql mysql/MySQL_create_media.sql dist/lyricue-$1/mysql
+mkdir dist/lyricue-$VERSION/mysql
+cp mysql/MySQL_create_bible_KJV.sql mysql/MySQL_create_Table.sql mysql/Update_1.2.sql mysql/Update_1.9.sql mysql/MySQL_create_media.sql dist/lyricue-$VERSION/mysql
 
 echo Creating debian package
-cp -R debian dist/lyricue-$1
-cd dist/lyricue-$1
+cp -R debian dist/lyricue-$VERSION
+cd dist/lyricue-$VERSION
 dpkg-buildpackage -rfakeroot
 cd ../..
 rm dist/*.tar.gz dist/*.dsc dist/*.asc dist/*.changes 2>/dev/null
-rm -rf dist/lyricue-$1/debian
+rm -rf dist/lyricue-$VERSION/debian
 
-echo Creating lyricue-$1.tar.gz
+echo Creating lyricue-$VERSION.tar.gz
 cd dist
-tar cfz lyricue-$1.tar.gz lyricue-$1
-rm lyricue-$1/mysql/MySQL_create_bible_KJV.sql
-echo Creating lyricue-upgrade-$1.tar.gz
-tar cfz lyricue-upgrade-$1.tar.gz lyricue-$1
+tar cfz lyricue-$VERSION.tar.gz lyricue-$VERSION
+rm lyricue-$VERSION/mysql/MySQL_create_bible_KJV.sql
+echo Creating lyricue-upgrade-$VERSION.tar.gz
+tar cfz lyricue-upgrade-$VERSION.tar.gz lyricue-$VERSION
 cd ..
-rm -rf dist/lyricue-$1
+rm -rf dist/lyricue-$VERSION
