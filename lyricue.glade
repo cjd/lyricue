@@ -6607,6 +6607,50 @@ http://www.adebenham.com/lyricue</property>
       <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
       <property name="toolbar_style">GTK_TOOLBAR_ICONS</property>
       <property name="tooltips">True</property>
+<child> 	 
+         <widget class="button" id="buttonTrayPS"> 	 
+           <property name="visible">True</property> 	 
+           <property name="label">gtk-goto-first</property> 	 
+           <property name="use_stock">True</property> 	 
+           <signal name="clicked" handler="prev_song" last_modification_time="Thu, 20 Nov 2003 04:43:09 GMT"/> 	 
+         </widget> 	 
+       </child> 	 
+  	 
+       <child> 	 
+         <widget class="button" id="buttonTrayPP"> 	 
+           <property name="visible">True</property> 	 
+           <property name="label">gtk-go-back</property> 	 
+           <property name="use_stock">True</property> 	 
+           <signal name="clicked" handler="prev_page" last_modification_time="Thu, 20 Nov 2003 04:43:02 GMT"/> 	 
+         </widget> 	 
+       </child> 	 
+  	 
+       <child> 	 
+         <widget class="button" id="buttonTrayNP"> 	 
+           <property name="visible">True</property> 	 
+           <property name="label">gtk-go-forward</property> 	 
+           <property name="use_stock">True</property> 	 
+           <signal name="clicked" handler="next_page" last_modification_time="Thu, 20 Nov 2003 04:42:52 GMT"/> 	 
+         </widget> 	 
+       </child> 	 
+  	 
+       <child> 	 
+         <widget class="button" id="buttonTrayNS"> 	 
+           <property name="visible">True</property> 	 
+           <property name="label">gtk-goto-last</property> 	 
+           <property name="use_stock">True</property> 	 
+           <signal name="clicked" handler="next_song" last_modification_time="Thu, 20 Nov 2003 04:42:26 GMT"/> 	 
+         </widget> 	 
+       </child> 	 
+  	 
+       <child> 	 
+         <widget class="button" id="buttonTrayC"> 	 
+           <property name="visible">True</property> 	 
+           <property name="label">gtk-clear</property> 	 
+           <property name="use_stock">True</property> 	 
+           <signal name="clicked" handler="blank_page" last_modification_time="Thu, 20 Nov 2003 04:43:18 GMT"/> 	 
+         </widget> 	 
+       </child>
     </widget>
   </child>
 </widget>
