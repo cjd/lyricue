@@ -160,8 +160,7 @@ $errorcodes->{'bibledbopen'} =
 "I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named ";
 $errorcodes->{'mediadbopen'} =
 "I'm sorry but I could not open the media database.\nPlease confirm that Lyricue is installed correctly and MySql is running";
-$errorcodes->{'sqlprepare'} =
-  "Unable to prepare query.\nHas mysql died?";
+$errorcodes->{'sqlprepare'} = "Unable to prepare query.\nHas mysql died?";
 $errorcodes->{'sqlexecute'} = "Unable to execute query.\nHas mysql died?";
 $errorcodes->{'socketopen'} =
 "Sorry, I was unable to listen on the network.\nPlease make sure I am not already running";
@@ -5623,18 +5622,29 @@ sub create_pixbuf {
 	}
 }
 
+sub import_image {
+	import_media("img");
+}
+
+sub import_background {
+	import_media("bg");
+}
+
 sub import_media {
+	my ($type) = @_;
 	my $filexml =
 	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
 	$filexml->signal_autoconnect_from_package('');
 	$filexml->get_widget('buttonFileOK')
 	  ->signal_connect("clicked", "select_category", $filexml);
+	$filexml->get_widget('dialogFile')->{user_data} = $type;
 }
 
 sub select_category {
 	my ($widget, $filexml) = @_;
 	my $hashnum  = 0;
 	my $filename = $filexml->get_widget('dialogFile')->get_filename;
+	my $type     = $filexml->get_widget('dialogFile')->{user_data};
 	debug($filename);
 	my $choosexml =
 	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
@@ -5644,12 +5654,14 @@ sub select_category {
 	$choosexml->get_widget('buttonLoad')
 	  ->signal_connect("clicked", "do_import_media", $choosexml);
 	$choosexml->get_widget('buttonNew')
-	  ->signal_connect("clicked", "do_import_media",$choosexml);
+	  ->signal_connect("clicked", "do_import_media", $choosexml);
 	$choosexml->get_widget('buttonCancel')
 	  ->signal_connect("clicked", "close_dialog");
 	$choosexml->get_widget('windowChoosePlay')->show;
 	$choosexml->get_widget('windowChoosePlay')->{'user_data'} = $filename;
+	$choosexml->get_widget('treeChoosePlay')->{'user_data'}   = $type;
 	my $store = $choosexml->get_widget('treeChoosePlay')->get_model();
+
 	if ($store) {
 		$store->clear;
 	} else {
@@ -5657,14 +5669,16 @@ sub select_category {
 		$choosexml->get_widget('treeChoosePlay')->set_model($store);
 		my $renderer  = Gtk2::CellRendererText->new;
 		my $selection = $choosexml->get_widget('treeChoosePlay')->get_selection;
-		$selection->signal_connect("changed", "update_category",$choosexml);
+		$selection->signal_connect("changed", "update_category", $choosexml);
 		my $column =
-		Gtk2::TreeViewColumn->new_with_attributes("Category", $renderer, text => 0);
+		  Gtk2::TreeViewColumn->new_with_attributes("Category", $renderer,
+			text => 0);
 		$choosexml->get_widget('treeChoosePlay')->append_column($column);
 	}
 
 	my $query = "SELECT DISTINCT category FROM media";
-	my $sth = $mediaDbh->prepare($query) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $sth   = $mediaDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 	my @row;
 	while (@row = $sth->fetchrow_array()) {
@@ -5676,30 +5690,51 @@ sub select_category {
 }
 
 sub do_import_media {
-    	my ($widget,$choosexml) = @_;
-	debug("Creating a new category");
+	my ($widget, $choosexml) = @_;
+	debug("Importing media");
 	if ($choosexml->get_widget('entryChoosePlay')->get_text() ne "") {
+		my $type     = $choosexml->get_widget('treeChoosePlay')->{'user_data'};
 		my $category = $choosexml->get_widget('entryChoosePlay')->get_text();
-		my $filename = $choosexml->get_widget('windowChoosePlay')->{'user_data'};
-		debug ("Category: $category\nFilename: $filename");
-		open (MEDIA, $filename);
+		my $filename =
+		  $choosexml->get_widget('windowChoosePlay')->{'user_data'};
+		my $format = $filename;
+		$format =~ s/^.*\.//g;
+		my $description = $filename;
+		$description =~ s/^.*\///g;
+		$description =~ s/\..*?$//g;
+		my $owner = getpwuid($<);
+		my @date  = localtime(time);
+		my $time  =
+		  sprintf("%04d-%02d-%02d %02d:%02d:%02d", $date[5] + 1900, $date[4],
+			$date[3], $date[2], $date[1], $date[0]);
+		debug("Category: $category\nFilename: $filename");
+		open(MEDIA, $filename);
 		my $data = "";
+
 		while (<MEDIA>) {
-		    $data .= $_;
+			$data .= $_;
 		}
 		close MEDIA;
-		my $sth = $mediaDbh->prepare(q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)});
-		my $rv = $sth->execute($category,"",$type,$format,$owner,$time,$description,$data);
+		print "Length: " . length($data) . "\n";
+		my $sth =
+		  $mediaDbh->prepare(
+q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)}
+		);
+		my $rv = $sth->execute(
+			$category, "",    $type,        $format,
+			$owner,    $time, $description, $data
+		);
 	}
 	close_dialog($widget);
 }
 
 sub update_category {
-	my ($selection,$choosexml) = @_;
+	my ($selection, $choosexml) = @_;
 	debug("Selected a category");
 
 	my ($model, $iter) = $selection->get_selected;
 	if ($iter) {
-		$choosexml->get_widget('entryChoosePlay')->set_text($model->get($iter, 0));
+		$choosexml->get_widget('entryChoosePlay')
+		  ->set_text($model->get($iter, 0));
 	}
 }
