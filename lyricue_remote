@@ -32,10 +32,13 @@ if ($ARGV[0]) {
             $globals->{'host'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-h") {
-            print "\nUsage: lyricue_remote <-v> <-d> <-s>\n\n";
-            print "\t-v:  Prints Lyricue version information & exits\n";
-            print
-              "\t-s:  Specify the host on which the lyric server is located\n";
+            print "\nUsage: lyricue_remote <-v> <-s> <command>\n\n";
+            print "\t-v:      Prints Lyricue version information & exits\n";
+            print "\t-s:      Specify the host on which the lyric server is located\n";
+            print "\tcommand: Can be any of next_page, prev_page, next_song, prev_song,\n";
+            print "\t         next_point, blank or custom\n";
+            print "\t         If custom then the next 3 arguments will be sent without parsing\n"
+            print "\t         to the server\n";
             exit;
         } elsif ($ARGV[$_] eq "") {
 
@@ -52,6 +55,9 @@ if ($ARGV[0]) {
             update_display("blank", "", "");
         } elsif ($ARGV[$_] eq "next_point") {
             update_display("next_point", "", "");
+        } elsif ($ARGV[$_] eq "custom") {
+            update_display($ARGV[$_+1],$ARGV[$_+2],$ARGV[$_+3]);
+            exit;
         }
     }
 }

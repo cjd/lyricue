@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=`head -1 debian/changelog |sed -e 's/^.*(\(.*\)).*$/\1/g'`
+VERSION=`head -1 debian/changelog |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
 LC_ALL=C;export LC_ALL
 
 echo Removing old dist files

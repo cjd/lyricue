@@ -258,6 +258,10 @@ if (!-w $globals->{'configfile'}) {
     system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
 }
 my $config = load_config();
+if ($config->{'FastServer'} == 1) {
+    $globals->{'fast'} = TRUE;
+}
+
 my ($contents, @preset);
 if (!($config->{'Colour'})) {
     $config->{'Colour'} = "#ffffff";
@@ -352,6 +356,7 @@ my $geom   = Gtk2::Gdk::Geometry->new;
 $geom->min_aspect($aspect);
 $window->set_geometry_hints($window, $geom, 'GDK_HINT_ASPECT');
 if ($globals->{'fast'}) {
+    debug("Using fast server");
     my $vbox = Gtk2::VBox->new(FALSE, 0);
     $window->add($vbox);
     debug("Creating text areas");
@@ -383,6 +388,7 @@ if ($globals->{'fast'}) {
     }
     $vbox->pack_start($footerText, FALSE, FALSE, 0);
 } else {
+    debug("Using full server");
     $canvas = Gnome2::Canvas->new();
     $canvas->set_scroll_region(1, 1, $config->{'Width'}, $config->{'Height'});
     $canvas->set_center_scroll_region(TRUE);
@@ -565,7 +571,7 @@ sub process_input {
                 $pointtext =~ s/<.*?>//g;
                 set_maintext($pointtext, NONE, FALSE);
             } else {
-                debug("Cannont advance one point - no points waiting");
+                debug("Can not advance one point - no points waiting");
             }
         } elsif (/^preview$/) {
             $line[1] =~ s/#SEMI#/:/g;
