@@ -3,7 +3,7 @@ mkdir dist
 rm -rf dist/lyricue*
 
 mkdir dist/lyricue-$1
-cp images/black.png install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server access.conf default.conf dist/lyricue-$1
+cp images/black.png import_media install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server access.conf default.conf dist/lyricue-$1
 
 for F in black white gray red green blue yellow orange;do touch dist/lyricue-$1/$F.bg;done
 
