@@ -275,6 +275,9 @@ if ($MINISERV >= 0) {
 } else {
 	$window->show();
 	$window->fullscreen();
+	my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef,0,1,1);
+	my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap($bitmap,$bitmap,Gtk2::Gdk::Color->new(0,0,0),Gtk2::Gdk::Color->new(0,0,0),0,0);
+	$window->window->set_cursor($cursor);
 
 	debug("Running in SERVER (normal) mode");
 }
