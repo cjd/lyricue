@@ -164,6 +164,7 @@ my $widgets;
 my @bibleMenu;
 my @ASSOCIATE;
 my %pageOrder;
+my %selectedimages;
 
 my ($errorcodes);
 $errorcodes->{'lyricdbopen'} = Encode::decode(
@@ -3248,13 +3249,25 @@ sub change_preview {
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
     my @selecteditems = $selection->get_selected_rows();
     if ($selecteditems[0]) {
-        my $iter =
-          $widgets->{'image'}->get_widget('treeImage')
-          ->get_model->get_iter($selecteditems[0]);
+        # Find what has changed
+	my $newsel = $selecteditems[0];
+        my $iter = $widgets->{'image'}->get_widget('treeImage')->get_model->get_iter($newsel);
+        my $id = $widgets->{'image'}->get_widget('treeImage')->get_model->get($iter, 1);
+	my $tmp = 0;
+    	foreach $tmp (@selecteditems) {
+            my $iter2 = $widgets->{'image'}->get_widget('treeImage')->get_model->get_iter($tmp);
+            my $id2 = $widgets->{'image'}->get_widget('treeImage')->get_model->get($iter2, 1);
+	    if (! defined $selectedimages{$id2}) {
+	        $id = $id2;
+	    }
+	}
+	%selectedimages= ();
+	foreach $tmp (@selecteditems) {
+            my $iter2 = $widgets->{'image'}->get_widget('treeImage')->get_model->get_iter($tmp);
+            my $id2 = $widgets->{'image'}->get_widget('treeImage')->get_model->get($iter2, 1);
+	    $selectedimages{$id2}=TRUE;
+	}
 
-        my $id =
-          $widgets->{'image'}->get_widget('treeImage')
-          ->get_model->get($iter, 1);
         if ($id == 0) {
 
             my $category =
