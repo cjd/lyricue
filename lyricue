@@ -2732,7 +2732,7 @@ sub update_imagedir {
 
     $query =
         "SELECT DISTINCT category FROM media WHERE type=\"" . $type
-      . "\" AND category != \"Main\"";
+      . "\" AND category != \"Main\" ORDER BY category";
     qdebug($query);
     $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -5123,7 +5123,7 @@ sub bgdir_list {
     debug("Loading directory list");
     my $counter = 0;
     debug("Adding Main image dir button");
-    my $query = "SELECT DISTINCT category FROM media WHERE type=\"bg\"";
+    my $query = "SELECT DISTINCT category FROM media WHERE type=\"bg\" ORDER BY category";
     my $sth   = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -5316,6 +5316,7 @@ sub change_bgimage {
     $widgets->{'image'}->signal_autoconnect_from_package('');
     $widgets->{'image'}->get_widget('buttonImageAdd')
       ->signal_connect('clicked', 'import_background');
+    $widgets->{'image'}->get_widget('hboxImageSublist')->hide;
     $widgets->{'image'}->get_widget('dialogImage')->show;
     if ($widgets->{'image'}->get_widget('treeImage')->{user_data}
         && ($widgets->{'image'}->get_widget('treeImage')->{user_data} eq "load")
@@ -5673,6 +5674,9 @@ sub load_access {
     } else {
         push @show_items, @admin_items;
     }
+    if (! -w $globals->{'accessfile'} ) {
+    	push @remove_items, "user_administration1"
+    }
 
     foreach my $item (@show_items) {
         $widgets->{'main'}->get_widget($item)->show();
@@ -5972,7 +5976,7 @@ sub select_category {
         $choosexml->get_widget('treeChoosePlay')->append_column($column);
     }
 
-    my $query = "SELECT DISTINCT category FROM media";
+    my $query = "SELECT DISTINCT category FROM media ORDER BY category";
     my $sth   = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
