@@ -3124,6 +3124,8 @@ sub create_dialog_prefs {
 	  ->set_active($config->{'Audit'});
 	$widgets->{'prefs'}->get_widget('checkPrefView')
 	  ->set_active($config->{'DynamicPreview'});
+	$widgets->{'prefs'}->get_widget('checkPrefMiniview')
+	  ->set_active($config->{'Miniview'});
 	my ($pixbuf);
 	my $image = find_image("bg", $config->{'BGImage'});
 	eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
@@ -4196,6 +4198,8 @@ sub save_preferences {
 	  . $widgets->{'prefs'}->get_widget('checkPrefAudit')->get_active() . "\n";
 	print CONFIG "DynamicPreview = "
 	  . $widgets->{'prefs'}->get_widget('checkPrefView')->get_active() . "\n";
+	print CONFIG "Miniview = "
+	  . $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active() . "\n";
 	print CONFIG "Xinerama = "
 	  . $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
 	  . "\n";
@@ -4733,7 +4737,11 @@ sub init_mainWindow {
 	  ->drag_dest_set('all', ['copy'], @target_table);
 
 	init_preview();
-	init_miniview();
+	if ($config->{'Miniview'}) {
+		init_miniview();
+	} else {
+		$widgets->{'main'}->get_widget('frameCurrent')->hide();
+	}
 
 	# Show the window finally
 	$widgets->{'main'}->get_widget('windowMain')->show;
