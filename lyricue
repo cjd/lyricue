@@ -1,0 +1,5327 @@
+#!/usr/bin/perl -w
+
+#****** lyricue/pod
+# NAME
+#   Pod documentation
+# DESCRIPTION
+#   Documentation for lyricue that is displayed by perldoc
+# SOURCE
+#
+
+=head1 NAME
+
+lyricue
+
+=head1 SYNOPSIS
+
+lyricue [ C<-v|-b|-l> C<-d> C<-s> I<server>]
+
+=head1 DESCRIPTION
+
+This program creates a GTK2 gui to add, edit and remove songs from the song database and also control a lyric display server
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-v>
+
+Get lyricue version
+
+=item B<-d>
+
+Turn on debugging mode. Prints out debugging information
+
+=item B<-l>
+
+List available songs. Outputs a list of songs in HTML format
+
+=item B<-b>
+
+Turn off background changing ability. Speeds program load
+
+=item B<-s>
+
+Set server to connect to for Db and screen
+
+=head1 CONFIGURATION
+
+All configuration is done by editing the configuration section in the program
+
+=head1 REQUIRES
+
+Perl 5.004 or later, DBI::MySQL, Gtk2-Perl, MySql database
+
+=head1 AUTHOR
+
+Chris Debenham <chris@adebenham.com>
+
+=head1 COPYRIGHT
+
+This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
+
+=head1 VERSION
+
+Lyric_interface Version 1.9
+
+=cut
+
+#***
+
+#****** lyricue/setup
+# NAME
+#   Setup section
+# DESCRIPTION
+#   Loads required modules, sets some global variables,
+#   and other global things
+# SOURCE
+#
+
+#
+# Modules we use.
+#
+use strict;
+use DBI;
+use POSIX;
+use IO::Socket::INET;
+use Unicode::String qw(utf8 utf16);
+use Gtk2 -init;
+use Gtk2::GladeXML;
+use Gtk2::Pango;
+use Gtk2::Spell;
+use Gtk2::TrayIcon;
+
+#
+# Site Configuration.  You should only have to
+# edit this section.
+#
+my ($globals);
+$globals->{'etcdir'}      = "/etc/lds";
+$globals->{'basedir'}     = $ENV{'HOME'} . "/.lds";
+$globals->{'sharedir'}    = "/usr/share/lds";
+$globals->{'accessfile'}  = $globals->{'etcdir'} . "/access.conf";
+$globals->{'defaultconf'} = $globals->{'etcdir'} . "/default.conf";
+$globals->{'configfile'}  = $globals->{'basedir'} . "/config2";
+$globals->{'bgpath'}      = $globals->{'basedir'} . "/backgrounds";
+$globals->{'imgpath'}     = $globals->{'basedir'} . "/images";
+$globals->{'gladefile'}   = $globals->{'sharedir'} . "/lyricue.glade";
+$globals->{'host'}        = "localhost";
+$globals->{'lyricdb'}     = "lyricDb";
+$globals->{'bibledb'}     = "bibleDb";
+$globals->{'sortby'}      = "title";
+$globals->{'bg_previews'} = 1;
+
+my $PORT     = "2346";    #port used for lyric server communications
+my $MINIPORT = "2347";    #port used for preview window communications
+
+#
+# You shouldn't have to change anything after this line
+#
+# convenience variables for true and false
+use constant FALSE => 0;
+use constant TRUE  => 1;
+
+use constant NORMAL     => 0;
+use constant SLIDE_TEXT => 1;
+use constant WIPE       => 2;
+use constant CLIP       => 3;
+
+use constant NONE  => 0;
+use constant UP    => 1;
+use constant DOWN  => 2;
+use constant RIGHT => 4;
+use constant LEFT  => 8;
+use constant WAIT  => 16;
+
+# Globals
+$globals->{'version'} = "1.9";
+
+# Local to this file only
+my ($mainxml, $choosexml, $prefsxml, $aboutxml);
+my ($addxml,  $fontxml,   $imgxml,   $searchxml);
+my $DEBUG_ON     = 0;
+my $invert       = 0;
+my $WIDTH        = 0;
+my $HEIGHT       = 0;
+my $mainfont     = "";
+my $LOOP         = "Loop";
+my $UPDATE_TIMER = FALSE;
+my $TIMER;
+my $config;
+my $widgets;
+my @bibleMenu;
+my @ASSOCIATE;
+my %pageLabels;
+my %pageOrder;
+
+my ($errorcodes);
+$errorcodes->{'lyricdbopen'} =
+"I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running";
+$errorcodes->{'bibledbopen'} =
+"I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named ";
+$errorcodes->{'sqlprepare'} = "Unable to prepare query.\nHas mysql died?";
+$errorcodes->{'sqlexecute'} = "Unable to execute query.\nHas mysql died?";
+$errorcodes->{'socketopen'} =
+"Sorry, I was unable to listen on the network.\nPlease make sure I am not already running";
+$errorcodes->{'erroropen'}    = "Could not open ";
+$errorcodes->{'fileopenread'} =
+  "Unable to read the file, are you sure it exists?\nThe file asked for was ";
+$errorcodes->{'fileopenwrite'} =
+"Unable to write to the file, you may not have sufficent permissions.\nPlease check the permissions for ";
+
+my @edit_items = ("buttonMainAdd", "buttonMainEdit", "add_song1", "edit_song1");
+my @delete_items  = ("delete_song1");
+my @display_items = (
+	"previous_page1",  "next_page1",
+	"display_now1",    "blank_display1",
+	"buttonMainPrev",  "buttonMainNext",
+	"buttonMainPoint", "buttonMainBlank"
+);
+my @playlist_items = (
+	"buttonAddToPlaylist", "playlist1",
+	"vboxMainRight",       "buttonMainImage",
+	"buttonMainVerse",     "buttonMainSublist"
+);
+my @admin_items = ("user_administration1");
+
+#***
+
+#****** lyricue/main_code
+# NAME
+#   main_code - main code section, not in subroutine
+# SYNOPSIS
+#   No output
+# FUNCTION
+#   Figure out where to go
+# INPUTS
+#   Commandline
+# OUTPUT
+#   Everything
+# SOURCE
+#
+if ($ARGV[0]) {
+	foreach (0 .. (@ARGV - 1)) {
+		if ($ARGV[$_] eq "-v") {
+			print "Lyric Interface version " . $globals->{'version'} . "\n";
+			exit;
+		} elsif ($ARGV[$_] eq "-l") {
+			print_songs();
+		} elsif ($ARGV[$_] eq "-b") {
+			$globals->{'bg_previews'} = 0;
+		} elsif ($ARGV[$_] eq "-d") {
+			$globals->{'debugging'} = 1;
+		} elsif ($ARGV[$_] eq "-s") {
+			$globals->{'host'} = $ARGV[$_ + 1];
+			$ARGV[$_ + 1] = "";
+		} elsif ($ARGV[$_] eq "") {
+
+			# ignore
+		} else {
+			print "\nUsage: lyricue <-v|-l> <-b> <-k> <-d> <-s>\n\n";
+			print "\t-v: Prints Lyricue version information & exits\n";
+			print "\t-l: Outputs song list in HTML & exits\n";
+			print "\t-b: Loads Lyricue without background previews\n";
+			print
+			  "\t-s: Specify the host on which the lyric server is located\n";
+			print "\t-d: Prints debugging messages\n\n";
+			exit;
+		}
+	}
+}
+
+# Open lyricDB and bibleDB
+my $lyricDbh =
+  DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}", "lyric",
+	"") || display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
+my $bibleDbh =
+  DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}", "lyric",
+	"")
+  || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
+	$DBI::errstr);
+
+# Some global stuff
+my ($query, $row, $sth, $rv);
+
+# Set umask
+umask 0002;
+
+# Check if user .lds directory exists, otherwire create
+if (-e $globals->{'basedir'}) {
+	if (!-d $globals->{'basedir'}) {
+		print
+		  "Old ~/.lds existed but was not a directory, moving to ~/.lds.orig\n";
+		rename $globals->{'basedir'}, $globals->{'basedir'} . ".orig";
+		mkdir $globals->{'basedir'}, 077;
+	}
+} else {
+	mkdir $globals->{'basedir'}, 0777;
+}
+
+$widgets->{'main'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain');
+$widgets->{'main'}->signal_autoconnect_from_package('');
+
+if (-d $globals->{'basedir'}) {
+	if (!-e $globals->{'configfile'}) {
+		system(
+			"cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
+		system("ln -s "
+			. $globals->{'sharedir'}
+			. "/images "
+			. $globals->{'imgpath'});
+		system("ln -s "
+			. $globals->{'sharedir'}
+			. "/backgrounds "
+			. $globals->{'bgpath'});
+		print
+		  "User-specific config/directories setup as links to global items\n";
+		create_dialog_prefs();
+	}
+}
+while (!-e $globals->{'configfile'}) {
+	while (Gtk2->events_pending) {
+		Gtk2->main_iteration;
+	}
+}
+
+# Load the config file
+$config = load_config();
+
+$globals->{'access'} = load_access();
+
+# Create tray icon
+debug("Creating Tray icons\n");
+my ($tray);
+eval { $tray = Gtk2::TrayIcon->new("Lyricue"); };
+if ($@) {
+	debug("Unable to load system tray\n");
+} else {
+	my $trayxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'trayBar');
+	$trayxml->signal_autoconnect_from_package('');
+	$tray->add($trayxml->get_widget('trayBar'));
+	$tray->show_all;
+}
+
+init_mainWindow();
+choose_playlist();
+
+# Don't let them cancel out of the playlist dialog yet
+$widgets->{'choose'}->get_widget('buttonCancel')->hide;
+
+# Gtk event loop
+Gtk2->main;
+
+# Should never get here
+exit(0);
+
+#***
+
+#****m* lyricue/close_main
+# NAME
+#   close_main -- close the main window
+# SYNOPSIS
+#   close_main ()
+# FUNCTION
+#   Callback function to close the window
+# INPUTS
+#   none
+# OUTPUT
+#   Closes the interface
+# SOURCE
+sub close_main {
+	$lyricDbh->disconnect;
+	$bibleDbh->disconnect;
+	Gtk2->main_quit;
+	return FALSE;
+}
+
+#***
+
+#****m* lyricue/update_playlist
+# NAME
+#   update_playlist -- update the playlist
+# SYNOPSIS
+#   update_playlist ()
+# FUNCTION
+#   Clear the playlist area and redisplay with updated info
+# INPUTS
+# OUTPUT
+#   refreshed playlist
+# SOURCE
+sub update_playlist {
+
+	my $playlist =
+	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+
+	my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
+	if ($model) {
+		$model->clear;
+	} else {
+		$model =
+		  Gtk2::TreeStore->new('Glib::String', 'Glib::String', 'Glib::String',
+			'Glib::String');
+		$widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
+		my $column =
+		  Gtk2::TreeViewColumn->new_with_attributes("",
+			Gtk2::CellRendererText->new, text => 0);
+		$widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
+		$column =
+		  Gtk2::TreeViewColumn->new_with_attributes("",
+			Gtk2::CellRendererText->new, text => 1);
+		$widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
+
+		$widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
+	}
+	add_playlist($playlist, undef, $model);
+}
+
+#***
+
+#****m* lyricue/add_playlist
+# NAME
+#   add_playlist - Add a playlist to the playlist area
+# SYNOPSIS
+#   add_playlist ($playlist, $iter, $model)
+# FUNCTION
+#   Add a playlist to the playlist area
+# INPUTS
+#   $playlist - Playlist to add
+#   $iter - Where to add it in the playlist area
+#   $model - The playlist tree model
+# OUTPUT
+#   A bigger playlist
+# SOURCE
+sub add_playlist {
+	my ($playlist, $iter, $model) = @_;
+	my $query =
+	  "SELECT * FROM playlist WHERE playlist="
+	  . $playlist
+	  . " ORDER BY playorder";
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while ($row = $sth->fetchrow_hashref()) {
+
+		my $title = "";
+		if ($row->{'type'} eq "back") {
+			$title = "Background : " . $row->{'data'};
+		} elsif ($row->{'type'} eq "file") {
+			$title = "File: " . $row->{'data'};
+		} elsif ($row->{'type'} eq "imag") {
+			$title = "Image: " . $row->{'data'};
+		} elsif ($row->{'type'} eq "vers") {
+			$title = $row->{'data'};
+		} elsif ($row->{'type'} eq "song") {
+			my $query2 =
+			  "SELECT lyrics FROM page WHERE pageid=" . $row->{'data'};
+			my $sth2 = $lyricDbh->prepare($query2)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			my $rv2 = $sth2->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			my $row2   = $sth2->fetchrow_hashref();
+			my $lyrics = $row2->{'lyrics'};
+			if ($globals->{'invert'}) {
+				my @lyricl = split (/\n/, $lyrics);
+				$title = $lyricl[@lyricl - 1];
+			} else {
+				($title, undef) = split (/\n/, $lyrics);
+			}
+			if (!$title) {
+				$title = "";
+			}
+		} elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
+
+			# Leave this to later
+			my $query2 = "SELECT * FROM playlists WHERE id=" . $row->{'data'};
+			my $sth2   = $lyricDbh->prepare($query2)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			my $rv2 = $sth2->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			my $row2 = $sth2->fetchrow_hashref();
+
+			$title = $row2->{'title'};
+
+			if ($row2->{'ref'} && $row2->{'ref'} != 0) {
+				$query2 =
+				  "SELECT songnum FROM lyricMain WHERE id=" . $row2->{'ref'};
+				$sth2 = $lyricDbh->prepare($query2)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				$rv2 = $sth2->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+				$row2 = $sth2->fetchrow_hashref();
+				if ($row2->{'songnum'} != 0) {
+					$title = $row2->{'songnum'} . " - " . $title;
+				}
+			}
+		} else {
+			$title = "Unknown type";
+		}
+
+		# Add image name to playlist item title
+		my $query3 =
+		  "SELECT * FROM associations WHERE playlist=" . $row->{'playorder'};
+		my $sth3 = $lyricDbh->prepare($query3)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv3 = $sth3->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my $imagename = "";
+		while (my $row3 = $sth3->fetchrow_hashref()) {
+			$imagename = $row3->{'imagename'};
+
+			#$title .= " ## A: " . $imagename . " ##";
+		}
+
+		my $newiter = $model->append($iter);
+		$model->set(
+			$newiter, 0 => $title,
+			1 => $imagename,
+			2 => $row->{'playorder'},
+			3 => $row->{'transition'}
+		);
+
+		if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
+			add_playlist($row->{'data'}, $newiter, $model);
+		}
+	}
+}
+
+#***
+
+#****m* lyricue/change_sort_order
+# NAME
+#   change_sort_order -- Change the sort order
+# SYNOPSIS
+#   change_sort_order (undef,$column)
+# FUNCTION
+#   Change the order by which the available songs are displayed
+# INPUTS
+#   $column - which column to order by
+# OUTPUT
+#   Calls update_available to redisplay available songs
+# SOURCE
+sub change_sort_order {
+	my (undef, $column) = @_;
+	if ($column == 1) {
+		$globals->{'sortby'} = "book";
+	} elsif ($column == 2) {
+		$globals->{'sortby'} = "songnum";
+	} elsif ($column == 3) {
+		$globals->{'sortby'} = "id";
+	} elsif ($column == 4) {
+		$globals->{'sortby'} = "book,songnum";
+	} elsif ($column == 5) {
+		$globals->{'sortby'} = "book,title";
+	} else {
+		$globals->{'sortby'} = "title";
+	}
+	debug("Changing sort order to " . $globals->{'sortby'} . "\n");
+	update_available();
+}
+
+#***
+
+#****m* lyricue/update_available
+# NAME
+#   update_available -- Display list of available songs
+# SYNOPSIS
+#   update_available ()
+# FUNCTION
+#   Update the list of available songs, limited by keyword and sorted by orderby
+# INPUTS
+# OUTPUT
+#   updated list of available songs
+# SOURCE
+sub update_available {
+	if ($UPDATE_TIMER) {
+		Glib::Source->remove($UPDATE_TIMER);
+		$UPDATE_TIMER = FALSE;
+	}
+
+	my $store =
+	  Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Glib::Uint',
+		'Glib::Uint');
+
+	if ($widgets->{'main'}->get_widget('treeAvailable')->{user_data}
+		&& ($widgets->{'main'}->get_widget('treeAvailable')->{user_data} eq
+			"load"))
+	{
+		$widgets->{'main'}->get_widget('treeAvailable')->{data} = ();
+	} else {
+		$widgets->{'main'}->get_widget('treeAvailable')->{user_data} = "load";
+		my $column1 =
+		  Gtk2::TreeViewColumn->new_with_attributes("Title",
+			Gtk2::CellRendererText->new, text => 0);
+		my $column2 =
+		  Gtk2::TreeViewColumn->new_with_attributes("Book",
+			Gtk2::CellRendererText->new, text => 1);
+		my $column3 =
+		  Gtk2::TreeViewColumn->new_with_attributes("Song Number",
+			Gtk2::CellRendererText->new, text => 2);
+		$widgets->{'main'}->get_widget('treeAvailable')
+		  ->append_column($column1);
+		$widgets->{'main'}->get_widget('treeAvailable')
+		  ->append_column($column2);
+		$widgets->{'main'}->get_widget('treeAvailable')
+		  ->append_column($column3);
+		$column1->signal_connect("clicked", "change_sort_order", 0);
+		$column2->signal_connect("clicked", "change_sort_order", 1);
+		$column3->signal_connect("clicked", "change_sort_order", 2);
+	}
+	my $songname = $widgets->{'main'}->get_widget('entrySearch')->get_text();
+
+	my $query =
+"SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"Today%nnouncements\"";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	$row = $sth->fetchrow_hashref();
+	my $iter = $store->append;
+	$store->set(
+		$iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
+		$row->{'songnum'}, 3, $row->{'id'}
+	);
+
+	$query = "SELECT id,title,songnum,book FROM lyricMain WHERE id > 1";
+
+	# Add search term if applicable
+	#if ($keywords) {
+	#	$query .= " AND keywords LIKE \"%" . $keywords . "%\"";
+	#} elsif ($songname) {
+	$songname =~ s/[\s,]/%/g;
+	$query .= " AND title LIKE \"%" . $songname . "%\"";
+
+	#}
+	$query .= " ORDER BY " . $globals->{'sortby'};
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	while ($row = $sth->fetchrow_hashref()) {
+		my $iter = $store->append;
+		$store->set(
+			$iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
+			$row->{'songnum'}, 3, $row->{'id'}
+		);
+	}
+	$widgets->{'main'}->get_widget('treeAvailable')->set_model($store);
+	$widgets->{'main'}->get_widget('treeAvailable')
+	  ->set_headers_clickable(TRUE);
+	debug("Avail updated\n");
+	return FALSE;
+}
+
+#***
+
+#****m* lyricue/popup_avail_menu
+# NAME
+#   popup_avail_menu -- 
+# SYNOPSIS
+#   popup_avail_menu ($widget, $event)
+# FUNCTION
+#   popup a menu when available songs right-clicked
+# INPUTS
+#   $widget - Calling widget
+#   $event - calling event
+# OUTPUT
+#   Displays the right-click menu
+# SOURCE
+#
+sub popup_avail_menu {
+	my ($widget, $event) = @_;
+
+	debug("Button clicked\n");
+	if ($event->button == 3) {
+		my @items = ();
+		if ($globals->{'access'} = /e/) {
+			push @items, ['/Edit Song', undef, 'edit_song', 1, '', ''];
+		}
+		if ($globals->{'access'} = /d/) {
+			push @items, ['/Delete Song', undef, 'delete_song', 1, '', ''];
+		}
+		push @items,
+		  (['/Refresh List', undef, 'update_available', 1, '', ''],
+		  [
+			  '/Order - Songbook -> No.', undef,
+			  'change_sort_order',        1,
+			  '',                         ''
+		  ],
+		  ['/Order - Songbook -> Name.', undef, 'change_sort_order', 1, '', '']
+		);
+		if ($globals->{'access'} = /p/) {
+			push @items,
+			  (['/Add to Playlist', undef, 'add_to_playlist', 1, '', '']);
+		}
+		my $factory =
+		  Gtk2::ItemFactory->new('Gtk2::Menu', "<availpopup>", undef);
+		$factory->create_items(1, @items);
+		my $menu = $factory->get_widget('<availpopup>');
+		$menu->popup(undef, undef, undef, undef, $event->button, $event->time);
+		return (TRUE);
+	}
+
+	# Tell calling code that we have not handled this event; pass it on.
+	return (FALSE);
+}
+
+#***
+
+#****m* lyricue/popup_play_menu
+# NAME
+#   popup_play_menu -- 
+# SYNOPSIS
+#   popup_play_menu ()
+# FUNCTION
+#   popup a menu when playlist item right-clicked
+# INPUTS
+# OUTPUT
+#   Displays the right-click menu
+# SOURCE
+#
+sub popup_play_menu {
+	my ($event) = @_;
+	debug("Button clicked\n");
+	my @items = (
+		['/Duplicate Item', undef, 'copy_item', 1, '', ''],
+		[
+			'/Remove from Playlist', undef, 'remove_from_playlist', 1,
+			'',                      ''
+		],
+		['/Refresh Playlist',        undef, 'update_playlist', 1, '', ''],
+		['/Add Verse',               undef, 'add_verse',       1, '', ''],
+		['/Invert Line Display',     undef, 'invert_lines',    1, '', ''],
+		['/Loop this playlist item', undef, 'begin_loop',      1, '', ''],
+
+		[
+			'/Associate background',   undef,
+			'prepare_for_association', 1,
+			'',                        ''
+		],
+		['/Dis-addociate background', undef, 'disassociate_bg', 1, '', ''],
+		['/Move to sublist',          undef, 'move_to_sublist', 1, '', ''],
+		['/Preview this item', undef, 'preview_playlist_item', 1, '', ''],
+	);
+	my $factory = Gtk2::ItemFactory->new('Gtk2::Menu', "<playpopup>", undef);
+	$factory->create_items(1, @items);
+	my $menu = $factory->get_widget('<playpopup>');
+	$menu->popup(undef, undef, undef, undef, $event->button, $event->time);
+}
+
+#***
+
+#****m* lyricue/add_song
+# NAME
+#   add_song -- 
+# SYNOPSIS
+#   add_song ()
+# FUNCTION
+#   Called which add chosen from menu/buttons
+# INPUTS
+# OUTPUT
+#   display add window
+# SOURCE
+#
+sub add_song {
+	my $i;
+	debug("Add clicked\n");
+	if ($widgets->{'add'} && $widgets->{'add'}->get_widget('windowEditSong')) {
+		if (!$widgets->{'add'}->get_widget('windowEditSong')->visible) {
+			$widgets->{'add'}->get_widget('windowEditSong')->destroy;
+		}
+	}
+	$widgets->{'add'} =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowEditSong');
+	$widgets->{'add'}->signal_autoconnect_from_package('');
+	$widgets->{'add'}->get_widget('buttonEditPreviewServer')
+	  ->signal_connect("clicked", "preview_page", "SERVER");
+	$widgets->{'add'}->get_widget('notebookEditPages')->remove_page(0);
+	%pageOrder = ();
+	add_page();
+	$widgets->{'add'}->get_widget('windowEditSong')->{user_data} = 0;
+	$widgets->{'add'}->get_widget('windowEditSong')->show_all();
+	$widgets->{'add'}->get_widget('buttonEditRemovePage')->visible(FALSE);
+}
+
+#***
+
+#****m* lyricue/delete_song
+# NAME
+#   delete_song -- 
+# SYNOPSIS
+#   delete_song ()
+# FUNCTION
+#   Confirm if a song is to be deleted
+# INPUTS
+#   calls create_dialog_delete to confirm deletion
+# SOURCE
+#
+sub delete_song {
+	debug("Delete song selected\n");
+	my $selection =
+	  $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		my $songid = $model->get($iter, 3);
+		if (!($model->get($iter, 1) =~ /Today.*Announcements/)) {
+			$query =
+			  "SELECT title,songnum,book,artist FROM lyricMain WHERE id="
+			  . $songid;
+			$sth = $lyricDbh->prepare($query)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			$rv = $sth->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			$row = $sth->fetchrow_hashref();
+			my $labelText =
+			  "Are you sure you wish to delete \"" . $row->{'title'} . "\"\n";
+
+			if ($row->{'book'} ne "") {
+				$labelText .= "from the book \"" . $row->{'book'} . "\"\n";
+			}
+			$labelText .= "which was written by \"" . $row->{'artist'} . "\"";
+			my $deletexml =
+			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDelete');
+			$deletexml->signal_autoconnect_from_package('');
+			$deletexml->get_widget('labelDelete')->set_text($labelText);
+			my $confirm = $deletexml->get_widget('dialogDelete')->run();
+			if ($confirm eq "ok") {
+				do_delete_song($songid);
+				close_dialog($deletexml->get_widget('dialogDelete'));
+				update_available();
+			}
+		}
+	}
+}
+
+#***
+
+#****m* lyricue/do_delete_song
+# NAME
+#   do_delete_song -- 
+# SYNOPSIS
+#   do_delete_song ($songid)
+# FUNCTION
+#   Do the actual deletion of a song including from the playlist
+# INPUTS
+#   $songid - Id of song to be deleted
+# OUTPUT
+#   One less song
+# SOURCE
+#
+sub do_delete_song {
+	my ($songid) = @_;
+	my ($query, $sth, $rv);
+
+	$query = "DELETE FROM lyricMain WHERE id=" . $songid;
+	$sth   = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	$query = "DELETE FROM page WHERE songid=" . $songid;
+	$sth   = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	$query =
+"SELECT playorder FROM playlist,page WHERE playlist.data=page.pageid AND playlist.type=\"song\" AND page.songid="
+	  . $songid;
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while (my @row = $sth->fetchrow_array()) {
+		my $query2 = "DELETE FROM playlist WHERE playorder=" . $row[0];
+		my $sth2   = $lyricDbh->prepare($query2)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv2 = $sth2->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	}
+}
+
+#***
+
+#****m* lyricue/do_save_song
+# NAME
+#   do_save_song -- 
+# SYNOPSIS
+#   do_save_song ()
+# FUNCTION
+#   Save the song to the DB
+# INPUTS
+# OUTPUT
+#   One more song in the DB
+# SOURCE
+#
+sub do_save_song {
+	my ($query, $sth, $page, $songid);
+	my $newitem = FALSE;
+
+	$songid = $widgets->{'add'}->get_widget('windowEditSong')->{user_data};
+	if ($songid != 0) {
+		debug("Song number: " . $songid . "\n");
+		$query = "SELECT pagenum FROM page WHERE songid=" . $songid;
+		$sth   = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my (%dbpages);
+		while (my @row = $sth->fetchrow_array) {
+			$dbpages{$row[0]} = 1;
+			my $tmp;
+			my $found = FALSE;
+			foreach $tmp (keys %pageOrder) {
+				if ($pageOrder{$tmp} == $row[0]) {
+					$found = TRUE;
+				}
+			}
+			if (!$found) {
+				debug("Page Delete : "
+					. $row[0] . "|"
+					. $pageOrder{$row[0]} . "\n");
+				$query =
+				  "SELECT pageid FROM page WHERE songid=" . $songid
+				  . " AND pagenum=" . $row[0];
+				my $sth2 = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				debug($query . "\n");
+				$sth2->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+				my @tmpid = $sth2->fetchrow_array();
+
+				$query = "DELETE FROM page WHERE pageid=" . $tmpid[0];
+				$sth2  = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				debug($query . "\n");
+				$sth2->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+				$query =
+				  "DELETE FROM playlist WHERE type='song' AND data="
+				  . $tmpid[0];
+				$sth2 = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				debug($query . "\n");
+				$sth2->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			}
+		}
+
+		foreach $page (keys(%pageOrder)) {
+			if ($dbpages{$pageOrder{$page}}) {
+				$query =
+				  "UPDATE page SET lyrics="
+				  . $lyricDbh->quote(
+					(get_buffer_text($widgets->{'textAPageB'}{$page})))
+				  . " WHERE songid=" . $songid
+				  . " AND pagenum="
+				  . $pageOrder{$page};
+				$sth = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				debug($query . "\n");
+				debug("Page Edit : " . $page . "|" . $pageOrder{$page} . "\n");
+				$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			} else {
+				$query =
+				  "INSERT INTO page SET songid=" . $songid
+				  . ", pagenum="
+				  . $pageOrder{$page}
+				  . ", lyrics="
+				  . $lyricDbh->quote(
+					get_buffer_text($widgets->{'textAPageB'}{$page}));
+				$sth = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				debug($query . "\n");
+				debug("Page Add : " . $page . "|" . $pageOrder{$page} . "\n");
+				$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			}
+		}
+
+		$query =
+		  "UPDATE lyricMain SET title="
+		  . quote($widgets->{'add'}->get_widget('entryEditName')->get_text());
+		$query .= ", songnum="
+		  . quote($widgets->{'add'}->get_widget('entryEditNumber')->get_text());
+		$query .= ", book="
+		  . quote($widgets->{'add'}->get_widget('entryEditBook')->get_text());
+		$query .= ", artist="
+		  . quote($widgets->{'add'}->get_widget('entryEditArtist')->get_text());
+		$query .= ", copyright="
+		  . quote(
+			$widgets->{'add'}->get_widget('entryEditCopyright')->get_text());
+		$query .= ", keywords="
+		  . quote(
+			$widgets->{'add'}->get_widget('entryEditKeywords')->get_text());
+		$query .= " WHERE id=" . $songid;
+		debug($query . "\n");
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	} else {
+
+		# Find next id
+		$query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
+		$sth   = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my @row = $sth->fetchrow_array;
+		$songid = $row[0];
+		debug("Song number: " . $songid . "\n");
+
+		# insert into db
+		$query =
+"INSERT INTO lyricMain ( id, title, songnum, book, artist, keywords,copyright) VALUES ( "
+		  . $songid . ", ";
+		$query .=
+		  quote($widgets->{'add'}->get_widget('entryEditName')->get_text())
+		  . ",";
+		$query .=
+		  quote($widgets->{'add'}->get_widget('entryEditNumber')->get_text())
+		  . ",";
+		$query .=
+		  quote($widgets->{'add'}->get_widget('entryEditBook')->get_text())
+		  . ",";
+		$query .=
+		  quote($widgets->{'add'}->get_widget('entryEditArtist')->get_text())
+		  . ",";
+		$query .=
+		  quote($widgets->{'add'}->get_widget('entryEditKeywords')->get_text())
+		  . ",";
+		$query .=
+		  quote($widgets->{'add'}->get_widget('entryEditCopyright')->get_text())
+		  . ")";
+		debug($query . "\n");
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+		my $pagenum = 0;
+		foreach $page (keys(%pageOrder)) {
+			$query =
+			  "INSERT INTO page SET songid=" . $songid
+			  . ", pagenum="
+			  . $pageOrder{$page}
+			  . ", lyrics="
+			  . $lyricDbh->quote(
+				get_buffer_text($widgets->{'textAPageB'}{$page}));
+			$sth = $lyricDbh->prepare($query)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			debug($query . "\n");
+			debug("Page Add : " . $page . "|" . $pageOrder{$page} . "\n");
+			$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		}
+	}
+	return $songid;
+}
+
+#***
+
+#****m* lyricue/save_song
+# NAME
+#   save_song -- 
+# SYNOPSIS
+#   save_song ()
+# FUNCTION
+#   Save the song, close the add window and update the available songs
+# INPUTS
+# OUTPUT
+#   Calls a few others to do anything
+# SOURCE
+#
+sub save_song {
+	do_save_song();
+	close_add_window();
+	update_available();
+}
+
+#***
+
+#****m* lyricue/add_page
+# NAME
+#   add_page -- 
+# SYNOPSIS
+#   add_page ()
+# FUNCTION
+#   Add page clicked
+# INPUTS
+# OUTPUT
+#   Adds a page to the song edit screen
+# SOURCE
+#
+sub add_page {
+	debug("Add page clicked\n");
+
+	# Find free hash number
+	my $hashnum = 0;
+	while (exists $pageOrder{$hashnum}) {
+		$hashnum++;
+	}
+	debug($hashnum . "\n");
+	my $pagenum =
+	  $widgets->{'add'}->get_widget('notebookEditPages')->get_current_page + 1;
+
+	#
+	# Construct a GtkScrolledWindow 'scrollAPage'
+	$widgets->{'scrollAPage'}{$hashnum} = Gtk2::ScrolledWindow->new;
+	$widgets->{'scrollAPage'}{$hashnum}->set_policy('never', 'always');
+	$widgets->{'scrollAPage'}{$hashnum}->show;
+
+	#
+	# Construct a GtkText 'textAPage'
+	$widgets->{'textAPage'}{$hashnum}  = Gtk2::TextView->new;
+	$widgets->{'textAPageB'}{$hashnum} = Gtk2::TextBuffer->new(undef);
+	$widgets->{'textAPage'}{$hashnum}->set_buffer(
+		$widgets->{'textAPageB'}{$hashnum});
+	$widgets->{'textAPage'}{$hashnum}->set_editable(TRUE);
+	$widgets->{'textAPage'}{$hashnum}->set_cursor_visible(TRUE);
+	$widgets->{'scrollAPage'}{$hashnum}->add($widgets->{'textAPage'}{$hashnum});
+	$widgets->{'textAPage'}{$hashnum}->show;
+
+	#
+	# Construct a GtkLabel 'labelAPage'
+	$widgets->{'labelAPage'}{$hashnum} = new Gtk2::Label(('Page 1'));
+	$widgets->{'labelAPage'}{$hashnum}->set_justify('center');
+	$widgets->{'labelAPage'}{$hashnum}->set_line_wrap(0);
+	$widgets->{'labelAPage'}{$hashnum}->show;
+	$widgets->{'labelAPage'}{$hashnum}->set_alignment(0.5, 0.5);
+
+	$pageOrder{$hashnum} = $pagenum;
+	$widgets->{'add'}->get_widget('notebookEditPages')->insert_page(
+		$widgets->{'scrollAPage'}{$hashnum},
+		$widgets->{'labelAPage'}{$hashnum},
+		$pagenum
+	);
+	renumber_pages($pagenum, $hashnum);
+	$widgets->{'add'}->get_widget('notebookEditPages')
+	  ->set_current_page($pagenum);
+	$widgets->{'add'}->get_widget('notebookEditPages')->show_all();
+	$widgets->{'add'}->get_widget('buttonEditRemovePage')->visible(TRUE);
+
+	return $hashnum;
+}
+
+#***
+
+#****m* lyricue/renumber_pages
+# NAME
+#   renumber_pages --
+# SYNOPSIS
+#   renumber_pages ($pagenum, $newitem)
+# FUNCTION
+#   Re-number the pages in a edited song
+# INPUTS
+#   $pagenum - The page number added/deleted
+#   $newitem - The new item added
+# OUTPUT
+#   Re-ordered page list
+# SOURCE
+#
+sub renumber_pages {
+	my ($pagenum, $newitem) = @_;
+	my $i;
+
+	# Renumber pages
+	foreach $i (keys(%pageOrder)) {
+		debug("$i:$pageOrder{$i}|");
+		my $page = $pageOrder{$i};
+		if ($page == $pagenum) {
+			if ($i == $newitem) {
+				$pageOrder{$i}++;
+			} else {
+
+				# Skip it
+			}
+		} elsif ($page > $pagenum) {
+			$pageOrder{$i}++;
+		}
+		debug("$i:$pageOrder{$i}\n");
+		$widgets->{'labelAPage'}{$i}->set_text("Page " . $pageOrder{$i});
+		$widgets->{'labelAPage'}{$i}->show();
+	}
+}
+
+#***
+
+#****m* lyricue/remove_page
+# NAME
+#   remove_page --
+# SYNOPSIS
+#   remove_page ()
+# FUNCTION
+#   Remove a page from the song being edited
+# INPUTS
+# OUTPUT
+#   One less page
+# SOURCE
+#
+sub remove_page {
+	debug("Remove page clicked\n");
+
+	my $i;
+	my $pagenum =
+	  $widgets->{'add'}->get_widget('notebookEditPages')->get_current_page + 1;
+	my %newpageOrder;
+
+	my $count = 0;
+	foreach $i (keys(%pageOrder)) {
+		$count++;
+		debug("-$pagenum:$i:$pageOrder{$i}:");
+		if ($pageOrder{$i} < $pagenum) {
+			$newpageOrder{$i} = $pageOrder{$i};
+			$widgets->{'labelAPage'}{$i}->set_text("Page " . $newpageOrder{$i});
+			debug("$newpageOrder{$i}\n");
+		} elsif ($pageOrder{$i} == $pagenum) {
+			$widgets->{'add'}->get_widget('notebookEditPages')
+			  ->remove_page($pagenum - 1);
+			debug("\n");
+		} elsif ($pageOrder{$i} > $pagenum) {
+			$newpageOrder{$i} = $pageOrder{$i} - 1;
+			debug("$newpageOrder{$i}\n");
+			$widgets->{'labelAPage'}{$i}->set_text("Page " . $newpageOrder{$i});
+		}
+	}
+	%pageOrder = %newpageOrder;
+	if ($count <= 2) {
+		$widgets->{'add'}->get_widget('buttonEditRemovePage')->visible(FALSE);
+	}
+}
+
+#***
+
+#****m* lyricue/close_add_window
+# NAME
+#   close_add_window -- 
+# SYNOPSIS
+#   close_add_window ()
+# FUNCTION
+#   Close the add window
+# INPUTS
+# OUTPUT
+#   Add window closed
+# SOURCE
+#
+sub close_add_window {
+	debug("Close add window\n");
+	$widgets->{'add'}->get_widget('windowEditSong')->destroy();
+	undef $widgets->{'add'};
+}
+
+#***
+
+#****m* lyricue/close_dialog
+# NAME
+#   close_dialog -- 
+# SYNOPSIS
+#   close_dialog ($widget)
+# FUNCTION
+#   Close the calling widgets toplevel window
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   window closed
+# SOURCE
+#
+sub close_dialog {
+	my ($widget) = @_;
+	debug("Close dialog\n");
+	$widget->get_toplevel->destroy;
+}
+
+#***
+
+#****m* lyricue/edit_song
+# NAME
+#   edit_song -- 
+# SYNOPSIS
+#   edit_song ()
+# FUNCTION
+#   Edit a song
+# INPUTS
+# OUTPUT
+#   Calls create_window_add to edit the chosen song
+# SOURCE
+#
+sub edit_song {
+	my $i;
+	debug("Edit clicked\n");
+	my $selection =
+	  $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		my $songid = $model->get($iter, 3);
+		if ($widgets->{'add'}
+			&& $widgets->{'add'}->get_widget('windowEditSong'))
+		{
+			if (!$widgets->{'add'}->get_widget('windowEditSong')->visible) {
+				$widgets->{'add'}->get_widget('windowEditSong')->destroy;
+
+				$widgets->{'add'} =
+				  Gtk2::GladeXML->new($globals->{'gladefile'},
+					'windowEditSong');
+				$widgets->{'add'}->signal_autoconnect_from_package('');
+				$widgets->{'add'}->get_widget('buttonEditPreviewServer')
+				  ->signal_connect("clicked", "preview_page", "SERVER");
+				%pageOrder = ();
+				update_songinfo($songid);
+			}
+		} else {
+			$widgets->{'add'} =
+			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowEditSong');
+			$widgets->{'add'}->signal_autoconnect_from_package('');
+			$widgets->{'add'}->get_widget('buttonEditPreviewServer')
+			  ->signal_connect("clicked", "preview_page", "SERVER");
+			%pageOrder = ();
+			$widgets->{'add'}->get_widget('notebookEditPages')->remove_page(0);
+			$widgets->{'add'}->get_widget('windowEditSong')->show();
+			update_songinfo($songid);
+		}
+	}
+}
+
+#***
+
+#****m* lyricue/do_add_verse
+# NAME
+#   do_add_verse -- 
+# SYNOPSIS
+#   do_add_verse ($widget)
+# FUNCTION
+#   Add the chosen reading
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Verse added to playlist
+# SOURCE
+#
+sub do_add_verse {
+	my ($widget) = @_;
+	debug("Add the chosen reading\n");
+
+	debug($globals->{'verses'} . "-" . $globals->{'verseEnd'} . "\n");
+
+	my $book = $widget->get_toplevel->{user_data};
+	$book =~ s/ -.*$//g;
+	my $chapter = $widget->get_toplevel->{user_data};
+	$chapter =~ s/^.*- //g;
+
+	my $verse =
+	  $book . ":" . $chapter . ":"
+	  . $globals->{'verses'} . "-" . $chapter . ":"
+	  . $globals->{'verseEnd'};
+	debug($verse . "\n");
+
+	my ($sth, $rv, $row, $playorder, $playlist);
+
+	# Find next playlist entry
+	my $query = "SELECT MAX(playorder) FROM playlist";
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	if ($row = $sth->fetchrow_hashref()) {
+		if ($row->{'MAX(playorder)'}) {
+			$playorder = $row->{'MAX(playorder)'} + 1;
+		} else {
+			$playorder = 1;
+		}
+	} else {
+		$playorder = 1;
+	}
+
+	# Find next playlists entry
+	$query = "SELECT MAX(id) FROM playlists";
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	$row      = $sth->fetchrow_hashref();
+	$playlist = $row->{'MAX(id)'} + 1;
+
+	# Add verse to main playlist
+	my $main_playlist =
+	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+	$query =
+	  "INSERT INTO playlist SET playorder="
+	  . $playorder
+	  . ", playlist="
+	  . $main_playlist
+	  . ", type=\"play\", data="
+	  . $playlist;
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	$playorder++;
+
+	# Add entry to playlists table
+	$query =
+	  "INSERT INTO playlists SET id="
+	  . $playlist
+	  . ", title=\"" . $verse . "\"";
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	# Get current settings
+	update_display("status", "", "");
+
+	if ($config->{'Main'} eq "") {
+		$config = load_config();
+	}
+	if ($config->{'width'} == 0) {
+		$config->{'width'}  = 800;
+		$config->{'height'} = 600;
+	}
+
+	my $pagenum    = 1;
+	my $pageHeight = 0;
+	my $minv       = $globals->{'verses'};
+
+	$query =
+	  "SELECT * FROM  verse WHERE book=\"" . $book
+	  . "\" AND chapternum=" . $chapter
+	  . " AND versenum>="
+	  . $globals->{'verses'}
+	  . " AND versenum <= "
+	  . $globals->{'verseEnd'}
+	  . " ORDER BY versenum";
+	debug($query . "\n");
+	$sth = $bibleDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	my $layout = $widget->create_pango_layout("");
+	$layout->set_wrap('word');
+	$layout->set_width($config->{'Width'} * PANGO_SCALE);
+	$layout->set_font_description(
+		Gtk2::Pango::FontDescription->from_string($config->{'Main'}));
+
+	my $page = "";
+	while ($row = $sth->fetchrow_hashref()) {
+		my $line =
+		  $row->{'chapternum'} . ":"
+		  . $row->{'versenum'} . "   "
+		  . $row->{'verse'};
+
+		$layout->set_text($page . "\n" . $line);
+		my ($pageWidth, $pageHeight) = $layout->get_pixel_size;
+
+		if ($pageHeight > $config->{'height'} - 100) {
+			my $maxv = $row->{'versenum'} - 1;
+			$query =
+			  "INSERT INTO playlist SET playlist="
+			  . $playlist
+			  . ", playorder="
+			  . $playorder
+			  . ", type=\"vers\", data=\"" . $minv . "-" . $maxv . "\"";
+			$playorder++;
+			debug($query . "\n");
+			my $sth2 = $lyricDbh->prepare($query)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+
+			my $rv2 = $sth2->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			$minv = $row->{'versenum'};
+			$page = $line;
+		} else {
+			$page = $page . "\n" . $line;
+		}
+	}
+
+	$query =
+	  "INSERT INTO playlist SET playlist="
+	  . $playlist
+	  . ", playorder="
+	  . $playorder
+	  . ", type=\"vers\", data=\"" . $minv . "-"
+	  . $globals->{'verseEnd'} . "\"";
+	$playorder++;
+	debug($query . "\n");
+	my $sth2 = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+
+	my $rv2 = $sth2->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	close_dialog($widget);
+	update_playlist();
+}
+
+#***
+
+#****m* lyricue/import_song
+# NAME
+#   import_song -- 
+# SYNOPSIS
+#   import_song ($widget)
+# FUNCTION
+#   Import a song into the add song dialog
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   A dialog to open song to import
+# SOURCE
+#
+sub import_song {
+	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile');
+	$filexml->signal_autoconnect_from_package('');
+	$filexml->get_widget('buttonFileOK')
+	  ->signal_connect("clicked", "do_import_song", $filexml);
+}
+
+#***
+
+#****m* lyricue/do_import_song
+# NAME
+#   do_import_song -- 
+# SYNOPSIS
+#   do_import_song ($widget, $file_dialog)
+# FUNCTION
+#   Actually import the song into the add song dialog
+# INPUTS
+#   $widget - Calling widget
+#   $file_dialog - Dialog containing selected filename
+# OUTPUT
+#   Filled in add song dialog
+# SOURCE
+#
+sub do_import_song {
+	my ($widget, $filexml) = @_;
+	my ($artist, $name, $keywords, $number, $book, $copyright) = "";
+	my $hashnum  = 0;
+	my $filename = $filexml->get_widget('dialogFile')->get_filename;
+
+	open(SONG, $filename) || close_dialog($widget);
+	while (<SONG>) {
+		debug($_);
+		if (/^Name:/) {
+			if (!$name) {
+				chomp;
+				$name = $_;
+				$name =~ s/^.*://g;
+				$name =~ s/^ *//g;
+				$widgets->{'add'}->get_widget('entryEditName')->set_text($name);
+			}
+		} elsif (/^Book:/) {
+
+			if (!$book) {
+				chomp;
+				$book = $_;
+				$book =~ s/^.*://g;
+				$book =~ s/^ *//g;
+				$widgets->{'add'}->get_widget('entryEditBook')->set_text($book);
+			}
+		} elsif (/^Number:/) {
+
+			if (!$number) {
+				chomp;
+				$number = $_;
+				$number =~ s/^.*://g;
+				$number =~ s/^ *//g;
+				$widgets->{'add'}->get_widget('entryEditNumber')
+				  ->set_text($number);
+			}
+		} elsif (/^Artist:/) {
+			chomp;
+			$_ =~ s/^.*://g;
+			$_ =~ s/^ *//g;
+
+			if (!$artist) {
+				$artist = $_;
+				$widgets->{'add'}->get_widget('entryEditArtist')
+				  ->set_text($artist);
+			} else {
+				$artist = "\n" . $_;
+				$widgets->{'add'}->get_widget('entryEditArtist')
+				  ->append_text($artist);
+			}
+		} elsif (/^Keywords:/) {
+
+			if (!$keywords) {
+				chomp;
+				$keywords = $_;
+				$keywords =~ s/^.*://g;
+				$keywords =~ s/^ *//g;
+				$widgets->{'add'}->get_widget('entryEditKeywords')
+				  ->set_text($keywords);
+			}
+		} elsif (/^Copyright/) {
+
+			if (!$copyright) {
+				chomp;
+				$copyright = $_;
+				$copyright =~ s/^.*://g;
+				$copyright =~ s/^ *//g;
+				$widgets->{'add'}->get_widget('entryEditCopyright')
+				  ->set_text($copyright);
+			}
+		} elsif (/^--/) {
+			debug("add page\n");
+			$hashnum = add_page();
+		} else {
+			debug("add line\n");
+			my $iter = $widgets->{'textAPageB'}{$hashnum}->get_end_iter();
+			$widgets->{'textAPageB'}{$hashnum}->insert($iter, $_);
+		}
+	}
+	close SONG;
+
+	close_dialog($widget);
+}
+
+#***
+
+#****m* lyricue/update_songinfo
+# NAME
+#   update_songinfo -- 
+# SYNOPSIS
+#   update_songinfo ($songid)
+# FUNCTION
+#   Fill in the add song dialog with the chosen songs details/lyrics
+# INPUTS
+#   $songid - Id of song to edit
+# OUTPUT
+#   Filled in add song dialog
+# SOURCE
+#
+sub update_songinfo {
+	my ($songid) = @_;
+	my ($sth, $query, $hashnum);
+	debug("Edit clicked\n");
+
+	if ($songid) {
+		$widgets->{'add'}->get_widget('windowEditSong')->{user_data} = $songid;
+		$query =
+		  "SELECT lyrics FROM page WHERE songid=\"" . $songid
+		  . "\" ORDER BY pagenum";
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+		while ($row = $sth->fetchrow_hashref()) {
+			$hashnum = add_page();
+			$widgets->{'textAPageB'}{$hashnum}->set_text($row->{'lyrics'});
+		}
+
+		$query =
+"SELECT title,songnum,book,artist,keywords,copyright from lyricMain WHERE id="
+		  . $songid;
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		if ($row = $sth->fetchrow_hashref()) {
+			$widgets->{'add'}->get_widget('entryEditName')
+			  ->set_text($row->{'title'});
+			$widgets->{'add'}->get_widget('entryEditBook')
+			  ->set_text($row->{'book'});
+			$widgets->{'add'}->get_widget('entryEditNumber')
+			  ->set_text($row->{'songnum'});
+			$widgets->{'add'}->get_widget('entryEditArtist')
+			  ->set_text($row->{'artist'});
+			$widgets->{'add'}->get_widget('entryEditKeywords')
+			  ->set_text($row->{'keywords'});
+			$widgets->{'add'}->get_widget('entryEditCopyright')
+			  ->set_text($row->{'copyright'});
+		}
+		$widgets->{'add'}->get_widget('notebookEditPages')->set_current_page(0);
+	}
+}
+
+#***
+
+#****m* lyricue/add_to_playlist
+# NAME
+#   add_to_playlist -- 
+# SYNOPSIS
+#   add_to_playlist ($widget)
+# FUNCTION
+#   Add the chosen songs to the playlist
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   More songs in the playlist
+# SOURCE
+#
+sub add_to_playlist {
+
+	debug("Add to playlist clicked\n");
+	my $selection =
+	  $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		add_single_song($model->get($iter, 3));
+	}
+
+	update_playlist();
+}
+
+#***
+
+#****m* lyricue/add_single_song
+# NAME
+#   add_single_song -- 
+# SYNOPSIS
+#   add_single_song ($availableSelection)
+# FUNCTION
+#   Add a single song to the playlist
+#   Optionally audit this addition
+# INPUTS
+#   $availableSelection - Song id to add to the playlist
+# OUTPUT
+#   One more song in the playlist
+# SOURCE
+#
+sub add_single_song {
+	my ($availableSelection) = @_;
+	my ($playorder);
+
+	my $query = "SELECT MAX(playorder) FROM playlist";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	if ($row = $sth->fetchrow_hashref()) {
+		if ($row->{'MAX(playorder)'}) {
+			$playorder = $row->{'MAX(playorder)'} + 1;
+		} else {
+			$playorder = 1;
+		}
+	} else {
+		$playorder = 1;
+	}
+
+	# Find next playlists entry
+	$query = "SELECT MAX(id) FROM playlists";
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	$row = $sth->fetchrow_hashref();
+	my $playlist = $row->{'MAX(id)'} + 1;
+
+	$query =
+	  "INSERT INTO playlist SET playorder="
+	  . $playorder
+	  . ", playlist="
+	  . $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data}
+	  . ", data="
+	  . $playlist
+	  . ", type=\"play\"";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	# Find song info
+	my $title = "";
+	$query =
+	  "SELECT title,pageid FROM lyricMain, page WHERE songid=id AND id="
+	  . $availableSelection
+	  . " ORDER BY pagenum";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while ($row = $sth->fetchrow_hashref()) {
+
+		# Add the pages
+		$title = $row->{'title'};
+		$playorder++;
+		my $query2 =
+		  "INSERT INTO playlist SET playorder="
+		  . $playorder
+		  . ", playlist="
+		  . $playlist
+		  . ", data="
+		  . $row->{'pageid'}
+		  . ", type=\"song\"";
+		my $sth2 = $lyricDbh->prepare($query2)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv2 = $sth2->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	}
+
+	# Add playlists entry
+	$query =
+	  "INSERT INTO playlists (id,title,ref) VALUES ("
+	  . $playlist . ",\"" . $title . "\","
+	  . $availableSelection . ")";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	# audit this addition
+	# currently always runs due to problem with passing in widgets
+	print $config->{'Audit'} . "\n";
+	if ($config->{'Audit'}) {
+		$query =
+		  "INSERT INTO audit VALUES(0," . $availableSelection . ", NOW())";
+		debug("Auditing with: " . $query . "\n");
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	}
+}
+
+#***
+
+#****m* lyricue/remove_from_playlist
+# NAME
+#   remove_from_playlist -- 
+# SYNOPSIS
+#   remove_from_playlist ()
+# FUNCTION
+#   Remove selected songs from the playlist
+# INPUTS
+# OUTPUT
+#   Less songs in the playlist
+# SOURCE
+#
+sub remove_from_playlist {
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	debug("Remove from playlist clicked \n");
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		remove_single_item($model->get($iter, 2));
+		update_playlist();
+	}
+}
+
+#***
+
+#****m* lyricue/remove_single_item
+# NAME
+#   remove_single_item -- 
+# SYNOPSIS
+#   remove_single_item ($item)
+# FUNCTION
+#   Remove a single song from the playlist
+# INPUTS
+#   $item - Playlist Id to remove
+# OUTPUT
+#   One less song on the playlist
+# SOURCE
+#
+sub remove_single_item {
+	my ($item) = @_;
+
+	debug("Deleting $item\n");
+	my $query = "SELECT type,data  FROM playlist WHERE playorder=" . $item;
+	debug($query . "\n");
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my @row = $sth->fetchrow_array;
+	if ($row[0] eq "play" | $row[0] eq "sub") {
+		$query = "SELECT playorder FROM playlist WHERE playlist=" . $row[1];
+		debug($query . "\n");
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		while (my @row2 = $sth->fetchrow_array) {
+			remove_single_item($row2[0]);
+		}
+
+		$query = "DELETE FROM playlist WHERE playlist=" . $row[1];
+		debug($query . "\n");
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+		$query = "DELETE FROM playlists WHERE id=" . $row[1];
+		debug($query . "\n");
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	}
+
+	$query = "DELETE FROM playlist WHERE playorder=" . $item;
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	$query = "DELETE FROM associations WHERE playlist=" . $item;
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+}
+
+#***
+
+#****m* lyricue/clear_playlist
+# NAME
+#   clear_playlist -- 
+# SYNOPSIS
+#   clear_playlist ($widget)
+# FUNCTION
+#   Clear the playlist
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   No songs in playlist
+# SOURCE
+#
+sub clear_playlist {
+	my ($widget) = @_;
+
+	my $main_playlist =
+	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+
+	my $query =
+	  "SELECT playorder FROM playlist WHERE playlist=" . $main_playlist;
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while (my @row = $sth->fetchrow_array()) {
+		remove_single_item($row[0]);
+	}
+
+	update_playlist();
+}
+
+#***
+
+#****m* lyricue/display_song
+# NAME
+#   display_song -- 
+# SYNOPSIS
+#   display_song (undef, $event)
+# FUNCTION
+#   Display a song if double-clicked, or popup menu if right-clicked
+# INPUTS
+#   $event - Calling event
+# OUTPUT
+#   Updated display or right-click menu is popped-up
+# SOURCE
+#
+sub display_song {
+	my (undef, $event) = @_;
+	if (defined($event->type)) {
+		if ($event->type eq '2button-press') {
+			if (defined $TIMER) {
+
+				#Cancel any loop timers
+				debug("Cancelling loop timers\n");
+				Glib::Source->remove($TIMER);
+			}
+			my $selection =
+			  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+			my ($model, $iter) = $selection->get_selected;
+			if ($iter) {
+				update_display("display", $model->get($iter, 2), "");
+
+			}
+			return TRUE;
+		} elsif ($event->type eq 'button-release') {
+			if ($event->button == 3) {
+				popup_play_menu($event);
+				return TRUE;
+			} else {
+				if ($widgets->{'transitions'}
+					&& $widgets->{'transitions'}->get_widget(
+						'windowTransitions'))
+				{
+					my $selection =
+					  $widgets->{'main'}->get_widget('treePlaylist')
+					  ->get_selection;
+					my ($model, $iter) = $selection->get_selected;
+					if ($iter) {
+						my $transition = $model->get($iter, 3);
+
+						# Set the transition values
+						my $old_direction = mod($transition, 32);
+						$transition = $transition >> 5;
+						my $new_direction = mod($transition, 32);
+						my $effect = $transition >> 5;
+						if ($effect == NONE) {
+							$widgets->{'transitions'}->get_widget(
+								'radioTransNone')->set_active(TRUE);
+						}
+						if ($effect == WIPE) {
+							$widgets->{'transitions'}->get_widget(
+								'radioTransWipe')->set_active(TRUE);
+						}
+						if ($effect == SLIDE_TEXT) {
+							$widgets->{'transitions'}->get_widget(
+								'radioTransSlide')->set_active(TRUE);
+						}
+						if ($old_direction & WAIT) {
+							$widgets->{'transitions'}->get_widget(
+								'checkTransOld')->set_active(TRUE);
+							$old_direction = $old_direction - WAIT;
+						}
+						if ($new_direction & WAIT) {
+							$widgets->{'transitions'}->get_widget(
+								'checkTransNew')->set_active(TRUE);
+							$new_direction = $new_direction - WAIT;
+						}
+						my @directions = (
+							"None",         "Up",
+							"Down",         "",
+							"Right",        "Up + Right",
+							"Down + Right", "",
+							"Left",         "Up + Left",
+							"Down + Left",  "",
+							"",             "",
+							"",             ""
+						);
+						$widgets->{'transitions'}->get_widget('entryTransOld')
+						  ->set_text($directions[$old_direction]);
+						$widgets->{'transitions'}->get_widget('entryTransNew')
+						  ->set_text($directions[$new_direction]);
+					}
+				}
+			}
+		}
+	}
+	return FALSE;
+}
+
+#***
+
+#****m* lyricue/display_now
+# NAME
+#   display_now -- 
+# SYNOPSIS
+#   display_now ($widget)
+# FUNCTION
+#   Display now button clicked
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Display updated with currently selected song
+# SOURCE
+#
+sub display_now {
+	my ($widget) = @_;
+	debug("Display clicked\n");
+
+	if ($TIMER) {
+
+		#Cancel any loop timers
+		debug("Cancelling loop timers\n");
+		Gtk2->timeout_remove($TIMER);
+	}
+
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		update_display("display", $model->get($iter, 2), "");
+	}
+}
+
+#***
+
+#****m* lyricue/prev_page
+# NAME
+#   prev_page --
+# SYNOPSIS
+#   prev_page ()
+# FUNCTION
+#   Display the previous page in the server
+# INPUTS
+#   none
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub prev_page {
+
+	if ($TIMER) {
+
+		#Cancel any loop timers
+		debug("Cancelling loop timers\n");
+		Gtk2->timeout_remove($TIMER);
+	}
+
+	debug("Prev clicked\n");
+	update_display("display", "prev_page", $globals->{'Loop'});
+}
+
+#***
+
+#****m* lyricue/next_page
+# NAME
+#   next_page --
+# SYNOPSIS
+#   next_page ()
+# FUNCTION
+#   Display the next page in the server
+# INPUTS
+#   None
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub next_page {
+
+	if ($TIMER) {
+
+		#Cancel any loop timers
+		debug("Cancelling loop timers\n");
+		Gtk2->timeout_remove($TIMER);
+	}
+
+	debug("Next clicked\n");
+	update_display("display", "next_page", $globals->{'Loop'});
+}
+
+#***
+
+#****m* lyricue/prev_song
+# NAME
+#   prev_song --
+# SYNOPSIS
+#   prev_song ()
+# FUNCTION
+#   Display the previous song in the server
+# INPUTS
+#   none
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub prev_song {
+
+	if ($TIMER) {
+
+		#Cancel any loop timers
+		debug("Cancelling loop timers\n");
+		Gtk2->timeout_remove($TIMER);
+	}
+
+	debug("Prev clicked\n");
+	update_display("display", "prev_song", $globals->{'Loop'});
+}
+
+#***
+
+#****m* lyricue/next_song
+# NAME
+#   next_song --
+# SYNOPSIS
+#   next_song ()
+# FUNCTION
+#   Display the next song in the server
+# INPUTS
+#   None
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub next_song {
+
+	if ($TIMER) {
+
+		#Cancel any loop timers
+		debug("Cancelling loop timers\n");
+		Gtk2->timeout_remove($TIMER);
+	}
+
+	debug("Next clicked\n");
+	update_display("display", "next_song", $globals->{'Loop'});
+}
+
+#***
+
+#****m* lyricue/blank_page
+# NAME
+#   blank_page --
+# SYNOPSIS
+#   blank_page ()
+# FUNCTION
+#   Blank the server
+# INPUTS
+#   None
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub blank_page {
+
+	if ($TIMER) {
+
+		#Cancel any loop timers
+		debug("Cancelling loop timers\n");
+		Gtk2->timeout_remove($TIMER);
+	}
+
+	debug("Blank page clicked\n");
+	update_display("blank", "", "");
+}
+
+#****m* lyricue/next_point
+# NAME
+#   next_point --
+# SYNOPSIS
+#   next_point ()
+# FUNCTION
+#   Display the next point in the server
+# INPUTS
+#   None
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub next_point {
+	debug("Next point clicked\n");
+	update_display("next_point", "", "");
+}
+
+#***
+
+#****m* lyricue/preview_page
+# NAME
+#   preview_page --
+# SYNOPSIS
+#   preview_page ($widget)
+# FUNCTION
+#   Preview a page in the server
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub preview_page {
+	my ($widget, $MODE) = @_;
+
+	if ($TIMER) {
+
+		#Cancel any loop timers
+		debug("Cancelling loop timers\n");
+		Gtk2->timeout_remove($TIMER);
+	}
+
+	my $current_page =
+	  $widgets->{'add'}->get_widget('notebookEditPages')->get_current_page() +
+	  1;
+	my $current_hash = 1;
+	debug($current_page . " page \n");
+	my $label = $widgets->{'labelAPage'};
+	foreach (keys %$label) {
+		if ($widgets->{'labelAPage'}{$_}->get_text() eq "Page " . $current_page)
+		{
+			$current_hash = $_;
+		}
+	}
+	debug($current_hash . " hash\n");
+
+	#join all the strings together so update display will accept them, removing
+	#any newlines or semicolons that would upset the split on the other end.
+	my $titledata =
+	  $widgets->{'add'}->get_widget('entryEditName')->get_text()
+	  . "#BREAK#"
+	  . $widgets->{'add'}->get_widget('entryEditArtist')->get_text()
+	  . "#BREAK#"
+	  . $widgets->{'add'}->get_widget('entryEditCopyright')->get_text();
+	$titledata =~ s/:/#SEMI#/g;
+	my $songtext = get_buffer_text($widgets->{'textAPageB'}{$current_hash});
+	$songtext =~ s/\n/#BREAK#/g;
+	$songtext =~ s/:/#SEMI#/g;
+	if ($MODE eq "SERVER") {
+		update_display("preview", $titledata, $songtext);
+	} else {
+		preview_display("preview", $titledata, $songtext);
+	}
+}
+
+#***
+
+#****m* lyricue/add_verse
+# NAME
+#   add_verse --
+# SYNOPSIS
+#   add_verse ($widget)
+# FUNCTION
+#   Add Verse clicked
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Calls create_dialogBook
+# SOURCE
+#
+sub add_verse {
+	debug("Add verse clicked\n");
+
+	my $bookxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowBook');
+	$bookxml->signal_autoconnect_from_package('');
+	$bookxml->get_widget('windowBook')->show;
+}
+
+#***
+
+#****m* lyricue/add_image
+# NAME
+#   add_image --
+# SYNOPSIS
+#   add_image ($widget)
+# FUNCTION
+#   Add image clicked
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+# SOURCE
+#
+sub add_image {
+	my ($widget) = @_;
+	debug("Add image clicked\n");
+
+	$widgets->{'image'} =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImage');
+	$widgets->{'image'}->signal_autoconnect_from_package('');
+	$widgets->{'image'}->get_widget('dialogImage')->show;
+
+	if ($widgets->{'image'}->get_widget('treeImage')->{user_data}
+		&& ($widgets->{'image'}->get_widget('treeImage')->{user_data} eq "load")
+	  )
+	{
+		$widgets->{'image'}->get_widget('treeImage')->{data} = ();
+	} else {
+		$widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
+		my $column =
+		  Gtk2::TreeViewColumn->new_with_attributes("Filename",
+			Gtk2::CellRendererText->new, text => 0);
+		$column->signal_connect("clicked", "change_preview");
+		$widgets->{'image'}->get_widget('treeImage')->append_column($column);
+		$widgets->{'image'}->get_widget('buttonImageOK')
+		  ->signal_connect('clicked', "do_add_image");
+	}
+
+	update_imagedir($globals->{'imgpath'});
+}
+
+sub update_imagedir {
+	my ($dir) = @_;
+
+	debug("changing to $dir\n");
+
+	# update list of available images
+	$widgets->{'image'}->get_widget('labelImage')->set_text($dir);
+	my $store = Gtk2::ListStore->new('Glib::String');
+	opendir(DIR, $dir) || return 0;
+	my @items = ();
+	while ($_ = readdir(DIR)) {
+		if (!(/^\./)) {
+			$_ =~ s/\.*?$//g;
+			debug($_ . "\n");
+			if (-f $dir . "/" . $_) {
+				push (@items, $_);
+			}
+		}
+	}
+
+	# display sorted list
+	my $iter = $store->append;
+	$store->set($iter, 0, "..");
+	foreach (sort { uc($a) cmp uc($b) } @items) {
+		$iter = $store->append;
+		$store->set($iter, 0, $_);
+	}
+	$widgets->{'image'}->get_widget('treeImage')->set_model($store);
+}
+
+#***
+
+#****m* lyricue/update_display
+# NAME
+#   update_display --
+# SYNOPSIS
+#   update_display ($command, $primary, $secondary)
+# FUNCTION
+#   Open a connection the the server and send a command. Status is returned
+# INPUTS
+#   $command - Command to send
+#   $primary - First parameter to send
+#   $secondary - Second parameter to send
+# OUTPUT
+#   Updated display
+# SOURCE
+#
+sub update_display {
+	my ($command, $primary, $secondary) = @_;
+	print $globals->{'access'} . "\n";
+	if ($globals->{'access'} !~ /s/) {
+
+		$command   = "";
+		$primary   = "";
+		$secondary = "";
+	}
+
+	if (!defined($secondary)) {
+		$secondary = "";
+	}
+	if (!defined($primary)) {
+		$primary = "";
+	}
+	if (my $server = IO::Socket::INET->new(
+			Proto    => "tcp",
+			PeerAddr => $globals->{'host'},
+			PeerPort => $PORT
+		))
+	{
+		print $server $command . ":" . $primary . ":" . $secondary . "\n";
+		if (defined(my $status = <$server>)) {
+			chomp($status);
+			if ($status =~ /^pl:/) {
+				my @line = split (/:/, $status);
+				$status = "Displaying ";
+				if ($line[1] eq "v") {
+					$status = " verses ";
+				} else {
+					$status = " page " . $line[3];
+					$widgets->{'main'}->get_widget('treePlaylist')
+					  ->select_item($line[2]);
+				}
+				$widgets->{'main'}->get_widget('statusPlaylist')
+				  ->push(1, $status);
+			} elsif ($status =~ /^Status,/) {
+				my @line = split (/,/, $status);
+				foreach (@line) {
+					my @item = split (/:/, $_);
+					if ($item[0] eq "W") {
+						$config->{'width'} = $item[1];
+					} elsif ($item[0] eq "H") {
+						$config->{'height'} = $item[1];
+					} elsif ($item[0] eq "F") {
+						$config->{'Main'} = $item[1];
+					} elsif ($item[0] eq "B") {
+						if ($item[1] ne $globals->{'bibledb'}) {
+							foreach (0 .. $config->{'BibleCount'} - 1) {
+								my $bible = $config->{'Bible'}[$_];
+								$bible =~ s/^.*;(.*)$/$1/g;
+								if ($bible eq $line[1]) {
+									$bibleMenu[$_]->set_active();
+								}
+							}
+						}
+					}
+				}
+			} else {
+				$widgets->{'main'}->get_widget('statusPlaylist')
+				  ->push(1, $status);
+			}
+			debug($status . "\n");
+		}
+		close($server);
+		debug("Sent ");
+	}
+	debug($command . ":" . $primary . ":" . $secondary . "\n");
+}
+
+#***
+
+#   1. Set bg in preview window to current bg in server
+#   2. Send command to show playlist item to server
+sub preview_playlist_item {
+	my ($widget) = @_;
+
+	debug("Previewing a playlist item...\n");
+
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+
+		#set the preview window bg to current bg
+		my $current = $widgets->{'buttonCurr'}->{user_data};
+		preview_display("backdrop", $current, undef);
+
+		#display item
+		preview_display("display", $model->get($iter, 2), undef);
+	}
+}
+
+#****m* lyricue/preview_display
+# NAME
+#   preview_display --
+# SYNOPSIS
+#   preview_display ()
+# FUNCTION
+#   1. Start new server instance for preview windows (if required)
+#   2. Issues commands to the preview server
+# INPUTS
+# OUTPUT
+#   Updated display
+# SOURCE
+#
+sub preview_display {
+	my ($command, $primary, $secondary) = @_;
+	if (!defined($secondary)) {
+		$secondary = "";
+	}
+	if (!defined($primary)) {
+		$primary = "";
+	}
+
+	my $forked = 0;
+	my $wait   = 1;
+
+	PUPDATE: {
+		if (my $server = IO::Socket::INET->new(
+				Proto    => "tcp",
+				PeerAddr => $globals->{'host'},
+				PeerPort => $MINIPORT
+			))
+		{
+			print $server $command . ":" . $primary . ":" . $secondary . "\n";
+
+			if (defined(my $status = <$server>)) {
+				chomp($status);
+				if ($status =~ /^pl:/) {
+					my @line = split (/:/, $status);
+					$status = "Previewed ";
+					if ($line[1] eq "v") {
+						$status = " verses ";
+					} else {
+						$status = " page " . $line[3];
+						$widgets->{'main'}->get_widget('treePlaylist')
+						  ->select_item($line[2]);
+					}
+					$widgets->{'main'}->get_widget('statusPlaylist')
+					  ->push(1, $status);
+				} elsif ($status =~ /^Status,/) {
+					my @line = split (/,/, $status);
+					foreach (@line) {
+						my @item = split (/:/, $_);
+						if ($item[0] eq "W") {
+							$config->{'width'} = $item[1];
+						} elsif ($item[0] eq "H") {
+							$config->{'height'} = $item[1];
+						} elsif ($item[0] eq "F") {
+							$config->{'Main'} = $item[1];
+						}
+					}
+				} else {
+
+					$widgets->{'main'}->get_widget('statusPlaylist')
+					  ->push(1, $status);
+				}
+				debug($status . "\n");
+				close($server);
+			}
+		} else {
+
+			#tcp/ip socket failure so server must be not running yet!
+			if ($forked == 0) {
+				debug("Preview server not running - forking and executing!\n");
+				fork && exec("lyric_server.pl -m");
+				sleep 1;
+				$forked = 1;
+				redo PUPDATE;
+			} elsif ($wait < 5) {
+				debug("Preview server not running - waiting " . $wait
+					. " seconds!\n");
+				sleep $wait;
+				$wait++;
+				redo PUPDATE;
+			} else {
+				debug("Preview server did not launch... giving up!!!");
+			}
+		}
+	}
+}
+
+#***
+
+sub open_dialogColour {
+	my ($widget, $event, $item) = @_;
+	my $colourxml =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogColour');
+	$colourxml->signal_autoconnect_from_package('');
+	$colourxml->get_widget('dialogColour')
+	  ->set_title("Select " . $item . " Colour");
+	$colourxml->get_widget('dialogColour')->{'user_data'} = $item;
+	$colourxml->get_widget('buttonColourOK')
+	  ->signal_connect("clicked", "change_font_colour", $colourxml);
+	$colourxml->get_widget('buttonColourCancel')
+	  ->signal_connect("clicked", "close_dialog");
+	my $response = $colourxml->get_widget('dialogColour')->run();
+}
+
+sub open_dialogFont {
+	my ($widget, $event, $font) = @_;
+	$widgets->{'font'} =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFont');
+	$widgets->{'font'}->signal_autoconnect_from_package('');
+	my $fontname = $config->{$font};
+	$widgets->{'font'}->get_widget('selectFont')->set_font_name($fontname);
+	$widgets->{'font'}->get_widget('buttonFontOK')
+	  ->signal_connect("clicked", "apply_font", $font);
+	$widgets->{'font'}->get_widget('dialogFont')->show;
+	return TRUE;
+}
+
+#****m* lyricue/change_font_colour
+# NAME
+#   change_font_colour -- 
+# SYNOPSIS
+#   change_font_colour ($widget, $colourxml)
+# FUNCTION
+#   Change the font colour
+# INPUTS
+#   $widget - Calling widget
+#   $colourxml - The Colour dialog
+# OUTPUT
+#   Updated config file and server
+# SOURCE
+#
+sub change_font_colour {
+	my ($widget, $colourxml) = @_;
+	my $item   = $colourxml->get_widget('dialogColour')->{'user_data'};
+	my $colour = $colourxml->get_widget('colourSelect')->get_current_color();
+	my $color2 =
+	  sprintf("#%2.2x", ($colour->red / 256))
+	  . sprintf("%2.2x", ($colour->green / 256))
+	  . sprintf("%2.2x", ($colour->blue / 256));
+
+	if ($item eq "Shadow") {
+		$widgets->{'prefs'}->get_widget('entryPrefShadowColour')
+		  ->set_text($color2);
+	} else {
+		$widgets->{'prefs'}->get_widget('entryPrefColour')->set_text($color2);
+	}
+	close_dialog($widget);
+}
+
+#***
+
+#****m* lyricue/apply_font
+# NAME
+#   apply_font -- 
+# SYNOPSIS
+#   apply_font ()
+# FUNCTION
+#   Apply font changes to the config file and server
+# INPUTS
+# OUTPUT
+#   Updated file and server
+# SOURCE
+#
+sub apply_font {
+	my ($widget, $type) = @_;
+	print $widgets->{'font'}->get_widget('selectFont')->get_font_name . "\n";
+	$widgets->{'prefs'}->get_widget('entryPref' . $type)
+	  ->set_text($widgets->{'font'}->get_widget('selectFont')->get_font_name);
+	close_dialog($widget);
+}
+
+#***
+
+#****m* lyricue/create_dialogChapter
+# NAME
+#   create_dialogChapter -- 
+# SYNOPSIS
+#   create_dialogChapter ()
+# FUNCTION
+#   Create a dialog to choose chapter for verse
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Dialog of available chapters
+# SOURCE
+#
+sub create_dialogChapter {
+	my ($widget) = @_;
+	my $book = $widget->get_label;
+	debug("Selected " . $book . "\n");
+	my $query =
+	  "SELECT MAX(chapternum) FROM verse WHERE book like \"" . $book . "%\"";
+	debug($query . "\n");
+	$sth = $bibleDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	if (my @row = $sth->fetchrow_array) {
+		close_dialog($widget);
+		my $chapxml =
+		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChapter');
+		$chapxml->signal_autoconnect_from_package('');
+
+		$chapxml->get_widget('tableChapter')->resize(ceil($row[0] / 8) + 1, 5);
+		$chapxml->get_widget('labelChapter')->set_text($book);
+
+		for (my $i = 0 ; $i < ceil($row[0] / 8) ; $i++) {
+			foreach (0 .. 7) {
+				debug($i . "|" . $_ . "\n");
+				if ((($i * 8) + $_ + 1) <= $row[0]) {
+					my $button = Gtk2::Button->new(($i * 8) + $_ + 1);
+					$button->show;
+					$button->signal_connect("clicked", "create_dialogVerse",
+						$book);
+					$chapxml->get_widget('tableChapter')->attach(
+						$button,  $_, $_ + 1, $i + 1, $i + 2, 'fill',
+						'expand', 0,  0
+					);
+				}
+			}
+		}
+		$sth->finish;
+		$chapxml->get_widget('tableChapter')->show;
+		$chapxml->get_widget('windowChapter')->show;
+	}
+}
+
+#***
+
+#****m* lyricue/create_dialogVerse
+# NAME
+#   create_dialogVerse -- 
+# SYNOPSIS
+#   create_dialogVerse ($widget, $book)
+# FUNCTION
+#   Create a dialog to choose verse numbers
+# INPUTS
+#   $widget - Calling widget
+#   $book - Book name
+# OUTPUT
+#   Dialog of available verses
+# SOURCE
+#
+sub create_dialogVerse {
+	my ($widget, $book) = @_;
+	my $chapter = $widget->get_label;
+	my $query   =
+	  "SELECT MAX(versenum) FROM verse WHERE book=\"" . $book
+	  . "\" AND chapternum="
+	  . $chapter;
+	debug($query . "\n");
+	$sth = $bibleDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	if (my @row = $sth->fetchrow_array) {
+		close_dialog($widget);
+		my $versexml =
+		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowVerse');
+		$versexml->signal_autoconnect_from_package('');
+		$versexml->get_widget('tableVerse')->resize(ceil($row[0] / 5) + 1, 5);
+		$versexml->get_widget('labelVerse')->set_text($book . " - " . $chapter);
+		$versexml->get_widget('windowVerse')->get_toplevel->{user_data} =
+		  $book . " - " . $chapter;
+
+		for (my $i = 0 ; $i < ceil($row[0] / 5) ; $i++) {
+			foreach (0 .. 4) {
+				my $number = ($i * 5) + $_ + 1;
+				debug($i . "|" . $_ . "|" . $number . "\n");
+				if ($number <= $row[0]) {
+					$widgets->{'verseButton'}{$number} =
+					  Gtk2::ToggleButton->new($number);
+					$widgets->{'verseButton'}{$number}->show;
+					$versexml->get_widget('tableVerse')
+					  ->attach($widgets->{'verseButton'}{$number}, $_, $_ + 1,
+						$i + 1, $i + 2, 'fill', 'expand', 0, 0);
+					$widgets->{'verseButton'}{$number}->signal_connect("event",
+						"changeVerseStatus", $row[0]);
+				}
+			}
+		}
+		$globals->{'verseStart'} = 0;
+		$globals->{'verseEnd'}   = 0;
+		$versexml->get_widget('tableVerse')->show;
+		$versexml->get_widget('windowVerse')->show;
+	}
+	$sth->finish;
+}
+
+#***
+
+#****m* lyricue/changeVerseStatus
+# NAME
+#   changeVerseStatus --
+# SYNOPSIS
+#   changeVerseStatus ($widget, $section, $row, $col, $rows, $max)
+# FUNCTION
+#   Make sure you can't choose multiple values for start or finish
+# INPUTS
+#   $widget - Calling widget
+#   $section - start or finish section
+#   $row - Chosen row
+#   $col - Chosen column
+#   $rows - Available rows
+#   $max - Maximum value
+# OUTPUT
+#   Only one value chosen in start or finish area
+# SOURCE
+#
+sub changeVerseStatus {
+	my ($widget, $event, $max) = @_;
+
+	my $number = $widget->get_label;
+	if (defined($event->type)) {
+		if ($event->type eq 'button-press') {
+			if ($globals->{'verseStart'} == 0) {
+				debug("Start " . $globals->{'verseStart'} . "\n");
+				$globals->{'verseStart'} = $number;
+				$globals->{'verseEnd'}   = 0;
+				my $num;
+				foreach $num (1 .. $max) {
+					if ($num == $globals->{'verseStart'}) {
+						$widgets->{'verseButton'}{$num}->set_active(TRUE);
+					} else {
+						$widgets->{'verseButton'}{$num}->set_active(FALSE);
+					}
+				}
+			} else {
+				if ($number < $globals->{'verseStart'}) {
+					$globals->{'verseEnd'} = $globals->{'verseStart'};
+					$globals->{'verses'}   = $number;
+				} else {
+					$globals->{'verseEnd'} = $number;
+					$globals->{'verses'}   = $globals->{'verseStart'};
+				}
+				debug("End " . $globals->{'verseEnd'} . "\n");
+				my $num;
+				foreach $num (1 .. $max) {
+					if (($num >= $globals->{'verses'})
+						&& ($num <= $globals->{'verseEnd'}))
+					{
+						$widgets->{'verseButton'}{$num}->set_active(TRUE);
+					} else {
+						$widgets->{'verseButton'}{$num}->set_active(FALSE);
+					}
+				}
+				debug(
+					$globals->{'verses'} . "-" . $globals->{'verseEnd'} . "\n");
+				$globals->{'verseStart'} = 0;
+			}
+			return TRUE;
+		} elsif ($event->type eq 'enter-notify') {
+			if ($globals->{'verseStart'} != 0) {
+				my $min = 0;
+				if ($number < $globals->{'verseStart'}) {
+					$min    = $number;
+					$number = $globals->{'verseStart'};
+				} else {
+					$min = $globals->{'verseStart'};
+				}
+				my $num;
+				foreach $num (1 .. $max) {
+					if (($num >= $min) && ($num <= $number)) {
+						$widgets->{'verseButton'}{$num}->set_active(TRUE);
+					} else {
+						$widgets->{'verseButton'}{$num}->set_active(FALSE);
+					}
+				}
+			}
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+#***
+
+#****m* lyricue/change_preview
+# NAME
+#   change_preview --
+# SYNOPSIS
+#   change_preview ($widget)
+# FUNCTION
+#   Change the preview of the background at the bottom of the main dialog
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Change previews
+# SOURCE
+#
+sub change_preview {
+	my (undef, $event) = @_;
+	my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		my $filename = $model->get($iter, 0);
+		if ($filename eq "..") {
+
+			# go up a dir
+			my $dir = $widgets->{'image'}->get_widget('labelImage')->get_text;
+			$dir =~ s/^(.*)\/.*$/$1/g;
+			update_imagedir($dir);
+		} else {
+			if ($globals->{'bg_previews'}) {
+				my ($pixbuf);
+				eval {
+					$pixbuf =
+					  Gtk2::Gdk::Pixbuf->new_from_file(
+						$widgets->{'image'}->get_widget('labelImage')
+						->get_text() . "/" . $filename);
+				};
+				if ($@) {
+					debug("Unable to load " . $filename . "\n");
+				} else {
+					my $scaled = $pixbuf->scale_simple(480, 360, 'bilinear');
+					$widgets->{'image'}->get_widget('imageImage')
+					  ->set_from_pixbuf($scaled);
+					$widgets->{'image'}->get_widget('imageImage')->{user_data} =
+					  $filename;
+				}
+			}
+		}
+	}
+	return TRUE;
+}
+
+#***
+
+#****m* lyricue/set_default_backdrop
+# NAME
+#   set_default_backdrop -- 
+# SYNOPSIS
+#   set_default_backdrop ($widget)
+# FUNCTION
+#   Change the default background in the config file
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Updated config file
+# SOURCE
+#
+sub set_default_backdrop {
+	my ($widget) = @_;
+	my $image = $widgets->{'image'}->get_widget('imageImage')->{user_data};
+	if ($image) {
+		my ($pixbuf);
+		eval {
+			$pixbuf =
+			  Gtk2::Gdk::Pixbuf->new_from_file(
+				$globals->{'bgpath'} . "/" . $image);
+		};
+		if ($@) {
+			debug("Error loading " . $image . "\n");
+		} else {
+			my $scaled = $pixbuf->scale_simple(100, 75, 'bilinear');
+			$widgets->{'prefs'}->get_widget('imagePrefBG')
+			  ->set_from_pixbuf($scaled);
+			$widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} =
+			  $image;
+		}
+	}
+	close_dialog($widget);
+}
+
+#***
+
+#****m* lyricue/print_songs
+# NAME
+#   print_songs -- 
+# SYNOPSIS
+#   print_songs ()
+# FUNCTION
+#   Print a html formatted list of available songs
+# INPUTS
+#   None
+# OUTPUT
+#   HTML list of songs to standard out
+# SOURCE
+#
+sub print_songs {
+	my $lyricDbh =
+	  DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}",
+		"lyric", "")
+	  || display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
+	my $query = "SELECT COUNT(id) FROM lyricMain WHERE id > 0;";
+	my $sth   = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my @totals = $sth->fetchrow_array();
+
+	$query =
+"SELECT title,book,songnum,artist FROM lyricMain WHERE id > 0 ORDER BY title;";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	print "<HTML>\n<HEAD><TITLE>Lyricue Song List</TITLE></HEAD>\n";
+	print "<CENTER><H1>Lyricue Song List</H1></CENTER><BR>\n";
+	print "<H2>Total number of songs available : <B>"
+	  . $totals[0]
+	  . "</B></H2>\n";
+	print "<TABLE WIDTH=100% BORDER=1>\n";
+	print
+"<TR><TH>Song Name</TH><TH>Song Book</TH><TH>Song Number</TH><TH>Artist</TH></TR>\n";
+	my @row;
+
+	while (@row = $sth->fetchrow_array()) {
+		print "<TR>";
+		foreach (@row) {
+			if ($_ eq "") {
+				$_ = "&nbsp;";
+			}
+			print "<TD>" . $_ . "</TD>";
+		}
+		print "</TR>\n";
+	}
+	print "</TABLE>\n</BODY>\n</HTML>\n";
+	$lyricDbh->disconnect;
+	exit;
+}
+
+#***
+
+#****m* lyricue/backdrop_clicked
+# NAME
+#   backdrop_clicked -- 
+# SYNOPSIS
+#   backdrop_clicked ($widget)
+# FUNCTION
+#   A background has been clicked son change the bg in the server and update the two previews on the main window
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Updated bg
+# SOURCE
+#
+sub backdrop_clicked {
+	my ($widget) = @_;
+	if (@ASSOCIATE) {
+		associate_bg($widget->{user_data});
+	} else {
+		debug("Changing backdrop to " . $widget->{user_data} . "\n");
+		if ($globals->{'bg_previews'}) {
+			my $prevFile = $widget->{user_data};
+			$prevFile =~ s/^BG://g;
+			my ($pixbuf);
+			eval {
+				$pixbuf =
+				  Gtk2::Gdk::Pixbuf->new_from_file($globals->{'bgpath'} . "/"
+					. $widgets->{'buttonCurr'}->{user_data});
+			};
+			if ($@) {
+				debug("Error loading "
+					. $widgets->{'buttonCurr'}->{user_data} . "\n");
+			} else {
+				my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
+				$widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
+				$widgets->{'buttonPrev'}->{user_data} =
+				  $widgets->{'buttonCurr'}->{user_data};
+			}
+			eval {
+				$pixbuf =
+				  Gtk2::Gdk::Pixbuf->new_from_file(
+					$globals->{'bgpath'} . "/" . $prevFile);
+			};
+			if ($@) {
+				debug("Error loading " . $prevFile . "\n");
+			} else {
+				update_display("backdrop", $prevFile, "");
+				my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
+				$widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
+				$widgets->{'buttonCurr'}->{user_data} = $prevFile;
+			}
+		}
+	}
+}
+
+#***
+
+#****m* lyricue/do_add_image
+# NAME
+#   do_add_image -- 
+# SYNOPSIS
+#   do_add_image ()
+# FUNCTION
+#   Add an image to the playlist
+# INPUTS
+# OUTPUT
+#   Image added to playlist
+# SOURCE
+#
+sub do_add_image {
+	my ($widget) = @_;
+	my $playorder = 1;
+	my $image     = $widgets->{'image'}->get_widget('imageImage')->{user_data};
+	my $main_playlist =
+	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+	$query = "SELECT MAX(playorder) FROM playlist";
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	if ($row = $sth->fetchrow_hashref()) {
+		if ($row->{'MAX(playorder)'}) {
+			$playorder = $row->{'MAX(playorder)'} + 1;
+		}
+	}
+
+	$query =
+	  "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
+	  . $playorder . ", "
+	  . $main_playlist
+	  . ", \"imag\", \"" . $image . "\")";
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	close_dialog($widget);
+	update_playlist();
+}
+
+#***
+
+sub show_about {
+	my $xml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowAbout');
+	$xml->signal_autoconnect_from_package('');
+	$xml->get_widget('windowAbout')->show();
+}
+
+#***
+
+#****m* LyricDisplaySystemUI/choose_playlist
+# NAME
+#   choose_playlist --
+# SYNOPSIS
+#   choose_playlist ( )
+# FUNCTION
+#   Open a dialog to choose your main playlist
+# INPUTS
+# OUTPUT
+#   Search dialog
+# SOURCE
+#
+
+sub choose_playlist {
+	$widgets->{'choose'} =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
+	$widgets->{'choose'}->signal_autoconnect_from_package('');
+	$widgets->{'choose'}->get_widget('windowChoosePlay')->show;
+	update_cplayclist();
+}
+
+#***
+
+sub create_dialog_prefs {
+	$config = load_config();
+	$widgets->{'prefs'} =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPrefs');
+	$widgets->{'prefs'}->signal_autoconnect_from_package('');
+	$widgets->{'prefs'}->get_widget('spinPrefHeight')
+	  ->set_value($config->{'Height'});
+	$widgets->{'prefs'}->get_widget('spinPrefWidth')
+	  ->set_value($config->{'Width'});
+	$widgets->{'prefs'}->get_widget('spinPrefOverscanV')
+	  ->set_value($config->{'OverscanV'});
+	$widgets->{'prefs'}->get_widget('spinPrefOverscanH')
+	  ->set_value($config->{'OverscanH'});
+	$widgets->{'prefs'}->get_widget('checkPrefXinerama')
+	  ->set_active($config->{'Xinerama'});
+	$widgets->{'prefs'}->get_widget('entryPrefHeader')
+	  ->set_text($config->{'Header'});
+	$widgets->{'prefs'}->get_widget('entryPrefMain')
+	  ->set_text($config->{'Main'});
+	$widgets->{'prefs'}->get_widget('entryPrefFooter')
+	  ->set_text($config->{'Footer'});
+	$widgets->{'prefs'}->get_widget('entryPrefColour')
+	  ->set_text($config->{'Colour'});
+	$widgets->{'prefs'}->get_widget('entryPrefShadowColour')
+	  ->set_text($config->{'ShadowColour'});
+	$widgets->{'prefs'}->get_widget('spinPrefShadow')
+	  ->set_value($config->{'ShadowSize'});
+	$widgets->{'prefs'}->get_widget('checkPrefLoop')
+	  ->set_active($config->{'Loop'});
+	$widgets->{'prefs'}->get_widget('checkPrefAudit')
+	  ->set_active($config->{'Audit'});
+	my ($pixbuf);
+	eval {
+		$pixbuf =
+		  Gtk2::Gdk::Pixbuf->new_from_file(
+			$globals->{'bgpath'} . "/" . $config->{'BGImage'});
+	};
+
+	if ($@) {
+		debug("Error loading bg\n");
+	} else {
+		my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
+		$widgets->{'prefs'}->get_widget('imagePrefBG')
+		  ->set_from_pixbuf($scaled);
+		$widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} =
+		  $config->{'BGImage'};
+	}
+
+	my (@list);
+	foreach (0 .. $config->{'BibleCount'} - 1) {
+		my $bible = $config->{'Bible'}[$_];
+		$bible =~ s/^_(.*);.*$/$1/g;
+		push @list, $bible;
+	}
+	$widgets->{'prefs'}->get_widget('comboPrefBible')
+	  ->set_popdown_strings(@list);
+	$widgets->{'prefs'}->get_widget('entryPrefBible')
+	  ->set_text($config->{'DefBible'});
+	$widgets->{'prefs'}->get_widget('entryPrefHeader')
+	  ->signal_connect("button_press_event", "open_dialogFont", "Header");
+	$widgets->{'prefs'}->get_widget('entryPrefMain')
+	  ->signal_connect("button_press_event", "open_dialogFont", "Main");
+	$widgets->{'prefs'}->get_widget('entryPrefFooter')
+	  ->signal_connect("button_press_event", "open_dialogFont", "Footer");
+	$widgets->{'prefs'}->get_widget('entryPrefColour')
+	  ->signal_connect("button_press_event", "open_dialogColour", "Font");
+	$widgets->{'prefs'}->get_widget('entryPrefShadowColour')
+	  ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
+	$widgets->{'prefs'}->get_widget('dialogPrefs')->show_all;
+}
+
+#****m* lyricue/execute_app
+# NAME
+#   execute_app -- 
+# SYNOPSIS
+#   execute_app ($widget, $app)
+# FUNCTION
+#   Run and application on the second head
+# INPUTS
+#   $widget - Calling widget
+#   $app - Application to run
+# OUTPUT
+#   Application loaded on second head
+# SOURCE
+#
+sub execute_app {
+	my ($widget, $app, $xinerama) = @_;
+	if ($xinerama) {
+		fork && exec($app. " -geometry +" . $config->{'width'} . "+0");
+	} else {
+		fork && exec("DISPLAY=:0.1 " . $app);
+	}
+}
+
+#***
+
+#****m* lyricue/quote
+# NAME
+#   quote --
+# SYNOPSIS
+#   quote ()
+# FUNCTION
+#   Quote a string for use in db queries
+# INPUTS
+#   @_ - String to be quoted
+# OUTPUT
+#   Quoted string
+# SOURCE
+#
+sub quote {
+	return $lyricDbh->quote(@_);
+}
+
+#***
+
+#****m* lyricue/honourise_song_lyrics
+# NAME
+#   honourise_song_lyrics --
+# SYNOPSIS
+#   honourise_song_lyrics ($widget)
+# FUNCTION
+#   Change lyrics to 'honourise' them by changing 'jesus' to 'Jesus' etc
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Better lyrics
+# SOURCE
+#
+sub honourise_song_lyrics {
+	my ($widget) = @_;
+	my ($tmppage, $page, $numchars, $key);
+	my %hash;
+
+	debug("Start of honourising lyrics...\n");
+
+	foreach $page (keys(%pageOrder)) {
+		$tmppage = get_buffer_text($widgets->{'textAPageB'}{$page});
+		debug("Page contents of page " . $page
+			. " before honourisation:\n" . $tmppage . "\n");
+
+		# this hash is adapted from bible parsing perl script
+		# it will correct american spelling in any songs entered
+		# and will perform the honourise process -
+		# capitalising holy names and correcting errors like
+		# "Sons of god" to "sons of God"
+		%hash = (
+			"honor"      => "honour",
+			"color"      => "colour",
+			"labor"      => "labour",
+			"neighbor"   => "neighbour",
+			"center"     => "centre",
+			"dialog"     => "dialogue",
+			"gray"       => "grey",
+			"humor"      => "humour",
+			"harbor"     => "harbour",
+			"thru"       => "through",
+			"plow"       => "plough",
+			"favor"      => "favour",
+			"son"        => "Son",
+			"reaSon"     => "reason",
+			"Sons"       => "sons",
+			"god"        => "God",
+			"spirit"     => "Spirit",
+			"jesus"      => "Jesus",
+			"lord"       => "Lord",
+			"emmanuel"   => "Emmanuel",
+			"immanuel"   => "Immanuel",
+			"jehovah"    => "Jehovah",
+			"he"         => "He",
+			"him"        => "Him",
+			"his"        => "His",
+			"History"    => "history",
+			"messiah"    => "Messiah",
+			"father"     => "Father",
+			"king"       => "King",
+			"christ"     => "Christ",
+			"great i am" => "Great I Am",
+			"hosanna"    => "Hosanna",
+			"yahweh"     => "Yahweh"
+		);
+
+		foreach $key (keys %hash) {
+			$tmppage =~ s/^$key([ \n])/$hash{$key}$1/g;
+			$tmppage =~ s/([ \n])$key$/$1$hash{$key}/g;
+			$tmppage =~ s/([ \n])$key([ \n])/$1$hash{$key}$2/g;
+		}
+		debug("Page contents of page " . $page
+			. " after honourisation:\n" . $tmppage . "\n\n");
+		$widgets->{'textAPageB'}{$page}->set_text($tmppage);
+
+	}
+
+	debug("End of honourising lyrics...\n");
+}
+
+#***
+
+#****m* lyricue/select_bible_db
+# NAME
+#   select_bible_db --
+# SYNOPSIS
+#   select_bible_db ($bible_database)
+# FUNCTION
+#   Change the bible db used by the server
+# INPUTS
+#   $bible_database - DB name to change it to
+# OUTPUT
+#   Verses displayed in chosen bible
+# SOURCE
+#
+sub select_bible_db {
+	my ($widget, $bibleno, $item) = @_;
+
+	if ($widget && ($widget->get_active)) {
+		my $bible = $config->{'Bible'}[$bibleno];
+		my @line = split (/;/, $bible);
+		$globals->{'bibledb'} = $line[1];
+		update_display("change_to_db", $globals->{'bibledb'}, $line[0]);
+		$bibleDbh =
+		  DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}",
+			"lyric", "")
+		  || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
+			$DBI::errstr);
+	}
+}
+
+#***
+
+#****m* lyricue/invert_lines
+# NAME
+#   invert_lines --
+# SYNOPSIS
+#   invert_lines ()
+# FUNCTION
+#   Change value so that playlist items text shows the last line of each page rather than the first
+# INPUTS
+# OUTPUT
+#   Calls update_playlist
+# SOURCE
+#
+sub invert_lines {
+	$globals->{'invert'} = !$globals->{'invert'};
+	update_playlist();
+}
+
+#***
+
+#****m* lyricue/export_song
+# NAME
+#   export_song -- 
+# SYNOPSIS
+#   export_song ($widget)
+# FUNCTION
+#   Show a dialog to choose where to save an exported song to
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   File dialog displayed
+# SOURCE
+#
+sub export_song {
+	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile');
+	$filexml->signal_autoconnect_from_package('');
+	$filexml->get_widget('buttonFileOK')
+	  ->signal_connect("clicked", "complete_export_song", $filexml);
+}
+
+#***
+
+#****m* lyricue/complete_export_song
+# NAME
+#   complete_export_song -- 
+# SYNOPSIS
+#   complete_export_song ($widget, $filexml)
+# FUNCTION
+#   Export a song to the chosen filename
+# INPUTS
+#   $widget - Calling widget
+#   $file_dialog - File dialog
+# OUTPUT
+#   File containing song
+# SOURCE
+#
+sub complete_export_song {
+	my ($widget, $filexml) = @_;
+	my ($tmppage, $page, $numchars, $key);
+	debug("Exporting song");
+	my $export = $filexml->get_widget('dialogFile')->get_filename;
+	close_dialog($widget);
+
+	my $name     = $widgets->{'add'}->get_widget('entryEditName')->get_text();
+	my $number   = $widgets->{'add'}->get_widget('entryEditNumber')->get_text();
+	my $book     = $widgets->{'add'}->get_widget('entryEditBook')->get_text();
+	my $artist   = $widgets->{'add'}->get_widget('entryEditArtist')->get_text();
+	my $keywords =
+	  $widgets->{'add'}->get_widget('entryEditKeywords')->get_text();
+	my $copyright =
+	  $widgets->{'add'}->get_widget('entryEditCopyright')->get_text();
+
+	debug(" to file: " . $export . "\n");
+	open(EXPORT, ">$export") || return 0;
+	print(EXPORT "Name: " . $name . "\n");
+	print(EXPORT "Number: " . $number . "\n");
+	print(EXPORT "Book: " . $book . "\n");
+	print(EXPORT "Artist: " . $artist . "\n");
+	print(EXPORT "Keywords: " . $keywords . "\n");
+	print(EXPORT "Copyright: " . $copyright . "\n");
+
+	# Find maximum number of pages
+	my $maxpages = 1;
+	while (exists $pageOrder{$maxpages}) {
+		$maxpages++;
+	}
+
+	#decrement maxpages so export works properly
+	$maxpages = $maxpages - 1;
+
+	foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} } keys %pageOrder) {
+		my $tmppage = get_buffer_text($widgets->{'textAPageB'}{$page});
+
+		if ($maxpages > 0) {
+			print(EXPORT $tmppage . "\n---\n");
+		} else {
+			print(EXPORT $tmppage);
+		}
+		$maxpages--;
+	}
+
+	close EXPORT;
+
+}
+
+#***
+
+#****m* lyricue/do_adv_search
+# NAME
+#   do_adv_search -- 
+# SYNOPSIS
+#   do_adv_search ($widget)
+# FUNCTION
+#   Do an advanced search where it searchs lyrics instead of song titles
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   List of suitable songs
+# SOURCE
+#
+sub do_adv_search {
+	debug("Searching for "
+		. $widgets->{'search'}->get_widget('entrySearchSongs')->get_text()
+		. "\n");
+	my $store = $widgets->{'search'}->get_widget('treeSearch')->get_model();
+	if ($store) {
+		$store->clear;
+	} else {
+		$store =
+		  Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Glib::String',
+			'Glib::String');
+		$widgets->{'search'}->get_widget('treeSearch')->set_model($store);
+		my $column =
+		  Gtk2::TreeViewColumn->new_with_attributes("Title",
+			Gtk2::CellRendererText->new, text => 0);
+		$widgets->{'search'}->get_widget('treeSearch')->append_column($column);
+		$column =
+		  Gtk2::TreeViewColumn->new_with_attributes("Book",
+			Gtk2::CellRendererText->new, text => 1);
+		$widgets->{'search'}->get_widget('treeSearch')->append_column($column);
+		$column =
+		  Gtk2::TreeViewColumn->new_with_attributes("Song No",
+			Gtk2::CellRendererText->new, text => 2);
+		$widgets->{'search'}->get_widget('treeSearch')->append_column($column);
+	}
+	my $query =
+"SELECT id,title,songnum,book,count(id) as count FROM lyricMain,page WHERE lyricMain.id=page.songid AND page.lyrics LIKE \"%"
+	  . $widgets->{'search'}->get_widget('entrySearchSongs')->get_text()
+	  . "%\" GROUP BY id ORDER BY count DESC";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while ($row = $sth->fetchrow_hashref()) {
+		my $iter = $store->append;
+		$store->set(
+			$iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
+			$row->{'songnum'}, 3, $row->{'id'}
+		);
+	}
+
+}
+
+#***
+
+#****m* lyricue/update_adv_search
+# NAME
+#   update_adv_search -- 
+# SYNOPSIS
+#   update_adv_search ($widget)
+# FUNCTION
+#   Update list of matching songs
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Updated dialog
+# SOURCE
+#
+sub update_adv_search {
+	my ($widget) = @_;
+	my $selection =
+	  $widgets->{'search'}->get_widget('treeSearch')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		my $songid = $model->get($iter, 3);
+		debug("Songid \"" . $songid . "\" selected\n");
+		my $query =
+		  "SELECT lyrics FROM page WHERE songid=" . $songid
+		  . " ORDER BY pagenum";
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my $lyrics = "";
+
+		while ($row = $sth->fetchrow_hashref()) {
+			$lyrics .= $row->{'lyrics'} . "\n\n";
+		}
+		$widgets->{'search'}->get_widget('textSearch')
+		  ->get_buffer->set_text($lyrics);
+	}
+}
+
+#***
+
+#****m* lyricue/add_presentation
+# NAME
+#   add_presentation -- 
+# SYNOPSIS
+#   add_presentation ($widget)
+# FUNCTION
+#   Add a presentation to the playlist
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Presentation added to playlist
+# SOURCE
+#
+sub add_presentation {
+	my ($widget) = @_;
+	debug("Add presentation selected\n");
+
+	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile');
+	$filexml->signal_autoconnect_from_package('');
+	$filexml->get_widget('buttonFileOK')
+	  ->signal_connect("clicked", "present_ok", $filexml);
+}
+
+#***
+
+#****m* lyricue/present_ok
+# NAME
+#   present_ok -- 
+# SYNOPSIS
+#   present_ok ($widget, $filexml)
+# FUNCTION
+#   Presentation selected so add it to the playlist
+# INPUTS
+#   $widget - Calling widget
+#   $filexml - File selection dialog
+# OUTPUT
+#   Presentation added to playlist
+# SOURCE
+#
+sub present_ok {
+	my ($widget, $filexml) = @_;
+	debug("Presentation Selected\n");
+	debug("present_ok not done yet\n");
+	close_dialog($widget);
+}
+
+#***
+
+#****m* lyricue/move_item
+# NAME
+#   move_item
+# SYNOPSIS
+#   move_item ($direction)
+# FUNCTION
+#   Move item in the playlist up/down
+# INPUTS
+#   $direction - Direction to move item
+# OUTPUT
+#   Re-ordered playlist
+# SOURCE
+#
+sub move_item {
+	my ($direction) = @_;
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		debug("Moving item in " . $direction . " direction\n");
+		my $query = "";
+		my $item = $model->get($iter, 2);
+		if ($direction > 0) {
+			$query =
+"SELECT MIN(a.playorder) FROM playlist AS a, playlist AS b WHERE a.playlist=b.playlist AND a.playorder > "
+			  . $item
+			  . " AND b.playorder=" . $item;
+		} else {
+			$query =
+"SELECT MAX(a.playorder) FROM playlist AS a, playlist AS b WHERE a.playlist=b.playlist AND a.playorder < "
+			  . $item
+			  . " AND b.playorder=" . $item;
+		}
+		debug($query . "\n");
+		my $sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv = $sth->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my @row = $sth->fetchrow_array;
+
+		if ($row[0]) {
+			renumber_item($item, 9999);
+			renumber_item($row[0], $item);
+			renumber_item(9999, $row[0]);
+			update_playlist();
+		}
+	}
+}
+
+sub move_item_up {
+	move_item(-1);
+}
+
+sub move_item_down {
+	move_item(1);
+}
+
+#***
+
+#****m* lyricue/renumber_item
+# NAME
+#   renumber_item
+# SYNOPSIS
+#   renumber_item ($before,$after)
+# FUNCTION
+#   Renumber an item in the playlist
+# INPUTS
+#   $before - playlist id to change from
+#   $after - playlist id to change to
+# OUTPUT
+#   Renumbered verse in playlist/lyrics
+# SOURCE
+#
+sub renumber_item {
+	my ($before, $after) = @_;
+	my $query = "SELECT * FROM playlist WHERE playorder=" . $before;
+	debug($query . "\n");
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	$row = $sth->fetchrow_hashref();
+
+	$query =
+	  "UPDATE playlist SET playorder=" . $after . " WHERE playorder=" . $before;
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	$query =
+	  "UPDATE associations SET playlist=" . $after
+	  . " WHERE playlist=" . $before;
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+}
+
+#***
+
+#****m* lyricue/add_copyright_preset
+# NAME
+#   add_copyright_preset
+# SYNOPSIS
+#   add_copyright_preset ($widget, $preset)
+# FUNCTION
+#   Add preset copyright text from menu to text entry
+# INPUTS
+#   $widget - Calling widget
+#   $preset - preset number to add
+# OUTPUT
+#   Preset in copyright entry
+# SOURCE
+#
+sub add_copyright_preset {
+	my ($widget, $preset) = @_;
+	$widgets->{'add'}->get_widget('entryEditCopyright')
+	  ->set_text("Preset:" . $preset);
+}
+
+#***
+
+#****m* lyricue/debug
+# NAME
+#   debug -- output debugging text
+# SYNOPSIS
+#   debug ($text)
+# FUNCTION
+#   Print $text if $globals->{'debugging'} is set
+# INPUTS
+#   $text - the text to output
+# OUTPUT
+#   Text to STDOUT or nothing
+# SOURCE
+#
+sub debug {
+	if ($globals->{'debugging'}) {
+		my $text = shift;
+		if ($text) {
+			print($text);
+		}
+	}
+	return TRUE;
+}
+
+#***
+
+#****m* lyricue/select_playlist
+# NAME
+#   select_playlist --
+# SYNOPSIS
+#   select_playlist ()
+# FUNCTION
+#   Select the main playlist
+# INPUTS
+# OUTPUT
+#   Closed
+# SOURCE
+
+sub select_playlist {
+	my ($widget) = @_;
+	debug("Selecting a main playlist\n");
+
+	my $query =
+	  "SELECT id FROM playlists WHERE title LIKE \""
+	  . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() . "\"";
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my @row = $sth->fetchrow_array();
+	if ($row[0]) {
+		$widgets->{'main'}->get_widget('labelCurrentPlaylist')
+		  ->set_text(
+			$widgets->{'choose'}->get_widget('entryChoosePlay')->get_text);
+		$widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} =
+		  $row[0];
+		update_playlist();
+		close_dialog($widget);
+	}
+}
+
+#***
+
+#****m* lyricue/new_playlist
+# NAME
+#   new_playlist --
+# SYNOPSIS
+#   new_playlist ($widget)
+# FUNCTION
+#   Create a new playlist
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Closed
+# SOURCE
+
+sub new_playlist {
+	my ($widget) = @_;
+	debug("Creating a new playlist\n");
+	if ($widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() ne "") {
+		my $query = "SELECT MAX(id)+1 FROM playlists";
+		my $sth   = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv = $sth->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my @row = $sth->fetchrow_array();
+		$query =
+		  "INSERT INTO playlists SET id="
+		  . $row[0]
+		  . ", title=\""
+		  . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text()
+		  . "\"";
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		select_playlist($widget);
+	}
+}
+
+#***
+
+#****m* lyricue/rename_playlist
+# NAME
+#   rename_playlist -- 
+# SYNOPSIS
+#   rename_playlist ($widget)
+# FUNCTION
+#   Rename a playlist
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Closed
+# SOURCE
+sub rename_playlist {
+	my ($widget) = @_;
+	debug("Renaming playlist\n");
+	if ($widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() ne "") {
+		my $query =
+		  "SELECT id FROM playlists WHERE title=\""
+		  . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text()
+		  . "\"";
+		my $sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv = $sth->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my @row = $sth->fetchrow_array();
+		if ($row[0]) {
+			my $renamexml =
+			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptEntry');
+			$renamexml->signal_autoconnect_from_package('');
+			$renamexml->get_widget('dialogPromptEntry')
+			  ->set_title("Renaming "
+				. $widgets->{'choose'}->get_widget('entryChoosePlay')
+				->get_text());
+			$renamexml->get_widget('labelPromptE')
+			  ->set_text("Renaming "
+				. $widgets->{'choose'}->get_widget('entryChoosePlay')
+				->get_text());
+			$renamexml->get_widget('labelPromptE')->{user_data} = $row[0];
+			$renamexml->get_widget('entryPromptE')
+			  ->set_text(
+				$widgets->{'choose'}->get_widget('entryChoosePlay')->get_text()
+			);
+			$renamexml->get_widget('buttonPromptEOK')
+			  ->signal_connect("clicked", "do_rename_playlist", $renamexml);
+		}
+	}
+}
+
+#***
+
+#****m* lyricue/do_rename_playlist
+# NAME
+#   do_rename_playlist --
+# SYNOPSIS
+#   do_rename_playlist ($widget, $renamexml)
+# FUNCTION
+#   Rename a playlist
+# INPUTS
+#   $widget - Calling widget
+#   $renamexml - Dialog widgets
+# OUTPUT
+#   Closed
+# SOURCE
+sub do_rename_playlist {
+	my ($widget, $renamexml) = @_;
+	my $query =
+	  "UPDATE playlists SET title=\""
+	  . $renamexml->get_widget('entryPromptE')->get_text
+	  . "\" WHERE id="
+	  . $renamexml->get_widget('labelPromptE')->{user_data};
+	debug($query . "\n");
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	update_cplayclist();
+	close_dialog($widget);
+}
+
+#***
+
+#****m* lyricue/delete_playlist
+# NAME
+#   delete_playlist --
+# SYNOPSIS
+#   delete_playlist ($widget)
+# FUNCTION
+#   Delete a playlist
+# INPUTS
+#   $widget - Calling widget
+#   $widget - Global widgets
+# OUTPUT
+#   Closed
+# SOURCE
+sub delete_playlist {
+	my ($widget) = @_;
+	debug("Deleting a playlist\n");
+
+	my $query =
+	  "SELECT id FROM playlists WHERE title=\""
+	  . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() . "\"";
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my @row = $sth->fetchrow_array();
+
+	$query = "DELETE FROM playlists WHERE id=" . $row[0];
+	$sth   = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	$query =
+	  "DELETE FROM playlist WHERE data=" . $row[0] . " AND type=\"play\"";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	$query = "SELECT playorder FROM playlist WHERE playlist=" . $row[0];
+	$sth   = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while (@row = $sth->fetchrow_array()) {
+		remove_single_item($row[0]);
+	}
+
+	update_cplayclist();
+}
+
+#***
+
+#****m* lyricue/update_cplay
+# NAME
+#   update_cplay --
+# SYNOPSIS
+#   update_cplay ($selection)
+# FUNCTION
+#   Update the text box with the chosen playlist
+# INPUTS
+#   $selection - the selection
+# OUTPUT
+#   Closed
+# SOURCE
+
+sub update_cplay {
+	my ($selection) = @_;
+	debug("Selected a playlist\n");
+
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		$widgets->{'choose'}->get_widget('entryChoosePlay')
+		  ->set_text($model->get($iter, 0));
+	}
+}
+
+#***
+
+#****m* lyricue/update_cplayclist
+# NAME
+#   update_cplayclist --
+# SYNOPSIS
+#   update_cplayclist ($widget)
+# FUNCTION
+#   Update the clist
+# INPUTS
+#   $widget - The clist to update
+# OUTPUT
+#   Closed
+# SOURCE
+sub update_cplayclist {
+	my ($selection, $renderer, $column);
+	my $store = $widgets->{'choose'}->get_widget('treeChoosePlay')->get_model();
+	if ($store) {
+		$store->clear;
+	} else {
+		$store = Gtk2::ListStore->new('Glib::String');
+		$widgets->{'choose'}->get_widget('treeChoosePlay')->set_model($store);
+		$renderer  = Gtk2::CellRendererText->new;
+		$selection =
+		  $widgets->{'choose'}->get_widget('treeChoosePlay')->get_selection;
+		$selection->signal_connect(changed => \&update_cplay);
+		$column =
+		  Gtk2::TreeViewColumn->new_with_attributes("Playlist", $renderer,
+			text => 0);
+		$widgets->{'choose'}->get_widget('treeChoosePlay')
+		  ->append_column($column);
+	}
+
+	my $query =
+"SELECT title FROM playlists LEFT JOIN playlist ON BINARY playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' WHERE data IS NULL ORDER BY id";
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my @row;
+	while (@row = $sth->fetchrow_array()) {
+		my $iter = $store->append;
+		$store->set($iter, 0, $row[0]);
+	}
+}
+
+#***
+
+#****m* lyricue/copy_item
+# NAME
+#   copy_item --
+# SYNOPSIS
+#   copy_item ()
+# FUNCTION
+#   Copy the selected item in the playlist
+# INPUTS
+# OUTPUT
+#   Extra item in the playlist
+# SOURCE
+#
+sub copy_item {
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		debug("Duplicate item clicked \n");
+
+		my $item = $model->get($iter, 2);
+		my $query = "SELECT * FROM playlist WHERE playorder=" . $item;
+		my $sth   = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv = $sth->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my $row = $sth->fetchrow_hashref();
+
+		if ($row->{'type'} ne "play") {
+			my $query = "SELECT MAX(playorder) FROM playlist";
+			my $sth   = $lyricDbh->prepare($query)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			my $rv = $sth->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			my @row2 = $sth->fetchrow_array();
+			$row2[0]++;
+
+			$query =
+			  "INSERT INTO playlist SET playorder="
+			  . $row2[0]
+			  . ", playlist="
+			  . $row->{'playlist'}
+			  . ", data=\""
+			  . $row->{'data'}
+			  . "\", type=\""
+			  . $row->{'type'} . "\"";
+			debug($query . "\n");
+			$sth = $lyricDbh->prepare($query)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			$rv = $sth->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		}
+
+		update_playlist();
+	}
+}
+
+#***
+
+#****m* lyricue/begin_loop
+# NAME
+#   begin_loop --
+# SYNOPSIS
+#   begin_loop ()
+# FUNCTION
+#   Initialise the automatic page looping
+# INPUTS
+# OUTPUT
+#   Gtk timer set
+# SOURCE
+#
+sub begin_loop {
+	debug("Initialising a playlist item loop\n");
+
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		my $loopxml =
+		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogLoop');
+		$loopxml->signal_autoconnect_from_package('');
+		$loopxml->get_widget('dialogLoop')->{user_data} = $model->get($iter, 2);
+		$loopxml->get_widget('buttonLoopOK')
+		  ->signal_connect('clicked', "establish_timer", $loopxml);
+	}
+}
+
+#***
+
+sub establish_timer {
+	my ($widget, $loopxml) = @_;
+
+	#Cancel any existing loop timers
+	Glib::Source->remove($TIMER);
+
+	my $seconds = $loopxml->get_widget('spinLoopSeconds')->get_value_as_int();
+	my $milliseconds =
+	  $loopxml->get_widget('spinLoopMilliseconds')->get_value_as_int();
+
+	debug("Seconds = " . $seconds
+		. " ||| Milliseconds = "
+		. $milliseconds . "\n");
+
+	my $interval = ($seconds * 1000) + $milliseconds;
+	if ($interval < 50) {
+		$interval = 50;
+		debug("Interval too small - defaulting to 50 milliseconds\n");
+	}
+
+#Find the id of the list we will be looping (could be a playlist, sublist or song)
+	my $query =
+	  "SELECT data FROM playlist WHERE playorder ="
+	  . $loopxml->get_widget('dialogLoop')->{user_data};
+	debug($query . "\n");
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my @row    = $sth->fetchrow_array();
+	my $parent = $row[0];
+
+	update_display("display", $loopxml->get_widget('dialogLoop')->{user_data},
+		"");
+	update_display("loopparent", $parent, "");
+
+	my @data = ("display", "next_page", "loop");
+
+	$TIMER = Glib::Timeout->add($interval, \&update_loop, \@data);
+	debug("Set loop advance timer to " . $interval . " milliseconds.\n");
+	close_dialog($widget);
+}
+
+sub update_loop {
+	my ($data) = @_;
+	update_display($$data[0], $$data[1], $$data[2]);
+	return TRUE;
+}
+
+#***
+
+sub load_config {
+	my ($conf);
+	debug("Loading Preferences\n");
+	my $bibleCount = 0;
+	my $appCount   = 0;
+	open(CONFIG, $globals->{'configfile'})
+	  || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
+		$!);
+	$conf->{'Width'}  = 0;
+	$conf->{'Height'} = 0;
+	while (<CONFIG>) {
+		chomp;
+		my @line = split (/=/);
+		$line[0] =~ s/ *$//g;
+		$line[1] =~ s/^ *//g;
+		if ($line[0] eq "Bible") {
+			$conf->{'Bible'}[$bibleCount++] = $line[1];
+		} elsif ($line[0] eq "App") {
+			$conf->{'App'}[$appCount++] = $line[1];
+		} else {
+			$conf->{$line[0]} = $line[1];
+		}
+	}
+	close CONFIG;
+	$conf->{'BibleCount'} = $bibleCount;
+	$conf->{'AppCount'}   = $appCount;
+	return $conf;
+}
+
+#**."\n"*
+
+sub save_and_close_prefs {
+	save_preferences();
+	close_dialog($widgets->{'prefs'}->get_widget('dialogPrefs'));
+}
+
+sub save_preferences {
+	debug("Saving preferences\n");
+	unlink $globals->{'configfile'} . ".bak";
+	rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
+	open(CONFIG, ">$globals->{'configfile'}")
+	  || display_fatal($errorcodes->{'fileopenwrite'}, $!);
+	print CONFIG "Main = "
+	  . $widgets->{'prefs'}->get_widget('entryPrefMain')->get_text() . "\n";
+	print CONFIG "Header = "
+	  . $widgets->{'prefs'}->get_widget('entryPrefHeader')->get_text() . "\n";
+	print CONFIG "Footer = "
+	  . $widgets->{'prefs'}->get_widget('entryPrefFooter')->get_text() . "\n";
+	print CONFIG "Colour = "
+	  . $widgets->{'prefs'}->get_widget('entryPrefColour')->get_text() . "\n";
+	print CONFIG "ShadowColour = "
+	  . $widgets->{'prefs'}->get_widget('entryPrefShadowColour')->get_text()
+	  . "\n";
+	print CONFIG "ShadowSize = "
+	  . $widgets->{'prefs'}->get_widget('spinPrefShadow')->get_value() . "\n";
+	print CONFIG "Height = "
+	  . $widgets->{'prefs'}->get_widget('spinPrefHeight')->get_value() . "\n";
+	print CONFIG "Width = "
+	  . $widgets->{'prefs'}->get_widget('spinPrefWidth')->get_value() . "\n";
+	print CONFIG "OverscanH = "
+	  . $widgets->{'prefs'}->get_widget('spinPrefOverscanH')->get_value()
+	  . "\n";
+	print CONFIG "OverscanV = "
+	  . $widgets->{'prefs'}->get_widget('spinPrefOverscanV')->get_value()
+	  . "\n";
+	print CONFIG "Loop = "
+	  . $widgets->{'prefs'}->get_widget('checkPrefLoop')->get_active() . "\n";
+	print CONFIG "Audit = "
+	  . $widgets->{'prefs'}->get_widget('checkPrefAudit')->get_active() . "\n";
+	print CONFIG "Xinerama = "
+	  . $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
+	  . "\n";
+	print CONFIG "BGImage = "
+	  . $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} . "\n";
+
+	foreach (0 .. $config->{'BibleCount'} - 1) {
+		print CONFIG "Bible = " . $config->{'Bible'}[$_] . "\n";
+		my $bible = $config->{'Bible'}[$_];
+		$bible =~ s/^_(.*);.*$/$1/g;
+		if ($bible eq $widgets->{'prefs'}->get_widget('entryPrefBible')
+			->get_text())
+		{
+			print CONFIG "DefBible = " . $config->{'Bible'}[$_] . "\n";
+		}
+	}
+	foreach (0 .. $config->{'AppCount'} - 1) {
+		print CONFIG "App = " . $config->{'App'}[$_] . "\n";
+	}
+	foreach (keys(%$config)) {
+		if (/^Preset/) {
+			print CONFIG $_ . " = " . $config->{$_} . "\n";
+		}
+	}
+	close CONFIG;
+	$config = load_config();
+}
+
+#***
+
+sub file_ok_sel {
+	my ($widget, $filexml) = @_;
+	my $file = $filexml->get_widget('dialogFile')->get_filename;
+	if (($file ne "") && (-r $file)) {
+		my $playorder = 1;
+		my $query     = "SELECT MAX(playorder) FROM playlist";
+		debug($query . "\n");
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		if ($row = $sth->fetchrow_hashref()) {
+			if ($row->{'MAX(playorder)'}) {
+				$playorder = $row->{'MAX(playorder)'} + 1;
+			}
+		}
+
+		my $main_playlist =
+		  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+		$query =
+		  "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
+		  . $playorder . ", "
+		  . $main_playlist
+		  . ", \"file\", \"" . $file . "\")";
+		debug($query . "\n");
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		update_playlist();
+		close_dialog($widget);
+	}
+}
+
+#***
+
+#****m* lyricue/create_sublist
+# NAME
+#   create_sublist --
+# SYNOPSIS
+#   create_sublist ()
+# FUNCTION
+#   Display the 'new sublist' dialog
+# INPUTS
+# OUTPUT
+#   Dialog
+# SOURCE
+#
+sub create_sublist {
+	my ($widget) = @_;
+	create_dialogSublist($widget);
+}
+
+#***
+
+#****m* lyricue/new_sublist
+# NAME
+#   new_sublist --
+# SYNOPSIS
+#   new_sublist ()
+# FUNCTION
+#   Create sublist entry in database
+# INPUTS
+# OUTPUT
+#   Closes sublist dialog
+#   Adds sublist to current playlist
+#   Calls update_playlist to refresh playlist
+# SOURCE
+#
+sub new_sublist {
+	my ($widget, $sublistxml) = @_;
+	my ($row, $sth, $rv, $parentid);
+
+	#Determine the id of the main playlist
+	$parentid =
+	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+
+	#Find out the id for the playlists table
+	my $playlistsid = 1;
+	$query = "SELECT MAX(id) FROM playlists";
+	$sth   = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	if ($row = $sth->fetchrow_hashref()) {
+		if ($row->{'MAX(id)'}) {
+			$playlistsid = $row->{'MAX(id)'} + 1;
+		}
+	}
+
+	#Find out the playorder for the playlist table
+	my $playorder = 1;
+	$query = "SELECT MAX(playorder) FROM playlist";
+	$sth   = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	if ($row = $sth->fetchrow_hashref()) {
+		if ($row->{'MAX(playorder)'}) {
+			$playorder = $row->{'MAX(playorder)'} + 1;
+		}
+	}
+
+	#create sublist playlist
+	$query =
+	  "INSERT INTO playlists values("
+	  . $playlistsid . " ,'"
+	  . $sublistxml->get_widget('entryPromptE')->get_text() . "','')";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	#link sublist to main playlist
+	$query =
+	  "INSERT INTO playlist values("
+	  . $playorder . " ,"
+	  . $parentid . ", "
+	  . $playlistsid
+	  . ", 'sub')";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	close_dialog($widget);
+	update_playlist();
+}
+
+#***
+
+#****m* lyricue/move_to_sublist
+# NAME
+#   move_to_sublist --
+# SYNOPSIS
+#   move_to_sublist ()
+# FUNCTION
+#   Creates a dialog for moving a playlist item to a sublist of the main playlist
+# INPUTS
+# OUTPUT
+#   Dialog listing available sublists
+# SOURCE
+#
+sub move_to_sublist {
+	my ($widget) = @_;
+
+# get the data from the user selection (corresponds to playorder value in playlist table)
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		my $plitem = $model->get($iter, 2);
+
+		# playlists id for the current main playlist
+		my $parentid =
+		  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+		my $sublistxml =
+		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptCombo');
+		$sublistxml->signal_autoconnect_from_package('');
+		$sublistxml->get_widget('dialogPromptCombo')
+		  ->set_title("Move to sublist");
+		$sublistxml->get_widget('labelPromptC')->set_text("Select a sublist");
+		$sublistxml->get_widget('entryPromptC')->{user_data} = $plitem;
+		$sublistxml->get_widget('buttonPromptCOK')
+		  ->signal_connect("clicked", "move_item_to_sublist", $sublistxml);
+
+# get title, id for the sublists that are children of the current main playlist
+# with playorder restriction to prevent being able to move sublist to itself!
+		my $query =
+"SELECT title, data FROM playlist, playlists WHERE playlist.data = playlists.id AND playlist = "
+		  . $parentid
+		  . " AND type = 'sub' AND playorder != " . $plitem;
+
+		debug($query . "\n");
+		my $sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv = $sth->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my (@list);
+		while ($row = $sth->fetchrow_hashref()) {
+			my $text = $row->{'data'} . ". " . $row->{'title'};
+			push @list, $text;
+
+			my @childid = find_more_children($row->{'data'});
+
+			foreach (@childid) {
+				debug("Child sublist found. ID: " . $_ . "\n");
+				my $query2 = "SELECT title FROM playlists WHERE id=" . $_;
+
+				debug($query2 . "\n");
+				my $sth2 = $lyricDbh->prepare($query2)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				my $rv2 = $sth2->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+				my $row2 = $sth2->fetchrow_hashref();
+
+				my $text = $_ . ". " . $row2->{'title'};
+				push @list, $text;
+			}
+		}
+		$sublistxml->get_widget('comboPromptC')->set_popdown_strings(@list);
+	}
+}
+
+#***
+
+#****m* lyricue/move_item_to_sublist
+# NAME
+#   move_item_to_sublist --
+# SYNOPSIS
+#   move_item_to_sublist ($item, $sublistid, $sublisttitle)
+# FUNCTION
+#   Move a playlist item to become a child of a sublist
+# INPUTS
+#   $item - playorder of the item to be moved
+#   $sublistid - id of the sublist the item is to be a child of
+#   $sublisttitle - title of the sublist the item is to be a child of
+# OUTPUT
+#   Alters database entry for playlist item to make sublist its parent
+#   Calls update_playlist to refresh playlist
+# SOURCE
+#
+sub move_item_to_sublist {
+	my ($widget, $sublistxml) = @_;
+
+	my $sublistid = $sublistxml->get_widget('entryPromptC')->get_text();
+	my $item      = $sublistxml->get_widget('entryPromptC')->{user_data};
+	$sublistid =~ s/^([0-9]*)\..*$/$1/g;
+	debug("Moving item " . $item . " to playlist " . $sublistid . "\n");
+	close_dialog($widget);
+
+	my $query =
+	  "UPDATE playlist SET playlist = "
+	  . $sublistid
+	  . " WHERE playorder = " . $item;
+	debug($query . "\n");
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	update_playlist();
+}
+
+#***
+
+#****m* lyricue/find_more_children
+# NAME
+#   find_more_children --
+# SYNOPSIS
+#   find_more_children ($parentid)
+# FUNCTION
+#   Find all the children of a given playlist item
+# INPUTS
+#   $parentid - The playlist id of the 'parent'
+# OUTPUT
+#   Returns an array of playlist ids representing children of the parent
+# SOURCE
+#
+sub find_more_children {
+	my ($parentid) = @_;
+	my @kiddies;
+
+	my $query =
+	  "SELECT data FROM playlist WHERE playlist = "
+	  . $parentid
+	  . " AND type = 'sub'";
+
+	debug($query . "\n");
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	while ($row = $sth->fetchrow_hashref()) {
+		@kiddies = (@kiddies, $row->{'data'});
+		@kiddies = (@kiddies, find_more_children($row->{'data'}));
+	}
+
+	return @kiddies;
+}
+
+#***
+
+#****m* lyricue/associate_bg
+# NAME
+#   associate_bg --
+# SYNOPSIS
+#   associate_bg ($imagefile)
+# FUNCTION
+#   To associate the an background image with a playlist item
+# INPUTS
+#   $imagefile - file path & name of image to associate with item
+# OUTPUT
+#   Stores image name, playlist order pair in db 'associations' table
+# SOURCE
+#
+sub associate_bg {
+	my ($imagefile) = @_;
+
+	$imagefile =~ s/BG://;
+
+	debug("Associating bg " . $imagefile . " with " . $ASSOCIATE[0] . "\n");
+
+	my $query = "DELETE FROM associations WHERE playlist=" . $ASSOCIATE[0];
+	my $sth   = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	$query =
+	  "INSERT INTO associations VALUES(0, "
+	  . $ASSOCIATE[0] . ", '"
+	  . $imagefile . "',"
+	  . $ASSOCIATE[1] . ")";
+	$sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	update_playlist();
+	@ASSOCIATE = ();
+}
+
+#***
+
+#****m* lyricue/prepare_for_association
+# NAME
+#   prepare_for_association  --
+# SYNOPSIS
+#   prepare_for_association  ()
+# FUNCTION
+#   Set up the ASSOCIATE array
+# INPUTS
+# OUTPUT
+#   Updated ASSOCIATE array
+# SOURCE
+#
+sub prepare_for_association {
+	my ($widget) = @_;
+
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+
+#Change ASSOCIATE array to contain playorder of list item, main playlist id
+		@ASSOCIATE =
+		  ($model->get($iter, 2),
+			$widgets->{'main'}->get_widget('labelCurrentPlaylist')
+			->{user_data});
+	}
+
+	debug("Waiting for an image click in order to associate\n");
+}
+
+#***
+
+#****m* lyricue/disassociate_bg
+# NAME
+#   disassociate_bg --
+# SYNOPSIS
+#   disassociate_bg ()
+# FUNCTION
+#   To disssociate the current background image from a playlist item
+# INPUTS
+# OUTPUT
+#   If an association record exists in db, it is removed.
+# SOURCE
+#
+sub disassociate_bg {
+	my ($widget) = @_;
+
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		debug("Disassociating image from " . $model->get($iter, 2) . "\n");
+		my $query =
+		  "DELETE FROM associations WHERE playlist=" . $model->get($iter, 2);
+
+		my $sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+		update_playlist();
+	}
+}
+
+#***
+
+#****m* lyricue/clear_associations
+# NAME
+#   clear_associations --
+# SYNOPSIS
+#   clear_associations ()
+# FUNCTION
+#   Clears all image-playlist item associations linked to current playlist
+# INPUTS
+# OUTPUT
+#   Clears the associations table in lyricDb
+# SOURCE
+#
+sub clear_associations {
+	my ($widget) = @_;
+	debug("Disassociating images from all playlist items\n");
+	my $parentid =
+	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+
+	my $query = "DELETE FROM associations WHERE absoluteparent=" . $parentid;
+	debug($query . "\n");
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	update_playlist();
+}
+
+#***
+
+sub init_mainWindow {
+	debug("Initializing main window\n");
+
+	# Load bg thumbnails
+	my ($pixbuf);
+	eval {
+		$pixbuf =
+		  Gtk2::Gdk::Pixbuf->new_from_file(
+			$globals->{'bgpath'} . "/" . $config->{'BGImage'});
+	};
+	if ($@) {
+		debug("Error loading bg\n");
+	} else {
+		my $scaled = $pixbuf->scale_simple(72, 52, 'bilinear');
+		my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
+		$widgets->{'pixmapCurr'} = $pixmap;
+		$widgets->{'buttonCurr'} = new Gtk2::Button();
+		$widgets->{'buttonCurr'}->add($widgets->{'pixmapCurr'});
+		$widgets->{'buttonCurr'}->{user_data} = $config->{'BGImage'};
+		$widgets->{'main'}->get_widget('vboxCurrentBG')
+		  ->pack_start($widgets->{'buttonCurr'}, FALSE, FALSE, 0);
+		$widgets->{'pixmapCurr'}->show();
+		$widgets->{'buttonCurr'}->show();
+		$widgets->{'buttonCurr'}->signal_connect("clicked", "backdrop_clicked");
+	}
+	my ($pixbuf2);
+	eval {
+		$pixbuf2 =
+		  Gtk2::Gdk::Pixbuf->new_from_file(
+			$globals->{'bgpath'} . "/" . $config->{'BGImage'});
+	};
+	if ($@) {
+		debug("Error loading bg\n");
+	} else {
+		my $scaled = $pixbuf2->scale_simple(72, 52, 'bilinear');
+		my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
+		$widgets->{'pixmapPrev'} = $pixmap;
+		$widgets->{'buttonPrev'} = new Gtk2::Button();
+		$widgets->{'buttonPrev'}->add($widgets->{'pixmapPrev'});
+		$widgets->{'buttonPrev'}->{user_data} = $config->{'BGImage'};
+		$widgets->{'main'}->get_widget('vboxPrevBG')
+		  ->pack_start($widgets->{'buttonPrev'}, FALSE, FALSE, 0);
+		$widgets->{'pixmapPrev'}->show();
+		$widgets->{'buttonPrev'}->show();
+		$widgets->{'buttonPrev'}->signal_connect("clicked", "backdrop_clicked");
+	}
+
+	# Update list of background directories
+	bgdir_list();
+
+	# Setup Available list and blank playlist
+	$widgets->{'main'}->get_widget('treeAvailable')->set_enable_search(TRUE);
+	$widgets->{'main'}->get_widget('treeAvailable')->set_search_column(0);
+	update_available();
+	$widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} = 0;
+
+	# Update the bible menu
+	my $menutop = Gtk2::Menu->new();
+	my $group   = 0;
+	foreach (0 .. $config->{'BibleCount'} - 1) {
+		my $bible = $config->{'Bible'}[$_];
+		$bible =~ s/^_(.*);.*$/$1/g;
+
+		$bibleMenu[$_] = Gtk2::RadioMenuItem->new_with_label($group, $bible);
+		if ($_ == 0) {
+			$group = $bibleMenu[$_]->get_group;
+		}
+		if ($config->{'Bible'}[$_] eq $config->{'DefBible'}) {
+			$bibleMenu[$_]->set_active(TRUE);
+		}
+		$bibleMenu[$_]->signal_connect("toggled", "select_bible_db", $_);
+		$bibleMenu[$_]->show;
+		$menutop->append($bibleMenu[$_]);
+	}
+	$widgets->{'main'}->get_widget('bible1')->set_submenu($menutop);
+
+	my @target_table =
+	  ({'target' => "STRING", 'flags' => 'same-app', 'info' => 0},);
+	$widgets->{'main'}->get_widget('treeAvailable')
+	  ->drag_source_set(['button1_mask'], ['copy'], @target_table);
+	$widgets->{'main'}->get_widget('treePlaylist')
+	  ->drag_dest_set('all', ['copy'], @target_table);
+
+	# Show the window finally
+	$widgets->{'main'}->get_widget('windowMain')->show;
+}
+
+sub bgdir_list {
+	debug("Loading directory list\n");
+	my $counter     = 0;
+	my $dirpath     = $globals->{'bgpath'} . "/";
+	my $dirlisting  = `find $dirpath -type d | sort`;
+	my @directories = split (/\n/, $dirlisting);
+	debug("Adding Main image dir button\n");
+	$widgets->{'dirbuttons'}[$counter] = new Gtk2::Button("Main");
+	$widgets->{'main'}->get_widget('vboxBackDir')
+	  ->add($widgets->{'dirbuttons'}[$counter]);
+	$widgets->{'dirbuttons'}[$counter]
+	  ->signal_connect("clicked", \&bgdir_change, '/');
+	$widgets->{'dirbuttons'}[$counter]->show;
+	$counter++;
+
+	foreach (@directories) {
+		$_ =~ s/$dirpath//;
+		if ($_ ne "") {
+			debug("Adding image dir button for " . $_ . "\n");
+			$widgets->{'dirbuttons'}[$counter] = new Gtk2::Button($_);
+			$widgets->{'main'}->get_widget('vboxBackDir')
+			  ->add($widgets->{'dirbuttons'}[$counter]);
+			$widgets->{'dirbuttons'}[$counter]
+			  ->signal_connect("clicked", \&bgdir_change, '/' . $_);
+			$widgets->{'dirbuttons'}[$counter]->show;
+			$counter++;
+		}
+	}
+}
+
+#****m* lyricue/bgdir_change
+# NAME
+#   bgdir_change --
+# SYNOPSIS
+#   bgdir_change ($directory)
+# FUNCTION
+#   Clears background image preview buttions
+#   Calls bgdir_load to create new buttons
+# INPUTS
+#   $directory - background image directory to load images from
+# OUTPUT
+#   Updated background preview buttons
+# SOURCE
+#
+sub bgdir_change {
+	my ($widget, $directory) = @_;
+	debug("Changing background source directory to "
+		. $directory
+		. "\nDestroying old images\n");
+	my $count = 0;
+	if ($widgets->{'buttons'}) {
+		while ($widgets->{'buttons'}[$count] != NULL) {
+			$widgets->{'buttons'}[$count]->destroy();
+			$widgets->{'pixmaps'}[$count]->destroy();
+			$count++;
+		}
+	}
+	bgdir_load($directory);
+	debug("Background directory change complete\n");
+}
+
+#***
+
+#****m* lyricue/bgdir_load
+# NAME
+#   bgdir_load --
+# SYNOPSIS
+#   bgdir_load ($directory)
+# FUNCTION
+#   Create new preview pixmaps and buttons
+# INPUTS
+#   $directory - background image directory to load images from
+# OUTPUT
+#   Updated background preview buttons
+# SOURCE
+#
+sub bgdir_load {
+	my ($directory) = @_;
+
+	# update list of available backdrops
+	debug("Loading new preview images from: "
+		. $globals->{'bgpath'}
+		. $directory . "\n");
+	opendir(DIR, $globals->{'bgpath'} . $directory) || return 0;
+	my @items = ();
+	while ($_ = readdir(DIR)) {
+
+		# ignore hidden files and files without extensions (ie. README)
+		if ((!(/^\./)) && ((/\./))) {
+			$_ =~ s/\.*?$//g;
+			push (@items, $_);
+		}
+	}
+	$widgets->{'main'}->get_widget('hboxBackImage')->hide();
+	my $counter = 0;
+	if ($globals->{'bg_previews'}) {
+		foreach (sort { uc($a) cmp uc($b) } @items) {
+
+			while (Gtk2->events_pending) {
+				Gtk2->main_iteration;
+			}
+			my ($pixbuf);
+			eval {
+				$pixbuf =
+				  Gtk2::Gdk::Pixbuf->new_from_file(
+					$globals->{'bgpath'} . $directory . "/" . $_)
+				  || print "error";
+			};
+			if ($@) {
+				debug("error loading bg\n");
+			} else {
+				my $scaled = $pixbuf->scale_simple(64, 48, 'bilinear');
+				my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
+
+				$widgets->{'pixmaps'}[$counter] = $pixmap;
+				$widgets->{'buttons'}[$counter] = new Gtk2::Button();
+				$widgets->{'buttons'}[$counter]
+				  ->add($widgets->{'pixmaps'}[$counter]);
+				$widgets->{'buttons'}[$counter]->{user_data} =
+				  ("BG:" . $directory . "/" . $_);
+				$widgets->{'pixmaps'}[$counter]->show();
+				$widgets->{'buttons'}[$counter]->show();
+				$widgets->{'buttons'}[$counter]
+				  ->signal_connect("clicked", "backdrop_clicked", \$widgets);
+				$widgets->{'main'}->get_widget('hboxBackImage')
+				  ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE,
+					0);
+
+				# Add drag'n'drop stuff
+				#				$oldwidgets->{'buttons'}[$counter]
+				#				  ->drag_source_set('button1_mask', ['copy', 'move'],
+				#					{ target => 'STRING', flags => 0, info => 0 });
+				#				$oldwidgets->{'buttons'}[$counter]->signal_connect(
+				#					'drag_data_get', sub {
+				#						my ($w, $context, $data, $info, $time) = @_;
+				#						$data->set($data->target, 8, "background");
+				#						return 1;
+				#					}
+				#				);
+				$counter++;
+			}
+		}
+	}
+	$widgets->{'main'}->get_widget('hboxBackImage')->show();
+}
+
+#***
+
+#****m* lyricue/spell_check
+# NAME
+#   spell_check --
+# SYNOPSIS
+#   spell_check ()
+# FUNCTION
+#   Use aspell to check spellling for a song
+# INPUTS
+#   $oldwidgets
+# OUTPUT
+#   Dialog listing spelling errors on each page
+# SOURCE
+#
+sub spell_check {
+	my ($widget) = @_;
+	my ($page);
+	debug("Running spell checker\n");
+
+	foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} } keys %pageOrder) {
+		$widgets->{'spellAPage'}{$page} =
+		  Gtk2::Spell->new($widgets->{'textAPage'}{$page});
+
+	}
+}
+
+#***
+
+#****m* LyricDisplaySystemUI/create_search
+# NAME
+#   create_search --
+# SYNOPSIS
+#   create_search ($topwidgets)
+# FUNCTION
+#   Create the dialog for advanced search
+# INPUTS
+#   $topwidgets - Widgets of main window
+# OUTPUT
+#   Search dialog
+# SOURCE
+#
+sub create_search {
+	debug("Advanced search dialog opened\n");
+	$widgets->{'search'} =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSearch');
+	$widgets->{'search'}->signal_autoconnect_from_package('');
+	my @target_table = ({'target' => "STRING", 'flags' => 0, 'info' => 0},);
+	$widgets->{'search'}->get_widget('treeSearch')
+	  ->drag_source_set(['button1_mask'], ['copy', 'move'], @target_table);
+	$widgets->{'main'}->get_widget('treePlaylist')
+	  ->drag_dest_set('all', ['copy'], @target_table);
+}
+
+#***
+
+sub add_file {
+	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile');
+	$filexml->signal_autoconnect_from_package('');
+	$filexml->get_widget('buttonFileOK')
+	  ->signal_connect("clicked", "file_ok_sel", $filexml);
+}
+
+sub change_bgimage {
+	my ($widget) = @_;
+	my $bgimage = "";
+
+	debug("Change backdrop dialog opened\n");
+	$widgets->{'image'} =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImage');
+	$widgets->{'image'}->signal_autoconnect_from_package('');
+	$widgets->{'image'}->get_widget('dialogImage')->show;
+	if ($widgets->{'image'}->get_widget('treeImage')->{user_data}
+		&& ($widgets->{'image'}->get_widget('treeImage')->{user_data} eq "load")
+	  )
+	{
+		$widgets->{'image'}->get_widget('treeImage')->{data} = ();
+	} else {
+		$bgimage = $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
+		$widgets->{'image'}->get_widget('buttonImageOK')
+		  ->set_label('Set as Default');
+		$widgets->{'image'}->get_widget('buttonImageOK')
+		  ->signal_connect('clicked', "set_default_backdrop");
+		$widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
+		my $column =
+		  Gtk2::TreeViewColumn->new_with_attributes("Filename",
+			Gtk2::CellRendererText->new, text => 0);
+		$column->signal_connect("clicked", "change_preview");
+		$widgets->{'image'}->get_widget('treeImage')->append_column($column);
+	}
+	update_imagedir($globals->{'bgpath'});
+}
+
+#****m* LyricDisplaySystemUI/create_dialogSublist
+# NAME
+#   create_dialogSublist --
+# SYNOPSIS
+#   create_dialogSublist ($widgets)
+# FUNCTION
+#   Create the dialog for adding a sublist
+# INPUTS
+#   $widgets - Widgets of main window
+# OUTPUT
+#   Dialog
+# SOURCE
+#
+sub create_dialogSublist {
+	my $sublistxml =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptEntry');
+	$sublistxml->signal_autoconnect_from_package('');
+	$sublistxml->get_widget('dialogPromptEntry')
+	  ->set_title("Create new sublist");
+	$sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
+	$sublistxml->get_widget('buttonPromptEOK')
+	  ->signal_connect("clicked", "new_sublist", $sublistxml);
+}
+
+#***
+
+sub get_buffer_text {
+	my ($widget) = @_;
+	return $widget->get_text($widget->get_bounds, FALSE);
+}
+
+sub on_treeAvailable_drag_data_get {
+	my ($widget, $context, $data, $info, $time) = @_;
+	debug("Dragged from available songs\n");
+	my $selection = $widget->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		$data->set($data->target, 8, $model->get($iter, 3));
+	}
+}
+
+sub on_treeSearch_drag_data_get {
+	my ($widget, $context, $data, $info, $time) = @_;
+	debug("Dragged from advanced search\n");
+	my $selection = $widget->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		$data->set($data->target, 8, $model->get($iter, 3));
+	}
+}
+
+sub on_treePlaylist_drag_data_received {
+	my ($widget, $context, $x, $y, $data, $info, $time) = @_;
+	debug("Dropped on playlist\n");
+	if (($data->length >= 0) && ($data->format == 8)) {
+		print("Recieved " . $data->data . "\n");
+		add_single_song($data->data);
+		update_playlist();
+		$context->finish(1, 0, $time);
+		return;
+	}
+	$context->finish(0, 0, $time);
+}
+
+sub display_fatal {
+	my ($message, $error) = @_;
+	print "\n\n-------------\n";
+	print "FATAL ERROR!!\n";
+	print "-------------\n";
+	print "Error description\n";
+	print $message. "\n";
+	print "------------------\n";
+	my $errorxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError');
+	$errorxml->signal_autoconnect_from_package('');
+	$errorxml->get_widget('labelError')->set_text($message);
+	my $confirm = $errorxml->get_widget('dialogError')->run();
+	close_dialog($errorxml->get_widget('dialogError'));
+	print "Full error message\n";
+	print "------------------\n";
+	die ($error);
+}
+
+sub select_transitions {
+	debug("Selecting transitions\n");
+	$widgets->{'transitions'} =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowTransitions');
+	$widgets->{'transitions'}->signal_autoconnect_from_package('');
+	$widgets->{'transitions'}->get_widget('windowTransitions')->show();
+}
+
+sub apply_transition {
+	debug("Applying transition\n");
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		my $trans_type = NORMAL;
+		if ($widgets->{'transitions'}->get_widget('radioTransWipe')
+			->get_active())
+		{
+			$trans_type = WIPE;
+		} elsif ($widgets->{'transitions'}->get_widget('radioTransSlide')
+			->get_active())
+		{
+			$trans_type = SLIDE_TEXT;
+		}
+
+		# Set new direction
+		$trans_type = $trans_type << 5;
+		$_ = $widgets->{'transitions'}->get_widget('entryTransNew')->get_text();
+		if (/Up/) {
+			$trans_type = $trans_type + UP;
+		} elsif (/Down/) {
+			$trans_type = $trans_type + DOWN;
+		}
+
+		if (/Left/) {
+			$trans_type = $trans_type + LEFT;
+		} elsif (/Right/) {
+			$trans_type = $trans_type + RIGHT;
+		}
+		if ($widgets->{'transitions'}->get_widget('checkTransNew')->get_active()
+		  )
+		{
+			$trans_type = $trans_type + WAIT;
+		}
+
+		# Set old direction
+		$trans_type = $trans_type << 5;
+		$_ = $widgets->{'transitions'}->get_widget('entryTransOld')->get_text();
+		if (/Up/) {
+			$trans_type = $trans_type + UP;
+		} elsif (/Down/) {
+			$trans_type = $trans_type + DOWN;
+		}
+
+		if (/Left/) {
+			$trans_type = $trans_type + LEFT;
+		} elsif (/Right/) {
+			$trans_type = $trans_type + RIGHT;
+		}
+		if ($widgets->{'transitions'}->get_widget('checkTransOld')->get_active()
+		  )
+		{
+			$trans_type = $trans_type + WAIT;
+		}
+
+		my $query =
+		  "UPDATE playlist SET transition="
+		  . $trans_type
+		  . " WHERE playorder="
+		  . $model->get($iter, 1);
+		debug($query);
+		my $sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv = $sth->execute
+		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	}
+
+}
+
+sub mod {
+	my ($inp, $div) = @_;
+	my $rem = (($inp / $div) - (int($inp / $div))) * $div;
+	return $rem;
+}
+
+sub user_admin {
+	debug("User access administration\n");
+	$widgets->{'admin'} =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogAdmin');
+	$widgets->{'admin'}->signal_autoconnect_from_package('');
+	eval { open(ACCESS, $globals->{'accessfile'}); };
+	if ($@) {
+		debug("No existing access.conf\n");
+	} else {
+		my $users = 0;
+		my (@username, @useraccess);
+		while (<ACCESS>) {
+			($username[$users], $useraccess[$users]) = split (/=/, $_, 2);
+			$username[$users]   =~ s/ *$//g;
+			$useraccess[$users] =~ s/ *$//g;
+			$users++;
+		}
+		close ACCESS;
+		$widgets->{'admin'}->get_widget('tableAccess')->resize($users, 6);
+		foreach my $count (0 .. ($users - 1)) {
+			print $username[$count] . "\n";
+			$widgets->{'adminUsername'}[$count] =
+			  Gtk2::Label->new($username[$count]);
+			$widgets->{'admin'}->get_widget('tableAccess')
+			  ->attach($widgets->{'adminUsername'}[$count], 0, 1, $count + 2,
+				$count + 3, 'fill', 'expand', 0, 0);
+
+			$widgets->{'adminPlaylist'}[$count] = Gtk2::CheckButton->new();
+			$widgets->{'admin'}->get_widget('tableAccess')
+			  ->attach($widgets->{'adminPlaylist'}[$count], 1, 2, $count + 2,
+				$count + 3, 'fill', 'expand', 0, 0);
+			$widgets->{'adminEdit'}[$count] = Gtk2::CheckButton->new();
+			$widgets->{'admin'}->get_widget('tableAccess')
+			  ->attach($widgets->{'adminEdit'}[$count], 2, 3, $count + 2,
+				$count + 3, 'fill', 'expand', 0, 0);
+			$widgets->{'adminDelete'}[$count] = Gtk2::CheckButton->new();
+			$widgets->{'admin'}->get_widget('tableAccess')
+			  ->attach($widgets->{'adminDelete'}[$count], 3, 4, $count + 2,
+				$count + 3, 'fill', 'expand', 0, 0);
+			$widgets->{'adminDisplay'}[$count] = Gtk2::CheckButton->new();
+			$widgets->{'admin'}->get_widget('tableAccess')
+			  ->attach($widgets->{'adminDisplay'}[$count], 4, 5, $count + 2,
+				$count + 3, 'fill', 'expand', 0, 0);
+			$widgets->{'adminAdmin'}[$count] = Gtk2::CheckButton->new();
+			$widgets->{'admin'}->get_widget('tableAccess')
+			  ->attach($widgets->{'adminAdmin'}[$count], 5, 6, $count + 2,
+				$count + 3, 'fill', 'expand', 0, 0);
+			$_ = $useraccess[$count];
+			if (/p/) { $widgets->{'adminPlaylist'}[$count]->set_active(TRUE); }
+			if (/e/) { $widgets->{'adminEdit'}[$count]->set_active(TRUE); }
+			if (/d/) { $widgets->{'adminDelete'}[$count]->set_active(TRUE); }
+			if (/s/) { $widgets->{'adminDisplay'}[$count]->set_active(TRUE); }
+			if (/a/) { $widgets->{'adminAdmin'}[$count]->set_active(TRUE); }
+		}
+		$widgets->{'admin'}->get_widget('tableAccess')->show_all();
+	}
+	my $confirm = $widgets->{'admin'}->get_widget('dialogAdmin')->run();
+	if ($confirm eq "ok") {
+		open(ACCESS, ">" . $globals->{'accessfile'})
+		  || display_fatal(
+			$errorcodes->{'fileopenwrite'} . $globals->{'accessfile'}, $!);
+		my $users =
+		  ($widgets->{'admin'}->get_widget('tableAccess')->get('n-rows') - 2);
+		foreach my $count (0 .. ($users - 1)) {
+			my $out = $widgets->{'adminUsername'}[$count]->get_text() . " = ";
+			if ($widgets->{'adminPlaylist'}[$count]->get_active()) {
+				$out .= "p";
+			}
+			if ($widgets->{'adminEdit'}[$count]->get_active()) { $out .= "e"; }
+			if ($widgets->{'adminDelete'}[$count]->get_active()) {
+				$out .= "d";
+			}
+			if ($widgets->{'adminDisplay'}[$count]->get_active()) {
+				$out .= "s";
+			}
+			if ($widgets->{'adminAdmin'}[$count]->get_active()) { $out .= "a"; }
+			print ACCESS $out . "\n";
+		}
+		close ACCESS;
+	}
+	$widgets->{'admin'}->get_widget('dialogAdmin')->destroy();
+	$globals->{'access'} = load_access();
+
+}
+
+sub load_access {
+	debug("Loading access settings\n");
+	my $access = "";
+
+	# Load the access settings
+	open(ACCESS, $globals->{'accessfile'})
+	  || display_fatal($errorcodes->{'fileopenread'} . $globals->{'accessfile'},
+		$!);
+	my $username = getpwuid($<);
+	while (<ACCESS>) {
+		chomp;
+		if (/^$username/) {
+			$access = $_;
+			$access =~ s/^.*= *//g;
+		}
+	}
+	close ACCESS;
+
+	$_ = $access;
+	my @remove_items = ();
+	my @show_items   = ();
+	if (!/e/) {
+		push @remove_items, @edit_items;
+	} else {
+		push @show_items, @edit_items;
+	}
+
+	if (!/d/) {
+		push @remove_items, @delete_items;
+	} else {
+		push @show_items, @delete_items;
+	}
+
+	if (!/s/) {
+		push @remove_items, @display_items;
+	} else {
+		push @show_items, @display_items;
+	}
+
+	if (!/p/) {
+		push @remove_items, @playlist_items;
+	} else {
+		push @show_items, @playlist_items;
+	}
+
+	if (!/a/) {
+		push @remove_items, @admin_items;
+	} else {
+		push @show_items, @admin_items;
+	}
+
+	foreach my $item (@show_items) {
+		$widgets->{'main'}->get_widget($item)->show();
+	}
+
+	foreach my $item (@remove_items) {
+		$widgets->{'main'}->get_widget($item)->hide();
+	}
+	return $access;
+}
+
+sub add_user {
+	debug("Adding a user\n");
+	my $userxml =
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptEntry');
+	$userxml->signal_autoconnect_from_package('');
+	$userxml->get_widget('dialogPromptEntry')->set_title("Add a user");
+	$userxml->get_widget('labelPromptE')->set_text("Enter username");
+	my $confirm = $userxml->get_widget('dialogPromptEntry')->run();
+	if ($confirm eq "ok") {
+		my $users =
+		  ($widgets->{'admin'}->get_widget('tableAccess')->get('n-rows') - 2);
+		print $users. "\n";
+		$widgets->{'admin'}->get_widget('tableAccess')->resize($users + 3, 6);
+		$widgets->{'adminUsername'}[$users] =
+		  Gtk2::Label->new($userxml->get_widget('entryPromptE')->get_text());
+		$widgets->{'admin'}->get_widget('tableAccess')
+		  ->attach($widgets->{'adminUsername'}[$users], 0, 1, $users + 2,
+			$users + 3, 'fill', 'expand', 0, 0);
+		$widgets->{'adminPlaylist'}[$users] = Gtk2::CheckButton->new();
+		$widgets->{'admin'}->get_widget('tableAccess')
+		  ->attach($widgets->{'adminPlaylist'}[$users], 1, 2, $users + 2,
+			$users + 3, 'fill', 'expand', 0, 0);
+		$widgets->{'adminEdit'}[$users] = Gtk2::CheckButton->new();
+		$widgets->{'admin'}->get_widget('tableAccess')
+		  ->attach($widgets->{'adminEdit'}[$users], 2, 3, $users + 2,
+			$users + 3, 'fill', 'expand', 0, 0);
+		$widgets->{'adminDelete'}[$users] = Gtk2::CheckButton->new();
+		$widgets->{'admin'}->get_widget('tableAccess')
+		  ->attach($widgets->{'adminDelete'}[$users], 3, 4, $users + 2,
+			$users + 3, 'fill', 'expand', 0, 0);
+		$widgets->{'adminDisplay'}[$users] = Gtk2::CheckButton->new();
+		$widgets->{'admin'}->get_widget('tableAccess')
+		  ->attach($widgets->{'adminDisplay'}[$users], 4, 5, $users + 2,
+			$users + 3, 'fill', 'expand', 0, 0);
+		$widgets->{'adminAdmin'}[$users] = Gtk2::CheckButton->new();
+		$widgets->{'admin'}->get_widget('tableAccess')
+		  ->attach($widgets->{'adminAdmin'}[$users], 5, 6, $users + 2,
+			$users + 3, 'fill', 'expand', 0, 0);
+	}
+	$widgets->{'admin'}->get_widget('tableAccess')->show_all();
+	close_dialog($userxml->get_widget('dialogPromptEntry'));
+}
+
+sub search_changed {
+	debug("Search changed\n");
+	if ($UPDATE_TIMER) {
+		Glib::Source->remove($UPDATE_TIMER);
+	}
+	$UPDATE_TIMER = Glib::Timeout->add(500, \&update_available);
+}
+

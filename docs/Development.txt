@@ -1,0 +1,190 @@
+--------------------------------
+NETWORK COMMUNICATIONS INTERFACE
+--------------------------------
+
+This document describes the Client<->Server communications.
+By default the server opens a socket on port 2346 on localhost.
+All communications are initiated by the client.
+The format for sending messages is <command>:<first parameter>:<second parameter>
+Communications are not case sensitive other than filenames/db names
+
+Commands
+--------
+
+Command - 'status'
+First parameter - not used
+Second parameter - not used
+Purpose - To find out server width/height/font
+Response - "Status,W:<width>,H:<height>,F:<font>"
+Example - 'status::'
+
+Command - 'reload'
+First parameter - not used
+Second parameter - not used
+Purpose - To reload the server (ie. for configuration changes)
+Response - "Configuration reloaded"
+Example - 'reload::'
+
+Command - 'backdrop'
+First parameter - image filename to load
+Second parameter - not used
+Purpose - To change the background to the file given, 
+First parameter - image filename to load, image must be in backgrounds directory
+Response - "Backdrop changed to <filename>"
+Example - 'backdrop:lds.xpm:'
+
+Command - 'blank'
+First parameter - not used
+Second parameter - not used
+Purpose - To blank the screen (leaving background visible)
+Response - "Screen blanked"
+Example - 'blank::'
+
+Command - 'change_to_db'
+First parameter - Bible database name
+Second parameter - not used
+Purpose - Change the bible database to a different version
+Response - "DB changed to <Database name>"
+Example - 'change_to_db:nivDb:'
+
+Command - 'display'
+First parameter - 'p'
+Second parameter - pagenum to preview
+Purpose - Preview a single page without adding to playlist
+Response - "Displaying <title> page <page>"
+Example - 'display:p:123'
+
+Command - 'display'
+First parameter - 'next_page'
+Second parameter - 'loop' or ''
+Purpose - Display the next page. If the second parameter is 'loop' then loop to first page if currently on last page
+Response - "Displaying <title> page <page>"
+Example - 'display:next_page:loop'
+
+Command - 'display'
+First parameter - 'prev_page'
+Second parameter - 'loop' or ''
+Purpose - Display the previous page. If the second parameter is 'loop' then loop to last page if currently on first page
+Response - "Displaying <title> page <page>"
+Example - 'display:prev_page:'
+
+Command - 'display'
+First parameter - 'next_song'
+Second parameter - not used
+Purpose - Display the next song in the playlist
+Response - "Displaying <title> page <page>"
+Example - 'display:next_song:'
+
+Command - 'display'
+First parameter - 'prev_song'
+Second parameter - not used
+Purpose - Display the previous song in the playlist
+Response - "Displaying <title> page <page>"
+Example - 'display:prev_song:'
+
+Command - 'display'
+First parameter - 'page'
+Second parameter - page number in current song
+Purpose - Jump to a particular page in a song
+Response - "Displaying <title> page <page>"
+Example - 'display:page:3'
+
+Command - 'display'
+First parameter - playlist item number
+Second parameter - not used
+Purpose - Jump to a particular item in the playlist
+Response - "Displaying <title> page <page>"
+Example - 'display:12:'
+
+
+-------------------------
+CONFIGURATION FILE FORMAT
+-------------------------
+
+The configuration file is in /etc/lds.conf initially but used
+from ~/.lds/config for each user
+Following is a description of each possible line.
+
+'Main'     - Font used for main lyrics on server
+'Header'   - Font used for header section on server
+'Footer'   - Font used for footer section on server
+'Colour'   - Colour used for text on server
+'Height'   - Window height for server/interface
+'Width'    - Window width for server/interface
+'Loop'     - Boolean state of looping (ie. if you press next at the last
+             page should it return to the first page)
+'Xinerama' - Boolean state of xinerama
+'BGImage'  - Filename of default background image
+'Bible'    - Description of bible + database name (ie. 'NIV;nivDb'), can
+             be multiple
+'DefBible' - Default bible setting
+'App'      - Command-line to be run from interface on server screen, can
+             be multiple
+
+
+---------------
+DATABASE FORMAT
+---------------
+
+Database lyricDb
+----------------
+
+# Main lyrics table, contains list of all songs and details of each
+lyricMain (
+  id int(11) NOT NULL auto_increment,        # Unique id of song
+  title varchar(100) NOT NULL default '',    # Title of song
+  songnum int(11) default '0',               # Song number from book
+  book varchar(100) default '',              # Song book
+  artist varchar(100) default '',            # Song artist
+  written timestamp(14) NOT NULL,            # Date when song was written
+  keywords text,                             # Any keywords
+  entered timestamp(14) NOT NULL,            # Date when song was entered
+  copyright varchar(100) default '',         # Copyright infomation
+  PRIMARY KEY  (id)
+)
+
+# Lyrics of individual pages, refers to lyricMain for song details
+page (
+  pageid int(11) NOT NULL auto_increment,    # Unique id of page
+  songid int(11) NOT NULL default '0',       # Id of song which this is page of
+  pagenum int(11) NOT NULL default '0',      # Number of page in song
+  lyrics text,                               # Lyrics contained on this page
+  PRIMARY KEY  (pageid)
+)
+
+# Contents of all playlists
+playlist (
+  playorder int(11) NOT NULL default '0',  # Order in playlists for this item
+  playlist int(11) NOT NULL default '1',   # Playlist which this is contained in
+  type varchar(4) default 'song',          # Type of item. One of : 'song',
+                                           # 'vers', 'play', 'imag', 'back'
+  data varchar(50) NOT NULL default '',    # Dependant on type field. If:
+										   # 'song' then pageid
+                                           # 'vers' then verse numbers
+										   # 'play' then playlist id
+										   # 'imag' then image filename
+										   # 'back' then background filename
+  PRIMARY KEY  (playorder)
+)
+
+# List of playlists
+playlists (
+  id int(11) NOT NULL default '0',         # Unique playlist number
+  title varchar(50) NOT NULL default '',   # Title of playlist
+  ref varchar(50) NOT NULL default '',     # If it's a song playlist then songid
+  PRIMARY KEY  (id)
+)
+
+Database: bibleDb
+-----------------
+
+# Bible verses
+verse (
+  verseid     int(11)      not null   auto_increment, # Unique verseid
+  versenum    int(11)      not null,                  # Verse number
+  chapternum  int(11)      not null,                  # Chapter number
+  book        varchar(30)  not null,                  # Book title
+  verse       text,                                   # Verse text
+  PRIMARY KEY (verseid)
+)
+

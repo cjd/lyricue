@@ -1,0 +1,154 @@
+#!/usr/bin/perl
+print "Lyric Display System\n";
+print "--------------------\n";
+print "This script will check that the nessecary items are installed\n";
+print "then install the files and create the MySql tables nessecary\n";
+
+# Will try to load all needed perl modules, fails if any not available
+use Data::Dumper;
+use strict;
+use DBI;
+use POSIX;
+use IO::Socket::INET;
+use Unicode::String qw(utf8 utf16);
+use Gtk2 -init;
+use Gtk2::GladeXML;
+use Gtk2::Pango;
+use Gtk2::Spell;
+use Gtk2::TrayIcon;
+use Gnome2::Canvas;
+use Glib;
+
+my $bindir   = "/usr/bin/";
+my $etcdir   = "/etc/lds/";
+my $sharedir = "/usr/share/lds/";
+my $docdir = "/usr/share/doc/lds/";
+
+my %replace = ( $sharedir."images/black.png" => 0644,
+		$sharedir."lyricue.png" => 0644,
+		$sharedir."lyricue-icon.png" => 0644,
+		$sharedir."lyricue.glade" => 0644,
+		$bindir."lyricue" => 0644,
+		$bindir."lyricue_server" =>0644);
+
+my %addonly = (	$etcdir."access.conf" => 0644,
+		$etcdir."default.conf" => 0644
+		);
+
+print "Creating directories:\n";
+foreach my $dir ( $bindir,$etcdir,$sharedir,$docdir) {
+	print "dir -> ".$dir."\n";
+	mkdir $dir,0755;
+}
+
+print "\nCopying files:\n";
+foreach my $file (keys %replace) {
+	print "file -> ".$file."\n";
+	my $basename = $file;
+	$basename =~ s/^.*\///g;
+	system ("cp ".$basename." ".$file);
+}
+
+foreach my $file (keys %addonly) {
+	if ( ! -e $file ) {
+		print "file -> ".$file."\n";
+		my $basename = $file;
+		$basename =~ s/^.*\///g;
+		system ("cp ".$basename." ".$file);
+	}
+}
+
+my @docs;
+opendir (DIR, "docs" );
+@docs = readdir(DIR);
+closedir (DIR);
+foreach (@docs) {
+	if (! /^\./ ) {
+		system ("cp docs/".$_." ".$docdir);
+	}
+}
+
+my @ary = DBI->available_drivers(1);
+my $mysql = 0;
+foreach ( @ary ) {
+	 if ($_ eq "mysql") {
+	 	$mysql = 1;
+	}
+}
+if (! $mysql ) {
+	die ("The Perl module DBI::mysql is not installed, please install");
+}
+
+if (@ary == 0 ) {
+	die "Mysql doesn't appear to be running, please restart it\n";
+}
+print "please enter your root password: ";
+my $rootpw=<STDIN>;
+chomp $rootpw;
+
+my $dbh = DBI->connect("DBI:mysql:mysql:localhost", "root","$rootpw");
+my $sth = $dbh->prepare ("select * from user where User='lyric'");
+my $rv = $sth->execute;
+if ($sth->rows) {
+	print "User already setup\n";
+} else {
+	print "Creating mysql user..";
+	$sth = $dbh->prepare ("insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
+	$sth->execute;
+	$sth = $dbh->prepare ("insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
+	$sth->execute;
+	print "Done\n";
+}
+
+print "Checking for existing Databases:\n";
+my @ary = DBI->data_sources("mysql");
+my $lyricdb = 0;
+my $bibledb = 0;
+foreach ( @ary ) {
+	if (/lyricDb/) {
+		print "Found lyricDb\n";
+		$lyricdb = 1;
+	} elsif (/bibleDb/) {
+		print "Found bibleDb\n";
+		$bibledb = 1;
+	}
+}
+
+if (! $lyricdb) {
+	system ("cat mysql/MySQL_create_Table.sql | mysql -u root --password=$rootpw");
+} else {
+	my $dbh2 = DBI->connect("DBI:mysql:lyricDb", "root","$rootpw");
+	my $tables = $dbh2->selectall_arrayref("show tables");
+	my %table;
+	foreach (@$tables) {
+		%table->{$_->[0]} = 1;
+	}
+	if (! defined %table->{'associations'}) {
+		print "associations table not found";
+		print "Upgrading database from < 1.2 to 1.2\n";
+		system ("cat mysql/Update_1.2.sql | mysql -u root --password=$rootpw");
+		print "Done\n";
+	}
+
+	my $fields = $dbh2->selectall_arrayref("describe playlist");
+	my %trans;
+	foreach (@$fields) {
+		%trans->{$_->[0]} = 1;
+	}
+	if (! defined %trans->{'transition'}) {
+		print "transition field not found\n";
+		print "Upgrading database from 1.2 to 1.9\n";
+		system ("cat mysql/Update_1.9.sql | mysql -u root --password=$rootpw");
+		print "Done\n";
+	}
+}
+
+if (! $bibledb) {
+	system ("cat mysql/MySQL_create_bible_KJV.sql | mysql -u root --password=$rootpw");
+}
+
+print "\n\n";
+print "Finished installing Lyricue\n";
+print "Run /usr/bin/lyricue_server on one screen\n";
+print "and load up /usr/bin/lyricue on the other\n";
+
