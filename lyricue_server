@@ -808,7 +808,7 @@ sub process_input {
                 my @row;
                 if (@row = $sth->fetchrow_array()) {
                     $current_item = $row[0];
-                    $current_list = $row[0];
+                    $current_list = $row[1];
                 }
 
                 $query =
