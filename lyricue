@@ -324,8 +324,8 @@ sub close_main {
 	$lyricDbh->disconnect;
 	$bibleDbh->disconnect;
 	Gtk2->main_quit;
-	kill 9, $globals->{'preview_pid'};
-	kill 9, $globals->{'miniview_pid'};
+	if ($globals->{'preview_pid'}) { kill 9, $globals->{'preview_pid'}; }
+	if ($globals->{'miniview_pid'}) { kill 9, $globals->{'miniview_pid'}; }
 	exit();
 	return FALSE;
 }
@@ -5648,3 +5648,27 @@ sub create_pixbuf {
 	}
 }
 
+
+sub import_media {
+	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
+	$filexml->signal_autoconnect_from_package('');
+	$filexml->get_widget('buttonFileOK')->signal_connect("clicked", "do_import_media", $filexml);
+}
+
+sub do_import_media {
+	my ($widget, $filexml) = @_;
+	my $hashnum  = 0;
+	my $filename = $filexml->get_widget('dialogFile')->get_filename;
+	my $description = $filename;
+	$description =~ s/^.*\/([^\/]*)\.(.*?)$/$1/g;
+	my $type = $filename;
+	$type =~ s/^.*\.(.*?)$/$1/g;
+	debug ("Full filename: $filename");
+	debug ("Description: $description");
+	debug ("Type: $type");
+	debug ("Category: $category");
+
+	open(MEDIA, $filename) || close_dialog($widget);
+	close MEDIA;
+	close_dialog($widget);
+}

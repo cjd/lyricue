@@ -33,6 +33,14 @@
 		<widget class="GtkMenu" id="file1_menu">
 
 		  <child>
+		    <widget class="GtkImageMenuItem" id="media1">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Import Media</property>
+		      <property name="use_stock">False</property>
+		      <signal name="activate" handler="import_media" last_modification_time="Thu, 11 Sep 2003 07:44:05 GMT"/>
+		    </widget>
+		  </child>
+		  <child>
 		    <widget class="GtkImageMenuItem" id="quit1">
 		      <property name="visible">True</property>
 		      <property name="label">gtk-quit</property>
