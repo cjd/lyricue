@@ -2259,7 +2259,7 @@ sub clear_playlist {
 #
 sub display_song {
     my (undef, $event) = @_;
-    print "event $event\n";
+    debug ("event $event");
     if (defined($event->type)) {
         if ($event->type eq '2button-press') {
             if ($globals->{'timer'}) {
