@@ -223,6 +223,12 @@ foreach (keys %$config) {
 	}
 }
 
+my $pid = `ps -e -o pid,cmd | grep "Lyricue Server on port $globals->{'use_port'}" | grep -v "grep" |cut -f2 -d" " `;
+chomp($pid);
+if ($pid) {
+	debug("Lyricue Server was already running on given port, killing");
+	kill 9, $pid;
+}
 # Open lyricDB and bibleDB
 my $lyricDbh =
   DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}", "lyric",
@@ -448,7 +454,6 @@ debug("Done");
 # Gtk event loop
 debug("Main program running");
 
-#my $timer = Gtk2::Gdk->input_add($socket->fileno(), ['read'], \&check_socket, $socket);
 my $sockaddr = 'S n a4 x8';
 $socket = IO::Socket::INET->new(
 	Listen    => SOMAXCONN,
