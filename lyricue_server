@@ -87,8 +87,6 @@ use Glib;
 # Site Configuration.  You should only have to
 # edit this section.
 #
-my $PORT      = "2346";    #port used for main lyric server socket
-my $MINIPORT  = "2347";    #port used for preview window socket
 my $MINISCALE =
   4;    # Factor by which to divide server geometry for the preview window
 
@@ -141,6 +139,10 @@ $globals->{'host'}           = "localhost";
 $globals->{'lyricdb'}        = "lyricDb";
 $globals->{'bibledb'}        = "bibleDb";
 $globals->{'biblename'}      = "King James Version";
+$globals->{'use_port'} = "2346";    #port used for lyric server socket
+$globals->{'server_port'} = "2346";    #port used for lyric server socket
+$globals->{'preview_port'} = "2347";    #port used for lyric server socket
+$globals->{'miniview_port'} = "2348";    #port used for lyric server socket
 
 my ($errorcodes);
 $errorcodes->{'lyricdbopen'} =
@@ -181,6 +183,7 @@ if ($ARGV[0]) {
 			if (! $MINISERV =~ /\d+$/) {
 				$MINISERV = 0;
 			}
+			$globals->{'use_port'} = $ARGV[$_ + 2];
 		} elsif ($ARGV[$_] =~ /^\d+$/) {
 		} else {
 			print "\nUsage: lyricue_server <-v> <-m> <-c> <-d>\n\n";
@@ -258,10 +261,6 @@ if ($MINISERV >= 0) {
 	$MINISCALE = $width/$width2;
 	$width  /= $MINISCALE;
 	$height /= $MINISCALE;
-#	$window->resize($width, $height);
-#	$window->set_size_request($width, $height);
-#	$window->set_title("Display preview");
-#	$window->set_position("center");
 
 	debug("Running in MINISERV (preview window) mode\n");
 	debug("W * H:" . $width . "*" . $height . "\n");
@@ -417,18 +416,9 @@ my ($socket);
 my @cnx = ();
 my $con = 0;
 my ($name, $aliases, $proto) = getprotobyname('tcp');
-my $useport = "";
 
-if ($MINISERV >= 0) {
-	if ($MINIPORT !~ /^\d+$/) {
-		($name, $aliases, $MINIPORT) = getservbyport($MINIPORT, 'tcp');
-	}
-	$useport = $MINIPORT;
-} else {
-	if ($PORT !~ /^\d+$/) {
-		($name, $aliases, $PORT) = getservbyport($PORT, 'tcp');
-	}
-	$useport = $PORT;
+if ($globals->{'use_port'} !~ /^\d+$/) {
+	($name, $aliases, $globals->{'use_port'}) = getservbyport($globals->{'use_port'}, 'tcp');
 }
 
 while (Gtk2->events_pending) {
@@ -463,7 +453,7 @@ debug("Main program running\n");
 my $sockaddr = 'S n a4 x8';
 $socket = IO::Socket::INET->new(
 	Listen    => SOMAXCONN,
-	LocalPort => $useport,
+	LocalPort => $globals->{'use_port'},
 	Reuse     => 1,
 	Proto     => 'tcp'
 );
@@ -581,7 +571,9 @@ sub process_input {
 			if ($extras[2]) {
 				set_footer("Written by " . $extras[1] . " - " . $extras[2]);
 			} else {
-				set_footer("Written by " . $extras[1]);
+				if ($extras[1]) {
+					set_footer("Written by " . $extras[1]);
+				}
 			}
 		} elsif (/^loopparent$/) {
 			$LOOPPARENT = $line[1];
@@ -1274,24 +1266,31 @@ sub change_backdrop {
 #
 sub update_display {
 	my ($command, $primary, $secondary) = @_;
-	my $useport;
-
-	if ($MINISERV >= 0) {
-		$useport = $MINIPORT;
-	} else {
-		$useport = $PORT;
-	}
 
 	if (my $server = IO::Socket::INET->new(
 			Proto    => "tcp",
 			PeerAddr => "localhost",
-			PeerPort => $useport
+			PeerPort => $globals->{'use_port'}
 		))
 	{
 		print $server $command . ":" . $primary . ":" . $secondary . "\n";
 		close($server);
 	}
 }    ## end sub update_display
+
+sub update_miniview{
+	my ($command) = @_;
+
+	if (my $server = IO::Socket::INET->new(
+			Proto    => "tcp",
+			PeerAddr => "localhost",
+			PeerPort => $globals->{'miniview_port'}
+		))
+	{
+		print $server $command;
+		close($server);
+	}
+}    ## end sub update_miniview
 
 #***
 
@@ -1357,9 +1356,15 @@ sub check_socket {
 	my ($socket, $condition, $flags) = @_;
 	my $new_sock = $socket->accept();
 	while (defined($_ = <$new_sock>)) {
-		my $stat = process_input($_);
+		my $value = $_;
+		my $stat = process_input($value);
 		chomp($stat);
 		print $new_sock $stat . "\n";
+
+		# Forward onto miniserver (if not the miniserver)
+		if ($globals->{'use_port'} == $globals->{'server_port'}) {
+			update_miniview($value);
+		}
 	}
 	close($new_sock);
 
@@ -1602,7 +1607,7 @@ sub Configure_event {
 	my ($width, $height) = $window->get_size();
 	$MINISCALE = $config->{'Width'} / $width;
 	if ($canvas) {
-		$canvas->set_pixels_per_unit($MINISCALE);
+		$canvas->set_pixels_per_unit(1/$MINISCALE);
 
 	}
 	$window->set_size_request($width,$config->{'Height'}/$MINISCALE);

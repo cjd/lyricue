@@ -113,8 +113,9 @@ $globals->{'bibledb'}        = "bibleDb";
 $globals->{'sortby'}         = "title";
 $globals->{'bg_previews'}    = 1;
 
-my $PORT     = "2346";    #port used for lyric server communications
-my $MINIPORT = "2347";    #port used for preview window communications
+$globals->{'server_port'} = "2346";    #port used for lyric server communications
+$globals->{'preview_port'} = "2347";    #port used for preview window communications
+$globals->{'miniview_port'} = "2348";    #port used for preview window communications
 
 #
 # You shouldn't have to change anything after this line
@@ -149,6 +150,7 @@ my $mainfont     = "";
 my $LOOP         = "Loop";
 my $UPDATE_TIMER = FALSE;
 my $preview_pid;
+my $miniview_pid;
 my $TIMER;
 my $config;
 my $widgets;
@@ -325,6 +327,7 @@ sub close_main {
 	$bibleDbh->disconnect;
 	Gtk2->main_quit;
 	kill 9, $preview_pid;
+	kill 9, $miniview_pid;
 	exit();
 	return FALSE;
 }
@@ -742,7 +745,7 @@ sub add_song {
 	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowEditSong');
 	$widgets->{'add'}->signal_autoconnect_from_package('');
 	$widgets->{'add'}->get_widget('buttonEditPreviewServer')
-	  ->signal_connect("clicked", "preview_page", "SERVER");
+	  ->signal_connect("clicked", "preview_page", "MINI");
 	$widgets->{'add'}->get_widget('notebookEditPages')->remove_page(0);
 	%pageOrder = ();
 	add_page();
@@ -1265,7 +1268,7 @@ sub edit_song {
 					'windowEditSong');
 				$widgets->{'add'}->signal_autoconnect_from_package('');
 				$widgets->{'add'}->get_widget('buttonEditPreviewServer')
-				  ->signal_connect("clicked", "preview_page", "SERVER");
+				  ->signal_connect("clicked", "preview_page", "MINI");
 				%pageOrder = ();
 				update_songinfo($songid);
 			}
@@ -1274,7 +1277,7 @@ sub edit_song {
 			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowEditSong');
 			$widgets->{'add'}->signal_autoconnect_from_package('');
 			$widgets->{'add'}->get_widget('buttonEditPreviewServer')
-			  ->signal_connect("clicked", "preview_page", "SERVER");
+			  ->signal_connect("clicked", "preview_page", "MINI");
 			%pageOrder = ();
 			$widgets->{'add'}->get_widget('notebookEditPages')->remove_page(0);
 			$widgets->{'add'}->get_widget('windowEditSong')->show();
@@ -2232,9 +2235,8 @@ sub preview_page {
 	$songtext =~ s/:/#SEMI#/g;
 	if ($MODE eq "SERVER") {
 		update_display("preview", $titledata, $songtext);
-	} else {
-		preview_display("preview", $titledata, $songtext);
 	}
+	preview_display("preview", $titledata, $songtext);
 }
 
 #***
@@ -2357,7 +2359,8 @@ sub update_imagedir {
 #
 sub update_display {
 	my ($command, $primary, $secondary) = @_;
-	print $globals->{'access'} . "\n";
+	debug ("Command: ".$command.":".$primary.":".$secondary."\n");
+
 	if ($globals->{'access'} !~ /s/) {
 
 		$command   = "";
@@ -2374,7 +2377,7 @@ sub update_display {
 	if (my $server = IO::Socket::INET->new(
 			Proto    => "tcp",
 			PeerAddr => $globals->{'host'},
-			PeerPort => $PORT
+			PeerPort => $globals->{'server_port'}
 		))
 	{
 		print $server $command . ":" . $primary . ":" . $secondary . "\n";
@@ -2464,6 +2467,7 @@ sub preview_playlist_item {
 #
 sub preview_display {
 	my ($command, $primary, $secondary) = @_;
+	debug ("Preview command: ".$command.":".$primary.":".$secondary."\n");
 	if (!defined($secondary)) {
 		$secondary = "";
 	}
@@ -2475,7 +2479,7 @@ sub preview_display {
 		if (my $server = IO::Socket::INET->new(
 				Proto    => "tcp",
 				PeerAddr => $globals->{'host'},
-				PeerPort => $MINIPORT
+				PeerPort => $globals->{'preview_port'}
 			))
 		{
 			print $server $command . ":" . $primary . ":" . $secondary . "\n";
@@ -2486,26 +2490,14 @@ sub preview_display {
 					my @line = split (/:/, $status);
 					$status = "Previewed ";
 					if ($line[1] eq "v") {
-						$status = " verses ";
+						$status .= " verses ";
 					} else {
-						$status = " page " . $line[3];
+						$status .= " page " . $line[3];
 						$widgets->{'main'}->get_widget('treePlaylist')
 						  ->select_item($line[2]);
 					}
 					$widgets->{'main'}->get_widget('statusPlaylist')
 					  ->push(1, $status);
-				} elsif ($status =~ /^Status,/) {
-					my @line = split (/,/, $status);
-					foreach (@line) {
-						my @item = split (/:/, $_);
-						if ($item[0] eq "W") {
-							$config->{'Width'} = $item[1];
-						} elsif ($item[0] eq "H") {
-							$config->{'Height'} = $item[1];
-						} elsif ($item[0] eq "F") {
-							$config->{'Main'} = $item[1];
-						}
-					}
 				} else {
 
 					$widgets->{'main'}->get_widget('statusPlaylist')
@@ -2517,6 +2509,7 @@ sub preview_display {
 		} else {
 
 			#tcp/ip socket failure so server must be not running yet!
+			debug ("Preview not running?\n");
 			init_preview();
 			redo PUPDATE;
 		}
@@ -4727,6 +4720,7 @@ sub init_mainWindow {
 
 
 	init_preview();
+	init_miniview();
 	# Show the window finally
 	$widgets->{'main'}->get_widget('windowMain')->show;
 	if (!$globals->{'debugging'}) {
@@ -5381,20 +5375,44 @@ sub init_preview {
 	$socket->show;
 	$socket->set_size_request(280,210);
 	$widgets->{'main'}->get_widget('framePreview')->add($socket);
-	printf("$^X ./lyricue_server -m %d\n", $socket->get_id);
+	debug(sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id,$globals->{'preview_port'}));
 
 	$preview_pid = fork;
 	if ($preview_pid<0) {
 		display_fatal ("Unable to start the lyricue server as a preview window",$!);
 	}
 	if ($preview_pid == 0) {
-		exec (sprintf("$^X ./lyricue_server -m %d\n", $socket->get_id));
+		exec (sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id, $globals->{'preview_port'}));
 	}
 	print $preview_pid." - pid\n";
 
 	$socket->signal_connect('plug-removed' => sub {
 		debug ("Lyricue preview died..restarting\n");
 		$widgets->{'main'}->get_widget('framePreview')->remove($socket);
+		init_preview();
+		1;
+	});
+}
+
+sub init_miniview{
+	my $socket = Gtk2::Socket->new;
+	$socket->show;
+	$socket->set_size_request(280,210);
+	$widgets->{'main'}->get_widget('frameCurrent')->add($socket);
+	debug(sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id,$globals->{'miniview_port'}));
+
+	$miniview_pid = fork;
+	if ($miniview_pid<0) {
+		display_fatal ("Unable to start the lyricue server as a preview window",$!);
+	}
+	if ($miniview_pid == 0) {
+		exec (sprintf("$^X ./lyricue_server -m %d %d\n", $socket->get_id, $globals->{'miniview_port'}));
+	}
+	print $miniview_pid." - pid\n";
+
+	$socket->signal_connect('plug-removed' => sub {
+		debug ("Lyricue Currentview died..restarting\n");
+		$widgets->{'main'}->get_widget('frameCurrent')->remove($socket);
 		init_preview();
 		1;
 	});
