@@ -326,7 +326,6 @@ exit(0);
 # SOURCE
 sub close_main {
 	debug("Quitting");
-    	$sth->destroy();
 	$lyricDbh->disconnect;
 	$bibleDbh->disconnect;
 	$mediaDbh->disconnect;
@@ -5645,16 +5644,62 @@ sub select_category {
 	$choosexml->get_widget('buttonLoad')
 	  ->signal_connect("clicked", "do_import_media", $choosexml);
 	$choosexml->get_widget('buttonNew')
-	  ->signal_connect("clicked", "new_category");
+	  ->signal_connect("clicked", "do_import_media",$choosexml);
 	$choosexml->get_widget('buttonCancel')
 	  ->signal_connect("clicked", "close_dialog");
 	$choosexml->get_widget('windowChoosePlay')->show;
 	$choosexml->get_widget('windowChoosePlay')->{'user_data'} = $filename;
+	my $store = $choosexml->get_widget('treeChoosePlay')->get_model();
+	if ($store) {
+		$store->clear;
+	} else {
+		$store = Gtk2::ListStore->new('Glib::String');
+		$choosexml->get_widget('treeChoosePlay')->set_model($store);
+		my $renderer  = Gtk2::CellRendererText->new;
+		my $selection = $choosexml->get_widget('treeChoosePlay')->get_selection;
+		$selection->signal_connect("changed", "update_category",$choosexml);
+		my $column =
+		Gtk2::TreeViewColumn->new_with_attributes("Category", $renderer, text => 0);
+		$choosexml->get_widget('treeChoosePlay')->append_column($column);
+	}
+
+	my $query = "SELECT DISTINCT category FROM media";
+	my $sth = $mediaDbh->prepare($query) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my @row;
+	while (@row = $sth->fetchrow_array()) {
+		my $iter = $store->append;
+		$store->set($iter, 0, $row[0]);
+	}
+
 	close_dialog($widget);
 }
 
 sub do_import_media {
-	my ($widget, $choosexml) = @_;
-	debug("Loading media");
+    	my ($widget,$choosexml) = @_;
+	debug("Creating a new category");
+	if ($choosexml->get_widget('entryChoosePlay')->get_text() ne "") {
+		my $category = $choosexml->get_widget('entryChoosePlay')->get_text();
+		my $filename = $choosexml->get_widget('windowChoosePlay')->{'user_data'};
+		debug ("Category: $category\nFilename: $filename");
+		open (MEDIA, $filename);
+		my $data = "";
+		while (<MEDIA>) {
+		    $data .= $_;
+		}
+		close MEDIA;
+		my $sth = $mediaDbh->prepare(q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)});
+		my $rv = $sth->execute($category,"",$type,$format,$owner,$time,$description,$data);
+	}
 	close_dialog($widget);
+}
+
+sub update_category {
+	my ($selection,$choosexml) = @_;
+	debug("Selected a category");
+
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		$choosexml->get_widget('entryChoosePlay')->set_text($model->get($iter, 0));
+	}
 }
