@@ -84,7 +84,7 @@ use strict;
 use DBI;
 use POSIX;
 use IO::Socket::INET;
-use Unicode::String qw(utf8 utf16);
+use Encode;
 use Gtk2 -init;
 use Gtk2::GladeXML;
 use Gtk2::Pango;
@@ -989,8 +989,8 @@ sub do_save_song {
 			if ($dbpages{$pageOrder{$page}}) {
 				$query =
 				  "UPDATE page SET lyrics="
-				  . $lyricDbh->quote(
-					(get_buffer_text($widgets->{'textAPageB'}{$page})))
+				  . $lyricDbh->quote(Encode::encode("iso-8859-1",
+					get_buffer_text($widgets->{'textAPageB'}{$page})))
 				  . " WHERE songid=" . $songid
 				  . " AND pagenum="
 				  . $pageOrder{$page};
