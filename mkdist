@@ -36,3 +36,6 @@ tar cfj lyricue-upgrade-$VERSION.tar.bz2 lyricue-$VERSION
 cd ..
 rm -rf dist/lyricue-$VERSION
 rm dist/*.dsc dist/*.changes
+cp dist/*deb /var/www/debian
+cd /var/www/debian
+dpkg-scanpackages . /dev/null | gzip -c > Packages.gz

@@ -1023,13 +1023,13 @@ sub delete_song {
               Encode::decode("utf-8", gettext("which was written by \""))
               . $row->{'artist'} . "\"";
             my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
-                'dialogDelete', 'lyricue');
+                'dialogConfirm', 'lyricue');
             $deletexml->signal_autoconnect_from_package('');
             $deletexml->get_widget('labelDelete')->set_text($labelText);
-            my $confirm = $deletexml->get_widget('dialogDelete')->run();
+            my $confirm = $deletexml->get_widget('dialogConfirm')->run();
             if ($confirm eq "ok") {
                 do_delete_song($songid);
-                close_dialog($deletexml->get_widget('dialogDelete'));
+                close_dialog($deletexml->get_widget('dialogConfirm'));
                 update_available();
             }
         }
@@ -6173,10 +6173,10 @@ sub media_delete {
                 gettext("Are you sure you wish to delete \""))
               . $title . "\"\n";
             my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
-                'dialogDelete', 'lyricue');
+                'dialogConfirm', 'lyricue');
             $deletexml->signal_autoconnect_from_package('');
             $deletexml->get_widget('labelDelete')->set_text($labelText);
-            my $confirm = $deletexml->get_widget('dialogDelete')->run();
+            my $confirm = $deletexml->get_widget('dialogConfirm')->run();
             if ($confirm eq "ok") {
                 my $query = "DELETE FROM media WHERE id=" . $id;
                 qdebug($query);
@@ -6185,7 +6185,7 @@ sub media_delete {
                 my $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-                close_dialog($deletexml->get_widget('dialogDelete'));
+                close_dialog($deletexml->get_widget('dialogConfirm'));
 		my $category = $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data};
                 update_imagedir(
                     $widgets->{'image'}->get_widget('optionImageCategory')
@@ -6220,4 +6220,108 @@ sub rename_media {
 	    $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data}
         );
     }
+}
+
+sub restore_db {
+	debug("Restoring DB");
+
+	# Get filename of DB
+	my $fileDialog = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile','lyricue');
+	$fileDialog->get_widget('dialogFile')->set_title("Select Database Backup file");
+	my $response = $fileDialog->get_widget('dialogFile')->run();
+	if ($response eq "ok") {
+		my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
+		close_dialog($fileDialog->get_widget('dialogFile'));
+		
+		my $confirmDialog = Gtk2::GladeXML->new($globals->{'gladefile'},
+	                	'dialogConfirm', 'lyricue');
+		$confirmDialog->signal_autoconnect_from_package('');
+		$confirmDialog->get_widget('labelDelete')->set_text("WARNING: Restoring this database will overwrite your current database");
+		my $confirm = $confirmDialog->get_widget('dialogConfirm')->run();
+		if ($confirm eq "ok") {
+			
+			debug("ok");
+			open (INPUT,"gzip -dc ".$filename."|");
+			my $table = "";
+			my $db = "";
+			my $dbh = "";
+			while (<INPUT>) {
+				chomp;
+				if (/^USE/) {
+					$db = $_;
+					$db =~ s/^USE (.*);.*$/$1/g;
+					print $db." - database \n";
+					if ($db eq "lyricDb") {
+						$dbh=$lyricDbh;
+					} elsif ($db eq "mediaDb") {
+						$dbh=$mediaDbh;
+					} else {
+						$dbh = "";
+					}
+				} elsif (/^INSERT INTO/) {
+					if ($dbh ne "") {
+						my $insert = $_;
+						my $tmptable = $insert;
+						$tmptable =~ s/^INSERT INTO `(.*?)`.*$/$1/g;
+						if ($tmptable ne $table) {
+							$table=$tmptable;
+							my $query = "DELETE FROM ".$table;
+							my $sth = $dbh->prepare($query) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+							my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+						}
+						my $sth = $dbh->prepare($insert) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+						my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+						
+					}
+				}
+			}
+		}
+		close_dialog($confirmDialog->get_widget('dialogConfirm'));
+	} else {
+		close_dialog($fileDialog->get_widget('dialogFile'));
+	}
+}
+
+sub backup_db {
+	debug("Backup DB selected");
+	$widgets->{'backupdb'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDatabase','lyricue');
+	$widgets->{'backupdb'}->signal_autoconnect_from_package('');
+	$widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->set_text($ENV{"HOME"}."/Lyricue_DB.gz");
+	my $response = $widgets->{'backupdb'}->get_widget('dialogDatabase')->run();
+	if ($response eq "ok") {
+		my $filename = $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->get_text();
+		if (!($filename =~ /\.gz$/)) {
+			$filename .= ".gz";
+		}
+		my $databases="";
+		if ($widgets->{'backupdb'}->get_widget('checkLyricdb')->get_active()) {
+			$databases .= "lyricDb ";
+		}
+		if ($widgets->{'backupdb'}->get_widget('checkMediadb')->get_active()) { 
+			$databases .= "mediaDb ";
+		}
+		my $command = "mysqldump --no-create-db --no-create-info --user=lyric --password='' --databases ".$databases." | gzip -c > ".$filename;
+		system $command;
+		if ($? == -1) {
+			print ("Failed to execute: ".$command);
+		} else {
+			debug ("Backed up to ".$filename)
+		}
+	}
+	close_dialog($widgets->{'backupdb'}->get_widget('dialogDatabase'));
+}
+
+sub backup_db_browse {
+	debug("Browsing for BackupDB filename");
+	my $fileDialog = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile','lyricue');
+	$fileDialog->get_widget('dialogFile')->set_filename($widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->get_text());
+	my $response = $fileDialog->get_widget('dialogFile')->run();
+	if ($response eq "ok") {
+		my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
+		if (!($filename =~ /\.gz$/)) {
+			$filename .= ".gz";
+		}
+		$widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->set_text($filename);
+	}
+	close_dialog($fileDialog->get_widget('dialogFile'));
 }
