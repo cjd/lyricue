@@ -151,6 +151,8 @@ $globals->{'timer'}         = FALSE;
 $globals->{'debugging'}     = FALSE;
 $globals->{'spell'}         = TRUE;
 $globals->{'trayicon'}      = TRUE;
+$globals->{'preview_pid'}   = FALSE;
+$globals->{'miniview_pid'}   = FALSE;
 
 # Optional modules
 eval {require Gtk2::Spell};
@@ -420,8 +422,8 @@ sub close_main {
     $bibleDbh->disconnect;
     $mediaDbh->disconnect;
     Gtk2->main_quit;
-    if ($globals->{'preview_pid'})  { kill 9, $globals->{'preview_pid'}; }
-    if ($globals->{'miniview_pid'}) { kill 9, $globals->{'miniview_pid'}; }
+    if ($globals->{'preview_pid'})  { debug ("Killing $globals->{'preview_pid'}");kill 9, $globals->{'preview_pid'}; }
+    if ($globals->{'miniview_pid'}) { debug ("Killing $globals->{'miniview_pid'}");kill 9, $globals->{'miniview_pid'}; }
     exit();
     return FALSE;
 }
