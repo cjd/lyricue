@@ -266,10 +266,8 @@ my $mediaDbh =
     "lyric", "")
   || display_fatal($errorcodes->{'mediadbopen'}, $!);
 
-my $bibleDbh =
-  DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}",
-    "lyric", "")
-  || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'}, $!);
+my ($bibleDbh);
+change_to_db($globals->{'bibledb'});
 
 # Create the window
 debug("Creating window");
