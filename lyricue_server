@@ -1510,6 +1510,7 @@ sub set_maintext {
         $mainText->modify_font($font_desc);
         $mainText->set_text($text);
 	$mainText->set_line_wrap(TRUE);
+	$mainText->set_size_request($config->{'Width'} - $config->{'OverscanH'},$config->{'Height'} - $config->{'OverscanV'});
 	my ($x,$y) = $mainText->get_size_request();
 	print $x."x".$y." -pad\n";
     } else {
