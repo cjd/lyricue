@@ -87,7 +87,6 @@ use Glib;
 # Site Configuration.  You should only have to
 # edit this section.
 #
-my $bible_name = "King James Version";
 my $PORT       = "2346";                 #port used for main lyric server socket
 my $CHILD      = 0;
 my $MINIPORT   = "2347";                 #port used for preview window socket
@@ -144,6 +143,7 @@ $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 $globals->{'host'}        = "localhost";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "bibleDb";
+$globals->{'biblename'}   = "King James Version";
 
 my ($errorcodes);
 $errorcodes->{'lyricdbopen'} =
@@ -227,6 +227,7 @@ foreach (keys %$config) {
 		$preset[$num] = $config->{$_};
 	} elsif (/^DefBible/) {
 		my @tmp = split (/;/, $config->{$_}, 2);
+		$globals->{'biblename'} = $tmp[0];
 		$globals->{'bibledb'} = $tmp[1];
 	}
 }
@@ -516,11 +517,11 @@ sub process_input {
 			$status = "Screen blanked";
 		} elsif (/^change_to_db$/) {
 			my $newdb = $line[1];
-			$bible_name = $line[2];
-			$bible_name =~ s/_//g;
+			$globals->{'biblename'} = $line[2];
+			$globals->{'biblename'} =~ s/_//g;
 			change_to_db($newdb);
 			$status =
-			  "Bible changed to " . $bible_name . " (DB: " . $newdb . ").";
+			  "Bible changed to " . $globals->{'biblename'} . " (DB: " . $newdb . ").";
 		} elsif (/^next_point$/) {
 			if ($current_point > -1 && scalar(@points) > $current_point + 1) {
 				my $pointtext = "";
@@ -1014,7 +1015,7 @@ sub process_input {
 					set_maintext($verse, $transition);
 
 					$headerText->set(text => $versetext);
-					$footerText->set(text => $bible_name);
+					$footerText->set(text => $globals->{'biblename'});
 					$status = "Displaying " . $versetext . " verses " . $verses;
 				} elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
 					my $query =
