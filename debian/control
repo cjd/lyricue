@@ -1,0 +1,44 @@
+Source: lyricue
+Section: x11
+Priority: optional
+Maintainer: Tobias Gehrig <tobias@THINKPAD-R32>
+Standards-Version: 3.5.8
+Build-Depends: debmake
+
+Package: lyricue
+Architecture: any
+Depends: libgtk2-perl, libgtk2-gladexml-perl, libgtk2-spell-perl, libgtk2-trayicon-perl, libgnome2-canvas-perl, libdbi-perl, libglib-perl, ${shlibs:Depends}
+Description: The GNU Lyric Display System
+ This application is used to edit/display song lyrics on a second screen/projector for use at singing events such as church services.
+ It is currently being used at Gosford Baptist Church in Gosford, Australia
+ Features
+    * Networkable (ie run interface and server on different machines)
+    * Multiple Playlists
+    * Copyright info for songs
+    * Automatic Page advance
+    * Duplicate/Delete individual pages in playlist
+    * Preferences Dialog
+    * Re-orderable playlist
+    * Playlist entries to change background
+    * Can run at configurable resolution
+    * User-specific configuration/images (or can all refer to global one)
+    * All songs kept in a database and so screens are dynamically generated, allowing you to easily change the backdrop, font etc without having to change all the songs
+    * Can automatically create screens for bible verses (KJV included since there are licensing issues with NIV)
+    * Quick searching for songs
+    * Playlist shown as collapsable tree so easy to find wanted page
+    * Can use any image as backdrop
+    * Can add images to playlist
+    * Add/Edit/Remove Songs (even while they are being displayed)
+    * Honourize a song (change 'jesus' to 'Jesus' etc)
+    * Preview a song as you enter it
+    * Drag'n'Drop playlist adding
+    * Searching by song name or the lyrics themselves
+    * Change Font/Colours of server 
+ Features New to 1.9
+    * GTK2/Glade2 based
+    * Server based on gnomecanvas2
+    * Graphical error reporting
+    * Re-wrote install script (now also upgrades)
+    * Spellchecking
+    * Screen transitions
+    * User access controls 

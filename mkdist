@@ -18,11 +18,19 @@ cp docs/AUTHORS docs/COPYING docs/Development.txt docs/example_song.txt docs/INS
 mkdir dist/lyricue-$1/mysql
 cp mysql/MySQL_create_bible_KJV.sql mysql/MySQL_create_Table.sql mysql/Update_1.2.sql mysql/Update_1.9.sql mysql/MySQL_create_media.sql dist/lyricue-$1/mysql
 
-echo Creating lyricue-$1.tar.gz
-cd dist
-tar cfz lyricue-$1.tar.gz lyricue-$1
-rm lyricue-$1/mysql/MySQL_create_bible_KJV.sql
-echo Creating lyricue-upgrade-$1.tar.gz
-tar cfz lyricue-upgrade-$1.tar.gz lyricue-$1
-cd ..
-rm -rf dist/lyricue-$1
+echo Creating debian package
+cp -R debian dist/lyricue-$1
+cd dist/lyricue-$1
+dpkg-buildpackage -rfakeroot
+cd ../..
+rm dist/lyricue_1.9.2cvs*.tar.gz dist/*.dsc dist/*.asc
+rm -rf dist/lyricue-$1/debian
+
+#echo Creating lyricue-$1.tar.gz
+#cd dist
+#tar cfz lyricue-$1.tar.gz lyricue-$1
+#rm lyricue-$1/mysql/MySQL_create_bible_KJV.sql
+#echo Creating lyricue-upgrade-$1.tar.gz
+#tar cfz lyricue-upgrade-$1.tar.gz lyricue-$1
+#cd ..
+#rm -rf dist/lyricue-$1
