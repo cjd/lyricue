@@ -1981,7 +1981,9 @@ sub display_song {
 						  ->set_text($directions[$new_direction]);
 					}
 				} else {
-					preview_playlist_item();
+					if ($config->{'DynamicPreview'}) {
+						preview_playlist_item();
+					}
 				}
 			}
 		}
@@ -3108,6 +3110,8 @@ sub create_dialog_prefs {
 	  ->set_active($config->{'Loop'});
 	$widgets->{'prefs'}->get_widget('checkPrefAudit')
 	  ->set_active($config->{'Audit'});
+	$widgets->{'prefs'}->get_widget('checkPrefView')
+	  ->set_active($config->{'DynamicPreview'});
 	my ($pixbuf);
 	my $image = find_image("bg", $config->{'BGImage'});
 	eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
@@ -3141,7 +3145,6 @@ sub create_dialog_prefs {
 	  ->signal_connect("button_press_event", "open_dialogColour", "Font");
 	$widgets->{'prefs'}->get_widget('entryPrefShadowColour')
 	  ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
-	$widgets->{'prefs'}->get_widget('dialogPrefs')->run;
 }
 
 #****m* lyricue/execute_app
@@ -4179,6 +4182,8 @@ sub save_preferences {
 	  . $widgets->{'prefs'}->get_widget('checkPrefLoop')->get_active() . "\n";
 	print CONFIG "Audit = "
 	  . $widgets->{'prefs'}->get_widget('checkPrefAudit')->get_active() . "\n";
+	print CONFIG "DynamicPreview = "
+	  . $widgets->{'prefs'}->get_widget('checkPrefView')->get_active() . "\n";
 	print CONFIG "Xinerama = "
 	  . $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
 	  . "\n";
@@ -5420,7 +5425,7 @@ sub init_miniview {
 
 	$socket->signal_connect(
 		'plug-removed' => sub {
-			debug("Lyricue Currentview died..restarting\n");
+			debug("Lyricue miniview died..restarting\n");
 			$widgets->{'main'}->get_widget('frameCurrent')->remove($socket);
 			init_preview();
 			1;

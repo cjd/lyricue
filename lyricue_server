@@ -445,6 +445,7 @@ if (open(TMPCONF, "/tmp/lyric.conf")) {
 debug("Showing window\n");
 $window->show_all();
 $window->signal_connect("configure_event", \&Configure_event);
+Configure_event();
 debug("Done\n");
 
 # Gtk event loop
