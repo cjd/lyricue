@@ -1080,19 +1080,19 @@ sub do_save_song {
 
 		$query =
 		  "UPDATE lyricMain SET title="
-		  . quote($widgets->{'add'}->get_widget('entryEditName')->get_text());
+		  . quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditName')->get_text()));
 		$query .= ", songnum="
-		  . quote($widgets->{'add'}->get_widget('entryEditNumber')->get_text());
+		  . quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditNumber')->get_text()));
 		$query .= ", book="
-		  . quote($widgets->{'add'}->get_widget('entryEditBook')->get_text());
+		  . quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditBook')->get_text()));
 		$query .= ", artist="
-		  . quote($widgets->{'add'}->get_widget('entryEditArtist')->get_text());
+		  . quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditArtist')->get_text()));
 		$query .= ", copyright="
-		  . quote(
-			$widgets->{'add'}->get_widget('entryEditCopyright')->get_text());
+		  . quote(Encode::encode("iso-8859-1", 
+			$widgets->{'add'}->get_widget('entryEditCopyright')->get_text()));
 		$query .= ", keywords="
-		  . quote(
-			$widgets->{'add'}->get_widget('entryEditKeywords')->get_text());
+		  . quote(Encode::encode("iso-8859-1", 
+			$widgets->{'add'}->get_widget('entryEditKeywords')->get_text()));
 		$query .= " WHERE id=" . $songid;
 		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
@@ -1114,22 +1114,22 @@ sub do_save_song {
 "INSERT INTO lyricMain ( id, title, songnum, book, artist, keywords,copyright) VALUES ( "
 		  . $songid . ", ";
 		$query .=
-		  quote($widgets->{'add'}->get_widget('entryEditName')->get_text())
+		  quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditName')->get_text()))
 		  . ",";
 		$query .=
-		  quote($widgets->{'add'}->get_widget('entryEditNumber')->get_text())
+		  quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditNumber')->get_text()))
 		  . ",";
 		$query .=
-		  quote($widgets->{'add'}->get_widget('entryEditBook')->get_text())
+		  quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditBook')->get_text()))
 		  . ",";
 		$query .=
-		  quote($widgets->{'add'}->get_widget('entryEditArtist')->get_text())
+		  quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditArtist')->get_text()))
 		  . ",";
 		$query .=
-		  quote($widgets->{'add'}->get_widget('entryEditKeywords')->get_text())
+		  quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditKeywords')->get_text()))
 		  . ",";
 		$query .=
-		  quote($widgets->{'add'}->get_widget('entryEditCopyright')->get_text())
+		  quote(Encode::encode("iso-8859-1", $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()))
 		  . ")";
 		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
