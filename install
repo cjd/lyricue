@@ -54,6 +54,7 @@ print "then install the files and create the MySql tables nessecary\n";
 my $bindir   = $prefix."/usr/bin/";
 my $etcdir   = $prefix."/etc/lyricue/";
 my $sharedir = $prefix."/usr/share/lyricue/";
+my $desktopdir = $prefix."/usr/share/applications/";
 my $ldssharedir = $prefix."/usr/share/lds/";
 my $ldsetcdir = $prefix."/etc/lds/";
 my $docdir = $prefix."/usr/share/doc/lyricue/";
@@ -65,7 +66,10 @@ my %replace = ( $sharedir."lyricue.png" => 0644,
 		$sharedir."lyricue.glade" => 0644,
 		$bindir."lyricue" => 0644,
 		$bindir."lyricue_remote" => 0644,
-		$bindir."lyricue_server" =>0644);
+		$bindir."lyricue_server" =>0644,
+		$desktopdir."lyricue.desktop" => 0644,
+		$desktopdir."lyricue_server.desktop" => 0644
+		);
 
 my %addonly = (	$etcdir."access.conf" => 0644,
 		$etcdir."default.conf" => 0644
