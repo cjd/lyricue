@@ -26,11 +26,11 @@ cd ../..
 rm dist/lyricue_1.9.2cvs*.tar.gz dist/*.dsc dist/*.asc
 rm -rf dist/lyricue-$1/debian
 
-#echo Creating lyricue-$1.tar.gz
-#cd dist
-#tar cfz lyricue-$1.tar.gz lyricue-$1
-#rm lyricue-$1/mysql/MySQL_create_bible_KJV.sql
-#echo Creating lyricue-upgrade-$1.tar.gz
-#tar cfz lyricue-upgrade-$1.tar.gz lyricue-$1
-#cd ..
-#rm -rf dist/lyricue-$1
+echo Creating lyricue-$1.tar.gz
+cd dist
+tar cfz lyricue-$1.tar.gz lyricue-$1
+rm lyricue-$1/mysql/MySQL_create_bible_KJV.sql
+echo Creating lyricue-upgrade-$1.tar.gz
+tar cfz lyricue-upgrade-$1.tar.gz lyricue-$1
+cd ..
+rm -rf dist/lyricue-$1

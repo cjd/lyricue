@@ -37,6 +37,7 @@ case "$1" in
 	    mv $ACCESS.tmp $ACCESS
 	fi
 	PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }'`
+	cd /usr/share/lds
 	/usr/lib/lds/install -d -u debian-sys-maint -p $PASS
     ;;
 
