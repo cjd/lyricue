@@ -19,11 +19,23 @@ use Gtk2::TrayIcon;
 use Gnome2::Canvas;
 use Glib;
 
-my $bindir   = "/usr/bin/";
-my $etcdir   = "/etc/lds/";
-my $sharedir = "/usr/share/lds/";
-my $docdir = "/usr/share/doc/lds/";
-my $localedir = "/usr/share/locale/";
+my $prefix="";
+my $install_db = 1;
+my $install_files = 1;
+if ($ARGV[0]) {
+	if ($ARGV[0] eq "-f") {
+	    $prefix = $ARGV[1];
+	    $install_db = 0;
+	} elsif ($ARGV[0] eq "-d") {
+	    $install_files = 0;
+	}
+}
+
+my $bindir   = $prefix."/usr/bin/";
+my $etcdir   = $prefix."/etc/lds/";
+my $sharedir = $prefix."/usr/share/lds/";
+my $docdir = $prefix."/usr/share/doc/lds/";
+my $localedir = $prefix."/usr/share/locale/";
 
 my %replace = ( $sharedir."lyricue.png" => 0644,
 		$sharedir."lyricue-icon.png" => 0644,
@@ -82,170 +94,176 @@ if ($ARGV[0] eq "-u") {
 	}
 	print "\n\nUninstalled\n";
 } else {
-	print "Creating directories:\n";
-	foreach my $dir ( $bindir,$etcdir,$sharedir,$docdir) {
-		print "dir -> ".$dir."\n";
-		mkdir $dir,0755;
-	}
+	if ($install_db) {
+		print "Creating directories:\n";
+		foreach my $dir ( $bindir,$etcdir,$sharedir,$docdir) {
+			print "dir -> ".$dir."\n";
+			mkdir $dir,0755;
+		}
 	
-	print "\nCopying files:\n";
-	foreach my $file (keys %replace) {
-		print "file -> ".$file."\n";
-		my $basename = $file;
-		$basename =~ s/^.*\///g;
-		system ("cp ".$basename." ".$file);
-	}
-	
-	foreach my $file (keys %addonly) {
-		if ( ! -e $file ) {
+		print "\nCopying files:\n";
+		foreach my $file (keys %replace) {
 			print "file -> ".$file."\n";
 			my $basename = $file;
 			$basename =~ s/^.*\///g;
 			system ("cp ".$basename." ".$file);
 		}
-	}
 	
-	my @docs;
-	opendir (DIR, "docs" );
-	@docs = readdir(DIR);
-	closedir (DIR);
-	foreach (@docs) {
-		if (! /^\./ ) {
-			print "doc -> ".$_."\n";
-			system ("cp docs/".$_." ".$docdir);
+		foreach my $file (keys %addonly) {
+			if ( ! -e $file ) {
+				print "file -> ".$file."\n";
+				my $basename = $file;
+				$basename =~ s/^.*\///g;
+				system ("cp ".$basename." ".$file);
+			}
+		}
+		
+		my @docs;
+		opendir (DIR, "docs" );
+		@docs = readdir(DIR);
+		closedir (DIR);
+		foreach (@docs) {
+			if (! /^\./ ) {
+				print "doc -> ".$_."\n";
+				system ("cp docs/".$_." ".$docdir);
+			}
+		}
+		
+		my @locales;
+		opendir (DIR, "po");
+		@locales = readdir(DIR);
+		closedir (DIR);
+		foreach (@locales) {
+	    		if (! /^\./ ) {
+		    	my $locale=$_;
+		    	$locale =~ s/\.mo$//g;
+		    	my $locdir = $localedir.$locale."/LC_MESSAGES";
+		    	mkdir $locdir;
+		    	print "translation -> ".$locdir."\n";
+		    	system ("cp po/".$locale.".mo ".$locdir."/lyricue.mo");
+			}
 		}
 	}
-	
-	my @locales;
-	opendir (DIR, "po");
-	@locales = readdir(DIR);
-	closedir (DIR);
-	foreach (@locales) {
-	    	if (! /^\./ ) {
-		    my $locale=$_;
-		    $locale =~ s/\.mo$//g;
-		    my $locdir = $localedir.$locale."/LC_MESSAGES";
-		    mkdir $locdir;
-		    print "translation -> ".$locdir."\n";
-		    system ("cp po/".$locale.".mo ".$locdir."/lyricue.mo");
+	if ($install_db) {
+		my @ary = DBI->available_drivers(1);
+		my $mysql = 0;
+		foreach ( @ary ) {
+	 		if ($_ eq "mysql") {
+	 			$mysql = 1;
+			}
 		}
-	}
-	my @ary = DBI->available_drivers(1);
-	my $mysql = 0;
-	foreach ( @ary ) {
-	 	if ($_ eq "mysql") {
-	 		$mysql = 1;
+		if (! $mysql ) {
+			die ("The Perl module DBI::mysql is not installed, please install");
 		}
-	}
-	if (! $mysql ) {
-		die ("The Perl module DBI::mysql is not installed, please install");
-	}
 	
-	if (@ary == 0 ) {
-		die "Mysql doesn't appear to be running, please restart it\n";
-	}
-	print "Please enter the password for your root mysql user: ";
-	my $rootpw=<STDIN>;
-	chomp $rootpw;
-	
-	my $dbh = DBI->connect("DBI:mysql:mysql:localhost", "root","$rootpw");
-	my $sth = $dbh->prepare ("select * from user where User='lyric'");
-	my $rv = $sth->execute;
-	if ($sth->rows) {
-		print "User already setup\n";
-	} else {
-		print "Creating mysql user..";
-		$sth = $dbh->prepare ("insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
-		$sth->execute;
-		$sth = $dbh->prepare ("insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
-		$sth->execute;
-		print "Done\n";
-	}
-
-	print "Checking for existing Databases:\n";
-	my @ary = DBI->data_sources("mysql");
-	my $lyricdb = 0;
-	my $bibledb = 0;
-	my $mediadb = 0;
-	foreach ( @ary ) {
-		if (/lyricDb/) {
-			print "Found lyricDb\n";
-			$lyricdb = 1;
-		} elsif (/bibleDb/) {
-			print "Found bibleDb\n";
-			$bibledb = 1;
-		} elsif (/mediaDb/) {
-		    	print "Found mediaDb\n";
-			$mediadb = 1;
+		if (@ary == 0 ) {
+			die "Mysql doesn't appear to be running, please restart it\n";
 		}
-	}
-	
-	if (! $lyricdb) {
-	    	print "Creating lyricDb\n";
-		system ("cat mysql/MySQL_create_Table.sql | mysql -u root --password=$rootpw");
-	} else {
-		my $dbh2 = DBI->connect("DBI:mysql:lyricDb", "root","$rootpw");
-		my $tables = $dbh2->selectall_arrayref("show tables");
-		my %table;
-		foreach (@$tables) {
-			%table->{$_->[0]} = 1;
-		}
-		if (! defined %table->{'associations'}) {
-			print "Associations table not found\n";
-			print "Upgrading database from < 1.2 to 1.2\n";
-			system ("cat mysql/Update_1.2.sql | mysql -u root --password=$rootpw");
+		print "Please enter the password for your root mysql user: ";
+		my $rootpw=<STDIN>;
+		chomp $rootpw;
+		
+		my $dbh = DBI->connect("DBI:mysql:mysql:localhost", "root","$rootpw");
+		my $sth = $dbh->prepare ("select * from user where User='lyric'");
+		my $rv = $sth->execute;
+		if ($sth->rows) {
+			print "User already setup\n";
+		} else {
+			print "Creating mysql user..";
+			$sth = $dbh->prepare ("insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
+			$sth->execute;
+			$sth = $dbh->prepare ("insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
+			$sth->execute;
 			print "Done\n";
 		}
 	
-		my $fields = $dbh2->selectall_arrayref("describe playlist");
-		my %trans;
-		foreach (@$fields) {
-			%trans->{$_->[0]} = 1;
+		print "Checking for existing Databases:\n";
+		my @ary = DBI->data_sources("mysql");
+		my $lyricdb = 0;
+		my $bibledb = 0;
+		my $mediadb = 0;
+		foreach ( @ary ) {
+			if (/lyricDb/) {
+				print "Found lyricDb\n";
+				$lyricdb = 1;
+			} elsif (/bibleDb/) {
+				print "Found bibleDb\n";
+				$bibledb = 1;
+			} elsif (/mediaDb/) {
+		    		print "Found mediaDb\n";
+				$mediadb = 1;
+			}
 		}
-		if (! defined %trans->{'transition'}) {
-			print "Transition field not found\n";
-			print "Upgrading database from 1.2 to 1.9\n";
-			system ("cat mysql/Update_1.9.sql | mysql -u root --password=$rootpw");
+		
+		if (! $lyricdb) {
+	    		print "Creating lyricDb\n";
+			system ("cat mysql/MySQL_create_Table.sql | mysql -u root --password=$rootpw");
+		} else {
+			my $dbh2 = DBI->connect("DBI:mysql:lyricDb", "root","$rootpw");
+			my $tables = $dbh2->selectall_arrayref("show tables");
+			my %table;
+			foreach (@$tables) {
+				%table->{$_->[0]} = 1;
+			}
+			if (! defined %table->{'associations'}) {
+				print "Associations table not found\n";
+				print "Upgrading database from < 1.2 to 1.2\n";
+				system ("cat mysql/Update_1.2.sql | mysql -u root --password=$rootpw");
+				print "Done\n";
+			}
+		
+			my $fields = $dbh2->selectall_arrayref("describe playlist");
+			my %trans;
+			foreach (@$fields) {
+				%trans->{$_->[0]} = 1;
+			}
+			if (! defined %trans->{'transition'}) {
+				print "Transition field not found\n";
+				print "Upgrading database from 1.2 to 1.9\n";
+				system ("cat mysql/Update_1.9.sql | mysql -u root --password=$rootpw");
+				print "Done\n";
+			}
+	
+		}
+		
+		if (! $bibledb) {
+	    		print "Creating bibleDb\n";
+			system ("cat mysql/MySQL_create_bible_KJV.sql | mysql -u root --password=$rootpw");
+		}
+	
+		if (! $mediadb) {
+	    		print "Creating media database\n";
+	    		system ("cat mysql/MySQL_create_media.sql | mysql -u root --password=$rootpw");
+		}
+	
+		system("mysqladmin -uroot --password=$rootpw reload");
+	
+		if (! $mediadb) {
+			print "Importing existing backgrounds/images\n";
+			system ("./import_media img $sharedir/images");
+			system ("./import_media bg $sharedir/backgrounds");
 			print "Done\n";
 		}
-
 	}
 	
-	if (! $bibledb) {
-	    	print "Creating bibleDb\n";
-		system ("cat mysql/MySQL_create_bible_KJV.sql | mysql -u root --password=$rootpw");
-	}
-
-	if (! $mediadb) {
-	    	print "Creating media database\n";
-	    	system ("cat mysql/MySQL_create_media.sql | mysql -u root --password=$rootpw");
-	}
-
-	system("mysqladmin -uroot --password=$rootpw reload");
-
-	if (! $mediadb) {
-		print "Importing existing backgrounds/images\n";
-		system ("./import_media img $sharedir/images");
-		system ("./import_media bg $sharedir/backgrounds");
-		print "Done\n";
-	}
-	
-	print "Please enter the user that you will be administering Lyricue from: ";
-	my $defuser=<STDIN>;
-	chomp $defuser;
-	open (ACCESS, $etcdir."access.conf");
-	open (OUT, ">".$etcdir."access.conf.tmp");
-	while (<ACCESS>) {
-		if (! /^$defuser/) {
-			print OUT $_;
+	if ($install_files) {
+		print "Please enter the user that you will be administering Lyricue from: ";
+		my $defuser=<STDIN>;
+		chomp $defuser;
+		open (ACCESS, $etcdir."access.conf");
+		open (OUT, ">".$etcdir."access.conf.tmp");
+		while (<ACCESS>) {
+			if (! /^$defuser/) {
+				print OUT $_;
+			}
 		}
+		print OUT $defuser." = spade\n";
+		close OUT;
+		close ACCESS;
+		system ("mv ".$etcdir."access.conf.tmp ".$etcdir."access.conf");
+		
+		print "\n\n";
 	}
-	print OUT $defuser." = spade\n";
-	close OUT;
-	close ACCESS;
-	system ("mv ".$etcdir."access.conf.tmp ".$etcdir."access.conf");
-	
-	print "\n\n";
 	print "Finished installing Lyricue\n\n";
 	print "Run /usr/bin/lyricue_server on one screen\n";
 	print "and load up /usr/bin/lyricue on the other\n";
