@@ -273,11 +273,6 @@ if (-d $globals->{'basedir'}) {
 		create_dialog_prefs();
 	}
 }
-while (!-e $globals->{'configfile'}) {
-	while (Gtk2->events_pending) {
-		Gtk2->main_iteration;
-	}
-}
 
 # Load the config file
 $config = load_config();
@@ -3143,7 +3138,6 @@ sub create_dialog_prefs {
 	my (@list);
 	foreach (0 .. $config->{'BibleCount'} - 1) {
 		my $bible = $config->{'Bible'}[$_];
-		$bible =~ s/^_(.*);.*$/$1/g;
 		push @list, $bible;
 	}
 	$widgets->{'prefs'}->get_widget('comboPrefBible')
@@ -3160,7 +3154,7 @@ sub create_dialog_prefs {
 	  ->signal_connect("button_press_event", "open_dialogColour", "Font");
 	$widgets->{'prefs'}->get_widget('entryPrefShadowColour')
 	  ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
-	$widgets->{'prefs'}->get_widget('dialogPrefs')->show_all;
+	$widgets->{'prefs'}->get_widget('dialogPrefs')->run;
 }
 
 #****m* lyricue/execute_app
@@ -4204,12 +4198,13 @@ sub save_preferences {
 
 	foreach (0 .. $config->{'BibleCount'} - 1) {
 		print CONFIG "Bible = " . $config->{'Bible'}[$_] . "\n";
+		print "Bible = " . $config->{'Bible'}[$_] . "\n";
 		my $bible = $config->{'Bible'}[$_];
-		$bible =~ s/^_(.*);.*$/$1/g;
 		if ($bible eq $widgets->{'prefs'}->get_widget('entryPrefBible')
 			->get_text())
 		{
 			print CONFIG "DefBible = " . $config->{'Bible'}[$_] . "\n";
+			print "DefBible = " . $config->{'Bible'}[$_] . "\n";
 		}
 	}
 	foreach (0 .. $config->{'AppCount'} - 1) {

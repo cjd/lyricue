@@ -1,61 +1,63 @@
-               ****** Lyric Display System - Installation ******
 
-For installation of LDS follow these 7 easy steps.
-If you wish to upgrade follow this link or scroll past the installation section
-1. Make sure you have mysql and perl installed
-LDS is written in perl and holds all its data in two mysql databases so you
-will require perl/mysql to be installed.
-To download these go to http://www.perl.com and http://www.mysql.com or just
-install them from your distributions install disks.
-LDS also requires a few perl modules such as Gtk, DBI and Imlib. These may
-already be installed or you can install them from CPAN or your install disks.
-2. Download the main LDS program
-LDS is available at http://prdownloads.sourceforge.net/lds/download/lds-1.2.tar.gz
-3. <Optional> Download the additional LDS backdrops
-The additional backdrops are available at http://prdownloads.sourceforge.net/lds/download/lds-backdrops-current.tar.bz2
-4. Extract the files
-To untar the main program run tar xvfj lds-1.2.tar.gz
-If you downloaded the additional backdrops then change into the backgrounds
-directory then untar the lds-backdrops-current.tar.bz2 file to there. This way
-the install script will copy those files across at the same time as installing
-everything else.
-5. Run the install script
-Change into the directory you just untared the main code into then run the
-install script.
-This script will check whether you have the nessecary dependancies then install
-the program in /usr/bin with the shared components in /usr/share/lds
-It may give an error message saying that certain DB's don't exist, just ignore
-this message
-6. Run the program
-LDS was designed to run on two screens, with one being the interface, the other
-being the actual display.
-Normally the display screen should be hooked up to a projector for displaying
-the lyrics to people so you may wish to run it from the other screen by using a
-command such as DISPLAY=:0.1 lyric_server.pl which will run it on your second
-screen
-The interface can be run by typing lyric_interface.pl
-note: You may wish to change lyric_server.pl to run at the correct size. By
-default it runs at 800x600, to change this edit the two lines near the start of
-lyric_server.pl that say WIDTH and HEIGHT to the size of your second screen/
-projector
-7. Enjoy
+                             Lyricue - Installation
 
-                ****** Lyric Display System - Upgrading ******
-If you have a previous installation of LDS and wish to keep the songs/playlist
-you already have follow the following instructions to upgrade your existing
-installation
-1. Download the LDS upgrade package
-There is a special upgrade package which is a lot smaller since it does not
-include the sql tables (i.e. the bible and example song db)
-The package is available at http://prdownloads.sourceforge.net/lds/download/lds-1.2-upgrade.tar.gz
-3. Extract the files
-To untar the upgrade run tar xvfz lds-1.2-upgrade.tar.gz
-4. Run the upgrade script
-Change into the directory you just untared the main code into then run the
-upgrade script.
-This script will check whether you have a previous installation and then
-upgrade the program in /usr/bin with the shared components in /usr/share/lds
-5. Go back to using LDS as before
-None of the DB's have changed and the placement of files is the same so you can
-go back to using LDS as you did before, only now with updated functionality/bug
-fixes
+   For installation of LDS follow these 7 easy steps.
+   If you wish to upgrade the process is exactly the same
+
+   1. Make sure you have mysql and perl installed
+   LDS is written in perl and holds all its data in two mysql databases so
+   you will require perl/mysql to be installed.
+   To download these go to [5]http://www.perl.com and [6]http://www.mysql.com
+   or just install them from your distributions install disks.
+   LDS also requires a few perl modules such as [7]Gtk2 and DBI. These may
+   already be installed or you can install them from [8]CPAN or your install
+   disks.
+
+   2. Download the main Lyricue program
+   Lyricue is available at
+   [9]http://www.adebenham.com/lyricue/download/lyricue-1.9.tar.gz
+   If you are upgrading you can download a smaller version (which doesn't
+   have the bible database) from
+   [10]http://www.adebenham.com/lyricue/download/lyricue-upgrade-1.9.tar.gz
+
+   3. <Optional> Download the additional LDS backdrops
+   The additional backdrops are available at
+   [11]http://prdownloads.sourceforge.net/lds/download/lds-backdrops-current.tar.bz2
+
+   4. Extract the files
+   To untar the main program run tar xvfj lyricue-1.9.tar.gz
+
+   5. Run the install script
+   Change into the directory you just untared the main code into then run the
+   install script.
+   This script will check whether you have the nessecary dependancies then
+   install the program in /usr/bin with the shared components in
+   /usr/share/lds and default settings in /etc/lds
+
+   6. Run the program
+   LDS was designed to run on two screens, with one being the interface, the
+   other being the actual display.
+   Normally the display screen should be hooked up to a projector for
+   displaying the lyrics to people so you may wish to run it from the other
+   screen by using a command such as DISPLAY=:0.1 lyricue_server which will
+   run it on your second screen
+   The interface can be run by typing lyricue
+   note: You may wish to change ldss to run at the correct size. By default
+   it runs at 640480, to change this edit your preferences in the interface
+
+   7. Enjoy
+
+References
+
+   Visible links
+   1. file:///var/www/lyricue/index.html
+   2. file:///var/www/lyricue/downloads.html
+   3. file:///var/www/lyricue/install.html
+   4. file:///var/www/lyricue/CHANGELOG
+   5. http://www.perl.com/
+   6. http://www.mysql.com/
+   7. http://gtk2-perl.sourceforge.net/
+   8. http://www.cpan.org/
+   9. http://www.adebenham.com/lyricue/download/lyricue-1.9.tar.gz
+  10. http://www.adebenham.com/lyricue/download/lyricue-upgrade-1.9.tar.gz
+  11. http://prdownloads.sourceforge.net/lds/download/lds-backdrops-current.tar.bz2
