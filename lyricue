@@ -2410,7 +2410,7 @@ sub prev_page {
     }
 
     debug("Prev clicked");
-    update_display("display", "prev_page", $globals->{'Loop'});
+    update_display("display", "prev_page", $config->{'Loop'});
 }
 
 #***
@@ -2438,7 +2438,7 @@ sub next_page {
     }
 
     debug("Next clicked");
-    update_display("display", "next_page", $globals->{'Loop'});
+    update_display("display", "next_page", $config->{'Loop'});
 }
 
 #***
@@ -2466,7 +2466,7 @@ sub prev_song {
     }
 
     debug("Prev clicked");
-    update_display("display", "prev_song", $globals->{'Loop'});
+    update_display("display", "prev_song", $config->{'Loop'});
 }
 
 #***
@@ -2494,7 +2494,7 @@ sub next_song {
     }
 
     debug("Next clicked");
-    update_display("display", "next_song", $globals->{'Loop'});
+    update_display("display", "next_song", $config->{'Loop'});
 }
 
 #***
