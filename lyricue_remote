@@ -27,7 +27,7 @@ $config->{'LOOP'} = 0;
 if ($ARGV[0]) {
     foreach (0 .. (@ARGV - 1)) {
         if ($ARGV[$_] eq "-v") {
-            print "Lyricue Remote version " . $globals->{'version'} . "\n";
+            print "Lyricue Remote\n";
             exit;
         } elsif ($ARGV[$_] eq "-s") {
             $globals->{'host'} = $ARGV[$_ + 1];
