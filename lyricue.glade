@@ -1238,7 +1238,7 @@
 			  <property name="rules_hint">True</property>
 			  <property name="reorderable">False</property>
 			  <property name="enable_search">True</property>
-			  <signal name="button_release_event" handler="popup_avail_menu" last_modification_time="Wed, 08 Oct 2003 01:06:36 GMT"/>
+			  <signal name="button_press_event" handler="popup_avail_menu" last_modification_time="Thu, 03 Feb 2005 04:04:11 GMT"/>
 			  <signal name="drag_data_get" handler="on_treeAvailable_drag_data_get" last_modification_time="Wed, 05 Nov 2003 05:22:15 GMT"/>
 			</widget>
 		      </child>
@@ -1484,10 +1484,10 @@
 			      <property name="can_focus">True</property>
 			      <property name="headers_visible">False</property>
 			      <property name="rules_hint">False</property>
-			      <property name="reorderable">True</property>
+			      <property name="reorderable">False</property>
 			      <property name="enable_search">False</property>
 			      <signal name="event" handler="display_song" after="yes" last_modification_time="Wed, 08 Oct 2003 02:30:12 GMT"/>
-			      <signal name="drag_drop" handler="on_treePlaylist_drag_data_received" last_modification_time="Fri, 01 Oct 2004 07:46:09 GMT"/>
+			      <signal name="drag_data_received" handler="on_treePlaylist_drag_data_received" last_modification_time="Thu, 03 Feb 2005 03:59:52 GMT"/>
 			    </widget>
 			  </child>
 			</widget>

@@ -834,6 +834,10 @@ sub popup_avail_menu {
         $factory->popup($event->x_root, $event->y_root, $event->button,
             $event->time);
         return (TRUE);
+    } elsif ($event->button == 1 && $event->type eq '2button-press') {
+        print "Add song\n";
+	add_to_playlist();
+        return (TRUE);
     }
 
     # Tell calling code that we have not handled this event; pass it on.
@@ -5120,7 +5124,8 @@ sub init_mainWindow {
       ->drag_source_set(['button1_mask'], ['copy'], @target_table);
     $widgets->{'main'}->get_widget('treePlaylist')
       ->drag_dest_set('all', ['copy'], @target_table);
-    $widgets->{'main'}->get_widget('treePlaylist')->set_reorderable(TRUE);
+    # BORKED
+    #$widgets->{'main'}->get_widget('treePlaylist')->set_reorderable(TRUE);
 
     init_preview();
     init_miniview();
@@ -5436,13 +5441,13 @@ sub on_treePlaylist_drag_data_received {
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
     debug("Dropped on playlist");
 
-    #if (($data->length >= 0) && ($data->format == 8)) {
-    #debug("Recieved " . $data->data);
-    #add_single_song($data->data);
-    #update_playlist();
-    #$context->finish(1, 0, $time);
-    #return;
-    #}
+    if (($data->length >= 0) && ($data->format == 8)) {
+        debug("Recieved " . $data->data);
+        add_single_song($data->data);
+        update_playlist();
+        $context->finish(1, 0, $time);
+        return;
+    }
     $context->finish(0, 0, $time);
 }
 
