@@ -339,6 +339,16 @@ sub close_main {
 #   refreshed playlist
 # SOURCE
 sub update_playlist {
+	my ($id) = @_;
+	my $selection = $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	if (! defined $id) {
+		if ($selection) {
+			my ($m, $i) = $selection->get_selected;
+			if ($m) {
+				$id = $m->get($i,2);
+			}
+		}
+	}
 
 	my $playlist =
 	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
@@ -362,7 +372,7 @@ sub update_playlist {
 
 		$widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
 	}
-	add_playlist($playlist, undef, $model);
+	add_playlist($playlist, undef, $model, $id);
 }
 
 #***
@@ -371,7 +381,7 @@ sub update_playlist {
 # NAME
 #   add_playlist - Add a playlist to the playlist area
 # SYNOPSIS
-#   add_playlist ($playlist, $iter, $model)
+#   add_playlist ($playlist, $iter, $model, $id)
 # FUNCTION
 #   Add a playlist to the playlist area
 # INPUTS
@@ -382,7 +392,7 @@ sub update_playlist {
 #   A bigger playlist
 # SOURCE
 sub add_playlist {
-	my ($playlist, $iter, $model) = @_;
+	my ($playlist, $iter, $model,$id) = @_;
 	my $query =
 	  "SELECT * FROM playlist WHERE playlist="
 	  . $playlist
@@ -468,9 +478,12 @@ sub add_playlist {
 			2 => $row->{'playorder'},
 			3 => $row->{'transition'}
 		);
+		if (defined $id && $row->{'playorder'} == $id) {
+			$widgets->{'main'}->get_widget('treePlaylist')->get_selection->select_iter($newiter);
+		}
 
 		if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
-			add_playlist($row->{'data'}, $newiter, $model);
+			add_playlist($row->{'data'}, $newiter, $model, $id);
 		}
 	}
 }
@@ -3610,7 +3623,7 @@ sub move_item {
 			renumber_item($item, 9999);
 			renumber_item($row[0], $item);
 			renumber_item(9999, $row[0]);
-			update_playlist();
+			update_playlist($row[0]);
 		}
 	}
 }
