@@ -2760,7 +2760,7 @@ sub update_imagedir {
         "SELECT * FROM media WHERE category LIKE \""
       . $category
       . "\" AND type=\""
-      . $type . "\"";
+      . $type . "\" ORDER BY description";
     qdebug($query);
     $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -5227,7 +5227,7 @@ sub bgdir_load {
     my $query =
         "SELECT id FROM media WHERE category=\""
       . $category
-      . "\" AND type=\"bg\"";
+      . "\" AND type=\"bg\" ORDER BY description";
     my $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
