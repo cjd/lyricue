@@ -348,7 +348,13 @@ if ($globals->{'fast'}) {
     $mainText->set_line_wrap(TRUE);
     $footerText->set_line_wrap(TRUE);
     $vbox->pack_start($headerText, FALSE, FALSE, 0);
-    $vbox->pack_start($mainText,   TRUE,  TRUE,  0);
+    if ($config->{'CentreY'}) {
+    	$vbox->pack_start($mainText,   TRUE,  TRUE,  0);
+    } else {
+    	$vbox->pack_start($mainText,   FALSE,  TRUE,  0);
+	my $fill = Gtk2::Label->new();
+	$vbox->pack_start($fill,TRUE,TRUE,0);
+    }
     $vbox->pack_start($footerText, FALSE, FALSE, 0);
 } else {
     $canvas = Gnome2::Canvas->new();
