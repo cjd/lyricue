@@ -785,6 +785,9 @@ sub popup_avail_menu {
 
     debug("Button clicked on available songs list");
     if ($event->button == 3) {
+	my $path = $widget->get_path_at_pos($event->x,$event->y);
+	$widget->get_selection->select_path($path);
+	print $path." path \n";
         my @items = ();
         if ($globals->{'access'} =~ /e/) {
             push @items,
@@ -2156,7 +2159,9 @@ sub remove_single_item {
     #than sorry.
     #
     debug("Cancelling loop timers");
-    Glib::Source->remove($globals->{'timer'});
+    if ($globals->{'timer'}) {
+        Glib::Source->remove($globals->{'timer'});
+    }
 
     #
 
@@ -2263,7 +2268,7 @@ sub clear_playlist {
 # SOURCE
 #
 sub display_song {
-    my (undef, $event) = @_;
+    my ($widget, $event) = @_;
     #debug ("event $event");
     if (defined($event->type)) {
         if ($event->type eq '2button-press') {
@@ -2281,7 +2286,9 @@ sub display_song {
 
             }
             return TRUE;
-        } elsif ($event->type eq 'button-release') {
+        } elsif ($event->type eq 'button-press') {
+	    my $path = $widget->get_path_at_pos($event->x,$event->y);
+	    $widget->get_selection->select_path($path);
             if ($event->button == 3) {
                 popup_play_menu($event);
                 return TRUE;
