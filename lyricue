@@ -2641,8 +2641,8 @@ sub preview_display {
 
 			#tcp/ip socket failure so server must be not running yet!
 			debug("Preview not running?");
-			init_preview();
-			redo PUPDATE;
+			#init_preview();
+			#redo PUPDATE;
 		}
 	}
 }
@@ -4346,19 +4346,9 @@ sub save_preferences {
 	}
 	close CONFIG;
 	$config = load_config();
-	my $ministate = $widgets->{'main'}->get_widget('frameCurrent')->visible();
+	init_preview();
+	init_miniview();
 
-	# Start/stop miniview as needed
-	if ($config->{'Miniview'} && !$ministate) {
-		init_miniview();
-		$widgets->{'main'}->get_widget('frameCurrent')->show();
-	} else {
-		if ($ministate) {
-			$widgets->{'miniview'}->destroy;
-			kill 9, $globals->{'miniview_pid'};
-			$widgets->{'main'}->get_widget('frameCurrent')->hide();
-		}
-	}
 	preview_display("reconfig","","");
 	update_display("reconfig","","");
 	preview_display("display","current","");
@@ -4796,11 +4786,7 @@ sub init_mainWindow {
 	  ->drag_dest_set('all', ['copy'], @target_table);
 
 	init_preview();
-	if ($config->{'Miniview'}) {
-		init_miniview();
-	} else {
-		$widgets->{'main'}->get_widget('frameCurrent')->hide();
-	}
+	init_miniview();
 
 	# Show the window finally
 	$widgets->{'main'}->get_widget('windowMain')->show;
@@ -5469,65 +5455,87 @@ sub find_image {
 }
 
 sub init_preview {
-	$widgets->{'preview'} = Gtk2::Socket->new;
-	$widgets->{'preview'}->show;
-	$widgets->{'preview'}->set_size_request(280, 210);
-	$widgets->{'main'}->get_widget('framePreview')->add($widgets->{'preview'});
-	debug(
-		sprintf("$^X %slyricue_server -m %d -p %d", $globals->{'bindir'},
-			$widgets->{'preview'}->get_id, $globals->{'preview_port'}));
-
-	$globals->{'preview_pid'} = fork;
-	if ($globals->{'preview_pid'} < 0) {
-		display_fatal("Unable to start the lyricue server as a preview window",
-			$!);
-	}
-	if ($globals->{'preview_pid'} == 0) {
-		exec(
-			sprintf("$^X %slyricue_server -m %d -p %d\n", $globals->{'bindir'},
+	# Start/stop miniview as needed
+	if ($config->{'DynamicPreview'} && (! defined($widgets->{'preview'}))) {
+		$widgets->{'main'}->get_widget('framePreview')->show();
+		$widgets->{'preview'} = Gtk2::Socket->new;
+		$widgets->{'preview'}->show;
+		$widgets->{'preview'}->set_size_request(280, 210);
+		$widgets->{'main'}->get_widget('framePreview')->add($widgets->{'preview'});
+		debug(
+			sprintf("$^X %slyricue_server -m %d -p %d", $globals->{'bindir'},
 				$widgets->{'preview'}->get_id, $globals->{'preview_port'}));
-	}
-
-	$widgets->{'preview'}->signal_connect(
-		'plug-removed' => sub {
-			debug("Lyricue preview died..restarting\n");
-			$widgets->{'main'}->get_widget('framePreview')
-			  ->remove($widgets->{'preview'});
-			init_preview();
-			1;
+	
+		$globals->{'preview_pid'} = fork;
+		if ($globals->{'preview_pid'} < 0) {
+			display_fatal("Unable to start the lyricue server as a preview window",
+				$!);
 		}
-	);
+		if ($globals->{'preview_pid'} == 0) {
+			exec(
+				sprintf("$^X %slyricue_server -m %d -p %d\n", $globals->{'bindir'},
+					$widgets->{'preview'}->get_id, $globals->{'preview_port'}));
+		}
+	
+		$widgets->{'preview'}->signal_connect(
+			'plug-removed' => sub {
+				debug("Lyricue preview died..restarting\n");
+				$widgets->{'main'}->get_widget('framePreview')
+			  	->remove($widgets->{'preview'});
+				init_preview();
+				1;
+			}
+		);
+	} else {
+		if ($widgets->{'preview'}) {
+			$widgets->{'preview'}->destroy;
+			undef $widgets->{'preview'};
+			kill 9, $globals->{'preview_pid'};
+		}
+		$widgets->{'main'}->get_widget('framePreview')->hide();
+	}
 }
 
 sub init_miniview {
-	$widgets->{'miniview'} = Gtk2::Socket->new;
-	$widgets->{'miniview'}->show;
-	$widgets->{'miniview'}->set_size_request(280, 210);
-	$widgets->{'main'}->get_widget('frameCurrent')->add($widgets->{'miniview'});
-	debug(
-		sprintf("$^X %slyricue_server -m %d -p %d\n", $globals->{'bindir'},
-			$widgets->{'miniview'}->get_id, $globals->{'miniview_port'}));
-
-	$globals->{'miniview_pid'} = fork;
-	if ($globals->{'miniview_pid'} < 0) {
-		display_fatal("Unable to start the lyricue server as a preview window",
-			$!);
-	}
-	if ($globals->{'miniview_pid'} == 0) {
-		exec(
+	# Start/stop miniview as needed
+	if ($config->{'Miniview'} && (! defined($widgets->{'miniview'}))) {
+		$widgets->{'main'}->get_widget('frameCurrent')->show();
+		$widgets->{'miniview'} = Gtk2::Socket->new;
+		$widgets->{'miniview'}->show;
+		$widgets->{'miniview'}->set_size_request(280, 210);
+		$widgets->{'main'}->get_widget('frameCurrent')->add($widgets->{'miniview'});
+		debug(
 			sprintf("$^X %slyricue_server -m %d -p %d\n", $globals->{'bindir'},
 				$widgets->{'miniview'}->get_id, $globals->{'miniview_port'}));
-	}
-
-	$widgets->{'miniview'}->signal_connect(
-		'plug-removed' => sub {
-			debug("Lyricue miniview died..restarting");
-			$widgets->{'main'}->get_widget('frameCurrent')
-			  ->remove($widgets->{'miniview'});
-			init_preview();
-			1;
+	
+		$globals->{'miniview_pid'} = fork;
+		if ($globals->{'miniview_pid'} < 0) {
+			display_fatal("Unable to start the lyricue server as a preview window",
+				$!);
 		}
-	);
+		if ($globals->{'miniview_pid'} == 0) {
+			exec(
+				sprintf("$^X %slyricue_server -m %d -p %d\n", $globals->{'bindir'},
+					$widgets->{'miniview'}->get_id, $globals->{'miniview_port'}));
+		}
+	
+		$widgets->{'miniview'}->signal_connect(
+			'plug-removed' => sub {
+				debug("Lyricue miniview died..restarting");
+				$widgets->{'main'}->get_widget('frameCurrent')
+			  	->remove($widgets->{'miniview'});
+				init_miniview();
+				1;
+			}
+		);
+	} else {
+		if ($widgets->{'miniview'}) {
+			$widgets->{'miniview'}->destroy;
+			undef $widgets->{'miniview'};
+			kill 9, $globals->{'miniview_pid'};
+		}
+		$widgets->{'main'}->get_widget('frameCurrent')->hide();
+	}
 }
 
 sub quick_save {
