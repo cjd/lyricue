@@ -1,9 +1,4 @@
 #!/usr/bin/perl
-print "Lyric Display System\n";
-print "--------------------\n";
-print "This script will check that the nessecary items are installed\n";
-print "then install the files and create the MySql tables nessecary\n";
-
 # Will try to load all needed perl modules, fails if any not available
 use Data::Dumper;
 use strict;
@@ -17,19 +12,44 @@ use Gtk2::Pango;
 use Gtk2::Spell;
 use Gtk2::TrayIcon;
 use Gnome2::Canvas;
+use Getopt::Std;
 use Glib;
 
 my $prefix="";
 my $install_db = 1;
 my $install_files = 1;
-if ($ARGV[0]) {
-	if ($ARGV[0] eq "-f") {
-	    $prefix = $ARGV[1];
-	    $install_db = 0;
-	} elsif ($ARGV[0] eq "-d") {
-	    $install_files = 0;
-	}
+my $dbpass = "";
+my $dbuser = "root";
+my $adminuser = "";
+my %opts;
+
+getopts('f:du:p:a:h', \%opts);
+if (defined $opts{h}) {
+	print "Usage: install [-h] [-f PREFIX] [-d] [-u DBUSER] [-p DBPASS] [-a ADMINUSER]\n";
+	exit(1);
 }
+if (defined $opts{f}) {
+	$prefix=$opts{f};
+	$install_db = 0;
+}
+if (defined $opts{a}) {
+	$adminuser = $opts{a};
+}
+if (defined $opts{d}) {
+	$install_files = 0;
+}
+if (defined $opts{u}) {
+	$dbuser = $opts{u};
+}
+if (defined $opts{p}) {
+	$dbpass = $opts{p};
+}
+
+
+print "Lyric Display System\n";
+print "--------------------\n";
+print "This script will check that the nessecary items are installed\n";
+print "then install the files and create the MySql tables nessecary\n";
 
 my $bindir   = $prefix."/usr/bin/";
 my $etcdir   = $prefix."/etc/lds/";
@@ -57,11 +77,12 @@ if ($ARGV[0] eq "-u") {
 	print "\nDo you want to remove the databases? (y/N):";
 	my $database = <STDIN>;
 	chomp($database);
-	my $rootpw = "";
 	if (uc($database) eq "Y") {
-		print "Please enter the password for your root mysql user: ";
-		$rootpw=<STDIN>;
-		chomp $rootpw;
+		if ($dbpass eq "") {
+			print "Please enter the password for your ".$dbuser." mysql user: ";
+			$dbpass=<STDIN>;
+			chomp $dbpass;
+		}
 	}
 	print "\n\nAbout to delete Lyricue\n";
 	print "\nAre you SURE? (y/N):";
@@ -85,13 +106,13 @@ if ($ARGV[0] eq "-u") {
 	}
 	if (uc($database) eq "Y") {
 		print "Removing Databases\n";
-		system ("echo 'DROP DATABASE lyricDb' | mysql -u root --password=$rootpw");
-		system("echo 'DROP DATABASE bibleDb' | mysql -u root --password=$rootpw");
-		system("echo 'DROP DATABASE mediaDb' | mysql -u root --password=$rootpw");
+		system ("echo 'DROP DATABASE lyricDb' | mysql -u $dbuser --password=$dbpass");
+		system("echo 'DROP DATABASE bibleDb' | mysql -u $dbuser --password=$dbpass");
+		system("echo 'DROP DATABASE mediaDb' | mysql -u $dbuser --password=$dbpass");
 		print "Removing Lyric user from the database\n";
-		system ("echo \"DELETE FROM user WHERE User='lyric';\"| mysql -uroot --password=$rootpw mysql");
+		system ("echo \"DELETE FROM user WHERE User='lyric';\"| mysql -u$dbuser --password=$dbpass mysql");
 
-		system("mysqladmin -uroot --password=$rootpw reload");
+		system("mysqladmin -u$dbuser --password=$dbpass reload");
 	}
 	print "\n\nUninstalled\n";
 } else {
@@ -161,11 +182,13 @@ if ($ARGV[0] eq "-u") {
 		if (@ary == 0 ) {
 			die "Mysql doesn't appear to be running, please restart it\n";
 		}
-		print "Please enter the password for your root mysql user: ";
-		my $rootpw=<STDIN>;
-		chomp $rootpw;
+		if ( $dbpass eq "") {
+			print "Please enter the password for your $dbuser mysql user: ";
+			my $dbpass=<STDIN>;
+			chomp $dbpass;
+		}
 		
-		my $dbh = DBI->connect("DBI:mysql:mysql:localhost", "root","$rootpw");
+		my $dbh = DBI->connect("DBI:mysql:mysql:localhost", "$dbuser","$dbpass");
 		my $sth = $dbh->prepare ("select * from user where User='lyric'");
 		my $rv = $sth->execute;
 		if ($sth->rows) {
@@ -199,9 +222,9 @@ if ($ARGV[0] eq "-u") {
 		
 		if (! $lyricdb) {
 	    		print "Creating lyricDb\n";
-			system ("cat mysql/MySQL_create_Table.sql | mysql -u root --password=$rootpw");
+			system ("cat mysql/MySQL_create_Table.sql | mysql -u $dbuser --password=$dbpass");
 		} else {
-			my $dbh2 = DBI->connect("DBI:mysql:lyricDb", "root","$rootpw");
+			my $dbh2 = DBI->connect("DBI:mysql:lyricDb", "$dbuser","$dbpass");
 			my $tables = $dbh2->selectall_arrayref("show tables");
 			my %table;
 			foreach (@$tables) {
@@ -210,7 +233,7 @@ if ($ARGV[0] eq "-u") {
 			if (! defined %table->{'associations'}) {
 				print "Associations table not found\n";
 				print "Upgrading database from < 1.2 to 1.2\n";
-				system ("cat mysql/Update_1.2.sql | mysql -u root --password=$rootpw");
+				system ("cat mysql/Update_1.2.sql | mysql -u $dbuser --password=$dbpass");
 				print "Done\n";
 			}
 		
@@ -222,7 +245,7 @@ if ($ARGV[0] eq "-u") {
 			if (! defined %trans->{'transition'}) {
 				print "Transition field not found\n";
 				print "Upgrading database from 1.2 to 1.9\n";
-				system ("cat mysql/Update_1.9.sql | mysql -u root --password=$rootpw");
+				system ("cat mysql/Update_1.9.sql | mysql -u $dbuser --password=$dbpass");
 				print "Done\n";
 			}
 	
@@ -230,15 +253,15 @@ if ($ARGV[0] eq "-u") {
 		
 		if (! $bibledb) {
 	    		print "Creating bibleDb\n";
-			system ("cat mysql/MySQL_create_bible_KJV.sql | mysql -u root --password=$rootpw");
+			system ("cat mysql/MySQL_create_bible_KJV.sql | mysql -u $dbuser --password=$dbpass");
 		}
 	
 		if (! $mediadb) {
 	    		print "Creating media database\n";
-	    		system ("cat mysql/MySQL_create_media.sql | mysql -u root --password=$rootpw");
+	    		system ("cat mysql/MySQL_create_media.sql | mysql -u $dbuser --password=$dbpass");
 		}
 	
-		system("mysqladmin -uroot --password=$rootpw reload");
+		system("mysqladmin -u$dbuser --password=$dbpass reload");
 	
 		if (! $mediadb) {
 			print "Importing existing backgrounds/images\n";
@@ -249,17 +272,19 @@ if ($ARGV[0] eq "-u") {
 	}
 	
 	if ($install_files) {
-		print "Please enter the user that you will be administering Lyricue from: ";
-		my $defuser=<STDIN>;
-		chomp $defuser;
+		if ($adminuser eq "") {
+			print "Please enter the user that you will be administering Lyricue from: ";
+			$adminuser=<STDIN>;
+			chomp $adminuser;
+		}
 		open (ACCESS, $etcdir."access.conf");
 		open (OUT, ">".$etcdir."access.conf.tmp");
 		while (<ACCESS>) {
-			if (! /^$defuser/) {
+			if (! /^$adminuser/) {
 				print OUT $_;
 			}
 		}
-		print OUT $defuser." = spade\n";
+		print OUT $adminuser." = spade\n";
 		close OUT;
 		close ACCESS;
 		system ("mv ".$etcdir."access.conf.tmp ".$etcdir."access.conf");
