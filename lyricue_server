@@ -1344,6 +1344,7 @@ sub load_config {
 		chomp;
 		my @line = split (/=/);
 		$line[0] =~ s/ *$//g;
+		$line[1] =~ s/ *$//g;
 		if (!$line[1]) {
 			$line[1] = "";
 		}
