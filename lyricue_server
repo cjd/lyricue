@@ -581,7 +581,7 @@ sub process_input {
             $line[2] =~ s/#BREAK#/\n/g;
             $line[2] =~ s/#SEMI#/:/g;
             $line[2] =~ s/<.*?>//g;
-            set_maintext(Encode::decode("utf-8",$line[2]), NONE, FALSE);
+            set_maintext(Encode::decode("utf-8",$line[2]), NONE, TRUE);
 
             if ($extras[2]) {
                 set_footer(
