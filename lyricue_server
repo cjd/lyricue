@@ -87,10 +87,10 @@ use Glib;
 # Site Configuration.  You should only have to
 # edit this section.
 #
-my $PORT       = "2346";                 #port used for main lyric server socket
-my $CHILD      = 0;
-my $MINIPORT   = "2347";                 #port used for preview window socket
-my $MINISCALE  =
+my $PORT      = "2346";    #port used for main lyric server socket
+my $CHILD     = 0;
+my $MINIPORT  = "2347";    #port used for preview window socket
+my $MINISCALE =
   3;    # Factor by which to divide server geometry for the preview window
 
 #
@@ -129,21 +129,21 @@ my $bgimage_changed = FALSE;
 my @points;
 
 my ($globals);
-$globals->{'etcdir'}      = "/etc/lds/";
-$globals->{'basedir'}     = $ENV{'HOME'} . "/.lds/";
-$globals->{'sharedir'}    = "/usr/share/lds/";
-$globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
-$globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
-$globals->{'configfile'}  = $globals->{'basedir'} . "config2";
-$globals->{'bgpath_user'}      = $globals->{'basedir'} . "backgrounds/";
-$globals->{'imgpath_user'}     = $globals->{'basedir'} . "images/";
-$globals->{'bgpath_system'}      = $globals->{'sharedir'} . "backgrounds/";
-$globals->{'imgpath_system'}     = $globals->{'sharedir'} . "images/";
-$globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
-$globals->{'host'}        = "localhost";
-$globals->{'lyricdb'}     = "lyricDb";
-$globals->{'bibledb'}     = "bibleDb";
-$globals->{'biblename'}   = "King James Version";
+$globals->{'etcdir'}         = "/etc/lds/";
+$globals->{'basedir'}        = $ENV{'HOME'} . "/.lds/";
+$globals->{'sharedir'}       = "/usr/share/lds/";
+$globals->{'accessfile'}     = $globals->{'etcdir'} . "access.conf";
+$globals->{'defaultconf'}    = $globals->{'etcdir'} . "default.conf";
+$globals->{'configfile'}     = $globals->{'basedir'} . "config2";
+$globals->{'bgpath_user'}    = $globals->{'basedir'} . "backgrounds/";
+$globals->{'imgpath_user'}   = $globals->{'basedir'} . "images/";
+$globals->{'bgpath_system'}  = $globals->{'sharedir'} . "backgrounds/";
+$globals->{'imgpath_system'} = $globals->{'sharedir'} . "images/";
+$globals->{'gladefile'}      = $globals->{'sharedir'} . "lyricue.glade";
+$globals->{'host'}           = "localhost";
+$globals->{'lyricdb'}        = "lyricDb";
+$globals->{'bibledb'}        = "bibleDb";
+$globals->{'biblename'}      = "King James Version";
 
 my ($errorcodes);
 $errorcodes->{'lyricdbopen'} =
@@ -207,9 +207,9 @@ if (!$CHILD) {
 
 # Read the config file
 if (!-w $globals->{'configfile'}) {
-	if (! -d $globals->{'basedir'} ) {
-		mkdir $globals->{'basedir'}, 0777;
-		mkdir $globals->{'bgpath_user'}, 0777;
+	if (!-d $globals->{'basedir'}) {
+		mkdir $globals->{'basedir'},      0777;
+		mkdir $globals->{'bgpath_user'},  0777;
 		mkdir $globals->{'imgpath_user'}, 0777;
 	}
 	system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
@@ -228,7 +228,7 @@ foreach (keys %$config) {
 	} elsif (/^DefBible/) {
 		my @tmp = split (/;/, $config->{$_}, 2);
 		$globals->{'biblename'} = $tmp[0];
-		$globals->{'bibledb'} = $tmp[1];
+		$globals->{'bibledb'}   = $tmp[1];
 	}
 }
 
@@ -279,7 +279,7 @@ while (Gtk2->events_pending) {
 	Gtk2->main_iteration;
 }
 
-($config->{'Width'},$config->{'Height'}) = $window->get_size();
+($config->{'Width'}, $config->{'Height'}) = $window->get_size();
 print "W * H:" . $config->{'Width'} . "*" . $config->{'Height'} . "\n";
 
 my $canvas = Gnome2::Canvas->new();
@@ -302,17 +302,19 @@ debug("Loading background\n");
 
 my ($background, $pixbuf);
 my $backdrop = $config->{'BGImage'};
-if (-e $globals->{'bgpath_user'}.$backdrop && -r $globals->{'bgpath_user'}.$backdrop) {
-	$backdrop = $globals->{'bgpath_user'}.$backdrop
-} elsif  (-e $globals->{'bgpath_system'}.$backdrop && -r $globals->{'bgpath_system'}.$backdrop) {
-	$backdrop = $globals->{'bgpath_system'}.$backdrop
+if (-e $globals->{'bgpath_user'} . $backdrop
+	&& -r $globals->{'bgpath_user'} . $backdrop)
+{
+	$backdrop = $globals->{'bgpath_user'} . $backdrop;
+} elsif (-e $globals->{'bgpath_system'} . $backdrop
+	&& -r $globals->{'bgpath_system'} . $backdrop)
+{
+	$backdrop = $globals->{'bgpath_system'} . $backdrop;
 } else {
-	debug ("Unable to read ".$backdrop." in any background directories\n");
+	debug("Unable to read " . $backdrop . " in any background directories\n");
 }
 
-eval {
-	$pixbuf = Gtk2::Gdk::Pixbuf->new_from_file( $backdrop);
-};
+eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
 
 if ($@) {
 	debug("Unable to load background " . $backdrop . "\n");
@@ -521,7 +523,8 @@ sub process_input {
 			$globals->{'biblename'} =~ s/_//g;
 			change_to_db($newdb);
 			$status =
-			  "Bible changed to " . $globals->{'biblename'} . " (DB: " . $newdb . ").";
+			  "Bible changed to "
+			  . $globals->{'biblename'} . " (DB: " . $newdb . ").";
 		} elsif (/^next_point$/) {
 			if ($current_point > -1 && scalar(@points) > $current_point + 1) {
 				my $pointtext = "";
@@ -920,7 +923,7 @@ sub process_input {
 								$footerText->set(text => "");
 								set_maintext("", NONE);
 								$headerText->set(text => "");
-								change_backdrop("full",$row->{'data'});
+								change_backdrop("full", $row->{'data'});
 							}
 						}
 
@@ -953,7 +956,7 @@ sub process_input {
 					#Reset background if an image was shown
 					if ($bgimage_changed) {
 						$bgimage_changed = FALSE;
-						change_backdrop( "bg" , $config->{'BGImage'});
+						change_backdrop("bg", $config->{'BGImage'});
 					}
 
 					my $query =
@@ -1034,8 +1037,7 @@ sub process_input {
 					#Reset background if an image was shown
 					if ($bgimage_changed) {
 						$bgimage_changed = FALSE;
-						change_backdrop(
-							"bg", $config->{'BGImage'});
+						change_backdrop("bg", $config->{'BGImage'});
 					}
 					my $query2 =
 "SELECT title,artist,lyrics,copyright,pagenum FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid="
@@ -1186,31 +1188,42 @@ sub HandleKey {
 # SOURCE
 #
 sub change_backdrop {
-	my ($type,$backdrop) = @_;
+	my ($type, $backdrop) = @_;
 	if ($type eq "img") {
-		if (-e $globals->{'imgpath_user'}.$backdrop && -r $globals->{'imgpath_user'}.$backdrop) {
-			$backdrop = $globals->{'imgpath_user'}.$backdrop
-		} elsif  (-e $globals->{'imgpath_system'}.$backdrop && -r $globals->{'imgpath_system'}.$backdrop) {
-			$backdrop = $globals->{'imgpath_system'}.$backdrop
+		if (-e $globals->{'imgpath_user'} . $backdrop
+			&& -r $globals->{'imgpath_user'} . $backdrop)
+		{
+			$backdrop = $globals->{'imgpath_user'} . $backdrop;
+		} elsif (-e $globals->{'imgpath_system'} . $backdrop
+			&& -r $globals->{'imgpath_system'} . $backdrop)
+		{
+			$backdrop = $globals->{'imgpath_system'} . $backdrop;
 		} else {
-			debug ("Unable to read ".$backdrop." in any image directories\n");
+			debug(
+				"Unable to read " . $backdrop . " in any image directories\n");
 		}
 	} elsif ($type eq "bg") {
-		if (-e $globals->{'bgpath_user'}.$backdrop && -r $globals->{'bgpath_user'}.$backdrop) {
-			$backdrop = $globals->{'bgpath_user'}.$backdrop
-		} elsif  (-e $globals->{'bgpath_system'}.$backdrop && -r $globals->{'bgpath_system'}.$backdrop) {
-			$backdrop = $globals->{'bgpath_system'}.$backdrop
+		if (-e $globals->{'bgpath_user'} . $backdrop
+			&& -r $globals->{'bgpath_user'} . $backdrop)
+		{
+			$backdrop = $globals->{'bgpath_user'} . $backdrop;
+		} elsif (-e $globals->{'bgpath_system'} . $backdrop
+			&& -r $globals->{'bgpath_system'} . $backdrop)
+		{
+			$backdrop = $globals->{'bgpath_system'} . $backdrop;
 		} else {
-			debug ("Unable to read ".$backdrop." in any background directories\n");
+			debug("Unable to read "
+				. $backdrop
+				. " in any background directories\n");
 		}
 	} else {
 		if (-e $backdrop && -r $backdrop) {
+
 			# All OK
 		} else {
-			debug ("Unable to read ".$backdrop."\n");
+			debug("Unable to read " . $backdrop . "\n");
 		}
 	}
-
 
 	debug("Changing backdrop to " . $backdrop . "\n");
 	eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
@@ -1578,7 +1591,8 @@ sub Configure_event {
 	my ($width, $height) = $window->get_size();
 	if ($canvas) {
 		$canvas->set_pixels_per_unit($width / $config->{'Width'});
-	#	print $width/ $config->{'Width'} . "\n";
+
+		#	print $width/ $config->{'Width'} . "\n";
 	}
 }
 
