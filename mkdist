@@ -27,11 +27,11 @@ dpkg-buildpackage -rfakeroot
 rm -rf debian/tmp
 cd ../..
 
-echo Creating lyricue-$VERSION.tar.gz
+echo Creating lyricue-$VERSION.tar.bz2
 cd dist
-tar cfz lyricue-$VERSION.tar.gz lyricue-$VERSION
+tar cfj lyricue-$VERSION.tar.bz2 lyricue-$VERSION
 rm lyricue-$VERSION/mysql/MySQL_create_bible_KJV.sql
-echo Creating lyricue-upgrade-$VERSION.tar.gz
-tar cfz lyricue-upgrade-$VERSION.tar.gz lyricue-$VERSION
+echo Creating lyricue-upgrade-$VERSION.tar.bz2
+tar cfj lyricue-upgrade-$VERSION.tar.bz2 lyricue-$VERSION
 cd ..
 rm -rf dist/lyricue-$VERSION
