@@ -142,6 +142,7 @@ my $preview_item    = 0;
 my $current_point   = -1;
 my $steps           = 20;
 my $bgimage_changed = FALSE;
+my ($background);
 my @points;
 
 my ($errorcodes);
@@ -284,6 +285,7 @@ while (Gtk2->events_pending) {
 
 my $canvas = Gnome2::Canvas->new();
 $canvas->set_scroll_region(1, 1, $config->{'Width'}, $config->{'Height'});
+$canvas->set_center_scroll_region(TRUE);
 $canvas->set_pixels_per_unit(1 / $MINISCALE);
 my $aspect = $config->{'Width'} / $config->{'Height'};
 my $geom   = {
@@ -303,36 +305,7 @@ $layout->set_font_description($tmpdesc);
 my ($headhigh, $headwide) = $layout->get_pixel_size;
 
 debug("Loading background");
-
-my ($background, $pixbuf);
-my $backdrop = $config->{'BGImage'};
-if (-e $globals->{'bgpath_user'} . $backdrop
-	&& -r $globals->{'bgpath_user'} . $backdrop)
-{
-	$backdrop = $globals->{'bgpath_user'} . $backdrop;
-} elsif (-e $globals->{'bgpath_system'} . $backdrop
-	&& -r $globals->{'bgpath_system'} . $backdrop)
-{
-	$backdrop = $globals->{'bgpath_system'} . $backdrop;
-} else {
-	debug("Unable to read " . $backdrop . " in any background directories");
-}
-
-eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
-
-if ($@) {
-	debug("Unable to load background " . $backdrop);
-} else {
-	$background = Gnome2::Canvas::Item->new(
-		$root, 'Gnome2::Canvas::Pixbuf', pixbuf => $pixbuf,
-		x          => 1,
-		y          => 1,
-		width      => $config->{'Width'},
-		height     => $config->{'Height'},
-		width_set  => TRUE,
-		height_set => TRUE,
-	);
-}
+change_backdrop("bg", $config->{'BGImage'});
 
 debug("Creating text areas");
 
@@ -855,7 +828,6 @@ sub process_input {
 			my $imgsth = $lyricDbh->prepare($imgquery) || die "Error : $!";
 			$imgsth->execute || die "Error : $!";
 
-
 			#Reset background if an image was shown
 			if ($bgimage_changed) {
 				$bgimage_changed = FALSE;
@@ -1185,12 +1157,42 @@ sub change_backdrop {
 		}
 	}
 
-	debug("Changing backdrop to " . $backdrop);
-	eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
-	if ($@) {
-		debug("Error loading backdrop");
+	if ($backdrop =~ /\.bg$/) {
+		$backdrop =~ s/^.*\/(.*?)\.bg$/$1/g;
+		debug("Changing backdrop colour to " . $backdrop);
+		if (defined $background) {
+			$background->destroy;
+		}
+
+		$background = Gnome2::Canvas::Item->new(
+			$root, 'Gnome2::Canvas::Rect', x1 => 0,
+			y1          => 0,
+			x2          => $config->{'Width'},
+			y2          => $config->{'Height'},
+			fill_color  => $backdrop,
+			width_units => 0
+		);
 	} else {
-		$background->set(pixbuf => $pixbuf);
+		debug("Changing backdrop image to " . $backdrop);
+		my $pixbuf;
+		eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
+
+		if ($@) {
+			debug("Error loading backdrop");
+		} else {
+			if (defined $background) {
+				$background->destroy;
+			}
+			$background = Gnome2::Canvas::Item->new(
+				$root, 'Gnome2::Canvas::Pixbuf', pixbuf => $pixbuf,
+				x          => 1,
+				y          => 1,
+				width      => $config->{'Width'},
+				height     => $config->{'Height'},
+				width_set  => TRUE,
+				height_set => TRUE,
+			);
+		}
 	}
 }    ## end sub change_backdrop
 

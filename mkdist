@@ -4,6 +4,7 @@ rm -rf dist/*
 
 mkdir dist/lyricue-$1
 cp images/black.png install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server access.conf default.conf dist/lyricue-$1
+for F in black white gray red green blue yellow orange;do touch dist/lyricue-$1/$F.bg;done
 
 mkdir dist/lyricue-$1/docs
 cp docs/AUTHORS docs/COPYING docs/Development.txt docs/example_song.txt docs/INSTALL docs/NEWS docs/README docs/song_template.txt docs/TODO docs/User_Guide.pdf dist/lyricue-$1/docs

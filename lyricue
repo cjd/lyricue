@@ -340,6 +340,7 @@ sub close_main {
 # SOURCE
 sub update_playlist {
 	my ($selectedid) = @_;
+	debug("Updating playlist");
 	my $selection =
 	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
 	if (!defined $selectedid) {
@@ -361,6 +362,10 @@ sub update_playlist {
 		  ->map_expanded_rows(\&save_expanded, \$expanded);
 		$model->clear;
 	} else {
+		# Column 1 -> Visible text
+		# Column 2 -> Reserved for future expansion
+		# Column 3 -> playorder
+		# Column 4 -> transition
 		$model =
 		  Gtk2::TreeStore->new('Glib::String', 'Glib::String', 'Glib::String',
 			'Glib::String');
@@ -369,10 +374,11 @@ sub update_playlist {
 		  Gtk2::TreeViewColumn->new_with_attributes("",
 			Gtk2::CellRendererText->new, text => 0);
 		$widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
-		$column =
-		  Gtk2::TreeViewColumn->new_with_attributes("",
-			Gtk2::CellRendererText->new, text => 1);
-		$widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
+		# Not used currently
+		#$column =
+		#  Gtk2::TreeViewColumn->new_with_attributes("",
+		#	Gtk2::CellRendererText->new, text => 1);
+		#$widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
 
 		$widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
 	}
@@ -504,7 +510,6 @@ sub add_playlist {
 			);
 		}
 
-
 		# Select what was selected
 		if (defined $selectedid && $row->{'playorder'} == $selectedid) {
 			$widgets->{'main'}->get_widget('treePlaylist')
@@ -513,7 +518,8 @@ sub add_playlist {
 
 		# Add sublists/playlists
 		if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
-			add_playlist($row->{'data'}, $newiter, $model, $selectedid, $expanded);
+			add_playlist($row->{'data'}, $newiter, $model, $selectedid,
+				$expanded);
 		}
 
 		if ($$expanded->{$playorder}) {
@@ -3027,27 +3033,39 @@ sub backdrop_clicked {
 			$prevFile =~ s/^BG://g;
 			my ($pixbuf);
 			my $image = find_image("bg", $widgets->{'buttonCurr'}->{user_data});
-			eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
-			if ($@) {
-				debug("Error loading "
-					. $widgets->{'buttonCurr'}->{user_data} . "\n");
+			if ($image =~ /\.bg$/) {
+				$image =~ s/^.*\/(.*?)\.bg$/$1/g;
+				my @xpm = ("1 1 1 1", "  c " . $image, " ");
+				$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
 			} else {
-				my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
-				$widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
-				$widgets->{'buttonPrev'}->{user_data} =
-				  $widgets->{'buttonCurr'}->{user_data};
+				eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
+				if ($@) {
+					debug("Error loading "
+						. $widgets->{'buttonCurr'}->{user_data} . "\n");
+					return FALSE;
+				}
 			}
+
+			my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
+			$widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
+			$widgets->{'buttonPrev'}->{user_data} =
+			  $widgets->{'buttonCurr'}->{user_data};
 			$image = find_image("bg", $prevFile);
-			eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
-			if ($@) {
-				debug("Error loading " . $prevFile);
+			if ($image =~ /\.bg$/) {
+				$image =~ s/^.*\/(.*?)\.bg$/$1/g;
+				my @xpm = ("1 1 1 1", "  c " . $image, " ");
+				$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
 			} else {
-				update_display("backdrop",  $prevFile, "");
-				preview_display("backdrop", $prevFile, "");
-				my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
-				$widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
-				$widgets->{'buttonCurr'}->{user_data} = $prevFile;
+				eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
+				if ($@) {
+					debug("Error loading " . $prevFile);
+				}
 			}
+			update_display("backdrop",  $prevFile, "");
+			preview_display("backdrop", $prevFile, "");
+			$scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
+			$widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
+			$widgets->{'buttonCurr'}->{user_data} = $prevFile;
 		}
 	}
 }
@@ -4920,7 +4938,7 @@ sub bgdir_load {
 	$widgets->{'main'}->get_widget('hboxBackImage')->hide();
 	my $counter = 0;
 	if ($globals->{'bg_previews'}) {
-		foreach (sort { uc($a) cmp uc($b) } @items) {
+		foreach (sort { uc($b) cmp uc($a) } @items) {
 
 			while (Gtk2->events_pending) {
 				Gtk2->main_iteration;
@@ -4928,8 +4946,15 @@ sub bgdir_load {
 			my ($pixbuf);
 			my $image = find_image("bg", $_);
 			eval {
-				$pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image)
-				  || print STDERR "error";
+				if ($image =~ /\.bg$/)
+				{
+					$image =~ s/^.*\/(.*?)\.bg$/$1/g;
+					my @xpm = ("1 1 1 1", "  c " . $image, " ");
+					$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
+				} else {
+					$pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image)
+					  || print STDERR "error";
+				}
 			};
 			if ($@) {
 				debug("error loading bg");

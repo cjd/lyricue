@@ -25,7 +25,14 @@ my $sharedir = "/usr/share/lds/";
 my $docdir = "/usr/share/doc/lds/";
 
 my %replace = ( $sharedir."images/black.png" => 0644,
-		$sharedir."backgrounds/black.png" => 0644,
+		$sharedir."backgrounds/Solid/black.bg" => 0644,
+		$sharedir."backgrounds/Solid/gray.bg" => 0644,
+		$sharedir."backgrounds/Solid/white.bg" => 0644,
+		$sharedir."backgrounds/Solid/red.bg" => 0644,
+		$sharedir."backgrounds/Solid/green.bg" => 0644,
+		$sharedir."backgrounds/Solid/blue.bg" => 0644,
+		$sharedir."backgrounds/Solid/yellow.bg" => 0644,
+		$sharedir."backgrounds/Solid/orange.bg" => 0644,
 		$sharedir."lyricue.png" => 0644,
 		$sharedir."lyricue-icon.png" => 0644,
 		$sharedir."lyricue.glade" => 0644,
@@ -37,7 +44,7 @@ my %addonly = (	$etcdir."access.conf" => 0644,
 		);
 
 print "Creating directories:\n";
-foreach my $dir ( $bindir,$etcdir,$sharedir,$docdir,$sharedir."images",$sharedir."backgrounds") {
+foreach my $dir ( $bindir,$etcdir,$sharedir,$docdir,$sharedir."images",$sharedir."backgrounds", $sharedir."backgrounds/Solid") {
 	print "dir -> ".$dir."\n";
 	mkdir $dir,0755;
 }
