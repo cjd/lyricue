@@ -3011,6 +3011,7 @@ sub backdrop_clicked {
 				debug("Error loading " . $prevFile . "\n");
 			} else {
 				update_display("backdrop", $prevFile, "");
+				preview_display("backdrop", $prevFile, "");
 				my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
 				$widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
 				$widgets->{'buttonCurr'}->{user_data} = $prevFile;
@@ -4736,6 +4737,27 @@ sub init_mainWindow {
 	$widgets->{'main'}->get_widget('treePlaylist')
 	  ->drag_dest_set('all', ['copy'], @target_table);
 
+
+	my $socket = Gtk2::Socket->new;
+	$socket->show;
+	$socket->set_size_request(280,210);
+	$widgets->{'main'}->get_widget('framePreview')->add($socket);
+	printf("$^X ./lyricue_server -m %d\n", $socket->get_id);
+
+	my $pid = fork;
+	if ($pid<0) {
+		die "There's a problem here";
+	}
+	if ($pid == 0) {
+		exec (sprintf("$^X ./lyricue_server -m %d\n", $socket->get_id));
+	}
+
+	$socket->signal_connect('plug-removed' => sub {
+		print STDERR "GtkPlug Disconnected\n";
+		$widgets->{'main'}->get_widget('vboxPreview')->remove($socket);
+		1;
+	});
+	
 	# Show the window finally
 	$widgets->{'main'}->get_widget('windowMain')->show;
 	if (!$globals->{'debugging'}) {
