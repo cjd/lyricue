@@ -346,19 +346,6 @@ while (Gtk2->events_pending) {
 	Gtk2->main_iteration;
 }
 
-# Load tmpconf if there
-if (open(TMPCONF, "/tmp/lyric.conf")) {
-	debug("Temp config exists, loading");
-	my $ci = <TMPCONF>;
-	chomp $ci;
-	my $bg = <TMPCONF>;
-	chomp $bg;
-	close TMPCONF;
-	update_display("display",  $ci, 0);
-	update_display("backdrop", $bg, 0);
-	unlink "/tmp/lyric.conf";
-}
-
 # set window attributes and show it
 debug("Showing window");
 $window->show_all();
@@ -435,14 +422,7 @@ sub process_input {
 			  . $globals->{'bibledb'};
 		} elsif (/^reconfig$/) {
 		    	$config = load_config();
-		} elsif (/^reload$/) {
-			open(TMPCONF, ">/tmp/lyric.conf");
-			print TMPCONF $current_item . "\n";
-			print TMPCONF $config->{'BGImage'} . "\n";
-			close TMPCONF;
-			close $socket;
-			exit 10;
-			$status = "Configuration reloaded";
+				$status = "Configuration reloaded"
 		} elsif (/^backdrop$/) {
 			$config->{'BGImage'} = $line[1];
 			change_backdrop("bg", $config->{'BGImage'});
