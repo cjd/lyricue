@@ -202,7 +202,9 @@ associations (
   id int(11) NOT NULL auto_increment,      # Unique id
   playlist int(11) NOT NULL default '0',   # playorder this item is linked to
   imagename varchar(255) NOT NULL default '', # Imageid from mediaDb
-  absoluteparent int(11) NOT NULL default '0', # don't know (Clint?)
+  absoluteparent int(11) NOT NULL default '0', # Top-level Playlist (enables the clearing
+						# of all associations from a playlist
+						# without the need to go recursive).
   PRIMARY KEY  (id)
 )
 

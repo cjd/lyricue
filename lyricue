@@ -954,13 +954,27 @@ sub do_delete_song {
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my $disable = 0;
 	while (my @row = $sth->fetchrow_array()) {
+
 		my $query2 = "DELETE FROM playlist WHERE playorder=" . $row[0];
 		my $sth2   = $lyricDbh->prepare($query2)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		my $rv2 = $sth2->execute
 		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		$disable = 1;
 	}
+	if ($disable==1) {
+	        #Cancel any loop timers
+		#Continuing to loop over a modified playlists due to
+		#removed items represents a possible crash risk - better safe
+		#than sorry.
+		#
+        	debug("Cancelling loop timers");
+        	Glib::Source->remove($globals->{'timer'});
+		#   
+	}
+
 }
 
 #***
@@ -1916,6 +1930,15 @@ sub add_single_song {
 # SOURCE
 #
 sub remove_from_playlist {
+        #Cancel any loop timers
+	#Continuing to loop over possibly removed playlist
+	#items represents a major crash risk - better safe
+	#than sorry.
+	#
+        debug("Cancelling loop timers");
+        Glib::Source->remove($globals->{'timer'});
+	#                                
+	
 	my $selection =
 	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
 	debug("Remove from playlist clicked");
@@ -1944,6 +1967,17 @@ sub remove_from_playlist {
 sub remove_single_item {
 	my ($item) = @_;
 
+        #Cancel any loop timers
+	#
+	#Continuing to loop over possibly removed playlist
+	#items represents a major crash risk - better safe
+	#than sorry.
+	#                                
+        debug("Cancelling loop timers");
+        Glib::Source->remove($globals->{'timer'});
+	#
+		
+		                                                        
 	debug("Deleting $item");
 	my $query = "SELECT type,data  FROM playlist WHERE playorder=" . $item;
 	qdebug($query);
@@ -2006,6 +2040,15 @@ sub remove_single_item {
 sub clear_playlist {
 	my ($widget) = @_;
 
+        #Cancel any loop timers
+	#Continuing to loop over *definitely* removed playlist
+	#items represents a major crash risk - better safe
+	#than sorry.
+	#
+        debug("Cancelling loop timers");
+        Glib::Source->remove($globals->{'timer'});
+	#                                                                    
+	
 	my $main_playlist =
 	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
 
@@ -2146,8 +2189,8 @@ sub display_now {
 	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
-		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($globals->{'timer'});
+        	debug("Cancelling loop timers");
+        	Glib::Source->remove($globals->{'timer'});
 	}
 
 	my $selection =
@@ -2178,8 +2221,8 @@ sub prev_page {
 	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
-		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($globals->{'timer'});
+        	debug("Cancelling loop timers");
+        	Glib::Source->remove($globals->{'timer'});
 	}
 
 	debug("Prev clicked");
@@ -2206,8 +2249,8 @@ sub next_page {
 	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
-		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($globals->{'timer'});
+        	debug("Cancelling loop timers");
+        	Glib::Source->remove($globals->{'timer'});
 	}
 
 	debug("Next clicked");
@@ -2234,8 +2277,8 @@ sub prev_song {
 	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
-		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($globals->{'timer'});
+        	debug("Cancelling loop timers");
+        	Glib::Source->remove($globals->{'timer'});
 	}
 
 	debug("Prev clicked");
@@ -2262,8 +2305,8 @@ sub next_song {
 	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
-		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($globals->{'timer'});
+        	debug("Cancelling loop timers");
+        	Glib::Source->remove($globals->{'timer'});
 	}
 
 	debug("Next clicked");
@@ -2290,8 +2333,8 @@ sub blank_page {
 	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
-		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($globals->{'timer'});
+        	debug("Cancelling loop timers");
+        	Glib::Source->remove($globals->{'timer'});
 	}
 
 	debug("Blank page clicked");
@@ -2337,8 +2380,8 @@ sub preview_page {
 	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
-		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($globals->{'timer'});
+        	debug("Cancelling loop timers");
+        	Glib::Source->remove($globals->{'timer'});
 	}
 
 	my $current_page =
