@@ -888,10 +888,17 @@ sub process_input {
 							if ($row->{'data'} =~ /$fileobj/i) {
 								$exec_pid = fork;
 								if ($exec_pid > 0) {
-									my $wid =
-`xwininfo -name Lyrics |grep "Window id:" | cut -f4 -d" "`;
-									exec('mplayer '
-										. $row->{'data'} . ' -wid ' . $wid);
+									#my $wid = `xwininfo -name "Lyric Server" |grep "Window id:" | cut -f4 -d" "`;
+									my $command = "mplayer " . $row->{'data'};
+									if ($MINISERV >= 0) {
+										my ($x,$y,$wid,$high,$depth) = $window->window->get_geometry;
+										($x,$y) = $window->window->get_root_origin;
+										$command .= " -ao null -nofs -geometry ".$wid."x".$high."+".$x."+".$y;
+									} else {
+										system ($command);
+										print $command."\n";
+									}
+									#system('mplayer ' . $row->{'data'} . ' -wid ' . $wid);
 								}
 							}
 						}
