@@ -5404,13 +5404,13 @@ sub on_treeSearch_drag_data_get {
 sub on_treePlaylist_drag_data_received {
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
     debug("Dropped on playlist");
-    if (($data->length >= 0) && ($data->format == 8)) {
-        debug("Recieved " . $data->data);
-        add_single_song($data->data);
-        update_playlist();
-        $context->finish(1, 0, $time);
-        return;
-    }
+    #if (($data->length >= 0) && ($data->format == 8)) {
+        #debug("Recieved " . $data->data);
+        #add_single_song($data->data);
+        #update_playlist();
+        #$context->finish(1, 0, $time);
+        #return;
+    #}
     $context->finish(0, 0, $time);
 }
 
