@@ -101,11 +101,11 @@ textdomain('lyricue');
 
 # Hack to get this working under mandrake
 use lib qw(/usr/lib/libDrakX);
-eval {require c::stuff};
+eval { require c::stuff };
 if ($@) {
-	bind_textdomain_codeset('lyricue', "UTF-8");
+    bind_textdomain_codeset('lyricue', "UTF-8");
 } else {
-	c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
+    c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
 }
 
 #
@@ -2258,8 +2258,6 @@ sub clear_playlist {
 # SOURCE
 #
 sub display_song {
-    use Data::Dumper;
-    #print Dumper(@_);
     my (undef, $event) = @_;
     print "event $event\n";
     if (defined($event->type)) {
@@ -2653,12 +2651,12 @@ sub add_image {
         $widgets->{'image'}->get_widget('treeImage')->{data} = ();
     } else {
         $widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
-	my $renderer = Gtk2::CellRendererText->new;
-	$renderer->set("editable", TRUE);
-	$renderer->signal_connect("edited","rename_media");
+        my $renderer = Gtk2::CellRendererText->new;
+        $renderer->set("editable", TRUE);
+        $renderer->signal_connect("edited", "rename_media");
         my $column =
-          Gtk2::TreeViewColumn->new_with_attributes("Filename",
-            $renderer, text => 0);
+          Gtk2::TreeViewColumn->new_with_attributes("Filename", $renderer,
+            text => 0);
         $column->signal_connect("clicked", "change_preview");
         $widgets->{'image'}->get_widget('treeImage')->append_column($column);
         $widgets->{'image'}->get_widget('treeImage')
@@ -5325,24 +5323,25 @@ sub change_bgimage {
     {
         $widgets->{'image'}->get_widget('treeImage')->{data} = ();
     } else {
-	if ($widgets->{'prefs'}) {
-        	$bgimage = $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
-        	$widgets->{'image'}->get_widget('buttonImageOK')
-        	  ->set_label(gettext("Set as Default"));
-        	$widgets->{'image'}->get_widget('buttonImageOK')
-        	  ->signal_connect('clicked', "set_default_backdrop");
-	} else {
-        	$widgets->{'image'}->get_widget('buttonImageCancel')->hide();
-        	$widgets->{'image'}->get_widget('buttonImageOK')
-        	  ->signal_connect('clicked', "close_dialog");
-	}
+        if ($widgets->{'prefs'}) {
+            $bgimage =
+              $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
+            $widgets->{'image'}->get_widget('buttonImageOK')
+              ->set_label(gettext("Set as Default"));
+            $widgets->{'image'}->get_widget('buttonImageOK')
+              ->signal_connect('clicked', "set_default_backdrop");
+        } else {
+            $widgets->{'image'}->get_widget('buttonImageCancel')->hide();
+            $widgets->{'image'}->get_widget('buttonImageOK')
+              ->signal_connect('clicked', "close_dialog");
+        }
         $widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
-	my $renderer = Gtk2::CellRendererText->new;
-	$renderer->set("editable", TRUE);
-	$renderer->signal_connect("edited","rename_media");
+        my $renderer = Gtk2::CellRendererText->new;
+        $renderer->set("editable", TRUE);
+        $renderer->signal_connect("edited", "rename_media");
         my $column =
-          Gtk2::TreeViewColumn->new_with_attributes("Filename",
-            $renderer, text => 0);
+          Gtk2::TreeViewColumn->new_with_attributes("Filename", $renderer,
+            text => 0);
         $column->signal_connect("clicked", "change_preview");
         $widgets->{'image'}->get_widget('treeImage')->append_column($column);
     }
@@ -5404,12 +5403,13 @@ sub on_treeSearch_drag_data_get {
 sub on_treePlaylist_drag_data_received {
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
     debug("Dropped on playlist");
+
     #if (($data->length >= 0) && ($data->format == 8)) {
-        #debug("Recieved " . $data->data);
-        #add_single_song($data->data);
-        #update_playlist();
-        #$context->finish(1, 0, $time);
-        #return;
+    #debug("Recieved " . $data->data);
+    #add_single_song($data->data);
+    #update_playlist();
+    #$context->finish(1, 0, $time);
+    #return;
     #}
     $context->finish(0, 0, $time);
 }
@@ -5842,17 +5842,21 @@ sub init_miniview {
 
 sub quick_save {
     debug("Quick Save");
-    my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
-    my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
+    my $buffer    = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
+    my $songtext  = $buffer->get_text($buffer->get_bounds, FALSE);
     my $playorder = $widgets->{'main'}->get_widget('textQuick')->{user_data};
-    my $query = "SELECT data FROM playlist WHERE playorder=".$playorder;
+    my $query     = "SELECT data FROM playlist WHERE playorder=" . $playorder;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my @row = $sth->fetchrow_array();
     if (!defined $row[0]) { $row[0] = ""; }
-    $query = "UPDATE page SET lyrics=".$lyricDbh->quote(Encode::encode("iso-8859-1",$songtext))." WHERE pageid=".$row[0];
+    $query =
+        "UPDATE page SET lyrics="
+      . $lyricDbh->quote(Encode::encode("iso-8859-1", $songtext))
+      . " WHERE pageid="
+      . $row[0];
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -6051,7 +6055,8 @@ sub update_quickedit {
         if (!defined $row[0]) { $row[0] = ""; }
         $widgets->{'main'}->get_widget('textQuick')
           ->get_buffer->set_text($row[0]);
-	$widgets->{'main'}->get_widget('textQuick')->{user_data}=$model->get($iter,2);
+        $widgets->{'main'}->get_widget('textQuick')->{user_data} =
+          $model->get($iter, 2);
         $sth->finish;
     }
 }
@@ -6102,16 +6107,25 @@ sub media_delete {
 }
 
 sub rename_media {
-	my ($widget,$id,$newname) = @_;
-	my $oldname = $widget->get('text');
-	if ($oldname ne $newname) {
-		my $iter = $widgets->{'image'}->get_widget('treeImage')->get_model->get_iter_from_string($id);
-		$id = $widgets->{'image'}->get_widget('treeImage')->get_model->get($iter, 1);
-		debug("Renaming media from $oldname to $newname");
-		my $query = "UPDATE media SET description=\"$newname\" WHERE id=$id";
-		qdebug($query);
-		my $sth = $mediaDbh->prepare($query) || display_fatal($errorcodes->{'sqlprepare'}, $!);
-		my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-		update_imagedir( $widgets->{'image'}->get_widget('labelImage')->{'user_data'}, $widgets->{'image'}->get_widget('labelImage')->get_text());
-	}
+    my ($widget, $id, $newname) = @_;
+    my $oldname = $widget->get('text');
+    if ($oldname ne $newname) {
+        my $iter =
+          $widgets->{'image'}->get_widget('treeImage')
+          ->get_model->get_iter_from_string($id);
+        $id =
+          $widgets->{'image'}->get_widget('treeImage')
+          ->get_model->get($iter, 1);
+        debug("Renaming media from $oldname to $newname");
+        my $query = "UPDATE media SET description=\"$newname\" WHERE id=$id";
+        qdebug($query);
+        my $sth = $mediaDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        update_imagedir(
+            $widgets->{'image'}->get_widget('labelImage')->{'user_data'},
+            $widgets->{'image'}->get_widget('labelImage')->get_text()
+        );
+    }
 }

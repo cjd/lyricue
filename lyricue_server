@@ -78,7 +78,8 @@ use DBI;
 use POSIX;
 use IO::Socket::INET;    #use Socket;
 use Encode;
-die "The gtk2-perl bindings could not be initialized; we need them to run!\n" unless ( Gtk2->init_check );
+die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
+  unless (Gtk2->init_check);
 use Gtk2::Pango;
 use Gtk2::GladeXML;
 use Gtk2::Gdk::Keysyms;
@@ -86,15 +87,15 @@ use Gnome2::Canvas;
 use Glib;
 use Locale::gettext;
 textdomain('lyricue');
+
 # Hack to get this working under mandrake
 use lib qw(/usr/lib/libDrakX);
-eval {require c::stuff};
+eval { require c::stuff };
 if ($@) {
-	bind_textdomain_codeset('lyricue', "UTF-8");
+    bind_textdomain_codeset('lyricue', "UTF-8");
 } else {
-	c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
+    c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
 }
-
 
 # convenience variables for true and false
 use constant FALSE => 0;
@@ -156,14 +157,28 @@ my ($background);
 my @points;
 
 my ($errorcodes);
-$errorcodes->{'lyricdbopen'} =
-Encode::decode("utf-8", gettext("I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running"));
-$errorcodes->{'bibledbopen'} =
-Encode::decode("utf-8", gettext("I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named ")),
-  $errorcodes->{'sqlprepare'} = Encode::decode("utf-8", gettext("Unable to prepare query.\nHas mysql died?"));
-$errorcodes->{'sqlexecute'}   = Encode::decode("utf-8", gettext("Unable to execute query.\nHas mysql died?"));
-$errorcodes->{'socketopen'}   =
-Encode::decode("utf-8", gettext("Sorry, I was unable to listen on the network.\nPlease make sure I am not already running"));
+$errorcodes->{'lyricdbopen'} = Encode::decode(
+    "utf-8",
+    gettext(
+"I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running"
+    )
+);
+$errorcodes->{'bibledbopen'} = Encode::decode(
+    "utf-8",
+    gettext(
+"I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named "
+    )
+  ),
+  $errorcodes->{'sqlprepare'} =
+  Encode::decode("utf-8", gettext("Unable to prepare query.\nHas mysql died?"));
+$errorcodes->{'sqlexecute'} =
+  Encode::decode("utf-8", gettext("Unable to execute query.\nHas mysql died?"));
+$errorcodes->{'socketopen'} = Encode::decode(
+    "utf-8",
+    gettext(
+"Sorry, I was unable to listen on the network.\nPlease make sure I am not already running"
+    )
+);
 
 #***
 
@@ -183,75 +198,77 @@ Encode::decode("utf-8", gettext("Sorry, I was unable to listen on the network.\n
 
 # Parse command line arguments
 if ($ARGV[0]) {
-	foreach (0 .. (@ARGV - 1)) {
-		if ($ARGV[$_] eq "-v") {
-			print "Lyricue Server version " . $globals->{'version'} . "\n";
-			exit;
-		} elsif ($ARGV[$_] eq "-d") {
-			$DEBUG = 1;
-		} elsif ($ARGV[$_] eq "-m") {
-			$MINISERV = $ARGV[$_ + 1];
-			if (!$MINISERV =~ /\d+$/) {
-				$MINISERV = 0;
-			}
-		} elsif ($ARGV[$_] eq "-p") {
-			$globals->{'use_port'} = $ARGV[$_ + 1];
-		} elsif ($ARGV[$_] =~ /^\d+$/) {
-		} else {
-			print "\nUsage: lyricue_server <-v> <-m> <-c> <-d>\n\n";
-			print "\t-v: Prints Lyricue version information & exits\n";
-			print "\t-m: Runs in miniserv mode (acts as a preview window)\n";
-			print "\t-d: Prints debugging messages\n";
-			exit;
-		}
-	}    ## end foreach (0 .. (@ARGV - 1))
-}    ## end if ($ARGV[0])
+    foreach (0 .. (@ARGV - 1)) {
+        if ($ARGV[$_] eq "-v") {
+            print "Lyricue Server version " . $globals->{'version'} . "\n";
+            exit;
+        } elsif ($ARGV[$_] eq "-d") {
+            $DEBUG = 1;
+        } elsif ($ARGV[$_] eq "-m") {
+            $MINISERV = $ARGV[$_ + 1];
+            if (!$MINISERV =~ /\d+$/) {
+                $MINISERV = 0;
+            }
+        } elsif ($ARGV[$_] eq "-p") {
+            $globals->{'use_port'} = $ARGV[$_ + 1];
+        } elsif ($ARGV[$_] =~ /^\d+$/) {
+        } else {
+            print "\nUsage: lyricue_server <-v> <-m> <-c> <-d>\n\n";
+            print "\t-v: Prints Lyricue version information & exits\n";
+            print "\t-m: Runs in miniserv mode (acts as a preview window)\n";
+            print "\t-d: Prints debugging messages\n";
+            exit;
+        }
+    } ## end foreach (0 .. (@ARGV - 1))
+} ## end if ($ARGV[0])
 
 # Read the config file
 if (!-w $globals->{'configfile'}) {
-	if (!-d $globals->{'basedir'}) {
-		mkdir $globals->{'basedir'}, 0777;
-	}
-	system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
+    if (!-d $globals->{'basedir'}) {
+        mkdir $globals->{'basedir'}, 0777;
+    }
+    system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
 }
 my $config = load_config();
 my ($contents, @preset);
 if (!($config->{'Colour'})) {
-	$config->{'Colour'} = "#ffffff";
+    $config->{'Colour'} = "#ffffff";
 }
 
 foreach (keys %$config) {
-	if (/^Preset/) {
-		my $num = $_;
-		$num =~ s/^Preset//g;
-		$preset[$num] = $config->{$_};
-	} elsif (/^DefBible/) {
-		my @tmp = split (/;/, $config->{$_}, 2);
-		$globals->{'biblename'} = $tmp[0];
-		$globals->{'bibledb'}   = $tmp[1];
-	}
+    if (/^Preset/) {
+        my $num = $_;
+        $num =~ s/^Preset//g;
+        $preset[$num] = $config->{$_};
+    } elsif (/^DefBible/) {
+        my @tmp = split(/;/, $config->{$_}, 2);
+        $globals->{'biblename'} = $tmp[0];
+        $globals->{'bibledb'}   = $tmp[1];
+    }
 }
 
 my $pid =
 `ps -e -o pid,cmd | grep "Lyricue Server on port $globals->{'use_port'}" | grep -v "grep" |sed -e 's/^ *//g' | cut -f1 -d" " `;
 chomp($pid);
 if ($pid) {
-	debug("Lyricue Server was already running on given port, killing");
-	kill 9, $pid;
+    debug("Lyricue Server was already running on given port, killing");
+    kill 9, $pid;
 }
 
 # Open lyricDB and bibleDB
 my $lyricDbh =
-  DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}", "lyric",
-	"") || display_fatal($errorcodes->{'lyricdbopen'}, $!);
+  DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}",
+    "lyric", "")
+  || display_fatal($errorcodes->{'lyricdbopen'}, $!);
 
 my $mediaDbh =
-  DBI->connect("DBI:mysql:$globals->{'mediadb'}:$globals->{'host'}", "lyric",
-	"") || display_fatal($errorcodes->{'mediadbopen'}, $!);
+  DBI->connect("DBI:mysql:$globals->{'mediadb'}:$globals->{'host'}",
+    "lyric", "")
+  || display_fatal($errorcodes->{'mediadbopen'}, $!);
 
 my $bibleDbh =
-  DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}", "lyric",
-	"")
+  DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}",
+    "lyric", "")
   || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'}, $!);
 
 # Create the window
@@ -262,42 +279,45 @@ my ($headerText, $mainText, $mainTextShadow, $footerText);
 my ($pixmap, $textcol);
 
 if ($MINISERV > 0) {
-	$window = Gtk2::Plug->new($MINISERV);
+    $window = Gtk2::Plug->new($MINISERV);
 } else {
-	$window = new Gtk2::Window->new('toplevel');
+    $window = new Gtk2::Window->new('toplevel');
 }
 $window->set_title("Lyric Server");
 
 while (Gtk2->events_pending) {
-	Gtk2->main_iteration;
+    Gtk2->main_iteration;
 }
 
 if ($MINISERV >= 0) {
-	$window->show();
-	$window->realize();
-	my $width  = $config->{'Width'};
-	my $height = $config->{'Height'};
-	my ($width2, $height2) = $window->get_size();
-	$MINISCALE = $width / $width2;
-	$width  /= $MINISCALE;
-	$height /= $MINISCALE;
+    $window->show();
+    $window->realize();
+    my $width  = $config->{'Width'};
+    my $height = $config->{'Height'};
+    my ($width2, $height2) = $window->get_size();
+    $MINISCALE = $width / $width2;
+    $width  /= $MINISCALE;
+    $height /= $MINISCALE;
 
-	debug("Running in MINISERV (preview window) mode");
-	debug("W * H:" . $width . "*" . $height);
+    debug("Running in MINISERV (preview window) mode");
+    debug("W * H:" . $width . "*" . $height);
 } else {
-	$window->show();
-	$window->fullscreen();
-	my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
-	my $cursor =
-	  Gtk2::Gdk::Cursor->new_from_pixmap($bitmap, $bitmap,
-		Gtk2::Gdk::Color->new(0, 0, 0), Gtk2::Gdk::Color->new(0, 0, 0), 0, 0);
-	$window->window->set_cursor($cursor);
+    $window->show();
+    $window->fullscreen();
+    my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
+    my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap(
+        $bitmap, $bitmap,
+        Gtk2::Gdk::Color->new(0, 0, 0),
+        Gtk2::Gdk::Color->new(0, 0, 0),
+        0, 0
+    );
+    $window->window->set_cursor($cursor);
 
-	debug("Running in SERVER (normal) mode");
+    debug("Running in SERVER (normal) mode");
 }
 
 while (Gtk2->events_pending) {
-	Gtk2->main_iteration;
+    Gtk2->main_iteration;
 }
 
 my $canvas = Gnome2::Canvas->new();
@@ -305,7 +325,8 @@ $canvas->set_scroll_region(1, 1, $config->{'Width'}, $config->{'Height'});
 $canvas->set_center_scroll_region(TRUE);
 $canvas->set_pixels_per_unit(1 / $MINISCALE);
 my $aspect = $config->{'Width'} / $config->{'Height'};
-my $geom = Gtk2::Gdk::Geometry->new;   #= {
+my $geom   = Gtk2::Gdk::Geometry->new;                   #= {
+
 #'min_aspect' => $aspect,
 #	'min_aspect' => $aspect,
 #};
@@ -330,18 +351,20 @@ debug("Creating text areas");
 # Create the area for lyrics and set styles
 # Song lyrics - Middle of screen
 $mainText = Gnome2::Canvas::Item->new(
-	$root, 'Gnome2::Canvas::RichText', x => 0,
-	y                => 0,
-	width            => 0,
-	height           => 0,
-	anchor           => 'GTK_ANCHOR_CENTER',
-	'cursor-visible' => FALSE
+    $root, 'Gnome2::Canvas::RichText',
+    x                => 0,
+    y                => 0,
+    width            => 0,
+    height           => 0,
+    anchor           => 'GTK_ANCHOR_CENTER',
+    'cursor-visible' => FALSE
 );
 my $buffer = $mainText->get_buffer();
-my $tag2   =
-  $buffer->create_tag("Main", "font", $config->{'Main'}, "foreground",
-	$config->{'Colour'}, "wrap-mode", "word", "editable-set", TRUE, "editable",
-	FALSE);
+my $tag2   = $buffer->create_tag(
+    "Main",              "font",      $config->{'Main'}, "foreground",
+    $config->{'Colour'}, "wrap-mode", "word",            "editable-set",
+    TRUE,                "editable",  FALSE
+);
 $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
 
 # callback registration
@@ -356,12 +379,12 @@ my $con = 0;
 my ($name, $aliases, $proto) = getprotobyname('tcp');
 
 if ($globals->{'use_port'} !~ /^\d+$/) {
-	($name, $aliases, $globals->{'use_port'}) =
-	  getservbyport($globals->{'use_port'}, 'tcp');
+    ($name, $aliases, $globals->{'use_port'}) =
+      getservbyport($globals->{'use_port'}, 'tcp');
 }
 
 while (Gtk2->events_pending) {
-	Gtk2->main_iteration;
+    Gtk2->main_iteration;
 }
 
 # set window attributes and show it
@@ -371,7 +394,7 @@ $window->signal_connect("configure_event", \&Configure_event);
 Configure_event();
 
 if (!$MINISERV) {
-	$canvas->update_now();
+    $canvas->update_now();
 }
 
 debug("Done");
@@ -380,10 +403,10 @@ debug("Main program running");
 
 my $sockaddr = 'S n a4 x8';
 $socket = IO::Socket::INET->new(
-	Listen    => SOMAXCONN,
-	LocalPort => $globals->{'use_port'},
-	Reuse     => 1,
-	Proto     => 'tcp'
+    Listen    => SOMAXCONN,
+    LocalPort => $globals->{'use_port'},
+    Reuse     => 1,
+    Proto     => 'tcp'
 );
 $socket or display_fatal($errorcodes->{'socketopen'}, $!);
 $0 = "Lyricue Server on port " . $globals->{'use_port'};
@@ -394,13 +417,13 @@ debug("Listening on " . $globals->{'use_port'});
 
 # Gtk event loop
 while (1) {
-	my @ready = $s->can_read(1);
-	foreach $h (@ready) {
-		check_socket($socket);
-	}
-	while (Gtk2->events_pending) {
-		Gtk2->main_iteration;
-	}
+    my @ready = $s->can_read(1);
+    foreach $h (@ready) {
+        check_socket($socket);
+    }
+    while (Gtk2->events_pending) {
+        Gtk2->main_iteration;
+    }
 }
 
 # Should never get here
@@ -422,665 +445,681 @@ exit(0);
 # SOURCE
 #
 sub process_input {
-	debug("\n\nBeginning transaction from socket");
-	my ($input) = @_;
-	my $status = "";
+    debug("\n\nBeginning transaction from socket");
+    my ($input) = @_;
+    my $status = "";
 
-	debug("Received :" . $input);
-	if ($input) {
-		chomp($input);
-		my @line = split (/:/, $input);
-		$_ = lc($line[0]);
+    debug("Received :" . $input);
+    if ($input) {
+        chomp($input);
+        my @line = split(/:/, $input);
+        $_ = lc($line[0]);
 
-		if (/^status$/) {
-			$status = "Status,W:"
-			  . $config->{'Width'} . ",H:"
-			  . $config->{'Height'} . ",F:"
-			  . $config->{'Main'} . ",B:"
-			  . $globals->{'bibledb'};
-		} elsif (/^reconfig$/) {
-			$config = load_config();
-			$status = "Configuration reloaded";
-		} elsif (/^backdrop$/) {
-			$config->{'BGImage'} = $line[1];
-			change_backdrop($config->{'BGImage'});
-			$status = "Backdrop changed to " . $config->{'BGImage'};
-		} elsif (/^blank$/) {
-			set_header("");
-			set_maintext("", NONE);
-			set_footer("");
-			$status = "Screen blanked";
-		} elsif (/^change_to_db$/) {
-			my $newdb = $line[1];
-			$globals->{'biblename'} = $line[2];
-			$globals->{'biblename'} =~ s/_//g;
-			change_to_db($newdb);
-			$status =
-			  "Bible changed to "
-			  . $globals->{'biblename'} . " (DB: " . $newdb . ").";
-		} elsif (/^next_point$/) {
-			if ($current_point > -1 && scalar(@points) > $current_point + 1) {
-				my $pointtext = "";
-				$current_point++;
+        if (/^status$/) {
+            $status = "Status,W:"
+              . $config->{'Width'} . ",H:"
+              . $config->{'Height'} . ",F:"
+              . $config->{'Main'} . ",B:"
+              . $globals->{'bibledb'};
+        } elsif (/^reconfig$/) {
+            $config = load_config();
+            $status = "Configuration reloaded";
+        } elsif (/^backdrop$/) {
+            $config->{'BGImage'} = $line[1];
+            change_backdrop($config->{'BGImage'});
+            $status = "Backdrop changed to " . $config->{'BGImage'};
+        } elsif (/^blank$/) {
+            set_header("");
+            set_maintext("", NONE);
+            set_footer("");
+            $status = "Screen blanked";
+        } elsif (/^change_to_db$/) {
+            my $newdb = $line[1];
+            $globals->{'biblename'} = $line[2];
+            $globals->{'biblename'} =~ s/_//g;
+            change_to_db($newdb);
+            $status =
+                "Bible changed to "
+              . $globals->{'biblename'}
+              . " (DB: "
+              . $newdb . ").";
+        } elsif (/^next_point$/) {
+            if ($current_point > -1 && scalar(@points) > $current_point + 1) {
+                my $pointtext = "";
+                $current_point++;
 
-				#Add all points up and including to current point
-				for (my $count = 1 ; $count <= $current_point ; $count++) {
-					$pointtext .= $points[$count];
-				}
+                #Add all points up and including to current point
+                for (my $count = 1 ; $count <= $current_point ; $count++) {
+                    $pointtext .= $points[$count];
+                }
 
-				#Now figure out how many \n's to add
-				if (my @original = ((join "", @points) =~ /\n/g)) {
-					if (my @pt = $pointtext =~ /\n/g) {
-						for (my $ns = 0 ;
-							$ns < scalar(@original) - scalar(@pt) ; $ns++
-						  )
-						{
-							$pointtext .= "\n";
-						}
-					}
-				}
+                #Now figure out how many \n's to add
+                if (my @original = ((join "", @points) =~ /\n/g)) {
+                    if (my @pt = $pointtext =~ /\n/g) {
+                        for (
+                            my $ns = 0 ;
+                            $ns < scalar(@original) - scalar(@pt) ;
+                            $ns++
+                          )
+                        {
+                            $pointtext .= "\n";
+                        }
+                    }
+                }
 
-				$pointtext =~ s/<.*?>//g;
-				set_maintext($pointtext, NONE);
-			} else {
-				debug("Cannont advance one point - no points waiting");
-			}
-		} elsif (/^preview$/) {
-			$line[1] =~ s/#SEMI#/:/g;
-			my @extras = split (/#BREAK#/, $line[1]);
-			set_header($extras[0]);
-			$line[2] =~ s/#BREAK#/\n/g;
-			$line[2] =~ s/#SEMI#/:/g;
-			$line[2] =~ s/<.*?>//g;
-			set_maintext($line[2], NONE);
+                $pointtext =~ s/<.*?>//g;
+                set_maintext($pointtext, NONE);
+            } else {
+                debug("Cannont advance one point - no points waiting");
+            }
+        } elsif (/^preview$/) {
+            $line[1] =~ s/#SEMI#/:/g;
+            my @extras = split(/#BREAK#/, $line[1]);
+            set_header($extras[0]);
+            $line[2] =~ s/#BREAK#/\n/g;
+            $line[2] =~ s/#SEMI#/:/g;
+            $line[2] =~ s/<.*?>//g;
+            set_maintext($line[2], NONE);
 
-			if ($extras[2]) {
-				set_footer(gettext("Written by ") . $extras[1] . " - " . $extras[2]);
-			} else {
-				if ($extras[1]) {
-					set_footer(gettext("Written by ") . $extras[1]);
-				}
-			}
-		} elsif (/^loopparent$/) {
-			$LOOPPARENT = $line[1];
-			debug("Set loop parent to: " . $LOOPPARENT);
-		} elsif (/^display$/ && $line[1] ne "") {
+            if ($extras[2]) {
+                set_footer(
+                    gettext("Written by ") . $extras[1] . " - " . $extras[2]);
+            } else {
+                if ($extras[1]) {
+                    set_footer(gettext("Written by ") . $extras[1]);
+                }
+            }
+        } elsif (/^loopparent$/) {
+            $LOOPPARENT = $line[1];
+            debug("Set loop parent to: " . $LOOPPARENT);
+        } elsif (/^display$/ && $line[1] ne "") {
 
-			#
-			# Change it to lowercase
-			$line[1] = lc($line[1]);
+            #
+            # Change it to lowercase
+            $line[1] = lc($line[1]);
 
-			# display new lyrics
-			my $query =
-			  "SELECT * FROM playlist WHERE playorder=" . $current_item;
-			debug($query);
-			my $sth = $lyricDbh->prepare($query)
-			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-			my $rv = $sth->execute
-			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-			my $current_play = $sth->fetchrow_hashref();
+            # display new lyrics
+            my $query =
+              "SELECT * FROM playlist WHERE playorder=" . $current_item;
+            debug($query);
+            my $sth = $lyricDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            my $rv = $sth->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            my $current_play = $sth->fetchrow_hashref();
 
-			if ($line[1] eq "playlist") {
-				debug("Changing playlist to " . $line[2]);
-				$current_list = $line[2];
-			} elsif ($line[1] eq "current") {
+            if ($line[1] eq "playlist") {
+                debug("Changing playlist to " . $line[2]);
+                $current_list = $line[2];
+            } elsif ($line[1] eq "current") {
 
-				# ignore and just display same page
-			} elsif ($line[1] eq "next_page") {
-				my $query =
-				  "SELECT playlist FROM playlist WHERE playorder="
-				  . $current_item;
-				debug($query);
-				my $sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				my $rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				my @row = $sth->fetchrow_array();
-				$query =
-				  "SELECT MIN(playorder) FROM playlist WHERE playlist="
-				  . $row[0]
-				  . " AND playorder>"
-				  . $current_item
-				  . " ORDER BY playorder";
-				debug($query);
-				$sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				$rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				my @row2 = $sth->fetchrow_array();
+                # ignore and just display same page
+            } elsif ($line[1] eq "next_page") {
+                my $query =
+                  "SELECT playlist FROM playlist WHERE playorder="
+                  . $current_item;
+                debug($query);
+                my $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row = $sth->fetchrow_array();
+                $query =
+                    "SELECT MIN(playorder) FROM playlist WHERE playlist="
+                  . $row[0]
+                  . " AND playorder>"
+                  . $current_item
+                  . " ORDER BY playorder";
+                debug($query);
+                $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row2 = $sth->fetchrow_array();
 
-				if ($row2[0]) {
+                if ($row2[0]) {
 
-					#End of this particular list (song/sublist) not reached
-					debug("Looping to next item in list\n");
-					$current_item = $row2[0];
-				} else {
+                    #End of this particular list (song/sublist) not reached
+                    debug("Looping to next item in list\n");
+                    $current_item = $row2[0];
+                } else {
 
-					#End of this particular list (song/sublist) reached
-					if ($line[2] eq "loop") {
-						debug("Finding next item to display in loop\n");
+                    #End of this particular list (song/sublist) reached
+                    if ($line[2] eq "loop") {
+                        debug("Finding next item to display in loop\n");
 
-						if ($LOOPPARENT == -1) {
-							debug("Looping a song, back to page 1\n");
-							$query =
+                        if ($LOOPPARENT == -1) {
+                            debug("Looping a song, back to page 1\n");
+                            $query =
 "SELECT MIN(playorder) FROM playlist WHERE playlist="
-							  . $row[0];
-							debug($query);
-							$sth = $lyricDbh->prepare($query)
-							  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-							$rv = $sth->execute
-							  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-							my @row3 = $sth->fetchrow_array();
-							if ($row3[0]) {
-								$current_item = $row3[0];
-							}
-						} else {
-							debug("Looping a sublist...\n");
+                              . $row[0];
+                            debug($query);
+                            $sth = $lyricDbh->prepare($query)
+                              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                            $rv = $sth->execute
+                              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                            my @row3 = $sth->fetchrow_array();
+                            if ($row3[0]) {
+                                $current_item = $row3[0];
+                            }
+                        } else {
+                            debug("Looping a sublist...\n");
 
-							#Build a 'context map', by tracing the
-#steps from the current level, to the top of the list
-							debug("Building the context map...\n");
-							my @contextmap;    #array of playorders
-							my $item    = $current_item;
-							my $plpoint = -2;
+                           #Build a 'context map', by tracing the
+                           #steps from the current level, to the top of the list
+                            debug("Building the context map...\n");
+                            my @contextmap;    #array of playorders
+                            my $item    = $current_item;
+                            my $plpoint = -2;
 
-							while ($plpoint != $LOOPPARENT) {
-								$query =
+                            while ($plpoint != $LOOPPARENT) {
+                                $query =
 "SELECT playlist FROM playlist WHERE playorder="
-								  . $item;
-								debug("\t" . $query);
-								$sth = $lyricDbh->prepare($query)
-								  || display_fatal($errorcodes->{'sqlprepare'},
-									$!);
-								$rv = $sth->execute
-								  || display_fatal($errorcodes->{'sqlexecute'},
-									$!);
-								my @playlist = $sth->fetchrow_array();
+                                  . $item;
+                                debug("\t" . $query);
+                                $sth = $lyricDbh->prepare($query)
+                                  || display_fatal($errorcodes->{'sqlprepare'},
+                                    $!);
+                                $rv = $sth->execute
+                                  || display_fatal($errorcodes->{'sqlexecute'},
+                                    $!);
+                                my @playlist = $sth->fetchrow_array();
 
-								#Add playlist id to contextmap
-								@contextmap = (@contextmap, $playlist[0]);
+                                #Add playlist id to contextmap
+                                @contextmap = (@contextmap, $playlist[0]);
 
-								#Update playlist pointer so we can do
-								#the test for equality to LOOPPARENT
-								$plpoint = $playlist[0];
+                                #Update playlist pointer so we can do
+                                #the test for equality to LOOPPARENT
+                                $plpoint = $playlist[0];
 
-								#Change item to this playlist's playorder
-								$query =
-								  "SELECT playorder FROM playlist WHERE data="
-								  . $playlist[0]
-								  . " and (type='sub' or type='play')";
-								debug("\t" . $query);
-								$sth = $lyricDbh->prepare($query)
-								  || display_fatal($errorcodes->{'sqlprepare'},
-									$!);
-								$rv = $sth->execute
-								  || display_fatal($errorcodes->{'sqlexecute'},
-									$!);
-								my @playorder = $sth->fetchrow_array();
+                                #Change item to this playlist's playorder
+                                $query =
+                                    "SELECT playorder FROM playlist WHERE data="
+                                  . $playlist[0]
+                                  . " and (type='sub' or type='play')";
+                                debug("\t" . $query);
+                                $sth = $lyricDbh->prepare($query)
+                                  || display_fatal($errorcodes->{'sqlprepare'},
+                                    $!);
+                                $rv = $sth->execute
+                                  || display_fatal($errorcodes->{'sqlexecute'},
+                                    $!);
+                                my @playorder = $sth->fetchrow_array();
 
-								$item = $playorder[0];
-								debug("....\n");
-							}
-							debug("Context map built!\n");
+                                $item = $playorder[0];
+                                debug("....\n");
+                            }
+                            debug("Context map built!\n");
 
-							#Find the next item
-							my $lastpo   = $current_item;
-							my $nextitem = $current_item;
+                            #Find the next item
+                            my $lastpo   = $current_item;
+                            my $nextitem = $current_item;
 
-							foreach (@contextmap) {
+                            foreach (@contextmap) {
 
-								#Find next item in the current context map list
-								$query =
-								  "SELECT MIN(playorder) FROM playlist WHERE "
-								  . " playlist=" . $_
-								  . " and playorder > " . $lastpo;
-								debug($query);
-								$sth = $lyricDbh->prepare($query)
-								  || display_fatal($errorcodes->{'sqlprepare'},
-									$!);
-								$rv = $sth->execute
-								  || display_fatal($errorcodes->{'sqlexecute'},
-									$!);
-								my @results = $sth->fetchrow_array();
+                                #Find next item in the current context map list
+                                $query =
+                                    "SELECT MIN(playorder) FROM playlist WHERE "
+                                  . " playlist="
+                                  . $_
+                                  . " and playorder > "
+                                  . $lastpo;
+                                debug($query);
+                                $sth = $lyricDbh->prepare($query)
+                                  || display_fatal($errorcodes->{'sqlprepare'},
+                                    $!);
+                                $rv = $sth->execute
+                                  || display_fatal($errorcodes->{'sqlexecute'},
+                                    $!);
+                                my @results = $sth->fetchrow_array();
 
-								if ($results[0]) {
+                                if ($results[0]) {
 
-									#Set nextitem and leave loop
-									$nextitem = $results[0];
-									last;
-								} else {
+                                    #Set nextitem and leave loop
+                                    $nextitem = $results[0];
+                                    last;
+                                } else {
 
-									#prepare for next iteration
-									$query =
-									  "SELECT playorder FROM playlist WHERE "
-									  . " data=" . $_
-									  . " and (type='sub'"
-									  . " or type='play')";
+                                    #prepare for next iteration
+                                    $query =
+                                        "SELECT playorder FROM playlist WHERE "
+                                      . " data="
+                                      . $_
+                                      . " and (type='sub'"
+                                      . " or type='play')";
 
-									debug("\t" . $query);
-									$sth = $lyricDbh->prepare($query)
-									  || display_fatal(
-										$errorcodes->{'sqlprepare'}, $!);
-									$rv = $sth->execute
-									  || display_fatal(
-										$errorcodes->{'sqlexecute'}, $!);
-									my @poresult = $sth->fetchrow_array();
+                                    debug("\t" . $query);
+                                    $sth = $lyricDbh->prepare($query)
+                                      || display_fatal(
+                                        $errorcodes->{'sqlprepare'}, $!);
+                                    $rv = $sth->execute
+                                      || display_fatal(
+                                        $errorcodes->{'sqlexecute'}, $!);
+                                    my @poresult = $sth->fetchrow_array();
 
-									$lastpo = $poresult[0];
-								}
-							}
+                                    $lastpo = $poresult[0];
+                                }
+                            }
 
-							if ($current_item != $nextitem) {
-								debug("Found next item to show\n");
-								$current_item = $nextitem;
-							} else {
+                            if ($current_item != $nextitem) {
+                                debug("Found next item to show\n");
+                                $current_item = $nextitem;
+                            } else {
 
-								#End of the road, go back to start!
-								debug("No more items, back to start\n");
-								$query =
-								  "SELECT MIN(playorder) FROM playlist WHERE "
-								  . " playlist="
-								  . $LOOPPARENT;
-								debug($query);
-								$sth = $lyricDbh->prepare($query)
-								  || display_fatal($errorcodes->{'sqlprepare'},
-									$!);
-								$rv = $sth->execute
-								  || display_fatal($errorcodes->{'sqlexecute'},
-									$!);
-								my @start = $sth->fetchrow_array();
-								$current_item = $start[0];
-							}
-						}
-					}
-				}
-			} elsif ($line[1] eq "prev_page") {
-				my $query =
-				  "SELECT playlist FROM playlist WHERE playorder="
-				  . $current_item;
-				debug($query);
-				my $sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				my $rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				my @row = $sth->fetchrow_array();
-				$query =
-				  "SELECT MAX(playorder) FROM playlist WHERE playlist="
-				  . $row[0]
-				  . " AND playorder<"
-				  . $current_item
-				  . " ORDER BY playorder";
-				debug($query);
-				$sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				$rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				my @row2 = $sth->fetchrow_array();
+                                #End of the road, go back to start!
+                                debug("No more items, back to start\n");
+                                $query =
+                                    "SELECT MIN(playorder) FROM playlist WHERE "
+                                  . " playlist="
+                                  . $LOOPPARENT;
+                                debug($query);
+                                $sth = $lyricDbh->prepare($query)
+                                  || display_fatal($errorcodes->{'sqlprepare'},
+                                    $!);
+                                $rv = $sth->execute
+                                  || display_fatal($errorcodes->{'sqlexecute'},
+                                    $!);
+                                my @start = $sth->fetchrow_array();
+                                $current_item = $start[0];
+                            }
+                        }
+                    }
+                }
+            } elsif ($line[1] eq "prev_page") {
+                my $query =
+                  "SELECT playlist FROM playlist WHERE playorder="
+                  . $current_item;
+                debug($query);
+                my $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row = $sth->fetchrow_array();
+                $query =
+                    "SELECT MAX(playorder) FROM playlist WHERE playlist="
+                  . $row[0]
+                  . " AND playorder<"
+                  . $current_item
+                  . " ORDER BY playorder";
+                debug($query);
+                $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row2 = $sth->fetchrow_array();
 
-				if ($row2[0]) {
-					$current_item = $row2[0];
-				} else {
-					if ($line[2] eq "loop") {
-						$query =
-						  "SELECT MAX(playorder) FROM playlist WHERE playlist="
-						  . $row[0];
-						debug($query);
-						$sth = $lyricDbh->prepare($query)
-						  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-						$rv = $sth->execute
-						  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-						my @row2 = $sth->fetchrow_array();
-						if ($row2[0]) {
-							$current_item = $row2[0];
-						}
-					}
-				}
+                if ($row2[0]) {
+                    $current_item = $row2[0];
+                } else {
+                    if ($line[2] eq "loop") {
+                        $query =
+                          "SELECT MAX(playorder) FROM playlist WHERE playlist="
+                          . $row[0];
+                        debug($query);
+                        $sth = $lyricDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        my @row2 = $sth->fetchrow_array();
+                        if ($row2[0]) {
+                            $current_item = $row2[0];
+                        }
+                    }
+                }
 
-			} elsif ($line[1] eq "next_song") {
-				my $query =
+            } elsif ($line[1] eq "next_song") {
+                my $query =
 "SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
-				  . $current_item;
-				debug($query);
-				my $sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				my $rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				my @row;
-				if (@row = $sth->fetchrow_array()) {
-					$current_item = $row[0];
-					$current_list = $row[1];
-				}
+                  . $current_item;
+                debug($query);
+                my $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row;
+                if (@row = $sth->fetchrow_array()) {
+                    $current_item = $row[0];
+                    $current_list = $row[1];
+                }
 
-				$query =
-				  "SELECT MIN(playorder) FROM playlist WHERE playorder > "
-				  . $current_item
-				  . " AND playlist="
-				  . $current_list;
-				debug($query);
-				$sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				$rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				@row = $sth->fetchrow_array();
+                $query =
+                    "SELECT MIN(playorder) FROM playlist WHERE playorder > "
+                  . $current_item
+                  . " AND playlist="
+                  . $current_list;
+                debug($query);
+                $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                @row = $sth->fetchrow_array();
 
-				if (defined $row[0]) {
-					$current_item = $row[0];
-				}
-			} elsif ($line[1] eq "prev_song") {
-				my $query =
+                if (defined $row[0]) {
+                    $current_item = $row[0];
+                }
+            } elsif ($line[1] eq "prev_song") {
+                my $query =
 "SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
-				  . $current_item;
-				debug($query);
-				my $sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				my $rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				my @row;
-				if (@row = $sth->fetchrow_array()) {
-					$current_item = $row[0];
-					$current_list = $row[0];
-				}
+                  . $current_item;
+                debug($query);
+                my $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row;
+                if (@row = $sth->fetchrow_array()) {
+                    $current_item = $row[0];
+                    $current_list = $row[0];
+                }
 
-				$query =
-				  "SELECT MAX(playorder) FROM playlist WHERE playorder < "
-				  . $current_item
-				  . " AND playlist="
-				  . $current_list;
-				debug($query);
-				$sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				$rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				@row = $sth->fetchrow_array();
+                $query =
+                    "SELECT MAX(playorder) FROM playlist WHERE playorder < "
+                  . $current_item
+                  . " AND playlist="
+                  . $current_list;
+                debug($query);
+                $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                @row = $sth->fetchrow_array();
 
-				if (defined $row[0]) {
-					$current_item = $row[0];
-				}
-			} elsif ($line[1] eq "page") {
-				my $query =
-				  "SELECT playlist FROM playlist WHERE playorder="
-				  . $current_item;
-				debug($query);
-				my $sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				my $rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				my @row = $sth->fetchrow_array();
+                if (defined $row[0]) {
+                    $current_item = $row[0];
+                }
+            } elsif ($line[1] eq "page") {
+                my $query =
+                  "SELECT playlist FROM playlist WHERE playorder="
+                  . $current_item;
+                debug($query);
+                my $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my @row = $sth->fetchrow_array();
 
-				$query =
-				  "SELECT playorder FROM playlist WHERE playlist="
-				  . $row[0]
-				  . " ORDER BY playorder";
-				debug($query);
-				$sth = $lyricDbh->prepare($query)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				$rv = $sth->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				my $count = 0;
+                $query =
+                    "SELECT playorder FROM playlist WHERE playlist="
+                  . $row[0]
+                  . " ORDER BY playorder";
+                debug($query);
+                $sth = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my $count = 0;
 
-				while (($count < $line[2]) && (@row = $sth->fetchrow_array())) {
-					$count++;
-				}
-				if (defined $row[0]) {
-					$current_item = $row[0];
-				}
+                while (($count < $line[2]) && (@row = $sth->fetchrow_array())) {
+                    $count++;
+                }
+                if (defined $row[0]) {
+                    $current_item = $row[0];
+                }
 
-			} else {
-				$current_item = $line[1];
-				$preview_item = 0;
-			}
+            } else {
+                $current_item = $line[1];
+                $preview_item = 0;
+            }
 
-			# load lyrics from DB
+            # load lyrics from DB
 
-			if ($preview_item) {
-				my $tmp = $current_item;
-				$current_item = $preview_item;
-				$preview_item = $tmp;
-			}
-			$query = "SELECT * FROM playlist WHERE playorder=" . $current_item;
-			debug($query);
-			$sth = $lyricDbh->prepare($query)
-			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-			$rv = $sth->execute
-			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            if ($preview_item) {
+                my $tmp = $current_item;
+                $current_item = $preview_item;
+                $preview_item = $tmp;
+            }
+            $query = "SELECT * FROM playlist WHERE playorder=" . $current_item;
+            debug($query);
+            $sth = $lyricDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            $rv = $sth->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-			#Check for associate image and, if present, apply it.
-			my $imgquery =
-			  "SELECT imagename FROM associations WHERE playlist="
-			  . $current_item;
-			my $imgsth = $lyricDbh->prepare($imgquery)
-			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-			$imgsth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            #Check for associate image and, if present, apply it.
+            my $imgquery =
+              "SELECT imagename FROM associations WHERE playlist="
+              . $current_item;
+            my $imgsth = $lyricDbh->prepare($imgquery)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            $imgsth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-			#Reset background if an image was shown
-			if ($bgimage_changed) {
-				$bgimage_changed = FALSE;
-				change_backdrop($config->{'BGImage'});
-			}
+            #Reset background if an image was shown
+            if ($bgimage_changed) {
+                $bgimage_changed = FALSE;
+                change_backdrop($config->{'BGImage'});
+            }
 
-			if (my $imgrow = $imgsth->fetchrow_hashref()) {
-				change_backdrop($imgrow->{'imagename'});
-			}
+            if (my $imgrow = $imgsth->fetchrow_hashref()) {
+                change_backdrop($imgrow->{'imagename'});
+            }
 
-			if ($exec_pid > 0) {
-				debug("Killing " . $exec_pid);
-				system('kill ' . $exec_pid);
-				system('kill -9 ' . $exec_pid);
-				$exec_pid = 0;
-			}
+            if ($exec_pid > 0) {
+                debug("Killing " . $exec_pid);
+                system('kill ' . $exec_pid);
+                system('kill -9 ' . $exec_pid);
+                $exec_pid = 0;
+            }
 
-			if (my $row = $sth->fetchrow_hashref()) {
-				if ($row->{'type'} eq "back") {
-					my $file = $row->{'data'};
-					$config->{'BGImage'} = $file;
-					change_backdrop($file);
-				} elsif ($row->{'type'} eq "file") {
-					if (-r $row->{'data'}) {
-						my ($fileobj, @fileexts);
+            if (my $row = $sth->fetchrow_hashref()) {
+                if ($row->{'type'} eq "back") {
+                    my $file = $row->{'data'};
+                    $config->{'BGImage'} = $file;
+                    change_backdrop($file);
+                } elsif ($row->{'type'} eq "file") {
+                    if (-r $row->{'data'}) {
+                        my ($fileobj, @fileexts);
 
-						# Image
-						@fileexts = qw(jpg gif png);
-						for $fileobj (@fileexts) {
-							if ($row->{'data'} =~ /$fileobj/i) {
-								$bgimage_changed = TRUE;
-								set_footer("");
-								set_maintext("", NONE);
-								set_header("");
-								change_backdrop($row->{'data'});
-							}
-						}
+                        # Image
+                        @fileexts = qw(jpg gif png);
+                        for $fileobj (@fileexts) {
+                            if ($row->{'data'} =~ /$fileobj/i) {
+                                $bgimage_changed = TRUE;
+                                set_footer("");
+                                set_maintext("", NONE);
+                                set_header("");
+                                change_backdrop($row->{'data'});
+                            }
+                        }
 
-						# Movie file
-						@fileexts = qw(avi mpg mov);
-						for $fileobj (@fileexts) {
-							if ($row->{'data'} =~ /$fileobj/i) {
-								$exec_pid = fork;
-								if ($exec_pid > 0) {
+                        # Movie file
+                        @fileexts = qw(avi mpg mov);
+                        for $fileobj (@fileexts) {
+                            if ($row->{'data'} =~ /$fileobj/i) {
+                                $exec_pid = fork;
+                                if ($exec_pid > 0) {
 
-#my $wid = `xwininfo -name "Lyric Server" |grep "Window id:" | cut -f4 -d" "`;
-									my $command = "mplayer " . $row->{'data'};
-									if ($MINISERV >= 0) {
-										my ($x, $y, $wid, $high, $depth) =
-										  $window->window->get_geometry;
-										($x, $y) =
-										  $window->window->get_root_origin;
-										$command .=
-										  " -ao null -nofs -geometry " . $wid
-										  . "x" . $high . "+" . $x . "+" . $y;
-									} else {
-										system($command);
-										print $command. "\n";
-									}
+  #my $wid = `xwininfo -name "Lyric Server" |grep "Window id:" | cut -f4 -d" "`;
+                                    my $command = "mplayer " . $row->{'data'};
+                                    if ($MINISERV >= 0) {
+                                        my ($x, $y, $wid, $high, $depth) =
+                                          $window->window->get_geometry;
+                                        ($x, $y) =
+                                          $window->window->get_root_origin;
+                                        $command .=
+                                            " -ao null -nofs -geometry " . $wid
+                                          . "x"
+                                          . $high . "+"
+                                          . $x . "+"
+                                          . $y;
+                                    } else {
+                                        system($command);
+                                        print $command. "\n";
+                                    }
 
-#system('mplayer ' . $row->{'data'} . ' -wid ' . $wid);
-								}
-							}
-						}
-					}
-				} elsif ($row->{'type'} eq "imag") {
-					$bgimage_changed = TRUE;
-					set_footer("");
-					set_maintext("", NONE);
-					set_header("");
-					change_backdrop($row->{'data'});
-				} elsif ($row->{'type'} eq "vers") {
+                         #system('mplayer ' . $row->{'data'} . ' -wid ' . $wid);
+                                }
+                            }
+                        }
+                    }
+                } elsif ($row->{'type'} eq "imag") {
+                    $bgimage_changed = TRUE;
+                    set_footer("");
+                    set_maintext("", NONE);
+                    set_header("");
+                    change_backdrop($row->{'data'});
+                } elsif ($row->{'type'} eq "vers") {
 
-					# Kill invalid points from previous songs
-					$current_point = -1;
-					@points        = ();
+                    # Kill invalid points from previous songs
+                    $current_point = -1;
+                    @points        = ();
 
-					#Reset background if an image was shown
-					if ($bgimage_changed) {
-						$bgimage_changed = FALSE;
-						change_backdrop($config->{'BGImage'});
-					}
+                    #Reset background if an image was shown
+                    if ($bgimage_changed) {
+                        $bgimage_changed = FALSE;
+                        change_backdrop($config->{'BGImage'});
+                    }
 
-					my $query =
+                    my $query =
 "SELECT * FROM playlist,playlists WHERE playlist.playlist=playlists.id AND playorder="
-					  . $current_item;
-					debug($query);
-					my $sth = $lyricDbh->prepare($query)
-					  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-					my $rv = $sth->execute
-					  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                      . $current_item;
+                    debug($query);
+                    my $sth = $lyricDbh->prepare($query)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    my $rv = $sth->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-					my $row        = $sth->fetchrow_hashref();
-					my $transition = $row->{'transition'};
+                    my $row        = $sth->fetchrow_hashref();
+                    my $transition = $row->{'transition'};
 
-					my $versetext = $row->{'title'};
-					my @line      = split (/[:-]/, $row->{'title'});
-					my $verses    = $row->{'data'};
+                    my $versetext = $row->{'title'};
+                    my @line      = split(/[:-]/, $row->{'title'});
+                    my $verses    = $row->{'data'};
 
-					($line[2], $line[4]) = split (/-/, $row->{'data'});
-					if ($line[1] == $line[3]) {
-						$query =
-						  "SELECT * FROM  verse WHERE book=\""
-						  . $line[0]
-						  . "\" AND chapternum="
-						  . $line[1]
-						  . " AND versenum>="
-						  . $line[2]
-						  . " AND versenum <= "
-						  . $line[4];
-					} else {
-						$query =
-						  "SELECT * FROM verse WHERE book=\""
-						  . $line[0]
-						  . "\" AND ((chapternum="
-						  . $line[1]
-						  . " AND versenum>="
-						  . $line[2]
-						  . ") OR (chapternum>"
-						  . $line[1]
-						  . " AND chapternum<"
-						  . $line[3]
-						  . ") OR (chapternum="
-						  . $line[3]
-						  . " AND versenum<="
-						  . $line[4] . "))";
-					}    ## end else
-					debug($query);
-					$sth = $bibleDbh->prepare($query)
-					  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-					$rv = $sth->execute
-					  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-					my $verse = "";
+                    ($line[2], $line[4]) = split(/-/, $row->{'data'});
+                    if ($line[1] == $line[3]) {
+                        $query =
+                            "SELECT * FROM  verse WHERE book=\""
+                          . $line[0]
+                          . "\" AND chapternum="
+                          . $line[1]
+                          . " AND versenum>="
+                          . $line[2]
+                          . " AND versenum <= "
+                          . $line[4];
+                    } else {
+                        $query =
+                            "SELECT * FROM verse WHERE book=\""
+                          . $line[0]
+                          . "\" AND ((chapternum="
+                          . $line[1]
+                          . " AND versenum>="
+                          . $line[2]
+                          . ") OR (chapternum>"
+                          . $line[1]
+                          . " AND chapternum<"
+                          . $line[3]
+                          . ") OR (chapternum="
+                          . $line[3]
+                          . " AND versenum<="
+                          . $line[4] . "))";
+                    } ## end else
+                    debug($query);
+                    $sth = $bibleDbh->prepare($query)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    $rv = $sth->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                    my $verse = "";
 
-					while ($row = $sth->fetchrow_hashref()) {
-						my $line =
-						  $row->{'chapternum'} . ":"
-						  . $row->{'versenum'} . "   "
-						  . $row->{'verse'};
-						$verse .= $line;
-					}
-					set_maintext($verse, $transition);
+                    while ($row = $sth->fetchrow_hashref()) {
+                        my $line =
+                            $row->{'chapternum'} . ":"
+                          . $row->{'versenum'} . "   "
+                          . $row->{'verse'};
+                        $verse .= $line;
+                    }
+                    set_maintext($verse, $transition);
 
-					set_header($versetext);
-					set_footer($globals->{'biblename'});
-					$status = "Displaying " . $versetext . " verses " . $verses;
-				} elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
-					my $query =
-					  "SELECT * FROM playlist WHERE playlist="
-					  . $row->{'data'}
-					  . " ORDER BY playorder";
-					debug($query);
-					$sth = $lyricDbh->prepare($query)
-					  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-					my $rv = $sth->execute
-					  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-					my $row = $sth->fetchrow_hashref();
-					update_display("display", $row->{'playorder'}, 0);
+                    set_header($versetext);
+                    set_footer($globals->{'biblename'});
+                    $status = "Displaying " . $versetext . " verses " . $verses;
+                } elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
+                    my $query =
+                        "SELECT * FROM playlist WHERE playlist="
+                      . $row->{'data'}
+                      . " ORDER BY playorder";
+                    debug($query);
+                    $sth = $lyricDbh->prepare($query)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    my $rv = $sth->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                    my $row = $sth->fetchrow_hashref();
+                    update_display("display", $row->{'playorder'}, 0);
 
-				} else {
-					my $query2 =
+                } else {
+                    my $query2 =
 "SELECT title,artist,lyrics,copyright,pagenum FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid="
-					  . $row->{'data'};
-					debug($query2);
-					my $sth2 = $lyricDbh->prepare($query2)
-					  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-					my $rv2 = $sth2->execute
-					  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-					my $row2 = $sth2->fetchrow_hashref();
+                      . $row->{'data'};
+                    debug($query2);
+                    my $sth2 = $lyricDbh->prepare($query2)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    my $rv2 = $sth2->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                    my $row2 = $sth2->fetchrow_hashref();
 
-					$row2->{'lyrics'} =~ s/
+                    $row2->{'lyrics'} =~ s/
 /\n/g;
-					my $footer = "";
-					if ($row2->{'copyright'} =~ /^Preset/) {
-						$row2->{'copyright'} =~ s/^.*([0-9]).*$/$1/g;
-						$footer .= $preset[$row2->{'copyright'}];
-					} else {
-						$footer .= $row2->{'copyright'};
-					}
-					if ($row2->{'artist'} ne "") {
-						$footer =
-						  gettext("Written by ") . $row2->{'artist'} . " - " . $footer;
-					}
+                    my $footer = "";
+                    if ($row2->{'copyright'} =~ /^Preset/) {
+                        $row2->{'copyright'} =~ s/^.*([0-9]).*$/$1/g;
+                        $footer .= $preset[$row2->{'copyright'}];
+                    } else {
+                        $footer .= $row2->{'copyright'};
+                    }
+                    if ($row2->{'artist'} ne "") {
+                        $footer =
+                            gettext("Written by ")
+                          . $row2->{'artist'} . " - "
+                          . $footer;
+                    }
 
-					# Determine if this is a multi-point page
-					if ($row2->{'lyrics'} =~ m/<UL>/) {
-						debug("This page has multiple points...");
-						$current_point = 1;
-						@points = split (/<LI>/, $row2->{'lyrics'});
-						my $pointtext = $points[$current_point];
+                    # Determine if this is a multi-point page
+                    if ($row2->{'lyrics'} =~ m/<UL>/) {
+                        debug("This page has multiple points...");
+                        $current_point = 1;
+                        @points = split(/<LI>/, $row2->{'lyrics'});
+                        my $pointtext = $points[$current_point];
 
-						#Now figure out how many \n's to add
-						if (my @o = ($row2->{'lyrics'} =~ /\n/g)) {
-							if (my @n = $pointtext =~ /\n/g) {
-								my $x;
-								for ($x = 0 ;
-									$x < scalar(@o) - scalar(@n) ; $x++
-								  )
-								{
-									$pointtext .= "\n";
-								}
-							}
-						}
-						$row2->{'lyrics'} = $pointtext;
-					} else {
-						$current_point = -1;
-						@points        = ();
-					}
-					set_header($row2->{'title'});
-					$row2->{'lyrics'} =~ s/<.*?>//g;
-					set_maintext($row2->{'lyrics'}, $row->{'transition'});
-					set_footer($footer);
-					$status =
-					  "Displaying "
-					  . $row2->{'title'} . " page "
-					  . $row2->{'pagenum'};
-				}    ## end else
-				$window->show_all();
-			}    ## end if (my $row = $sth->fetchrow_hashref...
-			if ($preview_item) {
-				$current_item = $preview_item;
-				$preview_item = 0;
-			}
-		}    ## end elsif (/^display$/)
-	}    ## end if ($_)
-	debug("The status message sent is: " . $status);
-	return $status;
-}    ## end sub process_input
-     #***
+                        #Now figure out how many \n's to add
+                        if (my @o = ($row2->{'lyrics'} =~ /\n/g)) {
+                            if (my @n = $pointtext =~ /\n/g) {
+                                my $x;
+                                for (
+                                    $x = 0 ;
+                                    $x < scalar(@o) - scalar(@n) ;
+                                    $x++
+                                  )
+                                {
+                                    $pointtext .= "\n";
+                                }
+                            }
+                        }
+                        $row2->{'lyrics'} = $pointtext;
+                    } else {
+                        $current_point = -1;
+                        @points        = ();
+                    }
+                    set_header($row2->{'title'});
+                    $row2->{'lyrics'} =~ s/<.*?>//g;
+                    set_maintext($row2->{'lyrics'}, $row->{'transition'});
+                    set_footer($footer);
+                    $status =
+                        "Displaying "
+                      . $row2->{'title'}
+                      . " page "
+                      . $row2->{'pagenum'};
+                } ## end else
+                $window->show_all();
+            } ## end if (my $row = $sth->fetchrow_hashref...
+            if ($preview_item) {
+                $current_item = $preview_item;
+                $preview_item = 0;
+            }
+        } ## end elsif (/^display$/)
+    } ## end if ($_)
+    debug("The status message sent is: " . $status);
+    return $status;
+} ## end sub process_input
+    #***
 
 #****f* lyricue_server/CloseAppWindow
 # NAME
@@ -1096,10 +1135,10 @@ sub process_input {
 # SOURCE
 #
 sub CloseAppWindow {
-	debug("Exiting Child");
-	$window->destroy;
-	exit;
-	return FALSE;
+    debug("Exiting Child");
+    $window->destroy;
+    exit;
+    return FALSE;
 }
 
 #***
@@ -1119,38 +1158,55 @@ sub CloseAppWindow {
 # SOURCE
 #
 sub HandleKey {
-	my ($widget, $data) = @_;
+    my ($widget, $data) = @_;
 
-	if (($data->keyval == $Gtk2::Gdk::Keysyms{Left}) || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Left})) {
-		update_display("display", "prev_page", $config->{'Loop'});
-	} elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Up}) || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Up})) {
-		update_display("display", "prev_song", 0);
-	} elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Right}) || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Right})) {
-		update_display("display", "next_page", $config->{'Loop'});
-	} elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Down}) || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Down})) {
-		update_display("display", "next_song", 0);
-	} elsif (($data->keyval == $Gtk2::Gdk::Keysyms{KP_0}) || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Insert})) {
-		update_display("blank", 0, 0);
-	} elsif ($data->keyval == $Gtk2::Gdk::Keysyms{Q}) {
-		# exit
-		my $dialog = Gtk2::Dialog->new ('Confirm Exit', undef, 'modal',
-		        'gtk-ok' => 'ok',
-			'gtk-cancel' => 'cancel',
-			);
-		$dialog->vbox->pack_start(Gtk2::Label->new("Are you sure you want to close the Lyricue Server?"),TRUE,TRUE,0);
-		$dialog->show_all();
-		my $response = $dialog->run;
-		print ("Response: ".$response."\n");
-		$dialog->destroy;
-		if ($response eq "ok") {
-			CloseAppWindow();
-		}
-	} else {
-		debug("Unknown key: " . $data->keyval);
-		return FALSE;
-	}
-	return TRUE; 
-}    ## end sub HandleKey
+    if (   ($data->keyval == $Gtk2::Gdk::Keysyms{Left})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Left}))
+    {
+        update_display("display", "prev_page", $config->{'Loop'});
+    } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Up})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Up}))
+    {
+        update_display("display", "prev_song", 0);
+    } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Right})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Right}))
+    {
+        update_display("display", "next_page", $config->{'Loop'});
+    } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Down})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Down}))
+    {
+        update_display("display", "next_song", 0);
+    } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{KP_0})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Insert}))
+    {
+        update_display("blank", 0, 0);
+    } elsif ($data->keyval == $Gtk2::Gdk::Keysyms{Q}) {
+
+        # exit
+        my $dialog = Gtk2::Dialog->new(
+            'Confirm Exit', undef, 'modal',
+            'gtk-ok'     => 'ok',
+            'gtk-cancel' => 'cancel',
+        );
+        $dialog->vbox->pack_start(
+            Gtk2::Label->new(
+                "Are you sure you want to close the Lyricue Server?"),
+            TRUE, TRUE, 0
+        );
+        $dialog->show_all();
+        my $response = $dialog->run;
+        print("Response: " . $response . "\n");
+        $dialog->destroy;
+        if ($response eq "ok") {
+            CloseAppWindow();
+        }
+    } else {
+        debug("Unknown key: " . $data->keyval);
+        return FALSE;
+    }
+    return TRUE;
+} ## end sub HandleKey
+
 #***
 
 #****f* lyricue_server/change_backdrop
@@ -1167,55 +1223,57 @@ sub HandleKey {
 # SOURCE
 #
 sub change_backdrop {
-	my ($id) = @_;
-	my $query =
-	  "SELECT format, description, data FROM media WHERE id=\"" . $id . "\"";
-	debug($query);
-	my $sth = $mediaDbh->prepare($query)
-	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-	my $row = $sth->fetchrow_hashref();
-	if ($row) {
-		if ($row->{'format'} eq "bg") {
-			debug("Changing backdrop colour to " . $row->{'description'});
-			if (defined $background) {
-				$background->destroy;
-			}
+    my ($id) = @_;
+    my $query =
+      "SELECT format, description, data FROM media WHERE id=\"" . $id . "\"";
+    debug($query);
+    my $sth = $mediaDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    my $row = $sth->fetchrow_hashref();
+    if ($row) {
+        if ($row->{'format'} eq "bg") {
+            debug("Changing backdrop colour to " . $row->{'description'});
+            if (defined $background) {
+                $background->destroy;
+            }
 
-			$background = Gnome2::Canvas::Item->new(
-				$root, 'Gnome2::Canvas::Rect', x1 => 0,
-				y1          => 0,
-				x2          => $config->{'Width'},
-				y2          => $config->{'Height'},
-				fill_color  => $row->{'description'},
-				width_units => 0
-			);
-		} else {
-			debug("Changing backdrop image to " . $row->{'description'});
-			my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
-			eval { $pixbuf_loader->write($row->{'data'}); };
-			eval { $pixbuf_loader->close() };
-			if ($@) {
-				debug("Unable to load background: $row->{'description'}");
-			} else {
-				my $pixbuf = $pixbuf_loader->get_pixbuf();
-				if (defined $background) {
-					$background->destroy;
-				}
-				$background = Gnome2::Canvas::Item->new(
-					$root, 'Gnome2::Canvas::Pixbuf', pixbuf => $pixbuf,
-					x          => 1,
-					y          => 1,
-					width      => $config->{'Width'},
-					height     => $config->{'Height'},
-					width_set  => TRUE,
-					height_set => TRUE,
-				);
-		}
-	}
-	$background->lower_to_bottom;
-}
-}    ## end sub change_backdrop
+            $background = Gnome2::Canvas::Item->new(
+                $root, 'Gnome2::Canvas::Rect',
+                x1          => 0,
+                y1          => 0,
+                x2          => $config->{'Width'},
+                y2          => $config->{'Height'},
+                fill_color  => $row->{'description'},
+                width_units => 0
+            );
+        } else {
+            debug("Changing backdrop image to " . $row->{'description'});
+            my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+            eval { $pixbuf_loader->write($row->{'data'}); };
+            eval { $pixbuf_loader->close() };
+            if ($@) {
+                debug("Unable to load background: $row->{'description'}");
+            } else {
+                my $pixbuf = $pixbuf_loader->get_pixbuf();
+                if (defined $background) {
+                    $background->destroy;
+                }
+                $background = Gnome2::Canvas::Item->new(
+                    $root, 'Gnome2::Canvas::Pixbuf',
+                    pixbuf     => $pixbuf,
+                    x          => 1,
+                    y          => 1,
+                    width      => $config->{'Width'},
+                    height     => $config->{'Height'},
+                    width_set  => TRUE,
+                    height_set => TRUE,
+                );
+            }
+        }
+        $background->lower_to_bottom;
+    }
+} ## end sub change_backdrop
 
 #***
 
@@ -1236,32 +1294,36 @@ sub change_backdrop {
 # SOURCE
 #
 sub update_display {
-	my ($command, $primary, $secondary) = @_;
+    my ($command, $primary, $secondary) = @_;
 
-	if (my $server = IO::Socket::INET->new(
-			Proto    => "tcp",
-			PeerAddr => "localhost",
-			PeerPort => $globals->{'use_port'}
-		))
-	{
-		print $server $command . ":" . $primary . ":" . $secondary . "\n";
-		close($server);
-	}
-}    ## end sub update_display
+    if (
+        my $server = IO::Socket::INET->new(
+            Proto    => "tcp",
+            PeerAddr => "localhost",
+            PeerPort => $globals->{'use_port'}
+        )
+      )
+    {
+        print $server $command . ":" . $primary . ":" . $secondary . "\n";
+        close($server);
+    }
+} ## end sub update_display
 
 sub update_miniview {
-	my ($command) = @_;
+    my ($command) = @_;
 
-	if (my $server = IO::Socket::INET->new(
-			Proto    => "tcp",
-			PeerAddr => "localhost",
-			PeerPort => $globals->{'miniview_port'}
-		))
-	{
-		print $server $command;
-		close($server);
-	}
-}    ## end sub update_miniview
+    if (
+        my $server = IO::Socket::INET->new(
+            Proto    => "tcp",
+            PeerAddr => "localhost",
+            PeerPort => $globals->{'miniview_port'}
+        )
+      )
+    {
+        print $server $command;
+        close($server);
+    }
+} ## end sub update_miniview
 
 #***
 
@@ -1279,12 +1341,12 @@ sub update_miniview {
 # SOURCE
 #
 sub debug {
-	if ($DEBUG) {
-		my $text = shift;
-		chomp($text);
-		print STDERR $text . "\n";
-	}
-}    ## end sub debug
+    if ($DEBUG) {
+        my $text = shift;
+        chomp($text);
+        print STDERR $text . "\n";
+    }
+} ## end sub debug
 
 #***
 
@@ -1302,12 +1364,12 @@ sub debug {
 # SOURCE
 #
 sub change_to_db {
-	my ($db) = @_;
-	$bibleDbh = DBI->connect("DBI:mysql:$db:$globals->{'host'}", "lyric", "")
-	  || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
-		$!);
-	$globals->{'bibledb'} = $db;
-}    ## end sub debug
+    my ($db) = @_;
+    $bibleDbh = DBI->connect("DBI:mysql:$db:$globals->{'host'}", "lyric", "")
+      || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
+        $!);
+    $globals->{'bibledb'} = $db;
+} ## end sub debug
 
 #****f* lyricue_server/check_socket
 # NAME
@@ -1325,397 +1387,421 @@ sub change_to_db {
 # SOURCE
 #
 sub check_socket {
-	my ($socket, $condition, $flags) = @_;
-	my $new_sock = $socket->accept();
-	while (defined($_ = <$new_sock>)) {
-		my $value = $_;
-		my $stat  = process_input($value);
-		chomp($stat);
-		print $new_sock $stat . "\n";
+    my ($socket, $condition, $flags) = @_;
+    my $new_sock = $socket->accept();
+    while (defined($_ = <$new_sock>)) {
+        my $value = $_;
+        my $stat  = process_input($value);
+        chomp($stat);
+        print $new_sock $stat . "\n";
 
-		# Forward onto miniserver (if not the miniserver)
-		if ($globals->{'use_port'} == $globals->{'server_port'}) {
-			update_miniview($value);
-		}
-	}
-	close($new_sock);
+        # Forward onto miniserver (if not the miniserver)
+        if ($globals->{'use_port'} == $globals->{'server_port'}) {
+            update_miniview($value);
+        }
+    }
+    close($new_sock);
 
-	return TRUE;
+    return TRUE;
 }
 
 #***
 
 sub load_config {
-	my ($conf);
-	debug("Loading Preferences from " . $globals->{'configfile'});
-	my $bibleCount = 0;
-	my $appCount   = 0;
-	open(CONFIG, $globals->{'configfile'})
-	  || display_fatal("Couldn't open config file", $!);
-	$conf->{'Width'}  = 0;
-	$conf->{'Height'} = 0;
-	while (<CONFIG>) {
-		chomp;
-		my @line = split (/=/);
-		$line[0] =~ s/ *$//g;
-		$line[1] =~ s/ *$//g;
-		if (!$line[1]) {
-			$line[1] = "";
-		}
-		$line[1] =~ s/^ *//g;
-		if ($line[0] eq "Bible") {
-			$conf->{'Bible'}[$bibleCount++] = $line[1];
-		} elsif ($line[0] eq "App") {
-			$conf->{'App'}[$appCount++] = $line[1];
-		} else {
-			$conf->{$line[0]} = $line[1];
-		}
-	}
-	$conf->{'BibleCount'} = $bibleCount;
-	$conf->{'AppCount'}   = $appCount;
-	return $conf;
+    my ($conf);
+    debug("Loading Preferences from " . $globals->{'configfile'});
+    my $bibleCount = 0;
+    my $appCount   = 0;
+    open(CONFIG, $globals->{'configfile'})
+      || display_fatal("Couldn't open config file", $!);
+    $conf->{'Width'}  = 0;
+    $conf->{'Height'} = 0;
+    while (<CONFIG>) {
+        chomp;
+        my @line = split(/=/);
+        $line[0] =~ s/ *$//g;
+        $line[1] =~ s/ *$//g;
+        if (!$line[1]) {
+            $line[1] = "";
+        }
+        $line[1] =~ s/^ *//g;
+        if ($line[0] eq "Bible") {
+            $conf->{'Bible'}[$bibleCount++] = $line[1];
+        } elsif ($line[0] eq "App") {
+            $conf->{'App'}[$appCount++] = $line[1];
+        } else {
+            $conf->{$line[0]} = $line[1];
+        }
+    }
+    $conf->{'BibleCount'} = $bibleCount;
+    $conf->{'AppCount'}   = $appCount;
+    return $conf;
 }
 
 sub set_maintext {
-	my ($text, $transition) = @_;
-	my ($oldText);
-	if (!defined $text)       { $text       = ""; }
-	if (!defined $transition) { $transition = 0; }
+    my ($text, $transition) = @_;
+    my ($oldText);
+    if (!defined $text)       { $text       = ""; }
+    if (!defined $transition) { $transition = 0; }
 
-	# Set the transition values
-	my $old_direction = mod($transition, 32);
-	$transition = $transition >> 5;
-	my $new_direction = mod($transition, 32);
-	my $effect        = $transition >> 5;
+    # Set the transition values
+    my $old_direction = mod($transition, 32);
+    $transition = $transition >> 5;
+    my $new_direction = mod($transition, 32);
+    my $effect        = $transition >> 5;
 
-	# Copy the old mainText to oldText
-	$oldText = $mainText;
+    # Copy the old mainText to oldText
+    $oldText = $mainText;
 
-	# Create a new mainText;
-	$mainText = Gnome2::Canvas::Item->new(
-		$root, 'Gnome2::Canvas::RichText',
-		x      => ($config->{'Width'} - $config->{'ShadowSize'}) / 2,
-		y      => ($config->{'Height'} - $config->{'ShadowSize'}) / 2,
-		anchor => 'GTK_ANCHOR_CENTER',
-		width  => $config->{'Width'} - ($config->{'OverscanH'} * 2) -
-		$config->{'ShadowSize'},
-		height => $config->{'Height'} - $headhigh - ($config->{'OverscanV'} * 2)
-		- $config->{'ShadowSize'},
-		'cursor-visible' => FALSE
-	);
-	$mainText->show();
-	my $buffer = $mainText->get_buffer();
-	my $tag    =
-	  $buffer->create_tag("Main", "font", $config->{'Main'}, "foreground",
-		$config->{'Colour'}, "wrap-mode", "word", "editable-set", TRUE,
-		"editable", FALSE);
-	$buffer->apply_tag_by_name("Main", $buffer->get_bounds);
+    # Create a new mainText;
+    $mainText = Gnome2::Canvas::Item->new(
+        $root, 'Gnome2::Canvas::RichText',
+        x      => ($config->{'Width'} - $config->{'ShadowSize'}) / 2,
+        y      => ($config->{'Height'} - $config->{'ShadowSize'}) / 2,
+        anchor => 'GTK_ANCHOR_CENTER',
+        width  => $config->{'Width'} - ($config->{'OverscanH'} * 2) -
+          $config->{'ShadowSize'},
+        height => $config->{'Height'} - $headhigh - ($config->{'OverscanV'} * 2)
+          - $config->{'ShadowSize'},
+        'cursor-visible' => FALSE
+    );
+    $mainText->show();
+    my $buffer = $mainText->get_buffer();
+    my $tag    = $buffer->create_tag(
+        "Main",              "font",
+        $config->{'Main'},   "foreground",
+        $config->{'Colour'}, "wrap-mode",
+        "word",              "editable-set",
+        TRUE,                "editable",
+        FALSE
+    );
+    $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
 
-	# Hide the shadow during the transition
-	if ($mainTextShadow) { $mainTextShadow->hide(); }
-	my $widget = Gtk2::Label->new();
-	my $layout = $widget->create_pango_layout("");
-	$layout->set_wrap('word');
-	$layout->set_width(($config->{'Width'} - ($config->{'OverscanH'} * 2) -
-		$config->{'ShadowSize'}) * PANGO_SCALE);
-	my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Main'});
+    # Hide the shadow during the transition
+    if ($mainTextShadow) { $mainTextShadow->hide(); }
+    my $widget = Gtk2::Label->new();
+    my $layout = $widget->create_pango_layout("");
+    $layout->set_wrap('word');
+    $layout->set_width(
+        (
+            $config->{'Width'} - ($config->{'OverscanH'} * 2) -
+              $config->{'ShadowSize'}
+        ) * PANGO_SCALE
+    );
+    my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Main'});
 
-	# Find old/new dimensions
-	$layout->set_font_description($desc);
-	$layout->set_text($oldText->get_buffer()
-		->get_text($oldText->get_buffer()->get_bounds, FALSE));
-	my ($ow, $oh) = $layout->get_pixel_size;
-	$ow=$ow+10; $oh=$oh+10;
-	$layout->set_text($text);
-	my ($w, $h) = $layout->get_pixel_size;
-	$w=$w+10; $h=$h+10;
-	my $centreX = $config->{'Width'} / 2;
-	my $centreY = $config->{'Height'} / 2;
-	
-	my @items   = ();
-	if ($effect == SLIDE_TEXT) {
-		my $ostepx = 0;
-		my $ostepy = 0;
-		my $nstepx = 0;
-		my $nstepy = 0;
-		my $nx     = $centreX;
-		my $ny     = $centreY;
-		if ($oldText->get_buffer()
-			->get_text($oldText->get_buffer()->get_bounds, FALSE) eq "")
-		{
-			$old_direction = WAIT;
-		}
-		if ($old_direction & RIGHT) {
-			$ostepx = (($config->{'Width'} + ($ow / 2)) - $centreX) / $steps;
-		}
-		if ($old_direction & LEFT) {
-			$ostepx = -(($config->{'Width'} + ($ow / 2)) - $centreX) / $steps;
-		}
-		if ($old_direction & UP) {
-			$ostepy = (($config->{'Height'} + ($oh / 2)) - $centreY) / $steps;
-		}
-		if ($old_direction & DOWN) {
-			$ostepy = -(($config->{'Height'} + ($oh / 2)) - $centreY) / $steps;
-		}
-		if ($new_direction & RIGHT) {
-			$nx     = -($w / 2);
-			$nstepx = (($config->{'Width'} + ($w / 2)) - $centreX) / $steps;
-		}
-		if ($new_direction & LEFT) {
-			$nx     = $config->{'Width'} + ($w / 2);
-			$nstepx = -(($config->{'Width'} + ($w / 2)) - $centreX) / $steps;
-		}
-		if ($new_direction & UP) {
-			$ny     = $config->{'Height'} + ($h / 2);
-			$nstepy = -(($config->{'Height'} + ($h / 2)) - $centreY) / $steps;
-		}
-		if ($new_direction & DOWN) {
-			$ny     = -($h / 2);
-			$nstepy = (($config->{'Height'} + ($h / 2)) - $centreY) / $steps;
-		}
-		my $ox = $centreX;
-		my $oy = $centreY;
-		$buffer->set_text($text);
-		$buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-		$mainText->set(width => $w,  height => $h);
-		$mainText->set(x     => $nx, y      => $ny);
-		$mainText->set_buffer($buffer);
+    # Find old/new dimensions
+    $layout->set_font_description($desc);
+    $layout->set_text($oldText->get_buffer()
+          ->get_text($oldText->get_buffer()->get_bounds, FALSE));
+    my ($ow, $oh) = $layout->get_pixel_size;
+    $ow = $ow + 10;
+    $oh = $oh + 10;
+    $layout->set_text($text);
+    my ($w, $h) = $layout->get_pixel_size;
+    $w = $w + 10;
+    $h = $h + 10;
+    my $centreX = $config->{'Width'} / 2;
+    my $centreY = $config->{'Height'} / 2;
 
-		if (!(($old_direction & WAIT) && ($new_direction & WAIT))) {
-			foreach my $step (1 .. $steps) {
-				if (!($old_direction & WAIT)) {
-					$oldText->set(x => ($ox + ($step * $ostepx)));
-					$oldText->set(y => ($oy + ($step * $ostepy)));
-				}
-				if (!($new_direction & WAIT)) {
-					$mainText->set(x => ($nx + ($step * $nstepx)));
-					$mainText->set(y => ($ny + ($step * $nstepy)));
-				}
-				select(undef, undef, undef, 0.01);
-				while (Gtk2->events_pending) {
-					Gtk2->main_iteration;
-				}
-			}
-		}
-		if (($old_direction & WAIT) || ($new_direction & WAIT)) {
-			foreach my $step (1 .. $steps) {
-				if ($old_direction & WAIT) {
-					$oldText->set(x => ($ox + ($step * $ostepx)));
-					$oldText->set(y => ($oy + ($step * $ostepy)));
-				}
-				if ($new_direction & WAIT) {
-					$mainText->set(x => ($nx + ($step * $nstepx)));
-					$mainText->set(y => ($ny + ($step * $nstepy)));
-				}
-				select(undef, undef, undef, 0.01);
-				while (Gtk2->events_pending) {
-					Gtk2->main_iteration;
-				}
-			}
-		}
-	} elsif ($effect == WIPE) {
-		$items[0] = Gnome2::Canvas::Item->new(
-			$root,
-			'Gnome2::Canvas::Rect',
-			y1         => ($config->{'Height'} - $oh) / 2,
-			y2         => ($config->{'Height'} + $oh) / 2,
-			x1         => ($config->{'Width'} - $ow) / 2,
-			x2         => ($config->{'Width'} - $ow) / 2,
-			fill_color => 'black'
-		);
-		my $stepsize = $ow / 20;
-		for (my $fx = ($config->{'Width'} - $ow) / 2 ;
-			$fx < ($config->{'Width'} + $ow) / 2 ; $fx = $fx + $stepsize
-		  )
-		{
-			$items[0]->set(x2 => $fx);
-			select(undef, undef, undef, 0.01);
-			while (Gtk2->events_pending) {
-				Gtk2->main_iteration;
-			}
-		}
-		$buffer->set_text($text);
-		$buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-		$mainText->set(width => $w, height => $h);
-		$mainText->set_buffer($buffer);
-		$items[0]->set(
-			y1 => ($config->{'Height'} - $h) / 2,
-			x1 => ($config->{'Width'} - $w) / 2,
-			x2 => ($config->{'Width'} + $w) / 2,
-			y2 => ($config->{'Height'} + $h) / 2
-		);
-		$stepsize = $w / 20;
-		for (my $fx = ($config->{'Width'} - $w) / 2 ;
-			$fx < ($config->{'Width'} + $w) / 2 ; $fx = $fx + $stepsize
-		  )
-		{
-			$items[0]->set(x1 => $fx);
-			select(undef, undef, undef, 0.01);
-			while (Gtk2->events_pending) {
-				Gtk2->main_iteration;
-			}
-		}
-		$items[0]->destroy;
-	} else {
-		$buffer->set_text($text);
-		$buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-		$mainText->set(width => $w, height => $h);
-		$mainText->set(x => $centreX - ($config->{'ShadowSize'} / 2));
-		$mainText->set(y => $centreY - ($config->{'ShadowSize'} / 2));
-		$mainText->set_buffer($buffer);
-	}
-	$oldText->destroy;
+    my @items = ();
+    if ($effect == SLIDE_TEXT) {
+        my $ostepx = 0;
+        my $ostepy = 0;
+        my $nstepx = 0;
+        my $nstepy = 0;
+        my $nx     = $centreX;
+        my $ny     = $centreY;
+        if ($oldText->get_buffer()
+            ->get_text($oldText->get_buffer()->get_bounds, FALSE) eq "")
+        {
+            $old_direction = WAIT;
+        }
+        if ($old_direction & RIGHT) {
+            $ostepx = (($config->{'Width'} + ($ow / 2)) - $centreX) / $steps;
+        }
+        if ($old_direction & LEFT) {
+            $ostepx = -(($config->{'Width'} + ($ow / 2)) - $centreX) / $steps;
+        }
+        if ($old_direction & UP) {
+            $ostepy = (($config->{'Height'} + ($oh / 2)) - $centreY) / $steps;
+        }
+        if ($old_direction & DOWN) {
+            $ostepy = -(($config->{'Height'} + ($oh / 2)) - $centreY) / $steps;
+        }
+        if ($new_direction & RIGHT) {
+            $nx = -($w / 2);
+            $nstepx = (($config->{'Width'} + ($w / 2)) - $centreX) / $steps;
+        }
+        if ($new_direction & LEFT) {
+            $nx = $config->{'Width'} + ($w / 2);
+            $nstepx = -(($config->{'Width'} + ($w / 2)) - $centreX) / $steps;
+        }
+        if ($new_direction & UP) {
+            $ny = $config->{'Height'} + ($h / 2);
+            $nstepy = -(($config->{'Height'} + ($h / 2)) - $centreY) / $steps;
+        }
+        if ($new_direction & DOWN) {
+            $ny = -($h / 2);
+            $nstepy = (($config->{'Height'} + ($h / 2)) - $centreY) / $steps;
+        }
+        my $ox = $centreX;
+        my $oy = $centreY;
+        $buffer->set_text($text);
+        $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
+        $mainText->set(width => $w, height => $h);
+        $mainText->set(x => $nx, y => $ny);
+        $mainText->set_buffer($buffer);
 
-	# Make sure text in right spot
-	$buffer->set_text($text);
-	$buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-	$mainText->set(
-		x      => $centreX - ($config->{'ShadowSize'} / 2),
-		y      => $centreY - ($config->{'ShadowSize'} / 2),
-		width  => $w,
-		height => $h,
-	);
-	$mainText->set_buffer($buffer);
-	$mainText->show();
+        if (!(($old_direction & WAIT) && ($new_direction & WAIT))) {
+            foreach my $step (1 .. $steps) {
+                if (!($old_direction & WAIT)) {
+                    $oldText->set(x => ($ox + ($step * $ostepx)));
+                    $oldText->set(y => ($oy + ($step * $ostepy)));
+                }
+                if (!($new_direction & WAIT)) {
+                    $mainText->set(x => ($nx + ($step * $nstepx)));
+                    $mainText->set(y => ($ny + ($step * $nstepy)));
+                }
+                select(undef, undef, undef, 0.01);
+                while (Gtk2->events_pending) {
+                    Gtk2->main_iteration;
+                }
+            }
+        }
+        if (($old_direction & WAIT) || ($new_direction & WAIT)) {
+            foreach my $step (1 .. $steps) {
+                if ($old_direction & WAIT) {
+                    $oldText->set(x => ($ox + ($step * $ostepx)));
+                    $oldText->set(y => ($oy + ($step * $ostepy)));
+                }
+                if ($new_direction & WAIT) {
+                    $mainText->set(x => ($nx + ($step * $nstepx)));
+                    $mainText->set(y => ($ny + ($step * $nstepy)));
+                }
+                select(undef, undef, undef, 0.01);
+                while (Gtk2->events_pending) {
+                    Gtk2->main_iteration;
+                }
+            }
+        }
+    } elsif ($effect == WIPE) {
+        $items[0] = Gnome2::Canvas::Item->new(
+            $root,
+            'Gnome2::Canvas::Rect',
+            y1         => ($config->{'Height'} - $oh) / 2,
+            y2         => ($config->{'Height'} + $oh) / 2,
+            x1         => ($config->{'Width'} - $ow) / 2,
+            x2         => ($config->{'Width'} - $ow) / 2,
+            fill_color => 'black'
+        );
+        my $stepsize = $ow / 20;
+        for (
+            my $fx = ($config->{'Width'} - $ow) / 2 ;
+            $fx < ($config->{'Width'} + $ow) / 2 ;
+            $fx = $fx + $stepsize
+          )
+        {
+            $items[0]->set(x2 => $fx);
+            select(undef, undef, undef, 0.01);
+            while (Gtk2->events_pending) {
+                Gtk2->main_iteration;
+            }
+        }
+        $buffer->set_text($text);
+        $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
+        $mainText->set(width => $w, height => $h);
+        $mainText->set_buffer($buffer);
+        $items[0]->set(
+            y1 => ($config->{'Height'} - $h) / 2,
+            x1 => ($config->{'Width'} - $w) / 2,
+            x2 => ($config->{'Width'} + $w) / 2,
+            y2 => ($config->{'Height'} + $h) / 2
+        );
+        $stepsize = $w / 20;
+        for (
+            my $fx = ($config->{'Width'} - $w) / 2 ;
+            $fx < ($config->{'Width'} + $w) / 2 ;
+            $fx = $fx + $stepsize
+          )
+        {
+            $items[0]->set(x1 => $fx);
+            select(undef, undef, undef, 0.01);
+            while (Gtk2->events_pending) {
+                Gtk2->main_iteration;
+            }
+        }
+        $items[0]->destroy;
+    } else {
+        $buffer->set_text($text);
+        $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
+        $mainText->set(width => $w, height => $h);
+        $mainText->set(x => $centreX - ($config->{'ShadowSize'} / 2));
+        $mainText->set(y => $centreY - ($config->{'ShadowSize'} / 2));
+        $mainText->set_buffer($buffer);
+    }
+    $oldText->destroy;
 
-	# Add the shadow
-	$mainTextShadow = Gnome2::Canvas::Item->new(
-		$root, 'Gnome2::Canvas::RichText',
-		x                => $centreX + ($config->{'ShadowSize'} / 2),
-		y                => $centreY + ($config->{'ShadowSize'} / 2),
-		width            => $w,
-		height           => $h,
-		anchor           => 'GTK_ANCHOR_CENTER',
-		'cursor-visible' => FALSE
-	);
-	my $buffer2 = $mainTextShadow->get_buffer();
-	my $tags    = $buffer2->create_tag(
-		"MainShadow",              "font",
-		$config->{'Main'},         "foreground",
-		$config->{'ShadowColour'}, "wrap-mode",
-		"word",                    "editable-set",
-		TRUE,                      "editable",
-		FALSE
-	);
-	$buffer2->set_text($text);
-	$buffer2->apply_tag_by_name("MainShadow", $buffer2->get_bounds);
-	$mainTextShadow->set_buffer($buffer2);
-	$mainText->raise_to_top();
-	$mainTextShadow->show();
+    # Make sure text in right spot
+    $buffer->set_text($text);
+    $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
+    $mainText->set(
+        x => $centreX - ($config->{'ShadowSize'} / 2),
+        y => $centreY - ($config->{'ShadowSize'} / 2),
+        width  => $w,
+        height => $h,
+    );
+    $mainText->set_buffer($buffer);
+    $mainText->show();
+
+    # Add the shadow
+    $mainTextShadow = Gnome2::Canvas::Item->new(
+        $root, 'Gnome2::Canvas::RichText',
+        x => $centreX + ($config->{'ShadowSize'} / 2),
+        y => $centreY + ($config->{'ShadowSize'} / 2),
+        width            => $w,
+        height           => $h,
+        anchor           => 'GTK_ANCHOR_CENTER',
+        'cursor-visible' => FALSE
+    );
+    my $buffer2 = $mainTextShadow->get_buffer();
+    my $tags    = $buffer2->create_tag(
+        "MainShadow",              "font",
+        $config->{'Main'},         "foreground",
+        $config->{'ShadowColour'}, "wrap-mode",
+        "word",                    "editable-set",
+        TRUE,                      "editable",
+        FALSE
+    );
+    $buffer2->set_text($text);
+    $buffer2->apply_tag_by_name("MainShadow", $buffer2->get_bounds);
+    $mainTextShadow->set_buffer($buffer2);
+    $mainText->raise_to_top();
+    $mainTextShadow->show();
 }
 
 sub Configure_event {
-	my ($width, $height) = $window->get_size();
-	$MINISCALE = $config->{'Width'} / $width;
-	if ($canvas) {
-		$canvas->set_pixels_per_unit(1 / $MINISCALE);
+    my ($width, $height) = $window->get_size();
+    $MINISCALE = $config->{'Width'} / $width;
+    if ($canvas) {
+        $canvas->set_pixels_per_unit(1 / $MINISCALE);
 
-	}
-	$window->set_size_request($width, $config->{'Height'} / $MINISCALE);
-	debug($width . "x" . ($config->{'Height'} / $MINISCALE));
-	debug("Scale: " . $MINISCALE);
+    }
+    $window->set_size_request($width, $config->{'Height'} / $MINISCALE);
+    debug($width . "x" . ($config->{'Height'} / $MINISCALE));
+    debug("Scale: " . $MINISCALE);
 }
 
 sub display_fatal {
-	my ($message, $error) = @_;
-	print STDERR "\n\n-------------\n";
-	print STDERR "FATAL ERROR!!\n";
-	print STDERR "-------------\n";
-	print STDERR "Error description\n";
-	print STDERR $message . "\n";
-	print STDERR "------------------\n";
-	my $errorxml =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
-	$errorxml->signal_autoconnect_from_package('');
-	$errorxml->get_widget('labelError')->set_text($message);
-	my $confirm = $errorxml->get_widget('dialogError')->run();
-	close_dialog($errorxml->get_widget('dialogError'));
-	print STDERR "Full error message\n";
-	print STDERR "------------------\n";
-	die ($error);
+    my ($message, $error) = @_;
+    print STDERR "\n\n-------------\n";
+    print STDERR "FATAL ERROR!!\n";
+    print STDERR "-------------\n";
+    print STDERR "Error description\n";
+    print STDERR $message . "\n";
+    print STDERR "------------------\n";
+    my $errorxml =
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
+    $errorxml->signal_autoconnect_from_package('');
+    $errorxml->get_widget('labelError')->set_text($message);
+    my $confirm = $errorxml->get_widget('dialogError')->run();
+    close_dialog($errorxml->get_widget('dialogError'));
+    print STDERR "Full error message\n";
+    print STDERR "------------------\n";
+    die($error);
 }
 
 sub close_dialog {
-	my ($widget) = @_;
-	debug("Close dialog");
-	$widget->get_toplevel->destroy;
+    my ($widget) = @_;
+    debug("Close dialog");
+    $widget->get_toplevel->destroy;
 }
 
 sub mod {
-	my ($inp, $div) = @_;
-	my $rem = (($inp / $div) - (int($inp / $div))) * $div;
-	return $rem;
+    my ($inp, $div) = @_;
+    my $rem = (($inp / $div) - (int($inp / $div))) * $div;
+    return $rem;
 }
 
 sub set_footer {
-	my ($text) = @_;
-	if (!defined $text) { $text = ""; }
-	my $widget = Gtk2::Label->new();
-	my $layout = $widget->create_pango_layout("");
-	$layout->set_wrap('word');
-	$layout->set_width(($config->{'Width'} - ($config->{'OverscanH'} * 2) -
-		$config->{'ShadowSize'}) * PANGO_SCALE);
-	my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
-	$layout->set_font_description($desc);
-	$layout->set_text($text);
-	my ($w, $h) = $layout->get_pixel_size;
-	$w=$w+10; $h=$h+10;
-	if ($footerText) { $footerText->destroy(); }
-	$footerText = Gnome2::Canvas::Item->new(
-		$root, 'Gnome2::Canvas::RichText',
-		x                => $config->{'Width'} / 2,
-		y                => $config->{'Height'} - $config->{'OverscanV'},
-		anchor           => 'GTK_ANCHOR_S',
-		width            => $w,
-		height           => $h,
-		'cursor-visible' => FALSE
-	);
-	my $buffer = $footerText->get_buffer();
-	my $tag3   = $buffer->create_tag(
-		"Footer",            "font",
-		$config->{'Footer'}, "foreground",
-		$config->{'Colour'}, "wrap-mode",
-		"word",              "editable-set",
-		TRUE,                "editable",
-		FALSE
-	);
-	$buffer->set_text($text);
-	$buffer->apply_tag_by_name("Footer", $buffer->get_bounds);
+    my ($text) = @_;
+    if (!defined $text) { $text = ""; }
+    my $widget = Gtk2::Label->new();
+    my $layout = $widget->create_pango_layout("");
+    $layout->set_wrap('word');
+    $layout->set_width(
+        (
+            $config->{'Width'} - ($config->{'OverscanH'} * 2) -
+              $config->{'ShadowSize'}
+        ) * PANGO_SCALE
+    );
+    my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
+    $layout->set_font_description($desc);
+    $layout->set_text($text);
+    my ($w, $h) = $layout->get_pixel_size;
+    $w = $w + 10;
+    $h = $h + 10;
+    if ($footerText) { $footerText->destroy(); }
+    $footerText = Gnome2::Canvas::Item->new(
+        $root, 'Gnome2::Canvas::RichText',
+        x                => $config->{'Width'} / 2,
+        y                => $config->{'Height'} - $config->{'OverscanV'},
+        anchor           => 'GTK_ANCHOR_S',
+        width            => $w,
+        height           => $h,
+        'cursor-visible' => FALSE
+    );
+    my $buffer = $footerText->get_buffer();
+    my $tag3   = $buffer->create_tag(
+        "Footer",            "font",
+        $config->{'Footer'}, "foreground",
+        $config->{'Colour'}, "wrap-mode",
+        "word",              "editable-set",
+        TRUE,                "editable",
+        FALSE
+    );
+    $buffer->set_text($text);
+    $buffer->apply_tag_by_name("Footer", $buffer->get_bounds);
 }
 
 sub set_header {
-	my ($text) = @_;
-	if (!defined $text) { $text = ""; }
-	my $widget = Gtk2::Label->new();
-	my $layout = $widget->create_pango_layout("");
-	$layout->set_wrap('word');
-	$layout->set_width(($config->{'Width'} - ($config->{'OverscanH'} * 2) -
-		$config->{'ShadowSize'}) * PANGO_SCALE);
-	my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
-	$layout->set_font_description($desc);
-	$layout->set_text($text);
-	my ($w, $h) = $layout->get_pixel_size;
-	$w=$w+10; $h=$h+10;
-	if ($headerText) { $headerText->destroy(); }
-	$headerText = Gnome2::Canvas::Item->new(
-		$root, 'Gnome2::Canvas::RichText',
-		x                => $config->{'Width'} / 2,
-		y                => $config->{'OverscanV'},
-		anchor           => 'GTK_ANCHOR_N',
-		width            => $w,
-		height           => $h,
-		'cursor-visible' => FALSE
-	);
-	my $buffer = $headerText->get_buffer();
-	my $tag3   = $buffer->create_tag(
-		"Header",            "font",
-		$config->{'Header'}, "foreground",
-		$config->{'Colour'}, "wrap-mode",
-		"word",              "editable-set",
-		TRUE,                "editable",
-		FALSE
-	);
-	$buffer->set_text($text);
-	$buffer->apply_tag_by_name("Header", $buffer->get_bounds);
+    my ($text) = @_;
+    if (!defined $text) { $text = ""; }
+    my $widget = Gtk2::Label->new();
+    my $layout = $widget->create_pango_layout("");
+    $layout->set_wrap('word');
+    $layout->set_width(
+        (
+            $config->{'Width'} - ($config->{'OverscanH'} * 2) -
+              $config->{'ShadowSize'}
+        ) * PANGO_SCALE
+    );
+    my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
+    $layout->set_font_description($desc);
+    $layout->set_text($text);
+    my ($w, $h) = $layout->get_pixel_size;
+    $w = $w + 10;
+    $h = $h + 10;
+    if ($headerText) { $headerText->destroy(); }
+    $headerText = Gnome2::Canvas::Item->new(
+        $root, 'Gnome2::Canvas::RichText',
+        x                => $config->{'Width'} / 2,
+        y                => $config->{'OverscanV'},
+        anchor           => 'GTK_ANCHOR_N',
+        width            => $w,
+        height           => $h,
+        'cursor-visible' => FALSE
+    );
+    my $buffer = $headerText->get_buffer();
+    my $tag3   = $buffer->create_tag(
+        "Header",            "font",
+        $config->{'Header'}, "foreground",
+        $config->{'Colour'}, "wrap-mode",
+        "word",              "editable-set",
+        TRUE,                "editable",
+        FALSE
+    );
+    $buffer->set_text($text);
+    $buffer->apply_tag_by_name("Header", $buffer->get_bounds);
 }
 
