@@ -128,6 +128,7 @@ $globals->{'preview_port'}  = "2347";    #port used for preview
 $globals->{'miniview_port'} = "2348";    #port used for miniview
 $globals->{'update_timer'}  = FALSE;
 $globals->{'timer'}         = FALSE;
+$globals->{'debugging'}     = FALSE;
 
 # Transitions
 use constant NORMAL     => 0;
@@ -3822,6 +3823,7 @@ sub debug {
 	}
 	return TRUE;
 }
+
 sub qdebug {
 	if ($globals->{'debugging'} == 2 ) {
 

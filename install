@@ -10,7 +10,7 @@ use strict;
 use DBI;
 use POSIX;
 use IO::Socket::INET;
-use Unicode::String qw(utf8 utf16);
+use Encode;
 use Gtk2 -init;
 use Gtk2::GladeXML;
 use Gtk2::Pango;
@@ -80,8 +80,8 @@ if ($ARGV[0] eq "-u") {
 		system ("echo 'DROP DATABASE lyricDb' | mysql -u root --password=$rootpw");
 		system("echo 'DROP DATABASE bibleDb' | mysql -u root --password=$rootpw");
 		print "Removing Lyric user from the database\n";
-		system ("echo \"DELETE FROM user WHERE Host='localhost' AND User='lyric' LIMIT 1;\"| $MYSQL -uroot --password=$rootpw mysql");
-		system ("echo 'DELETE FROM user WHERE Host='%' AND User='lyric' LIMIT 1;\"| $MYSQL -uroot --password=$rootpw mysql");
+		system ("echo \"DELETE FROM user WHERE Host='localhost' AND User='lyric' LIMIT 1;\"| mysql -uroot --password=$rootpw mysql");
+		system ("echo 'DELETE FROM user WHERE Host='%' AND User='lyric' LIMIT 1;\"| mysql -uroot --password=$rootpw mysql");
 
 		system("mysqladmin -uroot --password=$rootpw reload");
 	}
