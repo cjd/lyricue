@@ -4359,6 +4359,10 @@ sub save_preferences {
 			$widgets->{'main'}->get_widget('frameCurrent')->hide();
 		}
 	}
+	preview_display("reconfig","","");
+	update_display("reconfig","","");
+	preview_display("display","current","");
+	update_display("display","current","");
 }
 
 #***

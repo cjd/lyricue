@@ -364,9 +364,13 @@ debug("Showing window");
 $window->show_all();
 $window->signal_connect("configure_event", \&Configure_event);
 Configure_event();
+
+if (!$MINISERV ) {
+	$canvas->update_now();
+}
+
 debug("Done");
 
-# Gtk event loop
 debug("Main program running");
 
 my $sockaddr = 'S n a4 x8';
@@ -383,6 +387,7 @@ use IO::Select;
 my $s = IO::Select->new($socket);
 debug("Listening on " . $globals->{'use_port'});
 
+# Gtk event loop
 while (1) {
 	my @ready = $s->can_read(1);
 	foreach $h (@ready) {
@@ -520,6 +525,8 @@ sub process_input {
 			if ($line[1] eq "playlist") {
 				debug("Changing playlist to " . $line[2]);
 				$current_list = $line[2];
+			} elsif ($line[1] eq "current") {
+			    	# ignore and just display same page
 			} elsif ($line[1] eq "next_page") {
 				my $query =
 				  "SELECT playlist FROM playlist WHERE playorder="
@@ -1220,6 +1227,7 @@ sub change_backdrop {
 			);
 		}
 	}
+	$background->lower_to_bottom;
 }    ## end sub change_backdrop
 
 #***
