@@ -471,8 +471,6 @@ my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
 
-Gtk2->do_event("expose");
-
 while (1) {
 	my @ready = $s->can_read(1);
 	foreach $h (@ready) {

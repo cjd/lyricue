@@ -2320,7 +2320,7 @@ sub update_imagedir {
 	$d = $b;
 	$d =~ s/\//\\\//g;
 	my $dirlisting =
-`find $a $b -type f -maxdepth 1 | sed -e 's/^$c//g' | sed -e 's/^$d//g' | sort -u`;
+`find $a $b -follow -type f -maxdepth 1 | sed -e 's/^$c//g' | sed -e 's/^$d//g' | sort -u`;
 
 	my @items = split (/\n/, $dirlisting);
 
@@ -4760,7 +4760,7 @@ sub bgdir_list {
 	$a =~ s/\//\\\//g;
 	$b =~ s/\//\\\//g;
 	my $dirlisting =
-`find $globals->{'bgpath_system'} $globals->{'bgpath_user'} -type d -maxdepth 1| sed -e 's/^$a//g' | sed -e 's/^$b//g' | sort -u`;
+`find $globals->{'bgpath_system'} $globals->{'bgpath_user'} -follow -type d -maxdepth 1| sed -e 's/^$a//g' | sed -e 's/^$b//g' | sort -u`;
 	my @directories = split (/\n/, $dirlisting);
 	foreach (@directories) {
 		if ($_ ne "") {
@@ -4838,7 +4838,7 @@ sub bgdir_load {
 	$a =~ s/\//\\\//g;
 	$b =~ s/\//\\\//g;
 	my $dirlisting =
-`find $globals->{'bgpath_system'}/$directory $globals->{'bgpath_user'}/$directory -maxdepth 1 -type f -name \\*\\.\\* | sed -e 's/^$a//g' | sed -e 's/^$b//g' | sort -u`;
+`find $globals->{'bgpath_system'}/$directory $globals->{'bgpath_user'}/$directory -maxdepth 1 -follow -type f -name \\*\\.\\* | sed -e 's/^$a//g' | sed -e 's/^$b//g' | sort -u`;
 	my @items = split (/\n/, $dirlisting);
 
 	$widgets->{'main'}->get_widget('hboxBackImage')->hide();
@@ -4866,7 +4866,7 @@ sub bgdir_load {
 				$widgets->{'buttons'}[$counter]
 				  ->add($widgets->{'pixmaps'}[$counter]);
 				$widgets->{'buttons'}[$counter]->{user_data} =
-				  ("BG:" . $directory . "/" . $_);
+				  ("BG:" . $_);
 				$widgets->{'pixmaps'}[$counter]->show();
 				$widgets->{'buttons'}[$counter]->show();
 				$widgets->{'buttons'}[$counter]
