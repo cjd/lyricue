@@ -2258,7 +2258,10 @@ sub clear_playlist {
 # SOURCE
 #
 sub display_song {
+    use Data::Dumper;
+    #print Dumper(@_);
     my (undef, $event) = @_;
+    print "event $event\n";
     if (defined($event->type)) {
         if ($event->type eq '2button-press') {
             if ($globals->{'timer'}) {
@@ -2634,7 +2637,6 @@ sub add_verse {
 # SOURCE
 #
 sub add_image {
-    my ($widget) = @_;
     debug("Add image clicked");
 
     $widgets->{'image'} =
@@ -2653,7 +2655,7 @@ sub add_image {
         $widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
 	my $renderer = Gtk2::CellRendererText->new;
 	$renderer->set("editable", TRUE);
-	#$renderer->signal_connect("editing_done","rename_media");
+	$renderer->signal_connect("edited","rename_media");
         my $column =
           Gtk2::TreeViewColumn->new_with_attributes("Filename",
             $renderer, text => 0);
@@ -5303,8 +5305,11 @@ sub add_file {
       ->signal_connect("clicked", "file_ok_sel", $filexml);
 }
 
+sub add_background {
+    change_bgimage();
+}
+
 sub change_bgimage {
-    my ($widget) = @_;
     my $bgimage = "";
 
     debug("Change backdrop dialog opened");
@@ -5320,15 +5325,24 @@ sub change_bgimage {
     {
         $widgets->{'image'}->get_widget('treeImage')->{data} = ();
     } else {
-        $bgimage = $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
-        $widgets->{'image'}->get_widget('buttonImageOK')
-          ->set_label(gettext("Set as Default"));
-        $widgets->{'image'}->get_widget('buttonImageOK')
-          ->signal_connect('clicked', "set_default_backdrop");
+	if ($widgets->{'prefs'}) {
+        	$bgimage = $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
+        	$widgets->{'image'}->get_widget('buttonImageOK')
+        	  ->set_label(gettext("Set as Default"));
+        	$widgets->{'image'}->get_widget('buttonImageOK')
+        	  ->signal_connect('clicked', "set_default_backdrop");
+	} else {
+        	$widgets->{'image'}->get_widget('buttonImageCancel')->hide();
+        	$widgets->{'image'}->get_widget('buttonImageOK')
+        	  ->signal_connect('clicked', "close_dialog");
+	}
         $widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
+	my $renderer = Gtk2::CellRendererText->new;
+	$renderer->set("editable", TRUE);
+	$renderer->signal_connect("edited","rename_media");
         my $column =
           Gtk2::TreeViewColumn->new_with_attributes("Filename",
-            Gtk2::CellRendererText->new, text => 0);
+            $renderer, text => 0);
         $column->signal_connect("clicked", "change_preview");
         $widgets->{'image'}->get_widget('treeImage')->append_column($column);
     }
@@ -6071,5 +6085,16 @@ sub media_delete {
 }
 
 sub rename_media {
-	debug("Renaming media");
+	my ($widget,$id,$newname) = @_;
+	my $oldname = $widget->get('text');
+	if ($oldname ne $newname) {
+		my $iter = $widgets->{'image'}->get_widget('treeImage')->get_model->get_iter_from_string($id);
+		$id = $widgets->{'image'}->get_widget('treeImage')->get_model->get($iter, 1);
+		debug("Renaming media from $oldname to $newname");
+		my $query = "UPDATE media SET description=\"$newname\" WHERE id=$id";
+		qdebug($query);
+		my $sth = $mediaDbh->prepare($query) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		update_imagedir( $widgets->{'image'}->get_widget('labelImage')->{'user_data'}, $widgets->{'image'}->get_widget('labelImage')->get_text());
+	}
 }
