@@ -4720,6 +4720,9 @@ sub init_mainWindow {
 
 	# Show the window finally
 	$widgets->{'main'}->get_widget('windowMain')->show;
+	if (!$globals->{'debugging'}) {
+		$widgets->{'main'}->get_widget('windowMain')->maximize;
+	}
 }
 
 sub bgdir_list {
