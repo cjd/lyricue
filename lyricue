@@ -785,9 +785,9 @@ sub popup_avail_menu {
 
     debug("Button clicked on available songs list");
     if ($event->button == 3) {
-	my $path = $widget->get_path_at_pos($event->x,$event->y);
-	$widget->get_selection->select_path($path);
-	print $path." path \n";
+        my $path = $widget->get_path_at_pos($event->x, $event->y);
+        $widget->get_selection->select_path($path);
+        print $path. " path \n";
         my @items = ();
         if ($globals->{'access'} =~ /e/) {
             push @items,
@@ -839,7 +839,7 @@ sub popup_avail_menu {
         return (TRUE);
     } elsif ($event->button == 1 && $event->type eq '2button-press') {
         print "Add song\n";
-	add_to_playlist();
+        add_to_playlist();
         return (TRUE);
     }
 
@@ -2269,6 +2269,7 @@ sub clear_playlist {
 #
 sub display_song {
     my ($widget, $event) = @_;
+
     #debug ("event $event");
     if (defined($event->type)) {
         if ($event->type eq '2button-press') {
@@ -2287,8 +2288,8 @@ sub display_song {
             }
             return TRUE;
         } elsif ($event->type eq 'button-press') {
-	    my $path = $widget->get_path_at_pos($event->x,$event->y);
-	    $widget->get_selection->select_path($path);
+            my $path = $widget->get_path_at_pos($event->x, $event->y);
+            $widget->get_selection->select_path($path);
             if ($event->button == 3) {
                 popup_play_menu($event);
                 return TRUE;
@@ -2735,9 +2736,11 @@ sub update_imagedir {
     # display sorted list
 
     # Update categories list
-    $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'} = $type;
+    $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'} =
+      $type;
     $widgets->{'image'}->get_widget('treeImage')->{'user_data'} = $category;
-    my $history = $widgets->{'image'}->get_widget('optionImageCategory')->get_history();
+    my $history =
+      $widgets->{'image'}->get_widget('optionImageCategory')->get_history();
     my $menu = Gtk2::Menu->new();
     $widgets->{'image'}->get_widget('optionImageCategory')->set_menu($menu);
     my $item = Gtk2::MenuItem->new_with_label("Main");
@@ -2753,20 +2756,22 @@ sub update_imagedir {
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     while ($row = $sth->fetchrow_hashref()) {
-	my $item = Gtk2::MenuItem->new_with_label($row->{'category'});
-	$item->{user_data} = $row->{'category'};
-	$item->show();
-	$menu->append($item);
+        my $item = Gtk2::MenuItem->new_with_label($row->{'category'});
+        $item->{user_data} = $row->{'category'};
+        $item->show();
+        $menu->append($item);
 
     }
-    $widgets->{'image'}->get_widget('optionImageCategory')->set_history($history);
+    $widgets->{'image'}->get_widget('optionImageCategory')
+      ->set_history($history);
 
     # update list of available images
     $query =
         "SELECT * FROM media WHERE category LIKE \""
       . $category
       . "\" AND type=\""
-      . $type . "\" ORDER BY description";
+      . $type
+      . "\" ORDER BY description";
     qdebug($query);
     $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -2781,11 +2786,19 @@ sub update_imagedir {
 }
 
 sub change_image_category {
-    my $category = $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data};
+    my $category =
+      $widgets->{'image'}->get_widget('optionImageCategory')
+      ->get_menu->get_active->{user_data};
     if (defined $category) {
-    if ($widgets->{'image'}->get_widget('treeImage')->{user_data} ne $category) {
-        update_imagedir( $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'}, $category);
-    }
+        if ($widgets->{'image'}->get_widget('treeImage')->{user_data} ne
+            $category)
+        {
+            update_imagedir(
+                $widgets->{'image'}->get_widget('optionImageCategory')
+                  ->{'user_data'},
+                $category
+            );
+        }
     }
 }
 
@@ -3275,28 +3288,41 @@ sub changeVerseStatus {
 # SOURCe
 #
 sub change_preview {
-    debug ("Changing Preview");
+    debug("Changing Preview");
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
     my @selecteditems = $selection->get_selected_rows();
     if ($selecteditems[0]) {
+
         # Find what has changed
-	my $newsel = $selecteditems[0];
-        my $iter = $widgets->{'image'}->get_widget('treeImage')->get_model->get_iter($newsel);
-        my $id = $widgets->{'image'}->get_widget('treeImage')->get_model->get($iter, 1);
-	my $tmp = 0;
-    	foreach $tmp (@selecteditems) {
-            my $iter2 = $widgets->{'image'}->get_widget('treeImage')->get_model->get_iter($tmp);
-            my $id2 = $widgets->{'image'}->get_widget('treeImage')->get_model->get($iter2, 1);
-	    if (! defined $selectedimages{$id2}) {
-	        $id = $id2;
-	    }
-	}
-	%selectedimages= ();
-	foreach $tmp (@selecteditems) {
-            my $iter2 = $widgets->{'image'}->get_widget('treeImage')->get_model->get_iter($tmp);
-            my $id2 = $widgets->{'image'}->get_widget('treeImage')->get_model->get($iter2, 1);
-	    $selectedimages{$id2}=TRUE;
-	}
+        my $newsel = $selecteditems[0];
+        my $iter   =
+          $widgets->{'image'}->get_widget('treeImage')
+          ->get_model->get_iter($newsel);
+        my $id =
+          $widgets->{'image'}->get_widget('treeImage')
+          ->get_model->get($iter, 1);
+        my $tmp = 0;
+        foreach $tmp (@selecteditems) {
+            my $iter2 =
+              $widgets->{'image'}->get_widget('treeImage')
+              ->get_model->get_iter($tmp);
+            my $id2 =
+              $widgets->{'image'}->get_widget('treeImage')
+              ->get_model->get($iter2, 1);
+            if (!defined $selectedimages{$id2}) {
+                $id = $id2;
+            }
+        }
+        %selectedimages = ();
+        foreach $tmp (@selecteditems) {
+            my $iter2 =
+              $widgets->{'image'}->get_widget('treeImage')
+              ->get_model->get_iter($tmp);
+            my $id2 =
+              $widgets->{'image'}->get_widget('treeImage')
+              ->get_model->get($iter2, 1);
+            $selectedimages{$id2} = TRUE;
+        }
 
         if ($globals->{'bg_previews'}) {
             my $scaled = create_pixbuf($id, 480, 360);
@@ -5126,6 +5152,7 @@ sub init_mainWindow {
       ->drag_source_set(['button1_mask'], ['copy'], @target_table);
     $widgets->{'main'}->get_widget('treePlaylist')
       ->drag_dest_set('all', ['copy'], @target_table);
+
     # BORKED
     #$widgets->{'main'}->get_widget('treePlaylist')->set_reorderable(TRUE);
 
@@ -5161,8 +5188,9 @@ sub bgdir_list {
     debug("Loading directory list");
     my $counter = 0;
     debug("Adding Main image dir button");
-    my $query = "SELECT DISTINCT category FROM media WHERE type=\"bg\" ORDER BY category";
-    my $sth   = $mediaDbh->prepare($query)
+    my $query =
+      "SELECT DISTINCT category FROM media WHERE type=\"bg\" ORDER BY category";
+    my $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     while ($row = $sth->fetchrow_hashref()) {
@@ -5712,8 +5740,8 @@ sub load_access {
     } else {
         push @show_items, @admin_items;
     }
-    if (! -w $globals->{'accessfile'} ) {
-    	push @remove_items, "user_administration1"
+    if (!-w $globals->{'accessfile'}) {
+        push @remove_items, "user_administration1";
     }
 
     foreach my $item (@show_items) {
@@ -5894,7 +5922,7 @@ sub quick_save {
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my @row = $sth->fetchrow_array();
     if (!defined $row[0]) { $row[0] = ""; }
-    
+
     $query =
         "UPDATE page SET lyrics="
       . $lyricDbh->quote(Encode::encode("iso-8859-1", $songtext))
@@ -6066,9 +6094,12 @@ q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate,
             $description, $data);
     }
     close_dialog($widget);
-    my $category = $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data};
+    my $category =
+      $widgets->{'image'}->get_widget('optionImageCategory')
+      ->get_menu->get_active->{user_data};
     update_imagedir(
-    $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'},$category);
+        $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'},
+        $category);
 }
 
 sub update_category {
@@ -6090,65 +6121,90 @@ sub update_quickedit {
     if ($iter) {
         my $quicktext = "";
 
-	my $plnumber = $model->get($iter,2);
-	my $loop = 0;
+        my $plnumber = $model->get($iter, 2);
+        my $loop     = 0;
+
         # Find the items lyrics for Quick Editing
-	while ($loop == 0) {
-	    my $query = "SELECT type,data,playlist FROM playlist WHERE playorder=".$plnumber;
+        while ($loop == 0) {
+            my $query =
+              "SELECT type,data,playlist FROM playlist WHERE playorder="
+              . $plnumber;
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
-            $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            $rv = $sth->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
             my @row = $sth->fetchrow_array();
-	    if ($row[0] eq "song") {
-                $query = "SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder=" . $plnumber;
+            if ($row[0] eq "song") {
+                $query =
+"SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder="
+                  . $plnumber;
                 qdebug($query);
                 $sth = $lyricDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my @row2 = $sth->fetchrow_array();
                 if (!defined $row2[0]) { $row2[0] = ""; }
-                $quicktext=$row2[0];
-		$loop = 1;
-                $widgets->{'main'}->get_widget('textQuick')->set_wrap_mode('none');
-	    } elsif ($row[0] eq "play") {
-		$query = "SELECT playorder FROM playlist WHERE playlist=".$row[1]." ORDER BY playorder";
+                $quicktext = $row2[0];
+                $loop      = 1;
+                $widgets->{'main'}->get_widget('textQuick')
+                  ->set_wrap_mode('none');
+            } elsif ($row[0] eq "play") {
+                $query =
+                    "SELECT playorder FROM playlist WHERE playlist="
+                  . $row[1]
+                  . " ORDER BY playorder";
                 qdebug($query);
                 $sth = $lyricDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my @row = $sth->fetchrow_array();
-		$plnumber=$row[0];
-		$loop = 0;
-	    } elsif ($row[0] eq "vers") {
-	    	my ($startv,$endv) =split(/-/,$row[1],2);
-	        $query = "SELECT title FROM playlists WHERE id=".$row[2];
+                $plnumber = $row[0];
+                $loop     = 0;
+            } elsif ($row[0] eq "vers") {
+                my ($startv, $endv) = split(/-/, $row[1], 2);
+                $query = "SELECT title FROM playlists WHERE id=" . $row[2];
                 qdebug($query);
                 $sth = $lyricDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my @row = $sth->fetchrow_array();
-		my @line = split(/:/,$row[0]);
-		$query = "SELECT chapternum,versenum,verse FROM verse WHERE book=\"".$line[0]."\" AND chapternum=".$line[1]." AND versenum>=".$startv." AND versenum <= ".$endv;
+                my @line = split(/:/, $row[0]);
+                $query =
+                    "SELECT chapternum,versenum,verse FROM verse WHERE book=\""
+                  . $line[0]
+                  . "\" AND chapternum="
+                  . $line[1]
+                  . " AND versenum>="
+                  . $startv
+                  . " AND versenum <= "
+                  . $endv;
                 qdebug($query);
                 $sth = $bibleDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
                 while (@row = $sth->fetchrow_array()) {
-                    $quicktext .= $row[0].":".$row[1]."   ".$row[2]."\n";
-		}
-		$loop = 1;
-                $widgets->{'main'}->get_widget('textQuick')->set_wrap_mode('word');
-	    } elsif ($row[0] eq "imag") {
-	        $quicktext="Image";
-		$loop = 1;
-	    } elsif ($row[0] eq "back") {
-	        $quicktext="Background";
-		$loop = 1;
-	    } else {
-	    	$loop = 1;
-	    }
-	}
+                    $quicktext .=
+                      $row[0] . ":" . $row[1] . "   " . $row[2] . "\n";
+                }
+                $loop = 1;
+                $widgets->{'main'}->get_widget('textQuick')
+                  ->set_wrap_mode('word');
+            } elsif ($row[0] eq "imag") {
+                $quicktext = "Image";
+                $loop      = 1;
+            } elsif ($row[0] eq "back") {
+                $quicktext = "Background";
+                $loop      = 1;
+            } else {
+                $loop = 1;
+            }
+        }
 
         $widgets->{'main'}->get_widget('textQuick')
           ->get_buffer->set_text($quicktext);
@@ -6193,7 +6249,9 @@ sub media_delete {
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
                 close_dialog($deletexml->get_widget('dialogConfirm'));
-		my $category = $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data};
+                my $category =
+                  $widgets->{'image'}->get_widget('optionImageCategory')
+                  ->get_menu->get_active->{user_data};
                 update_imagedir(
                     $widgets->{'image'}->get_widget('optionImageCategory')
                       ->{'user_data'},
@@ -6223,112 +6281,134 @@ sub rename_media {
         my $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
         update_imagedir(
-            $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'},
-	    $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data}
+            $widgets->{'image'}->get_widget('optionImageCategory')
+              ->{'user_data'},
+            $widgets->{'image'}->get_widget('optionImageCategory')
+              ->get_menu->get_active->{user_data}
         );
     }
 }
 
 sub restore_db {
-	debug("Restoring DB");
+    debug("Restoring DB");
 
-	# Get filename of DB
-	my $fileDialog = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile','lyricue');
-	$fileDialog->get_widget('dialogFile')->set_title("Select Database Backup file");
-	my $response = $fileDialog->get_widget('dialogFile')->run();
-	if ($response eq "ok") {
-		my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
-		close_dialog($fileDialog->get_widget('dialogFile'));
-		
-		my $confirmDialog = Gtk2::GladeXML->new($globals->{'gladefile'},
-	                	'dialogConfirm', 'lyricue');
-		$confirmDialog->signal_autoconnect_from_package('');
-		$confirmDialog->get_widget('labelDelete')->set_text("WARNING: Restoring this database will overwrite your current database");
-		my $confirm = $confirmDialog->get_widget('dialogConfirm')->run();
-		if ($confirm eq "ok") {
-			
-			debug("ok");
-			open (INPUT,"gzip -dc ".$filename."|");
-			my $table = "";
-			my $db = "";
-			my $dbh = "";
-			while (<INPUT>) {
-				chomp;
-				if (/^USE/) {
-					$db = $_;
-					$db =~ s/^USE (.*);.*$/$1/g;
-					print $db." - database \n";
-					if ($db eq "lyricDb") {
-						$dbh=$lyricDbh;
-					} elsif ($db eq "mediaDb") {
-						$dbh=$mediaDbh;
-					} else {
-						$dbh = "";
-					}
-				} elsif (/^INSERT INTO/) {
-					if ($dbh ne "") {
-						my $insert = $_;
-						my $tmptable = $insert;
-						$tmptable =~ s/^INSERT INTO `(.*?)`.*$/$1/g;
-						if ($tmptable ne $table) {
-							$table=$tmptable;
-							my $query = "DELETE FROM ".$table;
-							my $sth = $dbh->prepare($query) || display_fatal($errorcodes->{'sqlprepare'}, $!);
-							my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-						}
-						my $sth = $dbh->prepare($insert) || display_fatal($errorcodes->{'sqlprepare'}, $!);
-						my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-						
-					}
-				}
-			}
-		}
-		close_dialog($confirmDialog->get_widget('dialogConfirm'));
-	} else {
-		close_dialog($fileDialog->get_widget('dialogFile'));
-	}
+    # Get filename of DB
+    my $fileDialog =
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
+    $fileDialog->get_widget('dialogFile')
+      ->set_title("Select Database Backup file");
+    my $response = $fileDialog->get_widget('dialogFile')->run();
+    if ($response eq "ok") {
+        my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
+        close_dialog($fileDialog->get_widget('dialogFile'));
+
+        my $confirmDialog = Gtk2::GladeXML->new($globals->{'gladefile'},
+            'dialogConfirm', 'lyricue');
+        $confirmDialog->signal_autoconnect_from_package('');
+        $confirmDialog->get_widget('labelDelete')
+          ->set_text(
+"WARNING: Restoring this database will overwrite your current database"
+          );
+        my $confirm = $confirmDialog->get_widget('dialogConfirm')->run();
+        if ($confirm eq "ok") {
+
+            debug("ok");
+            open(INPUT, "gzip -dc " . $filename . "|");
+            my $table = "";
+            my $db    = "";
+            my $dbh   = "";
+            while (<INPUT>) {
+                chomp;
+                if (/^USE/) {
+                    $db = $_;
+                    $db =~ s/^USE (.*);.*$/$1/g;
+                    print $db. " - database \n";
+                    if ($db eq "lyricDb") {
+                        $dbh = $lyricDbh;
+                    } elsif ($db eq "mediaDb") {
+                        $dbh = $mediaDbh;
+                    } else {
+                        $dbh = "";
+                    }
+                } elsif (/^INSERT INTO/) {
+                    if ($dbh ne "") {
+                        my $insert   = $_;
+                        my $tmptable = $insert;
+                        $tmptable =~ s/^INSERT INTO `(.*?)`.*$/$1/g;
+                        if ($tmptable ne $table) {
+                            $table = $tmptable;
+                            my $query = "DELETE FROM " . $table;
+                            my $sth   = $dbh->prepare($query)
+                              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                            my $rv = $sth->execute
+                              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        }
+                        my $sth = $dbh->prepare($insert)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        my $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+                    }
+                }
+            }
+        }
+        close_dialog($confirmDialog->get_widget('dialogConfirm'));
+    } else {
+        close_dialog($fileDialog->get_widget('dialogFile'));
+    }
 }
 
 sub backup_db {
-	debug("Backup DB selected");
-	$widgets->{'backupdb'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDatabase','lyricue');
-	$widgets->{'backupdb'}->signal_autoconnect_from_package('');
-	$widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->set_text($ENV{"HOME"}."/Lyricue_DB.gz");
-	my $response = $widgets->{'backupdb'}->get_widget('dialogDatabase')->run();
-	if ($response eq "ok") {
-		my $filename = $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->get_text();
-		if (!($filename =~ /\.gz$/)) {
-			$filename .= ".gz";
-		}
-		my $databases="";
-		if ($widgets->{'backupdb'}->get_widget('checkLyricdb')->get_active()) {
-			$databases .= "lyricDb ";
-		}
-		if ($widgets->{'backupdb'}->get_widget('checkMediadb')->get_active()) { 
-			$databases .= "mediaDb ";
-		}
-		my $command = "mysqldump --no-create-db --no-create-info --user=lyric --password='' --databases ".$databases." | gzip -c > ".$filename;
-		system $command;
-		if ($? == -1) {
-			print ("Failed to execute: ".$command);
-		} else {
-			debug ("Backed up to ".$filename)
-		}
-	}
-	close_dialog($widgets->{'backupdb'}->get_widget('dialogDatabase'));
+    debug("Backup DB selected");
+    $widgets->{'backupdb'} =
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDatabase', 'lyricue');
+    $widgets->{'backupdb'}->signal_autoconnect_from_package('');
+    $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')
+      ->set_text($ENV{"HOME"} . "/Lyricue_DB.gz");
+    my $response = $widgets->{'backupdb'}->get_widget('dialogDatabase')->run();
+    if ($response eq "ok") {
+        my $filename =
+          $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->get_text();
+        if (!($filename =~ /\.gz$/)) {
+            $filename .= ".gz";
+        }
+        my $databases = "";
+        if ($widgets->{'backupdb'}->get_widget('checkLyricdb')->get_active()) {
+            $databases .= "lyricDb ";
+        }
+        if ($widgets->{'backupdb'}->get_widget('checkMediadb')->get_active()) {
+            $databases .= "mediaDb ";
+        }
+        my $command =
+"mysqldump --no-create-db --no-create-info --user=lyric --password='' --databases "
+          . $databases
+          . " | gzip -c > "
+          . $filename;
+        system $command;
+        if ($? == -1) {
+            print("Failed to execute: " . $command);
+        } else {
+            debug("Backed up to " . $filename);
+        }
+    }
+    close_dialog($widgets->{'backupdb'}->get_widget('dialogDatabase'));
 }
 
 sub backup_db_browse {
-	debug("Browsing for BackupDB filename");
-	my $fileDialog = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile','lyricue');
-	$fileDialog->get_widget('dialogFile')->set_filename($widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->get_text());
-	my $response = $fileDialog->get_widget('dialogFile')->run();
-	if ($response eq "ok") {
-		my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
-		if (!($filename =~ /\.gz$/)) {
-			$filename .= ".gz";
-		}
-		$widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->set_text($filename);
-	}
-	close_dialog($fileDialog->get_widget('dialogFile'));
+    debug("Browsing for BackupDB filename");
+    my $fileDialog =
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
+    $fileDialog->get_widget('dialogFile')
+      ->set_filename(
+        $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->get_text());
+    my $response = $fileDialog->get_widget('dialogFile')->run();
+    if ($response eq "ok") {
+        my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
+        if (!($filename =~ /\.gz$/)) {
+            $filename .= ".gz";
+        }
+        $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')
+          ->set_text($filename);
+    }
+    close_dialog($fileDialog->get_widget('dialogFile'));
 }

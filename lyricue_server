@@ -1453,8 +1453,8 @@ sub set_maintext {
     $oldText = $mainText;
 
     my $top_y = ($config->{'Height'} - $config->{'ShadowSize'}) / 2;
-    if (defined $config->{'CenterY'} && $config->{'CentreY'} eq "" ){
-    	$top_y = $headerHeight;
+    if (defined $config->{'CenterY'} && $config->{'CentreY'} eq "") {
+        $top_y = $headerHeight;
     }
 
     # Create a new mainText;
@@ -1507,8 +1507,9 @@ sub set_maintext {
     $h = $h + 10;
     my $centreX = $config->{'Width'} / 2;
     my $centreY = $config->{'Height'} / 2;
+
     if (defined $config->{'CentreY'} && $config->{'CentreY'} == 0) {
-    	$centreY = ($h/2) + $headerHeight;
+        $centreY = ($h / 2) + $headerHeight;
     }
 
     my @items = ();
@@ -1695,6 +1696,7 @@ sub Configure_event {
 
     }
     $window->set_size_request($width, $config->{'Height'} / $MINISCALE);
+
     #debug($width . "x" . ($config->{'Height'} / $MINISCALE));
     #debug("Scale: " . $MINISCALE);
 }
@@ -1787,9 +1789,9 @@ sub set_header {
     $layout->set_font_description($desc);
     $layout->set_text($text);
     my ($w, $h) = $layout->get_pixel_size;
-    $w = $w + 10;
-    $h = $h + 10;
-    $headerHeight=$h;
+    $w            = $w + 10;
+    $h            = $h + 10;
+    $headerHeight = $h;
     if ($headerText) { $headerText->destroy(); }
     $headerText = Gnome2::Canvas::Item->new(
         $root, 'Gnome2::Canvas::RichText',
