@@ -4738,26 +4738,7 @@ sub init_mainWindow {
 	  ->drag_dest_set('all', ['copy'], @target_table);
 
 
-	my $socket = Gtk2::Socket->new;
-	$socket->show;
-	$socket->set_size_request(280,210);
-	$widgets->{'main'}->get_widget('framePreview')->add($socket);
-	printf("$^X ./lyricue_server -m %d\n", $socket->get_id);
-
-	my $pid = fork;
-	if ($pid<0) {
-		die "There's a problem here";
-	}
-	if ($pid == 0) {
-		exec (sprintf("$^X ./lyricue_server -m %d\n", $socket->get_id));
-	}
-
-	$socket->signal_connect('plug-removed' => sub {
-		print STDERR "GtkPlug Disconnected\n";
-		$widgets->{'main'}->get_widget('vboxPreview')->remove($socket);
-		1;
-	});
-	
+	init_preview();
 	# Show the window finally
 	$widgets->{'main'}->get_widget('windowMain')->show;
 	if (!$globals->{'debugging'}) {
@@ -4929,8 +4910,10 @@ sub spell_check {
 	debug("Running spell checker\n");
 
 	foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} } keys %pageOrder) {
-		$widgets->{'spellAPage'}{$page} =
-		  Gtk2::Spell->new($widgets->{'textAPage'}{$page});
+		if (! defined $widgets->{'spellAPage'}{$page}) {
+			$widgets->{'spellAPage'}{$page} =
+			  Gtk2::Spell->new($widgets->{'textAPage'}{$page});
+		}
 
 	}
 }
@@ -5403,4 +5386,27 @@ sub find_image {
 		}
 	}
 	return $backdrop;
+}
+
+sub init_preview {
+	my $socket = Gtk2::Socket->new;
+	$socket->show;
+	$socket->set_size_request(280,210);
+	$widgets->{'main'}->get_widget('framePreview')->add($socket);
+	printf("$^X ./lyricue_server -m %d\n", $socket->get_id);
+
+	my $pid = fork;
+	if ($pid<0) {
+		display_fatal ("Unable to start the lyricue server as a preview window",$!);
+	}
+	if ($pid == 0) {
+		exec (sprintf("$^X ./lyricue_server -m %d\n", $socket->get_id));
+	}
+
+	$socket->signal_connect('plug-removed' => sub {
+		debug ("Lyricue preview died..restarting\n");
+		$widgets->{'main'}->get_widget('framePreview')->remove($socket);
+		init_preview();
+		1;
+	});
 }

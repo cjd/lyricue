@@ -1602,10 +1602,11 @@ sub Configure_event {
 	my ($width, $height) = $window->get_size();
 	$MINISCALE = $config->{'Width'} / $width;
 	if ($canvas) {
-#		$canvas->set_pixels_per_unit($MINISCALE);
+		$canvas->set_pixels_per_unit($MINISCALE);
 
 	}
-#	$window->set_size_request($width,$config->{'Height'}/$MINISCALE);
+	$window->set_size_request($width,$config->{'Height'}/$MINISCALE);
+	debug ($width."x".($config->{'Height'}/$MINISCALE)."\n");
 	debug ("Scale: ".$MINISCALE."\n");
 }
 
