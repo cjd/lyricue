@@ -2373,6 +2373,7 @@ sub add_image {
 			Gtk2::CellRendererText->new, text => 0);
 		$column->signal_connect("clicked", "change_preview");
 		$widgets->{'image'}->get_widget('treeImage')->append_column($column);
+		$widgets->{'image'}->get_widget('treeImage')->get_selection->set_mode('multiple');
 		$widgets->{'image'}->get_widget('buttonImageOK')
 		  ->signal_connect('clicked', "do_add_image");
 	}
@@ -2951,9 +2952,11 @@ sub changeVerseStatus {
 sub change_preview {
 	my (undef, $event) = @_;
 	my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
-	my ($model, $iter) = $selection->get_selected;
-	if ($iter) {
-		my $filename = $model->get($iter, 0);
+	my @selecteditems = $selection->get_selected_rows();
+	if ($selecteditems[0]) {
+		my $iter = $widgets->{'image'}->get_widget('treeImage')->get_model->get_iter($selecteditems[0]);
+
+		my $filename = $widgets->{'image'}->get_widget('treeImage')->get_model->get($iter, 0);
 		if ($filename eq "..") {
 
 			# go up a dir
@@ -3130,8 +3133,11 @@ sub backdrop_clicked {
 sub do_add_image {
 	my ($widget) = @_;
 	my $playorder = 1;
-	my $image     = $widgets->{'image'}->get_widget('imageImage')->{user_data};
+	my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
+	my @list = $selection->get_selected_rows();
+	my $model = $widgets->{'image'}->get_widget('treeImage')->get_model();
 	my $playlist = $widgets->{'image'}->get_widget('optionImageSublist')->get_menu->get_active->{'user_data'};
+
 	$query = "SELECT MAX(playorder) FROM playlist";
 	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
@@ -3144,15 +3150,21 @@ sub do_add_image {
 		}
 	}
 
-	$query =
-	  "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
-	  . $playorder . ", "
-	  . $playlist
-	  . ", \"imag\", \"" . $image . "\")";
-	qdebug($query);
-	$sth = $lyricDbh->prepare($query)
-	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+	foreach (@list) {
+		my $image = $model->get($model->get_iter($_), 0);
+		debug ($image);
+		$query =
+		  "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
+		  . $playorder . ", "
+		  . $playlist
+		  . ", \"imag\", \"" . $image . "\")";
+		qdebug($query);
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		$playorder++;
+	}
 
 	close_dialog($widget);
 	update_playlist();
