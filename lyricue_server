@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 #****** lyricue_server/pod
 # NAME
@@ -84,9 +84,11 @@ use Gtk2::Pango;
 use Gtk2::GladeXML;
 use Gtk2::Gdk::Keysyms;
 use Glib;
-eval {require Locale::gettext};
+eval { require Locale::gettext };
+
 if ($@) {
     print "Gettext not available, english text only\n";
+
     sub gettext {
         return $@;
     }
@@ -356,19 +358,22 @@ if ($globals->{'fast'}) {
     $mainText   = Gtk2::Label->new();
     $footerText = Gtk2::Label->new();
     $headerText->set_line_wrap(TRUE);
-    $headerText->set_size_request($config->{'Width'} - ($config->{'OverscanH'} *2),-1);
+    $headerText->set_size_request(
+        $config->{'Width'} - ($config->{'OverscanH'} * 2), -1);
     $headerText->set_justify('center');
     $mainText->set_line_wrap(TRUE);
     $footerText->set_line_wrap(TRUE);
-    $footerText->set_size_request($config->{'Width'} - ($config->{'OverscanH'} *2),-1);
+    $footerText->set_size_request(
+        $config->{'Width'} - ($config->{'OverscanH'} * 2), -1);
     $footerText->set_justify('center');
     $vbox->pack_start($headerText, FALSE, FALSE, 0);
+
     if ($config->{'CentreY'}) {
-    	$vbox->pack_start($mainText,   TRUE,  TRUE,  0);
+        $vbox->pack_start($mainText, TRUE, TRUE, 0);
     } else {
-    	$vbox->pack_start($mainText,   FALSE,  TRUE,  0);
-	my $fill = Gtk2::Label->new();
-	$vbox->pack_start($fill,TRUE,TRUE,0);
+        $vbox->pack_start($mainText, FALSE, TRUE, 0);
+        my $fill = Gtk2::Label->new();
+        $vbox->pack_start($fill, TRUE, TRUE, 0);
     }
     $vbox->pack_start($footerText, FALSE, FALSE, 0);
 } else {
@@ -519,7 +524,7 @@ sub process_input {
             $status = "Backdrop changed to " . $config->{'BGImage'};
         } elsif (/^blank$/) {
             set_header("");
-            set_maintext("", NONE,FALSE);
+            set_maintext("", NONE, FALSE);
             set_footer("");
             $status = "Screen blanked";
         } elsif (/^change_to_db$/) {
@@ -557,7 +562,7 @@ sub process_input {
                 }
 
                 $pointtext =~ s/<.*?>//g;
-                set_maintext($pointtext, NONE,FALSE);
+                set_maintext($pointtext, NONE, FALSE);
             } else {
                 debug("Cannont advance one point - no points waiting");
             }
@@ -568,7 +573,7 @@ sub process_input {
             $line[2] =~ s/#BREAK#/\n/g;
             $line[2] =~ s/#SEMI#/:/g;
             $line[2] =~ s/<.*?>//g;
-            set_maintext($line[2], NONE,FALSE);
+            set_maintext($line[2], NONE, FALSE);
 
             if ($extras[2]) {
                 set_footer(
@@ -964,7 +969,7 @@ sub process_input {
                             if ($row->{'data'} =~ /$fileobj/i) {
                                 $bgimage_changed = TRUE;
                                 set_footer("");
-                                set_maintext("", NONE,FALSE);
+                                set_maintext("", NONE, FALSE);
                                 set_header("");
                                 change_backdrop($row->{'data'});
                             }
@@ -1003,7 +1008,7 @@ sub process_input {
                 } elsif ($row->{'type'} eq "imag") {
                     $bgimage_changed = TRUE;
                     set_footer("");
-                    set_maintext("", NONE,FALSE);
+                    set_maintext("", NONE, FALSE);
                     set_header("");
                     change_backdrop($row->{'data'});
                 } elsif ($row->{'type'} eq "vers") {
@@ -1076,7 +1081,7 @@ sub process_input {
                           . $row->{'verse'};
                         $verse .= $line . "\n";
                     }
-                    set_maintext($verse, $transition,TRUE);
+                    set_maintext($verse, $transition, TRUE);
 
                     set_header($versetext);
                     set_footer($globals->{'biblename'});
@@ -1149,7 +1154,8 @@ sub process_input {
                     }
                     set_header($row2->{'title'});
                     $row2->{'lyrics'} =~ s/<.*?>//g;
-                    set_maintext($row2->{'lyrics'}, $row->{'transition'},FALSE);
+                    set_maintext($row2->{'lyrics'}, $row->{'transition'},
+                        FALSE);
                     set_footer($footer);
                     $status =
                         "Displaying "
@@ -1343,9 +1349,9 @@ sub change_backdrop {
             my $rc_style = Gtk2::RcStyle->new;
             $rc_style->bg_pixmap_name('normal', $globals->{'bg_file'});
             $window->modify_style($rc_style);
-        } else { 
+        } else {
             $background->lower_to_bottom;
-	}
+        }
     }
 } ## end sub change_backdrop
 
@@ -1513,7 +1519,7 @@ sub load_config {
 }
 
 sub set_maintext {
-    my ($text, $transition,$wrap) = @_;
+    my ($text, $transition, $wrap) = @_;
     debug("Set maintext");
     my ($oldText);
     if (!defined $text) { $text = ""; }
@@ -1524,10 +1530,11 @@ sub set_maintext {
         $mainText->modify_fg('normal', $colour);
         $mainText->modify_font($font_desc);
         $mainText->set_text($text);
-	$mainText->set_line_wrap($wrap);
-	if ($wrap) {
-	    $mainText->set_size_request($config->{'Width'} - ($config->{'OverscanH'}*2),-1);
-	}
+        $mainText->set_line_wrap($wrap);
+        if ($wrap) {
+            $mainText->set_size_request(
+                $config->{'Width'} - ($config->{'OverscanH'} * 2), -1);
+        }
     } else {
         if (!defined $transition) { $transition = 0; }
 

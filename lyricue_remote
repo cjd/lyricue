@@ -15,14 +15,13 @@ use strict;
 use warnings;
 use POSIX;
 use IO::Socket::INET;
-my ($globals,$config);
-$globals->{'host'}        = "localhost";
-$globals->{'server_port'}   = "2346";    #port used for lyric server
-$globals->{'preview_port'}  = "2347";    #port used for preview
-$globals->{'miniview_port'} = "2348";    #port used for miniview
+my ($globals, $config);
+$globals->{'host'}          = "localhost";
+$globals->{'server_port'}   = "2346";        #port used for lyric server
+$globals->{'preview_port'}  = "2347";        #port used for preview
+$globals->{'miniview_port'} = "2348";        #port used for miniview
 
 $config->{'LOOP'} = 0;
-
 
 if ($ARGV[0]) {
     foreach (0 .. (@ARGV - 1)) {
@@ -39,20 +38,21 @@ if ($ARGV[0]) {
               "\t-s:  Specify the host on which the lyric server is located\n";
             exit;
         } elsif ($ARGV[$_] eq "") {
+
             # ignore
         } elsif ($ARGV[$_] eq "next_page") {
-    		update_display("display", "next_page", $config->{'Loop'});
+            update_display("display", "next_page", $config->{'Loop'});
         } elsif ($ARGV[$_] eq "next_song") {
-    		update_display("display", "next_song", $config->{'Loop'});
+            update_display("display", "next_song", $config->{'Loop'});
         } elsif ($ARGV[$_] eq "prev_page") {
-    		update_display("display", "prev_page", $config->{'Loop'});
+            update_display("display", "prev_page", $config->{'Loop'});
         } elsif ($ARGV[$_] eq "prev_song") {
-    		update_display("display", "prev_song", $config->{'Loop'});
+            update_display("display", "prev_song", $config->{'Loop'});
         } elsif ($ARGV[$_] eq "blank") {
-    		update_display("blank", "", "");
+            update_display("blank", "", "");
         } elsif ($ARGV[$_] eq "next_point") {
-    		update_display("next_point", "", "");
-	}
+            update_display("next_point", "", "");
+        }
     }
 }
 
@@ -92,11 +92,10 @@ sub update_display {
     {
         print $server $command . ":" . $primary . ":" . $secondary . "\n";
         if (defined(my $status = <$server>)) {
-	    print $status;
+            print $status;
         }
         close($server);
     }
 }
-
 
 #***

@@ -94,11 +94,13 @@ die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
   unless (Gtk2->init_check);
 use Gtk2::GladeXML;
 use Gtk2::Pango;
-eval {require Locale::gettext};
+eval { require Locale::gettext };
+
 if ($@) {
     print "Gettext not available, english text only\n";
+
     sub gettext {
-	return $@;
+        return $@;
     }
 } else {
     import Locale::gettext;
@@ -152,24 +154,23 @@ $globals->{'debugging'}     = FALSE;
 $globals->{'spell'}         = TRUE;
 $globals->{'trayicon'}      = TRUE;
 $globals->{'preview_pid'}   = FALSE;
-$globals->{'miniview_pid'}   = FALSE;
+$globals->{'miniview_pid'}  = FALSE;
 
 # Optional modules
-eval {require Gtk2::Spell};
+eval { require Gtk2::Spell };
 if ($@) {
     print "Gtk-Spell not available, spell checking turned off\n";
     $globals->{'spell'} = FALSE;
 } else {
     import Gtk2::Spell;
 }
-eval {require Gtk2::TrayIcon};
+eval { require Gtk2::TrayIcon };
 if ($@) {
     print "Gtk-Trayicon not available, Tray icon turned off\n";
     $globals->{'trayicon'} = FALSE;
 } else {
     import Gtk2::TrayIcon;
 }
-
 
 # Transitions
 use constant NORMAL     => 0;
@@ -371,7 +372,7 @@ $config = load_config();
 $globals->{'access'} = load_access();
 
 # Create tray icon
-if ($globals->{'trayicon'} ) {
+if ($globals->{'trayicon'}) {
     debug("Creating Tray icons");
     my ($tray);
     eval { $tray = Gtk2::TrayIcon->new("Lyricue"); };
@@ -422,8 +423,14 @@ sub close_main {
     $bibleDbh->disconnect;
     $mediaDbh->disconnect;
     Gtk2->main_quit;
-    if ($globals->{'preview_pid'})  { debug ("Killing $globals->{'preview_pid'}");kill 9, $globals->{'preview_pid'}; }
-    if ($globals->{'miniview_pid'}) { debug ("Killing $globals->{'miniview_pid'}");kill 9, $globals->{'miniview_pid'}; }
+    if ($globals->{'preview_pid'}) {
+        debug("Killing $globals->{'preview_pid'}");
+        kill 9, $globals->{'preview_pid'};
+    }
+    if ($globals->{'miniview_pid'}) {
+        debug("Killing $globals->{'miniview_pid'}");
+        kill 9, $globals->{'miniview_pid'};
+    }
     exit();
     return FALSE;
 }
@@ -5353,12 +5360,14 @@ sub spell_check {
     if ($globals->{'spell'}) {
         debug("Running spell checker");
 
-        foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} } keys %pageOrder) {
+        foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} }
+            keys %pageOrder)
+        {
             if (!defined $widgets->{'spellAPage'}{$page}) {
                 $widgets->{'spellAPage'}{$page} =
                   Gtk2::Spell->new($widgets->{'textAPage'}{$page});
             }
-    
+
         }
     }
 }
