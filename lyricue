@@ -1809,7 +1809,7 @@ sub add_single_song {
 	debug("Audit: $config->{'Audit'}");
 	if ($config->{'Audit'}) {
 		$query =
-		  "INSERT INTO audit VALUES(0," . $availableSelection . ", NOW())";
+		  "INSERT INTO audit (id,songid,playdate) VALUES(0," . $availableSelection . ", NOW())";
 		debug("Auditing with: " . $query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -2362,20 +2362,20 @@ sub update_imagedir {
 	$widgets->{'image'}->get_widget('labelImage')->set_text($dir);
 	$widgets->{'image'}->get_widget('labelImage')->{'user_data'} = $type;
 	my $store = Gtk2::ListStore->new('Glib::String');
-	my ($a, $b, $c, $d);
+	my ($sys, $user, $sys_sed, $user_sed);
 	if ($type eq "bg") {
-		$a = $globals->{'bgpath_system'};
-		$b = $globals->{'bgpath_user'};
+		$sys = $globals->{'bgpath_system'};
+		$user = $globals->{'bgpath_user'};
 	} else {
-		$a = $globals->{'imgpath_system'};
-		$b = $globals->{'imgpath_user'};
+		$sys = $globals->{'imgpath_system'};
+		$user = $globals->{'imgpath_user'};
 	}
-	$c = $a;
-	$c =~ s/\//\\\//g;
-	$d = $b;
-	$d =~ s/\//\\\//g;
+	$sys_sed = $sys;
+	$sys_sed =~ s/\//\\\//g;
+	$user_sed = $user;
+	$user_sed =~ s/\//\\\//g;
 	my $dirlisting =
-`find $a $b -follow -type f -maxdepth 1 | sed -e 's/^$c//g' | sed -e 's/^$d//g' | sort -u`;
+`find $sys $user -follow -type f -maxdepth 1 | sed -e 's/^$sys_sed//g' | sed -e 's/^$user_sed//g' | sort -u`;
 
 	my @items = split (/\n/, $dirlisting);
 
@@ -4378,7 +4378,7 @@ sub new_sublist {
 
 	#create sublist playlist
 	$query =
-	  "INSERT INTO playlists values("
+	  "INSERT INTO playlists (playorder,playlist,data,type) values("
 	  . $playlistsid . " ,'"
 	  . $sublistxml->get_widget('entryPromptE')->get_text() . "','')";
 	$sth = $lyricDbh->prepare($query)
@@ -4583,7 +4583,7 @@ sub associate_bg {
 	$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
 	$query =
-	  "INSERT INTO associations VALUES(0, "
+	  "INSERT INTO associations (id,playlist,imagename, absoluteparent) VALUES(0, "
 	  . $ASSOCIATE[0] . ", '"
 	  . $imagefile . "',"
 	  . $ASSOCIATE[1] . ")";
