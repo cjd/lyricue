@@ -105,9 +105,9 @@ bind_textdomain_codeset('lyricue', "UTF-8");
 #
 my ($globals);
 $globals->{'bindir'}   = "/usr/bin/";
-$globals->{'etcdir'}   = "/etc/lds/";
-$globals->{'basedir'}  = $ENV{'HOME'} . "/.lds/";
-$globals->{'sharedir'} = "/usr/share/lds/";
+$globals->{'etcdir'}   = "/etc/lyricue/";
+$globals->{'basedir'}  = $ENV{'HOME'} . "/.lyricue/";
+$globals->{'sharedir'} = "/usr/share/lyricue/";
 
 #
 # You shouldn't have to change anything after this line
@@ -262,11 +262,11 @@ my ($query, $row, $sth, $rv);
 # Set umask
 umask 0002;
 
-# Check if user .lds directory exists, otherwire create
+# Check if user .lyricue directory exists, otherwire create
 if (-e $globals->{'basedir'}) {
 	if (!-d $globals->{'basedir'}) {
 		print
-		  "Old ~/.lds existed but was not a directory, moving to ~/.lds.orig\n";
+		  "Old ~/.lyricue existed but was not a directory, moving to ~/.lyricue.orig\n";
 		rename $globals->{'basedir'}, $globals->{'basedir'} . ".orig";
 		mkdir $globals->{'basedir'}, 0777;
 	}
@@ -283,6 +283,12 @@ if (-d $globals->{'basedir'}) {
 		system(
 			"cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
 		create_dialog_prefs();
+		$globals->{'configured'}=FALSE;
+		while (! $globals->{'configured'}) {
+			while (Gtk2->events_pending) {
+		       		Gtk2->main_iteration;
+			}
+		}
 	}
 }
 
@@ -4390,6 +4396,7 @@ sub load_config {
 
 sub save_and_close_prefs {
 	save_preferences();
+	$globals->{'configured'}=TRUE;
 	close_dialog($widgets->{'prefs'}->get_widget('dialogPrefs'));
 }
 
@@ -4905,7 +4912,7 @@ sub init_mainWindow {
 	}
 
 	# Adjust frame sizes
-	if (defined $config->{'FrameLeft'}) {
+	if ((defined $config->{'FrameRight'}) && ($config->{'FrameRight'} != 0)) {
 		$widgets->{'main'}->get_widget('hpanedMainLeft')
 		  ->set_position($config->{'FrameLeft'});
 		$widgets->{'main'}->get_widget('hpanedMainRight')
@@ -4913,6 +4920,7 @@ sub init_mainWindow {
 	} else {
 		my ($width, $height) =
 		  $widgets->{'main'}->get_widget('windowMain')->get_size();
+		  print $width."- width\n";
 		if ($globals->{'access'} =~ /p/) {
 			$widgets->{'main'}->get_widget('hpanedMainLeft')
 			  ->set_position($width / 5 * 2);
@@ -5427,6 +5435,7 @@ sub load_access {
 		}
 	}
 	close ACCESS;
+	debug ("Access set at ".$access);
 
 	$_ = $access;
 	my @remove_items = ();

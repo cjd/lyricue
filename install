@@ -6,7 +6,7 @@ use DBI;
 use POSIX;
 use IO::Socket::INET;
 use Encode;
-use Gtk2 -init;
+use Gtk2;
 use Gtk2::GladeXML;
 use Gtk2::Pango;
 use Gtk2::Spell;
@@ -52,9 +52,9 @@ print "This script will check that the nessecary items are installed\n";
 print "then install the files and create the MySql tables nessecary\n";
 
 my $bindir   = $prefix."/usr/bin/";
-my $etcdir   = $prefix."/etc/lds/";
-my $sharedir = $prefix."/usr/share/lds/";
-my $docdir = $prefix."/usr/share/doc/lds/";
+my $etcdir   = $prefix."/etc/lyricue/";
+my $sharedir = $prefix."/usr/share/lyricue/";
+my $docdir = $prefix."/usr/share/doc/lyricue/";
 my $localedir = $prefix."/usr/share/locale/";
 my @parentdirs = ($prefix."/etc",$prefix."/usr", $prefix."/usr/share", $prefix."/usr/share/doc", $prefix."/usr/share/locale");
 
@@ -101,7 +101,7 @@ if ($ARGV[0] eq "-u") {
 	print "Removing System Settings\n";
 	system ("rm -rf $etcdir");
 	if (uc($globals) eq "Y") {
-		print "Removing entire lds share directory\n";
+		print "Removing entire lyricue share directory\n";
 		system("rm -rf $sharedir");
 	}
 	if (uc($database) eq "Y") {

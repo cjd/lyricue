@@ -23,7 +23,7 @@ cp -R debian dist/lyricue-$1
 cd dist/lyricue-$1
 dpkg-buildpackage -rfakeroot
 cd ../..
-rm dist/lyricue_1.9.2cvs*.tar.gz dist/*.dsc dist/*.asc
+rm dist/*.tar.gz dist/*.dsc dist/*.asc dist/*.changes 2>/dev/null
 rm -rf dist/lyricue-$1/debian
 
 echo Creating lyricue-$1.tar.gz

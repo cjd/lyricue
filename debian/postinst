@@ -5,7 +5,7 @@
 
 set -e
 
-ACCESS=/etc/lds/access.conf
+ACCESS=/etc/lyricue/access.conf
 
 # summary of how this script can be called:
 #        * <postinst> `configure' <most-recently-configured-version>
@@ -37,8 +37,8 @@ case "$1" in
 	    mv $ACCESS.tmp $ACCESS
 	fi
 	PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }'`
-	cd /usr/share/lds
-	/usr/lib/lds/install -d -u debian-sys-maint -p $PASS
+	cd /usr/share/lyricue
+	/usr/lib/lyricue/install -d -u debian-sys-maint -p $PASS
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
