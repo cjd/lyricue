@@ -171,19 +171,25 @@ $errorcodes->{'fileopenwrite'} =
 "Unable to write to the file, you may not have sufficent permissions.\nPlease check the permissions for ";
 
 # Widgets affected by access controls
-my @edit_items = ("buttonMainAdd", "buttonMainEdit", "add_song1", "edit_song1");
+# access 'e'
+my @edit_items = ("buttonMainAdd", "buttonMainEdit", "add_song1", "edit_song1","buttonQuickSave");
+# access 'd'
 my @delete_items  = ("delete_song1");
+# access 's'
 my @display_items = (
 	"previous_page1",  "next_page1",
 	"display_now1",    "blank_display1",
 	"buttonMainPrev",  "buttonMainNext",
-	"buttonMainPoint", "buttonMainBlank"
+	"buttonMainPoint", "buttonMainBlank",
+	"frameQuickUpdate","buttonQuickShow"
 );
+# access 'p'
 my @playlist_items = (
 	"buttonAddToPlaylist", "playlist1",
 	"vboxMainRight",       "buttonMainImage",
 	"buttonMainVerse",     "buttonMainSublist"
 );
+# access 'a'
 my @admin_items = ("user_administration1");
 
 #***
@@ -385,12 +391,6 @@ sub update_playlist {
 		  Gtk2::TreeViewColumn->new_with_attributes("",
 			Gtk2::CellRendererText->new, text => 0);
 		$widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
-
-		# Not used currently
-		#$column =
-		#  Gtk2::TreeViewColumn->new_with_attributes("",
-		#	Gtk2::CellRendererText->new, text => 1);
-		#$widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
 
 		$widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
 	}
@@ -2110,6 +2110,7 @@ sub display_song {
 						  ->set_text($directions[$new_direction]);
 					}
 				} else {
+					update_quickedit();
 					if ($config->{'DynamicPreview'}) {
 						preview_playlist_item();
 					}
@@ -2633,19 +2634,6 @@ sub preview_playlist_item {
 
 		# display item
 		preview_display("display", $model->get($iter, 2), undef);
-
-		# Find the items lyrics for Quick Editing
-		my $query =
-"SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder="
-		  . $model->get($iter, 2);
-		qdebug($query);
-		$sth = $lyricDbh->prepare($query)
-		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-		my @row = $sth->fetchrow_array();
-		if (!defined $row[0]) { $row[0] = ""; }
-		$widgets->{'main'}->get_widget('textQuick')
-		  ->get_buffer->set_text($row[0]);
 	}
 }
 
@@ -4867,10 +4855,12 @@ sub init_mainWindow {
 	# Adjust frame sizes
 	my ($width, $height) =
 	  $widgets->{'main'}->get_widget('windowMain')->get_size();
-	$widgets->{'main'}->get_widget('hpanedMainLeft')
-	  ->set_position($width / 5 * 2);
-	$widgets->{'main'}->get_widget('hpanedMainRight')
-	  ->set_position($width / 5 * 2);
+	if ($globals->{'access'} =~ /p/) {
+		$widgets->{'main'}->get_widget('hpanedMainLeft')
+		  ->set_position($width / 5 * 2);
+		$widgets->{'main'}->get_widget('hpanedMainRight')
+		  ->set_position($width / 5 * 2);
+	}
 }
 
 sub bgdir_list {
@@ -5738,3 +5728,21 @@ sub update_category {
 		  ->set_text($model->get($iter, 0));
 	}
 }
+
+sub update_quickedit {
+	debug("Updating Quick edit");
+	my $selection = $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		# Find the items lyrics for Quick Editing
+		my $query = "SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder=" . $model->get($iter, 2);
+		qdebug($query);
+		$sth = $lyricDbh->prepare($query) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+		my @row = $sth->fetchrow_array();
+		if (!defined $row[0]) { $row[0] = ""; }
+		$widgets->{'main'}->get_widget('textQuick')->get_buffer->set_text($row[0]);
+		$sth->finish;
+	}
+}
+
