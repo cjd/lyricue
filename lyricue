@@ -2518,7 +2518,7 @@ sub preview_display {
 			#tcp/ip socket failure so server must be not running yet!
 			if ($forked == 0) {
 				debug("Preview server not running - forking and executing!\n");
-				fork && exec("lyric_server.pl -m");
+				system("lyricue_server -m &");
 				sleep 1;
 				$forked = 1;
 				redo PUPDATE;
