@@ -1418,8 +1418,10 @@ sub set_maintext {
 	$layout->set_text($oldText->get_buffer()
 		->get_text($oldText->get_buffer()->get_bounds, FALSE));
 	my ($ow, $oh) = $layout->get_pixel_size;
+	$ow=$ow+10; $oh=$oh+10;
 	$layout->set_text($text);
 	my ($w, $h) = $layout->get_pixel_size;
+	$w=$w+10; $h=$h+10;
 	my $centreX = $config->{'Width'} / 2;
 	my $centreY = $config->{'Height'} / 2;
 	
@@ -1650,6 +1652,7 @@ sub set_footer {
 	$layout->set_font_description($desc);
 	$layout->set_text($text);
 	my ($w, $h) = $layout->get_pixel_size;
+	$w=$w+10; $h=$h+10;
 	if ($footerText) { $footerText->destroy(); }
 	$footerText = Gnome2::Canvas::Item->new(
 		$root, 'Gnome2::Canvas::RichText',
@@ -1685,6 +1688,7 @@ sub set_header {
 	$layout->set_font_description($desc);
 	$layout->set_text($text);
 	my ($w, $h) = $layout->get_pixel_size;
+	$w=$w+10; $h=$h+10;
 	if ($headerText) { $headerText->destroy(); }
 	$headerText = Gnome2::Canvas::Item->new(
 		$root, 'Gnome2::Canvas::RichText',
