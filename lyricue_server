@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl -w
 
 #****** lyricue_server/pod
 # NAME
@@ -84,16 +84,24 @@ use Gtk2::Pango;
 use Gtk2::GladeXML;
 use Gtk2::Gdk::Keysyms;
 use Glib;
-use Locale::gettext;
-textdomain('lyricue');
-
-# Hack to get this working under mandrake
-use lib qw(/usr/lib/libDrakX);
-eval { require c::stuff };
+eval {require Locale::gettext};
 if ($@) {
-    bind_textdomain_codeset('lyricue', "UTF-8");
+    print "Gettext not available, english text only\n";
+    sub gettext {
+        return $@;
+    }
 } else {
-    c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
+    import Locale::gettext;
+    textdomain('lyricue');
+
+    # Hack to get this working under mandrake
+    use lib qw(/usr/lib/libDrakX);
+    eval { require c::stuff };
+    if ($@) {
+        bind_textdomain_codeset('lyricue', "UTF-8");
+    } else {
+        c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
+    }
 }
 
 # convenience variables for true and false
@@ -143,9 +151,12 @@ $globals->{'server_port'}   = "2346";    #port used for lyric server socket
 $globals->{'preview_port'}  = "2347";    #port used for lyric server socket
 $globals->{'miniview_port'} = "2348";    #port used for lyric server socket
 
-eval { use Gnome2::Canvas; };
+eval { require Gnome2::Canvas; };
 if ($@) {
+    print "Optional module Gnome2::Canvas not available. Using simple server\n";
     $globals->{'fast'} = TRUE;
+} else {
+    import Gnome2::Canvas;
 }
 
 my $DEBUG           = FALSE;
