@@ -95,6 +95,9 @@ use Gtk2::GladeXML;
 use Gtk2::Pango;
 use Gtk2::Spell;
 use Gtk2::TrayIcon;
+use Locale::gettext;
+textdomain('lyricue');
+bind_textdomain_codeset('lyricue', "UTF-8");
 
 #
 # Site Configuration.  You should only have to
@@ -155,20 +158,20 @@ my %pageOrder;
 
 my ($errorcodes);
 $errorcodes->{'lyricdbopen'} =
-"I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running";
+Encode::decode("utf-8",gettext("I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running"));
 $errorcodes->{'bibledbopen'} =
-"I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named ";
+Encode::decode("utf-8",gettext("I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named "));
 $errorcodes->{'mediadbopen'} =
-"I'm sorry but I could not open the media database.\nPlease confirm that Lyricue is installed correctly and MySql is running";
-$errorcodes->{'sqlprepare'} = "Unable to prepare query.\nHas mysql died?";
-$errorcodes->{'sqlexecute'} = "Unable to execute query.\nHas mysql died?";
+Encode::decode("utf-8",gettext("I'm sorry but I could not open the media database.\nPlease confirm that Lyricue is installed correctly and MySql is running"));
+$errorcodes->{'sqlprepare'} = Encode::decode("utf-8",gettext("Unable to prepare query.\nHas mysql died?"));
+$errorcodes->{'sqlexecute'} = Encode::decode("utf-8",gettext("Unable to execute query.\nHas mysql died?"));
 $errorcodes->{'socketopen'} =
-"Sorry, I was unable to listen on the network.\nPlease make sure I am not already running";
-$errorcodes->{'erroropen'}    = "Could not open ";
+Encode::decode("utf-8",gettext("Sorry, I was unable to listen on the network.\nPlease make sure I am not already running"));
+$errorcodes->{'erroropen'}    = Encode::decode("utf-8",gettext("Could not open "));
 $errorcodes->{'fileopenread'} =
-  "Unable to read the file, are you sure it exists?\nThe file asked for was ";
+  Encode::decode("utf-8",gettext("Unable to read the file, are you sure it exists?\nThe file asked for was "));
 $errorcodes->{'fileopenwrite'} =
-"Unable to write to the file, you may not have sufficent permissions.\nPlease check the permissions for ";
+Encode::decode("utf-8",gettext("Unable to write to the file, you may not have sufficent permissions.\nPlease check the permissions for "));
 
 # Widgets affected by access controls
 # access 'e'
@@ -727,23 +730,23 @@ sub popup_avail_menu {
 	if ($event->button == 3) {
 		my @items = ();
 		if ($globals->{'access'} =~ /e/) {
-			push @items, ['/Edit Song', undef, 'edit_song', 1, '', ''];
+			push @items, [Encode::decode("utf-8", gettext("/Edit Song")), undef, 'edit_song', 1, '', ''];
 		}
 		if ($globals->{'access'} =~ /d/) {
-			push @items, ['/Delete Song', undef, 'delete_song', 1, '', ''];
+			push @items, [Encode::decode("utf-8", gettext("/Delete Song")), undef, 'delete_song', 1, '', ''];
 		}
 		push @items,
-		  (['/Refresh List', undef, 'update_available', 1, '', ''],
+		  ([Encode::decode("utf-8", gettext("/Refresh List")), undef, 'update_available', 1, '', ''],
 		  [
-			  '/Order - Songbook -> No.', undef,
+			  Encode::decode("utf-8", gettext("/Order - Songbook -> No.")), undef,
 			  'change_sort_order',        1,
 			  '',                         ''
 		  ],
-		  ['/Order - Songbook -> Name.', undef, 'change_sort_order', 1, '', '']
+		  [Encode::decode("utf-8", gettext("/Order - Songbook -> Name.")), undef, 'change_sort_order', 1, '', '']
 		);
 		if ($globals->{'access'} =~ /p/) {
 			push @items,
-			  (['/Add to Playlist', undef, 'add_to_playlist', 1, '', '']);
+			  ([Encode::decode("utf-8", gettext("/Add to Playlist")), undef, 'add_to_playlist', 1, '', '']);
 		}
 		my $factory =
 		  Gtk2::ItemFactory->new('Gtk2::Menu', "<availpopup>", undef);
@@ -810,22 +813,22 @@ sub popup_play_menu {
 	}
 
 	my @items = (
-		['/Duplicate Item',           undef, 'copy_item',               1],
-		['/Remove from Playlist',     undef, 'remove_from_playlist',    1],
-		['/Refresh Playlist',         undef, 'update_playlist',         1],
-		['/Add Verse',                undef, 'add_verse',               1],
-		['/Invert Line Display',      undef, 'invert_lines',            1],
-		['/Loop this playlist item',  undef, 'begin_loop',              1],
-		['/Associate background',     undef, 'prepare_for_association', 1],
-		['/Dis-associate background', undef, 'disassociate_bg',         1],
-		['/Preview this item',        undef, 'preview_playlist_item',   1],
+		[Encode::decode("utf-8", gettext("/Duplicate Item")),           undef, 'copy_item',               1],
+		[Encode::decode("utf-8", gettext("/Remove from Playlist")),     undef, 'remove_from_playlist',    1],
+		[Encode::decode("utf-8", gettext("/Refresh Playlist")),         undef, 'update_playlist',         1],
+		[Encode::decode("utf-8", gettext("/Add Verse")),                undef, 'add_verse',               1],
+		[Encode::decode("utf-8", gettext("/Invert Line Display")),      undef, 'invert_lines',            1],
+		[Encode::decode("utf-8", gettext("/Loop this playlist item")),  undef, 'begin_loop',              1],
+		[Encode::decode("utf-8", gettext("/Associate background")),     undef, 'prepare_for_association', 1],
+		[Encode::decode("utf-8", gettext("/Dis-associate background")), undef, 'disassociate_bg',         1],
+		[Encode::decode("utf-8", gettext("/Preview this item")),        undef, 'preview_playlist_item',   1],
 		[
-			'/Move to sublist/Main', undef,
+			Encode::decode("utf-8", gettext("/Move to sublist/Main")), undef,
 			'move_item_to_sublist',  $playlist
 		],
 	);
 	foreach (sort { uc($a->{'title'}) cmp uc($b->{'title'}) } @list) {
-		my $item = "/Move to sublist/" . $_->{'title'};
+		my $item = Encode::decode("utf-8", gettext("/Move to sublist/")) . $_->{'title'};
 		push @items, [$item, undef, 'move_item_to_sublist', $_->{'data'}],;
 	}
 	my $factory = Gtk2::ItemFactory->new('Gtk2::Menu', '<playpopup>', undef);
@@ -898,12 +901,12 @@ sub delete_song {
 			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 			$row = $sth->fetchrow_hashref();
 			my $labelText =
-			  "Are you sure you wish to delete \"" . $row->{'title'} . "\"\n";
+			  Encode::decode("utf-8", gettext("Are you sure you wish to delete \"")) . $row->{'title'} . "\"\n";
 
 			if ($row->{'book'} ne "") {
-				$labelText .= "from the book \"" . $row->{'book'} . "\"\n";
+				$labelText .= Encode::decode("utf-8", gettext("from the book \"")) . $row->{'book'} . "\"\n";
 			}
-			$labelText .= "which was written by \"" . $row->{'artist'} . "\"";
+			$labelText .= Encode::decode("utf-8", gettext("which was written by \"")) . $row->{'artist'} . "\"";
 			my $deletexml =
 			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDelete',
 				'lyricue');
@@ -1280,7 +1283,7 @@ sub renumber_pages {
 			$pageOrder{$i}++;
 		}
 		debug("$i:$pageOrder{$i}");
-		$widgets->{'labelAPage'}{$i}->set_text("Page " . $pageOrder{$i});
+		$widgets->{'labelAPage'}{$i}->set_text(gettext("Page ") . $pageOrder{$i});
 		$widgets->{'labelAPage'}{$i}->show();
 	}
 }
@@ -1313,7 +1316,7 @@ sub remove_page {
 		debug("-$pagenum:$i:$pageOrder{$i}:");
 		if ($pageOrder{$i} < $pagenum) {
 			$newpageOrder{$i} = $pageOrder{$i};
-			$widgets->{'labelAPage'}{$i}->set_text("Page " . $newpageOrder{$i});
+			$widgets->{'labelAPage'}{$i}->set_text(gettext("Page ") . $newpageOrder{$i});
 			debug("$newpageOrder{$i}");
 		} elsif ($pageOrder{$i} == $pagenum) {
 			$widgets->{'add'}->get_widget('notebookEditPages')
@@ -1322,7 +1325,7 @@ sub remove_page {
 		} elsif ($pageOrder{$i} > $pagenum) {
 			$newpageOrder{$i} = $pageOrder{$i} - 1;
 			debug("$newpageOrder{$i}");
-			$widgets->{'labelAPage'}{$i}->set_text("Page " . $newpageOrder{$i});
+			$widgets->{'labelAPage'}{$i}->set_text(gettext("Page ") . $newpageOrder{$i});
 		}
 	}
 	%pageOrder = %newpageOrder;
@@ -1507,7 +1510,7 @@ sub do_add_verse {
 	$query =
 	  "INSERT INTO playlists SET id="
 	  . $playlist
-	  . ", title=\"" . $verse . "\"";
+	  . ", title=\"" . Encode::encode("iso-8859-1", $verse) . "\"";
 	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -2391,7 +2394,7 @@ sub preview_page {
 	debug($current_page . " page ");
 	my $label = $widgets->{'labelAPage'};
 	foreach (keys %$label) {
-		if ($widgets->{'labelAPage'}{$_}->get_text() eq "Page " . $current_page)
+		if ($widgets->{'labelAPage'}{$_}->get_text() eq gettext("Page ") . $current_page)
 		{
 			$current_hash = $_;
 		}
@@ -2618,11 +2621,11 @@ sub update_display {
 			chomp($status);
 			if ($status =~ /^pl:/) {
 				my @line = split (/:/, $status);
-				$status = "Displaying ";
+				$status = gettext("Displaying ");
 				if ($line[1] eq "v") {
-					$status = " verses ";
+					$status = gettext(" verses ");
 				} else {
-					$status = " page " . $line[3];
+					$status = gettext(" page ") . $line[3];
 					$widgets->{'main'}->get_widget('treePlaylist')
 					  ->select_item($line[2]);
 				}
@@ -2719,11 +2722,11 @@ sub preview_display {
 				chomp($status);
 				if ($status =~ /^pl:/) {
 					my @line = split (/:/, $status);
-					$status = "Previewed ";
+					$status = gettext("Previewed ");
 					if ($line[1] eq "v") {
-						$status .= " verses ";
+						$status .= gettext(" verses ");
 					} else {
-						$status .= " page " . $line[3];
+						$status .= gettext(" page ") . $line[3];
 						$widgets->{'main'}->get_widget('treePlaylist')
 						  ->select_item($line[2]);
 					}
@@ -2852,7 +2855,7 @@ sub create_dialogChapter {
 	my $book = $widget->get_label;
 	debug("Selected " . $book);
 	my $query =
-	  "SELECT MAX(chapternum) FROM verse WHERE book like \"" . $book . "%\"";
+	  "SELECT MAX(chapternum) FROM verse WHERE book like \"" . Encode::encode("iso-8859-1", $book) . "%\"";
 	qdebug($query);
 	$sth = $bibleDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -2907,9 +2910,9 @@ sub create_dialogChapter {
 #
 sub create_dialogVerse {
 	my ($widget, $book) = @_;
-	my $chapter = $widget->get_label;
+	my $chapter = int($widget->get_label);
 	my $query   =
-	  "SELECT MAX(versenum) FROM verse WHERE book=\"" . $book
+	  "SELECT MAX(versenum) FROM verse WHERE book=\"" . Encode::encode("iso-8859-1", $book)
 	  . "\" AND chapternum="
 	  . $chapter;
 	qdebug($query);
@@ -5119,7 +5122,7 @@ sub change_bgimage {
 	} else {
 		$bgimage = $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
 		$widgets->{'image'}->get_widget('buttonImageOK')
-		  ->set_label('Set as Default');
+		  ->set_label(gettext("Set as Default"));
 		$widgets->{'image'}->get_widget('buttonImageOK')
 		  ->signal_connect('clicked', "set_default_backdrop");
 		$widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";

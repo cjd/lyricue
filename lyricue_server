@@ -77,11 +77,16 @@ use strict;
 use DBI;
 use POSIX;
 use IO::Socket::INET;    #use Socket;
-use Gtk2 -init;          # load the Gtk-Perl module
+use Encode;
+die "The gtk2-perl bindings could not be initialized; we need them to run!\n" unless ( Gtk2->init_check );
 use Gtk2::Pango;
 use Gtk2::GladeXML;
 use Gnome2::Canvas;
 use Glib;
+use Locale::gettext;
+textdomain('lyricue');
+bind_textdomain_codeset('lyricue', "UTF-8");
+
 
 # convenience variables for true and false
 use constant FALSE => 0;
@@ -144,13 +149,13 @@ my @points;
 
 my ($errorcodes);
 $errorcodes->{'lyricdbopen'} =
-"I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running";
+Encode::decode("utf-8", gettext("I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running"));
 $errorcodes->{'bibledbopen'} =
-"I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named ",
-  $errorcodes->{'sqlprepare'} = "Unable to prepare query.\nHas mysql died?";
-$errorcodes->{'sqlexecute'}   = "Unable to execute query.\nHas mysql died?";
+Encode::decode("utf-8", gettext("I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named ")),
+  $errorcodes->{'sqlprepare'} = Encode::decode("utf-8", gettext("Unable to prepare query.\nHas mysql died?"));
+$errorcodes->{'sqlexecute'}   = Encode::decode("utf-8", gettext("Unable to execute query.\nHas mysql died?"));
 $errorcodes->{'socketopen'}   =
-"Sorry, I was unable to listen on the network.\nPlease make sure I am not already running";
+Encode::decode("utf-8", gettext("Sorry, I was unable to listen on the network.\nPlease make sure I am not already running"));
 
 #***
 
@@ -482,10 +487,10 @@ sub process_input {
 			set_maintext($line[2], NONE);
 
 			if ($extras[2]) {
-				set_footer("Written by " . $extras[1] . " - " . $extras[2]);
+				set_footer(gettext("Written by ") . $extras[1] . " - " . $extras[2]);
 			} else {
 				if ($extras[1]) {
-					set_footer("Written by " . $extras[1]);
+					set_footer(gettext("Written by ") . $extras[1]);
 				}
 			}
 		} elsif (/^loopparent$/) {
@@ -1020,7 +1025,7 @@ sub process_input {
 					}
 					if ($row2->{'artist'} ne "") {
 						$footer =
-						  "Written by " . $row2->{'artist'} . " - " . $footer;
+						  gettext("Written by ") . $row2->{'artist'} . " - " . $footer;
 					}
 
 					# Determine if this is a multi-point page
