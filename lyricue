@@ -1771,7 +1771,7 @@ sub do_add_verse {
     if ($globals->{'usesword'}) {
         my $command = sprintf("%s -b %s -k %s %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$globals->{'verses'},$globals->{'verseEnd'},$book);
 	qdebug($command);
-	@command_out=split(/$book/,`$command`);
+	@command_out=split(/$book/,Encode::decode("utf-8",`$command`));
     } else {
         $query =
             "SELECT * FROM  verse WHERE book=\"" . $book
@@ -2916,6 +2916,8 @@ sub update_display {
     if (!defined($primary)) {
         $primary = "";
     }
+    $primary=~ s/:/#SEMI#/g;
+    $secondary=~ s/:/#SEMI#/g;
     debug("Command: " . $command . ":" . $primary . ":" . $secondary);
     if (
         my $server = IO::Socket::INET->new(
@@ -2925,7 +2927,7 @@ sub update_display {
         )
       )
     {
-        print $server $command . ":" . $primary . ":" . $secondary . "\n";
+        print $server Encode::encode("utf-8",$command . ":" . $primary . ":" . $secondary . "\n");
         if (defined(my $status = <$server>)) {
             chomp($status);
             if ($status =~ /^pl:/) {
@@ -3166,7 +3168,7 @@ sub create_dialogChapter {
     if ($globals->{'usesword'}) {
         my $command = sprintf("%s -b %s -k %s | grep '^%s'| tail -2 | head -1",$globals->{'diatheke'},$globals->{'bibledb'},$book,$book);
         qdebug($command);
-	$maxchap = `$command`;
+	$maxchap = Encode::decode("utf-8",`$command`);
 	$maxchap =~ s/^$book ([0-9]*):[0-9].*$/$1/g;
 	if ($maxchap) {
 	    $cont = TRUE;
@@ -3238,7 +3240,7 @@ sub create_dialogVerse {
     if ($globals->{'usesword'}) {
         my $command = sprintf("%s -b %s -k %s %d | grep '^%s' | tail -2 | head -1",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$book);
         qdebug($command);
-	$maxverse = `$command`;
+	$maxverse = Encode::decode("utf-8",`$command`);
 	$maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
     } else {
         my $query   =
@@ -6293,7 +6295,7 @@ sub update_quickedit {
 		if ($globals->{'usesword'} ) {
 		    my $command = sprintf("%s -b %s -k %s %d:%d-%d:%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$line[0],$line[1],$startv, $line[1],$endv,$line[0]);
 		    debug($command);
-                    my @command_out=split(/$line[0]/,`$command`);
+                    my @command_out=split(/$line[0]/,Encode::decode("utf-8",`$command`));
 		    foreach (@command_out) {
 		        chomp;
 			my $line2 = $_;
@@ -6587,12 +6589,12 @@ sub navigator_changed {
     if ((! defined $chapter) or ($chapter eq "")) { $chapter=1; }
     if ((! defined $startverse) or ($startverse eq "")) { $startverse=1; }
     if ((! defined $endverse) or ($endverse eq "") or ($endverse<$startverse)) { $endverse=$startverse; }
-    debug($book."|".$chapter."|".$startverse."|".$endverse);
+    debug("Book ".$book." chapter ".$chapter." verses ".$startverse."-".$endverse);
     if ($globals->{'usesword'}) {
-	my $command = sprintf("%s -b %s -k %s %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$startverse,$endverse,$book);
+	my $command = sprintf("%s -b %s -e UTF8 -k %s %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$startverse,$endverse,$book);
 	qdebug($command);
 	$book=ucfirst($book."[a-z]*");
-	my @command_out=split(/$book /,`$command`);
+	my @command_out=split(/$book /,Encode::decode("utf-8",`$command`));
 	foreach (@command_out) {
 	    chomp;
 	    my $line2 = $_;
@@ -6602,20 +6604,20 @@ sub navigator_changed {
 	}
 
     } else {
-        $query = "SELECT * FROM  verse WHERE book=\"" . $book . "\" AND chapternum=" . $chapter . " AND versenum>=" . $startverse . " AND versenum <= " . $endverse . " ORDER BY versenum";
+        $query = "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \"" . $book . "%\" AND chapternum=" . $chapter . " AND versenum>=" . $startverse . " AND versenum <= " . $endverse . " ORDER BY versenum";
 	qdebug($query);
         $sth = $bibleDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 	while (my @row = $sth->fetchrow_array()) {
-	    $quicktext .= $row[0] . ":" . $row[1] . "   " . $row[2] . "\n";
+	    $quicktext .= $row[0]." ".$row[1] . ":" . $row[2] . "   " . $row[3] . "\n";
 	}
     }
 
-    my $oldtext=$widgets->{'main'}->get_widget('textNavView')->get_buffer->get_text();
+    my $oldtext=get_buffer_text($widgets->{'main'}->get_widget('textNavView')->get_buffer());
     if ($oldtext ne $quicktext) {
         $widgets->{'main'}->get_widget('textNavView')->get_buffer->set_text($quicktext);
-        if ($widgets->{'main'}->get_widget('checkNavAuto')->checked()){
+        if ($widgets->{'main'}->get_widget('checkNavAuto')->get_active()){
             navigator_show();
         }
     }

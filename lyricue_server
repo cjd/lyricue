@@ -517,6 +517,7 @@ sub process_input {
 
     debug("Received :" . $input);
     if ($input) {
+        Encode::decode("utf-8",$input);
         chomp($input);
         my @line = split(/:/, $input);
         $_ = lc($line[0]);
@@ -580,7 +581,7 @@ sub process_input {
             $line[2] =~ s/#BREAK#/\n/g;
             $line[2] =~ s/#SEMI#/:/g;
             $line[2] =~ s/<.*?>//g;
-            set_maintext($line[2], NONE, FALSE);
+            set_maintext(Encode::decode("utf-8",$line[2]), NONE, FALSE);
 
             if ($extras[2]) {
                 set_footer(
@@ -1093,7 +1094,7 @@ sub process_input {
 		        my $command = "";
 			$command = sprintf("%s -b %s -k %s %d:%d-%d:%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$line[0],$line[1],$line[2],$line[3],$line[4],$line[0]);
 			debug($command);
-			my @command_out=split(/$line[0]/,`$command`);
+			my @command_out=split(/$line[0]/,Encode::decode('utf-8',`$command`));
 
 			foreach (@command_out) {
 			    chomp;
