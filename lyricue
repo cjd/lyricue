@@ -90,7 +90,7 @@ use DBI;
 use POSIX;
 use IO::Socket::INET;
 use Encode;
-use Gtk2 -init;
+die "The gtk2-perl bindings could not be initialized; we need them to run!\n" unless ( Gtk2->init_check );
 use Gtk2::GladeXML;
 use Gtk2::Pango;
 use Gtk2::Spell;
@@ -331,6 +331,9 @@ exit(0);
 # SOURCE
 sub close_main {
 	debug("Quitting");
+	while (Gtk2->events_pending) {
+		Gtk2->main_iteration;
+	}
 	$lyricDbh->disconnect;
 	$bibleDbh->disconnect;
 	$mediaDbh->disconnect;
@@ -4386,6 +4389,8 @@ sub save_preferences {
 	  . "\n";
 	print CONFIG "BGImage = "
 	  . $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} . "\n";
+	print CONFIG "FrameLeft = ".$widgets->{'main'}->get_widget('hpanedMainLeft')->get_position()."\n";
+	print CONFIG "FrameRight = ".$widgets->{'main'}->get_widget('hpanedMainRight')->get_position()."\n";
 
 	foreach (0 .. $config->{'BibleCount'} - 1) {
 		print CONFIG "Bible = " . $config->{'Bible'}[$_] . "\n";
@@ -4853,13 +4858,20 @@ sub init_mainWindow {
 	}
 
 	# Adjust frame sizes
-	my ($width, $height) =
-	  $widgets->{'main'}->get_widget('windowMain')->get_size();
-	if ($globals->{'access'} =~ /p/) {
+	if (defined $config->{'FrameLeft'}) {
 		$widgets->{'main'}->get_widget('hpanedMainLeft')
-		  ->set_position($width / 5 * 2);
+		  ->set_position($config->{'FrameLeft'});
 		$widgets->{'main'}->get_widget('hpanedMainRight')
-		  ->set_position($width / 5 * 2);
+		  ->set_position($config->{'FrameRight'});
+	} else {
+		my ($width, $height) =
+		  $widgets->{'main'}->get_widget('windowMain')->get_size();
+		if ($globals->{'access'} =~ /p/) {
+			$widgets->{'main'}->get_widget('hpanedMainLeft')
+			  ->set_position($width / 5 * 2);
+			$widgets->{'main'}->get_widget('hpanedMainRight')
+			  ->set_position($width / 5 * 2);
+		}
 	}
 }
 
