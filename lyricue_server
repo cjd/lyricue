@@ -428,6 +428,8 @@ sub process_input {
 			  . $config->{'Height'} . ",F:"
 			  . $config->{'Main'} . ",B:"
 			  . $globals->{'bibledb'};
+		} elsif (/^reconfig$/) {
+		    	$config = load_config();
 		} elsif (/^reload$/) {
 			open(TMPCONF, ">/tmp/lyric.conf");
 			print TMPCONF $current_item . "\n";
