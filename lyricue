@@ -50,7 +50,7 @@ All configuration is done by editing the configuration section in the program
 
 =head1 REQUIRES
 
-Perl 5.004 or later, DBI::MySQL, Gtk2-Perl, MySql database
+Perl 5.6 or later, DBI::MySQL, Gtk2-Perl, MySql database
 
 =head1 AUTHOR
 
@@ -62,7 +62,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyric_interface Version 1.9
+Lyric_interface Version 1.9.1
 
 =cut
 
@@ -104,6 +104,11 @@ $globals->{'sharedir'} = "/usr/share/lds/";
 #
 # You shouldn't have to change anything after this line
 #
+
+# convenience variables for true and false
+use constant FALSE => 0;
+use constant TRUE  => 1;
+
 $globals->{'version'}        = "1.9.1";
 $globals->{'accessfile'}     = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'}    = $globals->{'etcdir'} . "default.conf";
@@ -121,10 +126,8 @@ $globals->{'bg_previews'}    = 1;
 $globals->{'server_port'}   = "2346";    #port used for lyric server
 $globals->{'preview_port'}  = "2347";    #port used for preview
 $globals->{'miniview_port'} = "2348";    #port used for miniview
-
-# convenience variables for true and false
-use constant FALSE => 0;
-use constant TRUE  => 1;
+$globals->{'update_timer'}  = FALSE;
+$globals->{'timer'}         = FALSE;
 
 # Transitions
 use constant NORMAL     => 0;
@@ -140,24 +143,11 @@ use constant RIGHT => 4;
 use constant LEFT  => 8;
 use constant WAIT  => 16;
 
-# Local to this file only
-my ($mainxml, $choosexml, $prefsxml, $aboutxml);
-my ($addxml,  $fontxml,   $imgxml,   $searchxml);
-my $DEBUG_ON     = 0;
-my $invert       = 0;
-my $WIDTH        = 0;
-my $HEIGHT       = 0;
-my $mainfont     = "";
-my $LOOP         = "Loop";
-my $UPDATE_TIMER = FALSE;
-my $preview_pid;
-my $miniview_pid;
-my $TIMER;
+# Quick globals
 my $config;
 my $widgets;
 my @bibleMenu;
 my @ASSOCIATE;
-my %pageLabels;
 my %pageOrder;
 
 my ($errorcodes);
@@ -175,6 +165,7 @@ $errorcodes->{'fileopenread'} =
 $errorcodes->{'fileopenwrite'} =
 "Unable to write to the file, you may not have sufficent permissions.\nPlease check the permissions for ";
 
+# Widgets affected by access controls
 my @edit_items = ("buttonMainAdd", "buttonMainEdit", "add_song1", "edit_song1");
 my @delete_items  = ("delete_song1");
 my @display_items = (
@@ -328,8 +319,8 @@ sub close_main {
 	$lyricDbh->disconnect;
 	$bibleDbh->disconnect;
 	Gtk2->main_quit;
-	kill 9, $preview_pid;
-	kill 9, $miniview_pid;
+	kill 9, $globals->{'preview_pid'};
+	kill 9, $globals->{'miniview_pid'};
 	exit();
 	return FALSE;
 }
@@ -348,14 +339,14 @@ sub close_main {
 #   refreshed playlist
 # SOURCE
 sub update_playlist {
-	my ($id) = @_;
+	my ($selectedid) = @_;
 	my $selection =
 	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
-	if (!defined $id) {
+	if (!defined $selectedid) {
 		if ($selection) {
 			my ($m, $i) = $selection->get_selected;
 			if ($m) {
-				$id = $m->get($i, 2);
+				$selectedid = $m->get($i, 2);
 			}
 		}
 	}
@@ -366,7 +357,8 @@ sub update_playlist {
 	my ($expanded);
 	my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
 	if ($model) {
-		 $widgets->{'main'}->get_widget('treePlaylist')->map_expanded_rows(\&save_expanded,\$expanded);
+		$widgets->{'main'}->get_widget('treePlaylist')
+		  ->map_expanded_rows(\&save_expanded, \$expanded);
 		$model->clear;
 	} else {
 		$model =
@@ -384,7 +376,7 @@ sub update_playlist {
 
 		$widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
 	}
-	add_playlist($playlist, undef, $model, $id,\$expanded);
+	add_playlist($playlist, undef, $model, $selectedid, \$expanded);
 }
 
 #***
@@ -393,7 +385,7 @@ sub update_playlist {
 # NAME
 #   add_playlist - Add a playlist to the playlist area
 # SYNOPSIS
-#   add_playlist ($playlist, $iter, $model, $id)
+#   add_playlist ($playlist, $iter, $model, $selectedid)
 # FUNCTION
 #   Add a playlist to the playlist area
 # INPUTS
@@ -404,7 +396,7 @@ sub update_playlist {
 #   A bigger playlist
 # SOURCE
 sub add_playlist {
-	my ($playlist, $iter, $model, $id,$expanded) = @_;
+	my ($playlist, $iter, $model, $selectedid, $expanded) = @_;
 	my $query =
 	  "SELECT * FROM playlist WHERE playlist="
 	  . $playlist
@@ -482,7 +474,7 @@ sub add_playlist {
 		}
 
 		my $playorder = $row->{'playorder'};
-		my $newiter = $model->append($iter);
+		my $newiter   = $model->append($iter);
 		$model->set(
 			$newiter, 0 => $title,
 			1 => "",
@@ -494,7 +486,7 @@ sub add_playlist {
 		if ($imagename) {
 			my $imgiter = $model->append($newiter);
 			$model->set(
-				$imgiter, 0=>"* Image: ".$imagename,
+				$imgiter, 0 => "* Image: " . $imagename,
 				1 => "",
 				2 => $row->{'playorder'},
 				3 => $row->{'transition'}
@@ -505,28 +497,48 @@ sub add_playlist {
 		if ($row->{'transition'}) {
 			my $transiter = $model->append($newiter);
 			$model->set(
-				$transiter, 0=>"* Page Transition Set",
+				$transiter, 0 => "* Page Transition Set",
 				1 => "",
 				2 => $row->{'playorder'},
 				3 => $row->{'transition'}
 			);
 		}
-		if (defined $id && $row->{'playorder'} == $id) {
-			$widgets->{'main'}->get_widget('treePlaylist')->get_selection->select_iter($newiter);
+
+		if ($$expanded->{$playorder}) {
+			debug("expanding $playorder");
+			$widgets->{'main'}->get_widget('treePlaylist')
+			  ->expand_row($model->get_path($newiter), FALSE);
 		}
 
+		# Select what was selected
+		if (defined $selectedid && $row->{'playorder'} == $selectedid) {
+			$widgets->{'main'}->get_widget('treePlaylist')
+			  ->get_selection->select_iter($newiter);
+		}
+
+		# Add sublists/playlists
 		if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
-			add_playlist($row->{'data'}, $newiter, $model, $id,$expanded);
+			add_playlist($row->{'data'}, $newiter, $model, $selectedid,
+				$expanded);
 		}
 
 		if ($$expanded->{$playorder}) {
 			debug("expanding $playorder");
-			$widgets->{'main'}->get_widget('treePlaylist')->expand_row($model->get_path($newiter),FALSE);
+			$widgets->{'main'}->get_widget('treePlaylist')
+			  ->expand_row($model->get_path($newiter), FALSE);
 		}
 	}
 }
 
 #***
+
+# Save the expanded state
+sub save_expanded {
+	my ($tree, $path, $expanded) = @_;
+	my $iter = $tree->get_model->get_iter($path);
+	$$expanded->{$tree->get_model->get($iter, 2)} = TRUE;
+	return FALSE;
+}
 
 #****m* lyricue/change_sort_order
 # NAME
@@ -573,9 +585,9 @@ sub change_sort_order {
 #   updated list of available songs
 # SOURCE
 sub update_available {
-	if ($UPDATE_TIMER) {
-		Glib::Source->remove($UPDATE_TIMER);
-		$UPDATE_TIMER = FALSE;
+	if ($globals->{'update_timer'}) {
+		Glib::Source->remove($globals->{'update_timer'});
+		$globals->{'update_timer'} = FALSE;
 	}
 
 	my $store =
@@ -674,7 +686,7 @@ sub update_available {
 sub popup_avail_menu {
 	my ($widget, $event) = @_;
 
-	debug("Button clicked");
+	debug("Button clicked on available songs list");
 	if ($event->button == 3) {
 		my @items = ();
 		if ($globals->{'access'} =~ /e/) {
@@ -724,7 +736,7 @@ sub popup_avail_menu {
 #
 sub popup_play_menu {
 	my ($event) = @_;
-	debug("Button clicked");
+	debug("Button clicked on playlist window");
 	my @items = (
 		['/Duplicate Item', undef, 'copy_item', 1, '', ''],
 		[
@@ -1262,7 +1274,9 @@ sub close_add_window {
 sub close_dialog {
 	my ($widget) = @_;
 	debug("Close dialog");
-	$widget->get_toplevel->destroy;
+	if ($widget) {
+		$widget->get_toplevel->destroy;
+	}
 }
 
 #***
@@ -1941,11 +1955,11 @@ sub display_song {
 	my (undef, $event) = @_;
 	if (defined($event->type)) {
 		if ($event->type eq '2button-press') {
-			if (defined $TIMER) {
+			if (defined $globals->{'timer'}) {
 
 				#Cancel any loop timers
 				debug("Cancelling loop timers");
-				Glib::Source->remove($TIMER);
+				Glib::Source->remove($globals->{'timer'});
 			}
 			my $selection =
 			  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
@@ -2043,11 +2057,11 @@ sub display_now {
 	my ($widget) = @_;
 	debug("Display clicked");
 
-	if ($TIMER) {
+	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
 		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($TIMER);
+		Gtk2->timeout_remove($globals->{'timer'});
 	}
 
 	my $selection =
@@ -2075,11 +2089,11 @@ sub display_now {
 #
 sub prev_page {
 
-	if ($TIMER) {
+	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
 		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($TIMER);
+		Gtk2->timeout_remove($globals->{'timer'});
 	}
 
 	debug("Prev clicked");
@@ -2103,11 +2117,11 @@ sub prev_page {
 #
 sub next_page {
 
-	if ($TIMER) {
+	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
 		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($TIMER);
+		Gtk2->timeout_remove($globals->{'timer'});
 	}
 
 	debug("Next clicked");
@@ -2131,11 +2145,11 @@ sub next_page {
 #
 sub prev_song {
 
-	if ($TIMER) {
+	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
 		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($TIMER);
+		Gtk2->timeout_remove($globals->{'timer'});
 	}
 
 	debug("Prev clicked");
@@ -2159,11 +2173,11 @@ sub prev_song {
 #
 sub next_song {
 
-	if ($TIMER) {
+	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
 		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($TIMER);
+		Gtk2->timeout_remove($globals->{'timer'});
 	}
 
 	debug("Next clicked");
@@ -2187,11 +2201,11 @@ sub next_song {
 #
 sub blank_page {
 
-	if ($TIMER) {
+	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
 		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($TIMER);
+		Gtk2->timeout_remove($globals->{'timer'});
 	}
 
 	debug("Blank page clicked");
@@ -2234,11 +2248,11 @@ sub next_point {
 sub preview_page {
 	my ($widget, $MODE) = @_;
 
-	if ($TIMER) {
+	if ($globals->{'timer'}) {
 
 		#Cancel any loop timers
 		debug("Cancelling loop timers");
-		Gtk2->timeout_remove($TIMER);
+		Gtk2->timeout_remove($globals->{'timer'});
 	}
 
 	my $current_page =
@@ -4116,7 +4130,7 @@ sub establish_timer {
 	my ($widget, $loopxml) = @_;
 
 	#Cancel any existing loop timers
-	Glib::Source->remove($TIMER);
+	Glib::Source->remove($globals->{'timer'});
 
 	my $seconds = $loopxml->get_widget('spinLoopSeconds')->get_value_as_int();
 	my $milliseconds =
@@ -4147,7 +4161,7 @@ sub establish_timer {
 
 	my @data = ("display", "next_page", "loop");
 
-	$TIMER = Glib::Timeout->add($interval, \&update_loop, \@data);
+	$globals->{'timer'} = Glib::Timeout->add($interval, \&update_loop, \@data);
 	debug("Set loop advance timer to " . $interval . " milliseconds.");
 	close_dialog($widget);
 }
@@ -4232,7 +4246,8 @@ sub save_preferences {
 	print CONFIG "DynamicPreview = "
 	  . $widgets->{'prefs'}->get_widget('checkPrefView')->get_active() . "\n";
 	print CONFIG "Miniview = "
-	  . $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active() . "\n";
+	  . $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active()
+	  . "\n";
 	print CONFIG "Xinerama = "
 	  . $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
 	  . "\n";
@@ -4260,10 +4275,24 @@ sub save_preferences {
 	}
 	close CONFIG;
 	$config = load_config();
+	my $ministate = $widgets->{'main'}->get_widget('frameCurrent')->visible();
+
+	# Start/stop miniview as needed
+	if ($config->{'Miniview'} && !$ministate) {
+		init_miniview();
+		$widgets->{'main'}->get_widget('frameCurrent')->show();
+	} else {
+		if ($ministate) {
+			$widgets->{'miniview'}->destroy;
+			kill 9, $globals->{'miniview_pid'};
+			$widgets->{'main'}->get_widget('frameCurrent')->hide();
+		}
+	}
 }
 
 #***
 
+# Add the filename to the playlist
 sub file_ok_sel {
 	my ($widget, $filexml) = @_;
 	my $file = $filexml->get_widget('dialogFile')->get_filename;
@@ -4374,11 +4403,14 @@ sub new_sublist {
 
 	#link sublist to main playlist
 	$query =
-	  "INSERT INTO playlist values("
-	  . $playorder . " ,"
-	  . $parentid . ", "
+	  "INSERT INTO playlist SET playorder="
+	  . $playorder
+	  . ", playlist="
+	  . $parentid
+	  . ", type=\"sub\", data="
 	  . $playlistsid
-	  . ", 'sub')";
+	  . " ,transition=0";
+	debug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4403,6 +4435,7 @@ sub new_sublist {
 #
 sub move_to_sublist {
 	my ($widget) = @_;
+	debug("Selecting sublist to move item into");
 
 # get the data from the user selection (corresponds to playorder value in playlist table)
 	my $selection =
@@ -4518,6 +4551,7 @@ sub move_item_to_sublist {
 #
 sub find_more_children {
 	my ($parentid) = @_;
+	debug("Looking for children");
 	my @kiddies;
 
 	my $query =
@@ -4599,7 +4633,8 @@ sub prepare_for_association {
 	my ($model, $iter) = $selection->get_selected;
 	if ($iter) {
 
-#Change ASSOCIATE array to contain playorder of list item, main playlist id
+		# Change ASSOCIATE array to contain playorder of list item,
+		# main playlist id
 		@ASSOCIATE =
 		  ($model->get($iter, 2),
 			$widgets->{'main'}->get_widget('labelCurrentPlaylist')
@@ -5175,27 +5210,28 @@ sub apply_transition {
 			$trans_type = $trans_type + WAIT;
 		}
 
-		my $query = "SELECT type,data FROM playlist WHERE playorder="
-			. $model->get($iter,2);
-		debug ($query);
+		my $query =
+		  "SELECT type,data FROM playlist WHERE playorder="
+		  . $model->get($iter, 2);
+		debug($query);
 		my $sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		my $rv = $sth->execute
 		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 		my @row = $sth->fetchrow_array();
 		if ($row[0] eq "play") {
-			$query = "UPDATE playlist SET transition="
-		  	. $trans_type
-		  	. " WHERE playorder="
-		  	. $model->get($iter, 2)
-			. " OR playlist="
-			. $row[1];
-		} else { 
 			$query =
-		  	"UPDATE playlist SET transition="
-		  	. $trans_type
-		  	. " WHERE playorder="
-		  	. $model->get($iter, 2);
+			  "UPDATE playlist SET transition="
+			  . $trans_type
+			  . " WHERE playorder="
+			  . $model->get($iter, 2)
+			  . " OR playlist=" . $row[1];
+		} else {
+			$query =
+			  "UPDATE playlist SET transition="
+			  . $trans_type
+			  . " WHERE playorder="
+			  . $model->get($iter, 2);
 		}
 		debug($query);
 		$sth = $lyricDbh->prepare($query)
@@ -5403,10 +5439,10 @@ sub add_user {
 
 sub search_changed {
 	debug("Search changed");
-	if ($UPDATE_TIMER) {
-		Glib::Source->remove($UPDATE_TIMER);
+	if ($globals->{'update_timer'}) {
+		Glib::Source->remove($globals->{'update_timer'});
 	}
-	$UPDATE_TIMER = Glib::Timeout->add(500, \&update_available);
+	$globals->{'update_timer'} = Glib::Timeout->add(500, \&update_available);
 }
 
 sub find_image {
@@ -5457,12 +5493,12 @@ sub init_preview {
 		sprintf("$^X %slyricue_server -m %d -p %d", $globals->{'bindir'},
 			$widgets->{'preview'}->get_id, $globals->{'preview_port'}));
 
-	$preview_pid = fork;
-	if ($preview_pid < 0) {
+	$globals->{'preview_pid'} = fork;
+	if ($globals->{'preview_pid'} < 0) {
 		display_fatal("Unable to start the lyricue server as a preview window",
 			$!);
 	}
-	if ($preview_pid == 0) {
+	if ($globals->{'preview_pid'} == 0) {
 		exec(
 			sprintf("$^X %slyricue_server -m %d -p %d\n", $globals->{'bindir'},
 				$widgets->{'preview'}->get_id, $globals->{'preview_port'}));
@@ -5471,7 +5507,8 @@ sub init_preview {
 	$widgets->{'preview'}->signal_connect(
 		'plug-removed' => sub {
 			debug("Lyricue preview died..restarting\n");
-			$widgets->{'main'}->get_widget('framePreview')->remove($widgets->{'preview'});
+			$widgets->{'main'}->get_widget('framePreview')
+			  ->remove($widgets->{'preview'});
 			init_preview();
 			1;
 		}
@@ -5479,7 +5516,7 @@ sub init_preview {
 }
 
 sub init_miniview {
-	$widgets->{'miniview'}= Gtk2::Socket->new;
+	$widgets->{'miniview'} = Gtk2::Socket->new;
 	$widgets->{'miniview'}->show;
 	$widgets->{'miniview'}->set_size_request(280, 210);
 	$widgets->{'main'}->get_widget('frameCurrent')->add($widgets->{'miniview'});
@@ -5487,12 +5524,12 @@ sub init_miniview {
 		sprintf("$^X %slyricue_server -m %d -p %d\n", $globals->{'bindir'},
 			$widgets->{'miniview'}->get_id, $globals->{'miniview_port'}));
 
-	$miniview_pid = fork;
-	if ($miniview_pid < 0) {
+	$globals->{'miniview_pid'} = fork;
+	if ($globals->{'miniview_pid'} < 0) {
 		display_fatal("Unable to start the lyricue server as a preview window",
 			$!);
 	}
-	if ($miniview_pid == 0) {
+	if ($globals->{'miniview_pid'} == 0) {
 		exec(
 			sprintf("$^X %slyricue_server -m %d -p %d\n", $globals->{'bindir'},
 				$widgets->{'miniview'}->get_id, $globals->{'miniview_port'}));
@@ -5501,7 +5538,8 @@ sub init_miniview {
 	$widgets->{'miniview'}->signal_connect(
 		'plug-removed' => sub {
 			debug("Lyricue miniview died..restarting");
-			$widgets->{'main'}->get_widget('frameCurrent')->remove($widgets->{'miniview'});
+			$widgets->{'main'}->get_widget('frameCurrent')
+			  ->remove($widgets->{'miniview'});
 			init_preview();
 			1;
 		}
@@ -5522,20 +5560,13 @@ sub quick_show {
 }
 
 sub resize_preview {
-	my ($widget,$event) = @_;
+	my ($widget, $event) = @_;
+
 	#print $event."\n";
 	#debug ("Resizing previews");
-	#my $pos = $widgets->{'main'}->get_widget('hpanedMainRight')->get_position();
+#my $pos = $widgets->{'main'}->get_widget('hpanedMainRight')->get_position();
 	#my ($width,$height) = $widgets->{'preview'}->get_size();
 	#print ("$width * $height\n");
 	return FALSE;
 }
 
-
-# Save the expanded state
-sub save_expanded {
-	my ($tree,$path,$expanded) = @_;
-	my $iter = $tree->get_model->get_iter($path);
-	$$expanded->{$tree->get_model->get($iter,2)} = TRUE;
-	return FALSE;
-}
