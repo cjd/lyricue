@@ -504,11 +504,6 @@ sub add_playlist {
 			);
 		}
 
-		if ($$expanded->{$playorder}) {
-			debug("expanding $playorder");
-			$widgets->{'main'}->get_widget('treePlaylist')
-			  ->expand_row($model->get_path($newiter), FALSE);
-		}
 
 		# Select what was selected
 		if (defined $selectedid && $row->{'playorder'} == $selectedid) {
@@ -518,14 +513,12 @@ sub add_playlist {
 
 		# Add sublists/playlists
 		if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
-			add_playlist($row->{'data'}, $newiter, $model, $selectedid,
-				$expanded);
+			add_playlist($row->{'data'}, $newiter, $model, $selectedid, $expanded);
 		}
 
 		if ($$expanded->{$playorder}) {
-			debug("expanding $playorder");
 			$widgets->{'main'}->get_widget('treePlaylist')
-			  ->expand_row($model->get_path($newiter), FALSE);
+			  ->expand_to_path($model->get_path($newiter));
 		}
 	}
 }
