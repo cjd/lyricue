@@ -1006,9 +1006,9 @@ sub do_save_song {
 				  . ", pagenum="
 				  . $pageOrder{$page}
 				  . ", lyrics="
-				  . $lyricDbh->quote(
-					get_buffer_text($widgets->{'textAPageB'}{$page}));
-				$sth = $lyricDbh->prepare($query)
+				  . $lyricDbh->quote(Encode::encode("iso-8859-1",
+					get_buffer_text($widgets->{'textAPageB'}{$page})));
+				 $sth = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 				qdebug($query);
 				debug("Page Add : " . $page . "|" . $pageOrder{$page});
@@ -1081,8 +1081,8 @@ sub do_save_song {
 			  . ", pagenum="
 			  . $pageOrder{$page}
 			  . ", lyrics="
-			  . $lyricDbh->quote(
-				get_buffer_text($widgets->{'textAPageB'}{$page}));
+			  . $lyricDbh->quote(Encode::encode("iso-8859-1",
+				get_buffer_text($widgets->{'textAPageB'}{$page})));
 			$sth = $lyricDbh->prepare($query)
 			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 			qdebug($query);
@@ -5535,7 +5535,7 @@ sub quick_show {
 	my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
 	my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
 	$songtext =~ s/\n/#BREAK#/g;
-	$songtext =~ s/;/#SEMI#/g;
+	$songtext =~ s/:/#SEMI#/g;
 	update_display("preview", "", $songtext);
 }
 
