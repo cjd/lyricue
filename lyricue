@@ -714,8 +714,7 @@ sub popup_avail_menu {
 		my $factory =
 		  Gtk2::ItemFactory->new('Gtk2::Menu', "<availpopup>", undef);
 		$factory->create_items(1, @items);
-		my $menu = $factory->get_widget('<availpopup>');
-		$menu->popup(undef, undef, undef, undef, $event->button, $event->time);
+		$factory->popup($event->x_root,$event->y_root,$event->button,$event->time);
 		return (TRUE);
 	}
 
@@ -772,31 +771,24 @@ sub popup_play_menu {
 
 		
 	my @items = (
-		['/Duplicate Item', undef, 'copy_item', 1, '', ''],
-		[ '/Remove from Playlist', undef, 'remove_from_playlist', 1, '', '' ],
-		['/Refresh Playlist',        undef, 'update_playlist', 1, '', ''],
-		['/Add Verse',               undef, 'add_verse',       1, '', ''],
-		['/Invert Line Display',     undef, 'invert_lines',    1, '', ''],
-		['/Loop this playlist item', undef, 'begin_loop',      1, '', ''],
-
-		[
-			'/Associate background',   undef,
-			'prepare_for_association', 1,
-			'',                        ''
-		],
-		['/Dis-associate background', undef, 'disassociate_bg', 1, '', ''],
-		['/Preview this item', undef, 'preview_playlist_item', 1, '', ''],
-		['/Move to sublist',          undef, undef, 1, '<Branch>', ''],
-		['/Move to sublist/Main',          undef, 'move_to_sublist', 1, '<Item>', $playlist],
+		['/Duplicate Item', undef, 'copy_item', 1],
+		['/Remove from Playlist', undef, 'remove_from_playlist', 1],
+		['/Refresh Playlist',        undef, 'update_playlist', 1],
+		['/Add Verse',               undef, 'add_verse',       1],
+		['/Invert Line Display',     undef, 'invert_lines',    1],
+		['/Loop this playlist item', undef, 'begin_loop',      1],
+		['/Associate background',undef, 'prepare_for_association', 1 ],
+		['/Dis-associate background', undef, 'disassociate_bg', 1],
+		['/Preview this item', undef, 'preview_playlist_item', 1],
+		['/Move to sublist/Main',          undef, 'move_item_to_sublist', $playlist],
 	);
-	foreach (sort @list) {
+	foreach (sort {uc($a->{'title'}) cmp uc($b->{'title'})} @list) {
 		my $item = "/Move to sublist/".$_->{'title'};
-		push @items, [$item,          undef, 'move_to_sublist', 1, '<Item>', $_->{'data'}],
+		push @items, [$item,          undef, 'move_item_to_sublist', $_->{'data'}],
 	}
-	my $factory = Gtk2::ItemFactory->new('Gtk2::Menu', "<playpopup>", undef);
+	my $factory = Gtk2::ItemFactory->new('Gtk2::Menu', '<playpopup>', undef);
 	$factory->create_items(undef, @items);
-	my $menu = $factory->get_widget('<playpopup>');
-	$menu->popup(undef, undef, undef, undef, $event->button, $event->time);
+	$factory->popup($event->x_root,$event->y_root,0,$event->time);
 }
 
 #***
@@ -1976,7 +1968,7 @@ sub clear_playlist {
 
 #****m* lyricue/display_song
 # NAME
-#   display_song -- 
+#   Display_song -- 
 # SYNOPSIS
 #   display_song (undef, $event)
 # FUNCTION
@@ -4220,6 +4212,9 @@ sub load_config {
 		chomp;
 		my @line = split (/=/);
 		$line[0] =~ s/ *$//g;
+		if (! $line[1]) {
+			$line[1] = "";
+		}
 		$line[1] =~ s/^ *//g;
 		if ($line[0] eq "Bible") {
 			$conf->{'Bible'}[$bibleCount++] = $line[1];
@@ -4453,119 +4448,41 @@ sub new_sublist {
 
 #***
 
-#****m* lyricue/move_to_sublist
-# NAME
-#   move_to_sublist --
-# SYNOPSIS
-#   move_to_sublist ()
-# FUNCTION
-#   Creates a dialog for moving a playlist item to a sublist of the main playlist
-# INPUTS
-# OUTPUT
-#   Dialog listing available sublists
-# SOURCE
-#
-sub move_to_sublist {
-	my ($widget,$data) = @_;
-	debug("Selecting sublist to move item into");
-	debug($data);
-	return TRUE;
-
-# get the data from the user selection (corresponds to playorder value in playlist table)
-	my $selection =
-	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
-	my ($model, $iter) = $selection->get_selected;
-	if ($iter) {
-		my $plitem = $model->get($iter, 2);
-
-		# playlists id for the current main playlist
-		my $parentid =
-		  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
-		my $sublistxml =
-		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptCombo');
-		$sublistxml->signal_autoconnect_from_package('');
-		$sublistxml->get_widget('dialogPromptCombo')
-		  ->set_title("Move to sublist");
-		$sublistxml->get_widget('labelPromptC')->set_text("Select a sublist");
-		$sublistxml->get_widget('entryPromptC')->{user_data} = $plitem;
-		$sublistxml->get_widget('buttonPromptCOK')
-		  ->signal_connect("clicked", "move_item_to_sublist", $sublistxml);
-
-# get title, id for the sublists that are children of the current main playlist
-# with playorder restriction to prevent being able to move sublist to itself!
-		my $query =
-"SELECT title, data FROM playlist, playlists WHERE playlist.data = playlists.id AND playlist = "
-		  . $parentid
-		  . " AND type = 'sub' AND playorder != " . $plitem;
-
-		qdebug($query);
-		my $sth = $lyricDbh->prepare($query)
-		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-		my $rv = $sth->execute
-		  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-		my (@list);
-		while ($row = $sth->fetchrow_hashref()) {
-			my $text = $row->{'data'} . ". " . $row->{'title'};
-			push @list, $text;
-
-			my @childid = find_more_children($row->{'data'});
-
-			foreach (@childid) {
-				debug("Child sublist found. ID: " . $_);
-				my $query2 = "SELECT title FROM playlists WHERE id=" . $_;
-
-				qdebug($query2);
-				my $sth2 = $lyricDbh->prepare($query2)
-				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				my $rv2 = $sth2->execute
-				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-				my $row2 = $sth2->fetchrow_hashref();
-
-				my $text = $_ . ". " . $row2->{'title'};
-				push @list, $text;
-			}
-		}
-		$sublistxml->get_widget('comboPromptC')->set_popdown_strings(@list);
-	}
-}
-
-#***
-
 #****m* lyricue/move_item_to_sublist
 # NAME
 #   move_item_to_sublist --
 # SYNOPSIS
-#   move_item_to_sublist ($item, $sublistid, $sublisttitle)
+#   move_item_to_sublist ($item, $sublistid)
 # FUNCTION
 #   Move a playlist item to become a child of a sublist
 # INPUTS
 #   $item - playorder of the item to be moved
 #   $sublistid - id of the sublist the item is to be a child of
-#   $sublisttitle - title of the sublist the item is to be a child of
 # OUTPUT
 #   Alters database entry for playlist item to make sublist its parent
 #   Calls update_playlist to refresh playlist
 # SOURCE
 #
 sub move_item_to_sublist {
-	my ($widget, $sublistxml) = @_;
+	my ($widget, $sublistid) = @_;
+	my $selection =
+	  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+	my ($model, $iter) = $selection->get_selected;
+	if ($iter) {
+		my $plitem = $model->get($iter, 2);
+		debug("Moving item " . $plitem . " to playlist " . $sublistid);
 
-	my $sublistid = $sublistxml->get_widget('entryPromptC')->get_text();
-	my $item      = $sublistxml->get_widget('entryPromptC')->{user_data};
-	$sublistid =~ s/^([0-9]*)\..*$/$1/g;
-	debug("Moving item " . $item . " to playlist " . $sublistid);
-	close_dialog($widget);
-
-	my $query =
-	  "UPDATE playlist SET playlist = "
-	  . $sublistid
-	  . " WHERE playorder = " . $item;
-	qdebug($query);
-	my $sth = $lyricDbh->prepare($query)
-	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-
-	update_playlist();
+		my $query =
+		  "UPDATE playlist SET playlist = "
+		  . $sublistid
+		  . " WHERE playorder = " . $plitem;
+		qdebug($query);
+		my $sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	
+		update_playlist();
+	}
 }
 
 #***

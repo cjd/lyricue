@@ -1354,6 +1354,9 @@ sub load_config {
 		chomp;
 		my @line = split (/=/);
 		$line[0] =~ s/ *$//g;
+		if (! $line[1]) {
+			$line[1]="";
+		}
 		$line[1] =~ s/^ *//g;
 		if ($line[0] eq "Bible") {
 			$conf->{'Bible'}[$bibleCount++] = $line[1];
