@@ -25,16 +25,7 @@ my $sharedir = "/usr/share/lds/";
 my $docdir = "/usr/share/doc/lds/";
 my $localedir = "/usr/share/locale/";
 
-my %replace = ( $sharedir."images/black.png" => 0644,
-		$sharedir."backgrounds/Solid/black.bg" => 0644,
-		$sharedir."backgrounds/Solid/gray.bg" => 0644,
-		$sharedir."backgrounds/Solid/white.bg" => 0644,
-		$sharedir."backgrounds/Solid/red.bg" => 0644,
-		$sharedir."backgrounds/Solid/green.bg" => 0644,
-		$sharedir."backgrounds/Solid/blue.bg" => 0644,
-		$sharedir."backgrounds/Solid/yellow.bg" => 0644,
-		$sharedir."backgrounds/Solid/orange.bg" => 0644,
-		$sharedir."lyricue.png" => 0644,
+my %replace = ( $sharedir."lyricue.png" => 0644,
 		$sharedir."lyricue-icon.png" => 0644,
 		$sharedir."lyricue.glade" => 0644,
 		$bindir."lyricue" => 0644,
@@ -81,6 +72,7 @@ if ($ARGV[0] eq "-u") {
 		print "Removing Databases\n";
 		system ("echo 'DROP DATABASE lyricDb' | mysql -u root --password=$rootpw");
 		system("echo 'DROP DATABASE bibleDb' | mysql -u root --password=$rootpw");
+		system("echo 'DROP DATABASE mediaDb' | mysql -u root --password=$rootpw");
 		print "Removing Lyric user from the database\n";
 		system ("echo \"DELETE FROM user WHERE Host='localhost' AND User='lyric' LIMIT 1;\"| mysql -uroot --password=$rootpw mysql");
 		system ("echo 'DELETE FROM user WHERE Host='%' AND User='lyric' LIMIT 1;\"| mysql -uroot --password=$rootpw mysql");
@@ -223,7 +215,7 @@ if ($ARGV[0] eq "-u") {
 
 	if (! $mediadb) {
 		print "Importing backgrounds/images";
-	    	system ("cat mysql/Update_1.9.2.sql | mysql -u root --password=$rootpw");
+	    	system ("cat mysql/MySQL_create_media.sql | mysql -u root --password=$rootpw");
 		system ("./import_media img $sharedir/images");
 		system ("./import_media bg $sharedir/backgrounds");
 		print "Done\n";
