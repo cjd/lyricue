@@ -261,7 +261,7 @@ if (-e $globals->{'basedir'}) {
 	mkdir $globals->{'imgpath_user'}, 0777;
 }
 
-$widgets->{'main'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain');
+$widgets->{'main'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain','lyricue');
 $widgets->{'main'}->signal_autoconnect_from_package('');
 
 if (-d $globals->{'basedir'}) {
@@ -284,7 +284,7 @@ eval { $tray = Gtk2::TrayIcon->new("Lyricue"); };
 if ($@) {
 	debug("Unable to load system tray");
 } else {
-	my $trayxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'trayBar');
+	my $trayxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'trayBar','lyricue');
 	$trayxml->signal_autoconnect_from_package('');
 	$tray->add($trayxml->get_widget('trayBar'));
 	$tray->show_all;
@@ -815,7 +815,7 @@ sub add_song {
 		}
 	}
 	$widgets->{'add'} =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowEditSong');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowEditSong','lyricue');
 	$widgets->{'add'}->signal_autoconnect_from_package('');
 	$widgets->{'add'}->get_widget('buttonEditPreviewServer')
 	  ->signal_connect("clicked", "preview_page", "MINI");
@@ -864,7 +864,7 @@ sub delete_song {
 			}
 			$labelText .= "which was written by \"" . $row->{'artist'} . "\"";
 			my $deletexml =
-			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDelete');
+			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDelete','lyricue');
 			$deletexml->signal_autoconnect_from_package('');
 			$deletexml->get_widget('labelDelete')->set_text($labelText);
 			my $confirm = $deletexml->get_widget('dialogDelete')->run();
@@ -1338,7 +1338,7 @@ sub edit_song {
 
 				$widgets->{'add'} =
 				  Gtk2::GladeXML->new($globals->{'gladefile'},
-					'windowEditSong');
+					'windowEditSong','lyricue');
 				$widgets->{'add'}->signal_autoconnect_from_package('');
 				$widgets->{'add'}->get_widget('buttonEditPreviewServer')
 				  ->signal_connect("clicked", "preview_page", "MINI");
@@ -1347,7 +1347,7 @@ sub edit_song {
 			}
 		} else {
 			$widgets->{'add'} =
-			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowEditSong');
+			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowEditSong','lyricue');
 			$widgets->{'add'}->signal_autoconnect_from_package('');
 			$widgets->{'add'}->get_widget('buttonEditPreviewServer')
 			  ->signal_connect("clicked", "preview_page", "MINI");
@@ -1548,7 +1548,7 @@ sub do_add_verse {
 # SOURCE
 #
 sub import_song {
-	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile');
+	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile','lyricue');
 	$filexml->signal_autoconnect_from_package('');
 	$filexml->get_widget('buttonFileOK')
 	  ->signal_connect("clicked", "do_import_song", $filexml);
@@ -2334,7 +2334,7 @@ sub preview_page {
 sub add_verse {
 	debug("Add verse clicked");
 
-	my $bookxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowBook');
+	my $bookxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowBook','lyricue');
 	$bookxml->signal_autoconnect_from_package('');
 	$bookxml->get_widget('windowBook')->show;
 }
@@ -2358,7 +2358,7 @@ sub add_image {
 	debug("Add image clicked");
 
 	$widgets->{'image'} =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImage');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImage','lyricue');
 	$widgets->{'image'}->signal_autoconnect_from_package('');
 	$widgets->{'image'}->get_widget('dialogImage')->show;
 
@@ -2652,7 +2652,7 @@ sub preview_display {
 sub open_dialogColour {
 	my ($widget, $event, $item) = @_;
 	my $colourxml =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogColour');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogColour','lyricue');
 	$colourxml->signal_autoconnect_from_package('');
 	$colourxml->get_widget('dialogColour')
 	  ->set_title("Select " . $item . " Colour");
@@ -2667,7 +2667,7 @@ sub open_dialogColour {
 sub open_dialogFont {
 	my ($widget, $event, $font) = @_;
 	$widgets->{'font'} =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFont');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFont','lyricue');
 	$widgets->{'font'}->signal_autoconnect_from_package('');
 	my $fontname = $config->{$font};
 	$widgets->{'font'}->get_widget('selectFont')->set_font_name($fontname);
@@ -2760,7 +2760,7 @@ sub create_dialogChapter {
 	if (my @row = $sth->fetchrow_array) {
 		close_dialog($widget);
 		my $chapxml =
-		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChapter');
+		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChapter','lyricue');
 		$chapxml->signal_autoconnect_from_package('');
 
 		$chapxml->get_widget('tableChapter')->resize(ceil($row[0] / 8) + 1, 5);
@@ -2818,7 +2818,7 @@ sub create_dialogVerse {
 	if (my @row = $sth->fetchrow_array) {
 		close_dialog($widget);
 		my $versexml =
-		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowVerse');
+		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowVerse','lyricue');
 		$versexml->signal_autoconnect_from_package('');
 		$versexml->get_widget('tableVerse')->resize(ceil($row[0] / 5) + 1, 5);
 		$versexml->get_widget('labelVerse')->set_text($book . " - " . $chapter);
@@ -3174,7 +3174,7 @@ sub do_add_image {
 #***
 
 sub show_about {
-	my $xml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowAbout');
+	my $xml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowAbout','lyricue');
 	$xml->signal_autoconnect_from_package('');
 	$xml->get_widget('windowAbout')->show();
 }
@@ -3196,7 +3196,7 @@ sub show_about {
 
 sub choose_playlist {
 	$widgets->{'choose'} =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay','lyricue');
 	$widgets->{'choose'}->signal_autoconnect_from_package('');
 	$widgets->{'choose'}->get_widget('windowChoosePlay')->show;
 	update_cplayclist();
@@ -3207,7 +3207,7 @@ sub choose_playlist {
 sub create_dialog_prefs {
 	$config = load_config();
 	$widgets->{'prefs'} =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPrefs');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPrefs','lyricue');
 	$widgets->{'prefs'}->signal_autoconnect_from_package('');
 	$widgets->{'prefs'}->get_widget('spinPrefHeight')
 	  ->set_value($config->{'Height'});
@@ -3464,7 +3464,7 @@ sub invert_lines {
 # SOURCE
 #
 sub export_song {
-	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile');
+	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile','lyricue');
 	$filexml->signal_autoconnect_from_package('');
 	$filexml->get_widget('buttonFileOK')
 	  ->signal_connect("clicked", "complete_export_song", $filexml);
@@ -3649,7 +3649,7 @@ sub add_presentation {
 	my ($widget) = @_;
 	debug("Add presentation selected");
 
-	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile');
+	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile','lyricue');
 	$filexml->signal_autoconnect_from_package('');
 	$filexml->get_widget('buttonFileOK')
 	  ->signal_connect("clicked", "present_ok", $filexml);
@@ -3933,7 +3933,7 @@ sub rename_playlist {
 		my @row = $sth->fetchrow_array();
 		if ($row[0]) {
 			my $renamexml =
-			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptEntry');
+			  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptEntry','lyricue');
 			$renamexml->signal_autoconnect_from_package('');
 			$renamexml->get_widget('dialogPromptEntry')
 			  ->set_title("Renaming "
@@ -4184,7 +4184,7 @@ sub begin_loop {
 	my ($model, $iter) = $selection->get_selected;
 	if ($iter) {
 		my $loopxml =
-		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogLoop');
+		  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogLoop','lyricue');
 		$loopxml->signal_autoconnect_from_package('');
 		$loopxml->get_widget('dialogLoop')->{user_data} = $model->get($iter, 2);
 		$loopxml->get_widget('buttonLoopOK')
@@ -4995,7 +4995,7 @@ sub spell_check {
 sub create_search {
 	debug("Advanced search dialog opened");
 	$widgets->{'search'} =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSearch');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSearch','lyricue');
 	$widgets->{'search'}->signal_autoconnect_from_package('');
 	my @target_table = ({'target' => "STRING", 'flags' => 0, 'info' => 0},);
 	$widgets->{'search'}->get_widget('treeSearch')
@@ -5007,7 +5007,7 @@ sub create_search {
 #***
 
 sub add_file {
-	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile');
+	my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile','lyricue');
 	$filexml->signal_autoconnect_from_package('');
 	$filexml->get_widget('buttonFileOK')
 	  ->signal_connect("clicked", "file_ok_sel", $filexml);
@@ -5019,7 +5019,7 @@ sub change_bgimage {
 
 	debug("Change backdrop dialog opened");
 	$widgets->{'image'} =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImage');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImage','lyricue');
 	$widgets->{'image'}->signal_autoconnect_from_package('');
 	$widgets->{'image'}->get_widget('dialogImage')->show;
 	if ($widgets->{'image'}->get_widget('treeImage')->{user_data}
@@ -5058,7 +5058,7 @@ sub change_bgimage {
 #
 sub create_dialogSublist {
 	my $sublistxml =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptEntry');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptEntry','lyricue');
 	$sublistxml->signal_autoconnect_from_package('');
 	$sublistxml->get_widget('dialogPromptEntry')
 	  ->set_title("Create new sublist");
@@ -5115,7 +5115,7 @@ sub display_fatal {
 	print STDERR "Error description\n";
 	print STDERR $message . "\n";
 	print STDERR "------------------\n";
-	my $errorxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError');
+	my $errorxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError','lyricue');
 	$errorxml->signal_autoconnect_from_package('');
 	$errorxml->get_widget('labelError')->set_text($message);
 	my $confirm = $errorxml->get_widget('dialogError')->run();
@@ -5128,7 +5128,7 @@ sub display_fatal {
 sub select_transitions {
 	debug("Selecting transitions");
 	$widgets->{'transitions'} =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowTransitions');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowTransitions','lyricue');
 	$widgets->{'transitions'}->signal_autoconnect_from_package('');
 	$widgets->{'transitions'}->get_widget('windowTransitions')->show();
 }
@@ -5231,7 +5231,7 @@ sub mod {
 sub user_admin {
 	debug("User access administration");
 	$widgets->{'admin'} =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogAdmin');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogAdmin','lyricue');
 	$widgets->{'admin'}->signal_autoconnect_from_package('');
 	eval { open(ACCESS, $globals->{'accessfile'}); };
 	if ($@) {
@@ -5377,7 +5377,7 @@ sub load_access {
 sub add_user {
 	debug("Adding a user");
 	my $userxml =
-	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptEntry');
+	  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogPromptEntry','lyricue');
 	$userxml->signal_autoconnect_from_package('');
 	$userxml->get_widget('dialogPromptEntry')->set_title("Add a user");
 	$userxml->get_widget('labelPromptE')->set_text("Enter username");

@@ -1623,7 +1623,7 @@ sub display_fatal {
 	print STDERR "Error description\n";
 	print STDERR $message . "\n";
 	print STDERR "------------------\n";
-	my $errorxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError');
+	my $errorxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError','lyricue');
 	$errorxml->signal_autoconnect_from_package('');
 	$errorxml->get_widget('labelError')->set_text($message);
 	my $confirm = $errorxml->get_widget('dialogError')->run();
