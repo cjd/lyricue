@@ -2724,12 +2724,19 @@ sub update_imagedir {
 
     # display sorted list
 
-    # update list of available images
-    $widgets->{'image'}->get_widget('labelImage')->set_text($category);
-    $widgets->{'image'}->get_widget('labelImage')->{'user_data'} = $type;
-    my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
-    my $iter = $store->append;
-    $store->set($iter, 0, "CATEGORY: Main", 1, "0");
+    # Update categories list
+    $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'} = $type;
+    $widgets->{'image'}->get_widget('treeImage')->{'user_data'} = $category;
+    my $history = $widgets->{'image'}->get_widget('optionImageCategory')->get_history();
+    my $menu = Gtk2::Menu->new();
+    $widgets->{'image'}->get_widget('optionImageCategory')->set_menu($menu);
+    my $item = Gtk2::MenuItem->new_with_label("Main");
+    $item->show();
+    $menu->append($item);
+
+    #my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    #my $iter = $store->append;
+    #$store->set($iter, 0, "CATEGORY: Main", 1, "0");
 
     $query =
         "SELECT DISTINCT category FROM media WHERE type=\"" . $type
@@ -2739,10 +2746,17 @@ sub update_imagedir {
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     while ($row = $sth->fetchrow_hashref()) {
-        $iter = $store->append;
-        $store->set($iter, 0, "CATEGORY: " . $row->{'category'}, 1, "0");
-    }
+	my $item = Gtk2::MenuItem->new_with_label($row->{'category'});
+	$item->{user_data} = $row->{'category'};
+	$item->show();
+	$menu->append($item);
 
+        #$iter = $store->append;
+        #$store->set($iter, 0, "CATEGORY: " . $row->{'category'}, 1, "0");
+    }
+    $widgets->{'image'}->get_widget('optionImageCategory')->set_history($history);
+
+    # update list of available images
     $query =
         "SELECT * FROM media WHERE category LIKE \""
       . $category
@@ -2752,11 +2766,22 @@ sub update_imagedir {
     $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $iter;
     while ($row = $sth->fetchrow_hashref()) {
         $iter = $store->append;
         $store->set($iter, 0, $row->{'description'}, 1, $row->{'id'});
     }
     $widgets->{'image'}->get_widget('treeImage')->set_model($store);
+}
+
+sub change_image_category {
+    my $category = $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data};
+    if (defined $category) {
+    if ($widgets->{'image'}->get_widget('treeImage')->{user_data} ne $category) {
+        update_imagedir( $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'}, $category);
+    }
+    }
 }
 
 #***
@@ -3268,24 +3293,13 @@ sub change_preview {
 	    $selectedimages{$id2}=TRUE;
 	}
 
-        if ($id == 0) {
-
-            my $category =
-              $widgets->{'image'}->get_widget('treeImage')
-              ->get_model->get($iter, 0);
-            $category =~ s/^CATEGORY: //g;
-            update_imagedir(
-                $widgets->{'image'}->get_widget('labelImage')->{'user_data'},
-                $category);
-        } else {
-            if ($globals->{'bg_previews'}) {
-                my $scaled = create_pixbuf($id, 480, 360);
-                if ($scaled) {
-                    $widgets->{'image'}->get_widget('imageImage')
-                      ->set_from_pixbuf($scaled);
-                    $widgets->{'image'}->get_widget('imageImage')->{user_data} =
-                      $id;
-                }
+        if ($globals->{'bg_previews'}) {
+            my $scaled = create_pixbuf($id, 480, 360);
+            if ($scaled) {
+                $widgets->{'image'}->get_widget('imageImage')
+                  ->set_from_pixbuf($scaled);
+                $widgets->{'image'}->get_widget('imageImage')->{user_data} =
+                  $id;
             }
         }
     }
@@ -5331,6 +5345,7 @@ sub change_bgimage {
       ->signal_connect('clicked', 'import_background');
     $widgets->{'image'}->get_widget('hboxImageSublist')->hide;
     $widgets->{'image'}->get_widget('dialogImage')->show;
+
     if ($widgets->{'image'}->get_widget('treeImage')->{user_data}
         && ($widgets->{'image'}->get_widget('treeImage')->{user_data} eq "load")
       )
@@ -6090,12 +6105,15 @@ sub media_delete {
         my $id =
           $widgets->{'image'}->get_widget('treeImage')
           ->get_model->get($iter, 1);
+        my $title =
+          $widgets->{'image'}->get_widget('treeImage')
+          ->get_model->get($iter, 0);
         if ($id != 0) {
-            debug("Deleting $id");
+            debug("Deleting $title");
             my $labelText =
               Encode::decode("utf-8",
                 gettext("Are you sure you wish to delete \""))
-              . $id . "\"\n";
+              . $title . "\"\n";
             my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
                 'dialogDelete', 'lyricue');
             $deletexml->signal_autoconnect_from_package('');
@@ -6110,10 +6128,9 @@ sub media_delete {
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
                 close_dialog($deletexml->get_widget('dialogDelete'));
-                my $category =
-                  $widgets->{'image'}->get_widget('labelImage')->get_text();
+		my $category = $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data};
                 update_imagedir(
-                    $widgets->{'image'}->get_widget('labelImage')
+                    $widgets->{'image'}->get_widget('optionImageCategory')
                       ->{'user_data'},
                     $category
                 );
@@ -6141,8 +6158,8 @@ sub rename_media {
         my $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
         update_imagedir(
-            $widgets->{'image'}->get_widget('labelImage')->{'user_data'},
-            $widgets->{'image'}->get_widget('labelImage')->get_text()
+            $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'},
+	    $widgets->{'image'}->get_widget('optionImageCategory')->get_menu->get_active->{user_data}
         );
     }
 }

@@ -33,6 +33,12 @@ my $mediaDbh =
 
 my ($query, $row, $sth, $rv);
 
+if ($ARGV[0] eq "-h") {
+	print "Usage: import_media <type> <directory>\n";
+	print "       where type is bg or img\n";
+	print "       and dir is the directory to import\n";
+	exit;
+}
 $sth = $mediaDbh->prepare(q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)});
 my ($owner) =getpwuid($<);
 print $owner."\n";
@@ -40,7 +46,7 @@ if ( $owner eq "root") { $owner="general" }
 my $type = $ARGV[0];
 my $dir = $ARGV[1]."/";
 $dir =~ s/\//\\\//g;
-my $dirlisting = `find $dir -follow -type f | sed -e 's/^$dir//g'`;
+my $dirlisting = `find $dir -follow -type f | sed -e 's/^$dir//g' | grep -v ".thumbnails/" | grep -v ".xvpics/"`;
 my @items = split (/\n/, $dirlisting);
 my @date = localtime(time);
 my $time = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $date[5]+1900,$date[4],$date[3],$date[2],$date[1],$date[0]);
@@ -61,7 +67,7 @@ foreach (@items) {
     $subcategory =~ s/\.$format//g;
     $subcategory =~ s/\/$//g;
     print $filename."\n";
-    print "C#",$category,"-S#",$subcategory,"-F#",$format,"-D#",$description,"\n";
+    #print "C#",$category,"-S#",$subcategory,"-F#",$format,"-D#",$description,"\n";
     open (MEDIA,$ARGV[1]."/".$filename);
     $data="";
     while (<MEDIA>) {
