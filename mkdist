@@ -1,7 +1,9 @@
 #!/bin/sh
-mkdir dist
+
+echo Removing old dist files
 rm -rf dist/lyricue*
 
+echo Copying new dist files
 mkdir dist/lyricue-$1
 cp images/black.png import_media install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server access.conf default.conf dist/lyricue-$1
 
@@ -16,9 +18,11 @@ cp docs/AUTHORS docs/COPYING docs/Development.txt docs/example_song.txt docs/INS
 mkdir dist/lyricue-$1/mysql
 cp mysql/MySQL_create_bible_KJV.sql mysql/MySQL_create_Table.sql mysql/Update_1.2.sql mysql/Update_1.9.sql mysql/MySQL_create_media.sql dist/lyricue-$1/mysql
 
+echo Creating lyricue-$1.tar.gz
 cd dist
-tar cvfz lyricue-$1.tar.gz lyricue-$1
+tar cfz lyricue-$1.tar.gz lyricue-$1
 rm lyricue-$1/mysql/MySQL_create_bible_KJV.sql
-tar cvfz lyricue-upgrade-$1.tar.gz lyricue-$1
+echo Creating lyricue-upgrade-$1.tar.gz
+tar cfz lyricue-upgrade-$1.tar.gz lyricue-$1
 cd ..
 rm -rf dist/lyricue-$1
