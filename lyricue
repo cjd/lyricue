@@ -98,7 +98,15 @@ use Gtk2::Spell;
 use Gtk2::TrayIcon;
 use Locale::gettext;
 textdomain('lyricue');
-bind_textdomain_codeset('lyricue', "UTF-8");
+
+# Hack to get this working under mandrake
+use lib qw(/usr/lib/libDrakX);
+eval {require c::stuff};
+if ($@) {
+	bind_textdomain_codeset('lyricue', "UTF-8");
+} else {
+	c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
+}
 
 #
 # Site Configuration.  You should only have to
