@@ -1,1 +1,15 @@
-cp -R images/black.png install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server access.conf default.conf docs mysql dist
+#!/bin/sh
+rm -rf dist/*
+
+mkdir dist/lyricue-$1
+cp images/black.png install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server access.conf default.conf dist/lyricue-$1
+
+mkdir dist/lyricue-$1/docs
+cp docs/AUTHORS docs/COPYING docs/Development.txt docs/example_song.txt docs/INSTALL docs/NEWS docs/README docs/song_template.txt docs/TODO docs/Users_Guide.pdf dist/lyricue-$1/docs
+
+mkdir dist/lyricue-$1/mysql
+cp mysql/MySQL_create_bible_KJV.sql mysql/MySQL_create_Table.sql mysql/Update_1.2.sql mysql/Update_1.9.sql dist/lyricue-$1/mysql
+cd dist
+tar cvfz lyricue-$1.tar.gz lyricue-$1
+cd ..
+rm -rf dist/lyricue-$1
