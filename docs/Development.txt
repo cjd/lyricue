@@ -1,3 +1,9 @@
+-----------------
+DEBUGGING OPTIONS
+-----------------
+If you run lyricue with -d then debugging is on but use -dq to see all SQL queries as well
+If debugging is on then both server and interface will not go fullscreen/maximize
+
 --------------------------------
 NETWORK COMMUNICATIONS INTERFACE
 --------------------------------
@@ -102,16 +108,20 @@ Example - 'display:12:'
 CONFIGURATION FILE FORMAT
 -------------------------
 
-The configuration file is in /etc/lds.conf initially but used
-from ~/.lds/config for each user
+The configuration file is in /etc/lds/default.conf initially but used
+from ~/.lds/config2 for each user
 Following is a description of each possible line.
 
 'Main'     - Font used for main lyrics on server
 'Header'   - Font used for header section on server
 'Footer'   - Font used for footer section on server
 'Colour'   - Colour used for text on server
+'ShadowColour' - Colour used for text shadow
+'ShadowSize'   - Num of Pixels that shadow is moved down/right of text
 'Height'   - Window height for server/interface
 'Width'    - Window width for server/interface
+'OverscanH'
+'OverscanW'
 'Loop'     - Boolean state of looping (ie. if you press next at the last
              page should it return to the first page)
 'Xinerama' - Boolean state of xinerama
@@ -165,6 +175,7 @@ playlist (
 										   # 'play' then playlist id
 										   # 'imag' then image filename
 										   # 'back' then background filename
+  transition int(11) default '0'           # Set transition type
   PRIMARY KEY  (playorder)
 )
 

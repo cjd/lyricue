@@ -207,6 +207,8 @@ if ($ARGV[0]) {
 			$globals->{'bg_previews'} = 0;
 		} elsif ($ARGV[$_] eq "-d") {
 			$globals->{'debugging'} = 1;
+		} elsif ($ARGV[$_] eq "-dq") {
+			$globals->{'debugging'} = 2;
 		} elsif ($ARGV[$_] eq "-s") {
 			$globals->{'host'} = $ARGV[$_ + 1];
 			$ARGV[$_ + 1] = "";
@@ -649,7 +651,7 @@ sub update_available {
 
 	#}
 	$query .= " ORDER BY " . $globals->{'sortby'};
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -738,12 +740,40 @@ sub popup_avail_menu {
 sub popup_play_menu {
 	my ($event) = @_;
 	debug("Button clicked on playlist window");
+	my $playlist = $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+	my $query = "SELECT title, data FROM playlist, playlists WHERE playlist.data = playlists.id AND playlist = " . $playlist . " AND type = 'sub'";
+	qdebug($query);
+	my $sth = $lyricDbh->prepare($query)
+	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+	my $rv = $sth->execute
+	  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+	my (@list);
+	while ($row = $sth->fetchrow_hashref()) {
+		my ($text);
+		$text->{'data'} = $row->{'data'};
+		$text->{'title'} = $row->{'title'};
+		push @list, $text;
+		my @childid = find_more_children($row->{'data'});
+		foreach (@childid) {
+			debug("Child sublist found. ID: " . $_);
+			my $query2 = "SELECT title FROM playlists WHERE id=" . $_;
+			qdebug($query2);
+			my $sth2 = $lyricDbh->prepare($query2)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			my $rv2 = $sth2->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+			my $row2 = $sth2->fetchrow_hashref();
+			my ($text);
+			$text->{'data'} = $row->{'data'};
+			$text->{'title'} = $row->{'title'};
+			push @list, $text;
+		}
+	}
+
+		
 	my @items = (
 		['/Duplicate Item', undef, 'copy_item', 1, '', ''],
-		[
-			'/Remove from Playlist', undef, 'remove_from_playlist', 1,
-			'',                      ''
-		],
+		[ '/Remove from Playlist', undef, 'remove_from_playlist', 1, '', '' ],
 		['/Refresh Playlist',        undef, 'update_playlist', 1, '', ''],
 		['/Add Verse',               undef, 'add_verse',       1, '', ''],
 		['/Invert Line Display',     undef, 'invert_lines',    1, '', ''],
@@ -755,11 +785,16 @@ sub popup_play_menu {
 			'',                        ''
 		],
 		['/Dis-associate background', undef, 'disassociate_bg', 1, '', ''],
-		['/Move to sublist',          undef, 'move_to_sublist', 1, '', ''],
 		['/Preview this item', undef, 'preview_playlist_item', 1, '', ''],
+		['/Move to sublist',          undef, undef, 1, '<Branch>', ''],
+		['/Move to sublist/Main',          undef, 'move_to_sublist', 1, '<Item>', $playlist],
 	);
+	foreach (sort @list) {
+		my $item = "/Move to sublist/".$_->{'title'};
+		push @items, [$item,          undef, 'move_to_sublist', 1, '<Item>', $_->{'data'}],
+	}
 	my $factory = Gtk2::ItemFactory->new('Gtk2::Menu', "<playpopup>", undef);
-	$factory->create_items(1, @items);
+	$factory->create_items(undef, @items);
 	my $menu = $factory->get_widget('<playpopup>');
 	$menu->popup(undef, undef, undef, undef, $event->button, $event->time);
 }
@@ -935,7 +970,7 @@ sub do_save_song {
 				  . " AND pagenum=" . $row[0];
 				my $sth2 = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				debug($query);
+				qdebug($query);
 				$sth2->execute
 				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 				my @tmpid = $sth2->fetchrow_array();
@@ -943,7 +978,7 @@ sub do_save_song {
 				$query = "DELETE FROM page WHERE pageid=" . $tmpid[0];
 				$sth2  = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				debug($query);
+				qdebug($query);
 				$sth2->execute
 				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
@@ -952,7 +987,7 @@ sub do_save_song {
 				  . $tmpid[0];
 				$sth2 = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				debug($query);
+				qdebug($query);
 				$sth2->execute
 				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 			}
@@ -969,7 +1004,7 @@ sub do_save_song {
 				  . $pageOrder{$page};
 				$sth = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				debug($query);
+				qdebug($query);
 				debug("Page Edit : " . $page . "|" . $pageOrder{$page});
 				$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 			} else {
@@ -982,7 +1017,7 @@ sub do_save_song {
 					get_buffer_text($widgets->{'textAPageB'}{$page}));
 				$sth = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-				debug($query);
+				qdebug($query);
 				debug("Page Add : " . $page . "|" . $pageOrder{$page});
 				$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 			}
@@ -1004,7 +1039,7 @@ sub do_save_song {
 		  . quote(
 			$widgets->{'add'}->get_widget('entryEditKeywords')->get_text());
 		$query .= " WHERE id=" . $songid;
-		debug($query);
+		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1041,7 +1076,7 @@ sub do_save_song {
 		$query .=
 		  quote($widgets->{'add'}->get_widget('entryEditCopyright')->get_text())
 		  . ")";
-		debug($query);
+		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1057,7 +1092,7 @@ sub do_save_song {
 				get_buffer_text($widgets->{'textAPageB'}{$page}));
 			$sth = $lyricDbh->prepare($query)
 			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-			debug($query);
+			qdebug($query);
 			debug("Page Add : " . $page . "|" . $pageOrder{$page});
 			$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 		}
@@ -1367,7 +1402,7 @@ sub do_add_verse {
 
 	# Find next playlist entry
 	my $query = "SELECT MAX(playorder) FROM playlist";
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1384,7 +1419,7 @@ sub do_add_verse {
 
 	# Find next playlists entry
 	$query = "SELECT MAX(id) FROM playlists";
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1401,7 +1436,7 @@ sub do_add_verse {
 	  . $main_playlist
 	  . ", type=\"play\", data="
 	  . $playlist;
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 
@@ -1413,7 +1448,7 @@ sub do_add_verse {
 	  "INSERT INTO playlists SET id="
 	  . $playlist
 	  . ", title=\"" . $verse . "\"";
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 
@@ -1442,7 +1477,7 @@ sub do_add_verse {
 	  . " AND versenum <= "
 	  . $globals->{'verseEnd'}
 	  . " ORDER BY versenum";
-	debug($query);
+	qdebug($query);
 	$sth = $bibleDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 
@@ -1473,7 +1508,7 @@ sub do_add_verse {
 			  . $playorder
 			  . ", type=\"vers\", data=\"" . $minv . "-" . $maxv . "\"";
 			$playorder++;
-			debug($query);
+			qdebug($query);
 			my $sth2 = $lyricDbh->prepare($query)
 			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 
@@ -1494,7 +1529,7 @@ sub do_add_verse {
 	  . ", type=\"vers\", data=\"" . $minv . "-"
 	  . $globals->{'verseEnd'} . "\"";
 	$playorder++;
-	debug($query);
+	qdebug($query);
 	my $sth2 = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 
@@ -1748,7 +1783,7 @@ sub add_single_song {
 
 	# Find next playlists entry
 	$query = "SELECT MAX(id) FROM playlists";
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1862,14 +1897,14 @@ sub remove_single_item {
 
 	debug("Deleting $item");
 	my $query = "SELECT type,data  FROM playlist WHERE playorder=" . $item;
-	debug($query);
+	qdebug($query);
 	my $sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 	my @row = $sth->fetchrow_array;
 	if ($row[0] eq "play" | $row[0] eq "sub") {
 		$query = "SELECT playorder FROM playlist WHERE playlist=" . $row[1];
-		debug($query);
+		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1878,26 +1913,26 @@ sub remove_single_item {
 		}
 
 		$query = "DELETE FROM playlist WHERE playlist=" . $row[1];
-		debug($query);
+		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
 		$query = "DELETE FROM playlists WHERE id=" . $row[1];
-		debug($query);
+		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 	}
 
 	$query = "DELETE FROM playlist WHERE playorder=" . $item;
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
 	$query = "DELETE FROM associations WHERE playlist=" . $item;
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -2350,6 +2385,14 @@ sub add_image {
 		  ->signal_connect('clicked', "do_add_image");
 	}
 
+	# Fill sublists dropbox
+	my $menu = Gtk2::Menu->new();
+	$widgets->{'image'}->get_widget('optionImageSublist')->set_menu($menu);
+	foreach ("test","test2","test3") {
+		my $item = Gtk2::MenuItem->new_with_label($_);
+		$item->show();
+		$menu->append($item);
+	}
 	update_imagedir("img", "");
 }
 
@@ -2501,7 +2544,7 @@ sub preview_playlist_item {
 		my $query =
 "SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder="
 		  . $model->get($iter, 2);
-		debug($query);
+		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -2681,7 +2724,7 @@ sub create_dialogChapter {
 	debug("Selected " . $book);
 	my $query =
 	  "SELECT MAX(chapternum) FROM verse WHERE book like \"" . $book . "%\"";
-	debug($query);
+	qdebug($query);
 	$sth = $bibleDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -2739,7 +2782,7 @@ sub create_dialogVerse {
 	  "SELECT MAX(versenum) FROM verse WHERE book=\"" . $book
 	  . "\" AND chapternum="
 	  . $chapter;
-	debug($query);
+	qdebug($query);
 	$sth = $bibleDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -3068,7 +3111,7 @@ sub do_add_image {
 	my $main_playlist =
 	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
 	$query = "SELECT MAX(playorder) FROM playlist";
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -3084,7 +3127,7 @@ sub do_add_image {
 	  . $playorder . ", "
 	  . $main_playlist
 	  . ", \"imag\", \"" . $image . "\")";
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -3635,7 +3678,7 @@ sub move_item {
 			  . $item
 			  . " AND b.playorder=" . $item;
 		}
-		debug($query);
+		qdebug($query);
 		my $sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		my $rv = $sth->execute
@@ -3678,7 +3721,7 @@ sub move_item_down {
 sub renumber_item {
 	my ($before, $after) = @_;
 	my $query = "SELECT * FROM playlist WHERE playorder=" . $before;
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -3745,7 +3788,12 @@ sub debug {
 	}
 	return TRUE;
 }
+sub qdebug {
+	if ($globals->{'debugging'} == 2 ) {
 
+		debug (@_);
+	}
+}
 #***
 
 #****m* lyricue/select_playlist
@@ -3892,7 +3940,7 @@ sub do_rename_playlist {
 	  . $renamexml->get_widget('entryPromptE')->get_text
 	  . "\" WHERE id="
 	  . $renamexml->get_widget('labelPromptE')->{user_data};
-	debug($query);
+	qdebug($query);
 	my $sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4067,7 +4115,7 @@ sub copy_item {
 			  . $row->{'data'}
 			  . "\", type=\""
 			  . $row->{'type'} . "\"";
-			debug($query);
+			qdebug($query);
 			$sth = $lyricDbh->prepare($query)
 			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 			$rv = $sth->execute
@@ -4132,7 +4180,7 @@ sub establish_timer {
 	my $query =
 	  "SELECT data FROM playlist WHERE playorder ="
 	  . $loopxml->get_widget('dialogLoop')->{user_data};
-	debug($query);
+	qdebug($query);
 	my $sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4283,7 +4331,7 @@ sub file_ok_sel {
 	if (($file ne "") && (-r $file)) {
 		my $playorder = 1;
 		my $query     = "SELECT MAX(playorder) FROM playlist";
-		debug($query);
+		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4300,7 +4348,7 @@ sub file_ok_sel {
 		  . $playorder . ", "
 		  . $main_playlist
 		  . ", \"file\", \"" . $file . "\")";
-		debug($query);
+		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4378,7 +4426,7 @@ sub new_sublist {
 
 	#create sublist playlist
 	$query =
-	  "INSERT INTO playlists (playorder,playlist,data,type) values("
+	  "INSERT INTO playlists (id, title, ref) values("
 	  . $playlistsid . " ,'"
 	  . $sublistxml->get_widget('entryPromptE')->get_text() . "','')";
 	$sth = $lyricDbh->prepare($query)
@@ -4394,7 +4442,7 @@ sub new_sublist {
 	  . ", type=\"sub\", data="
 	  . $playlistsid
 	  . " ,transition=0";
-	debug($query);
+	qdebug($query);
 	$sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4418,8 +4466,10 @@ sub new_sublist {
 # SOURCE
 #
 sub move_to_sublist {
-	my ($widget) = @_;
+	my ($widget,$data) = @_;
 	debug("Selecting sublist to move item into");
+	debug($data);
+	return TRUE;
 
 # get the data from the user selection (corresponds to playorder value in playlist table)
 	my $selection =
@@ -4448,7 +4498,7 @@ sub move_to_sublist {
 		  . $parentid
 		  . " AND type = 'sub' AND playorder != " . $plitem;
 
-		debug($query);
+		qdebug($query);
 		my $sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		my $rv = $sth->execute
@@ -4464,7 +4514,7 @@ sub move_to_sublist {
 				debug("Child sublist found. ID: " . $_);
 				my $query2 = "SELECT title FROM playlists WHERE id=" . $_;
 
-				debug($query2);
+				qdebug($query2);
 				my $sth2 = $lyricDbh->prepare($query2)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 				my $rv2 = $sth2->execute
@@ -4510,7 +4560,7 @@ sub move_item_to_sublist {
 	  "UPDATE playlist SET playlist = "
 	  . $sublistid
 	  . " WHERE playorder = " . $item;
-	debug($query);
+	qdebug($query);
 	my $sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4543,7 +4593,7 @@ sub find_more_children {
 	  . $parentid
 	  . " AND type = 'sub'";
 
-	debug($query);
+	qdebug($query);
 	my $sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4682,7 +4732,7 @@ sub clear_associations {
 	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
 
 	my $query = "DELETE FROM associations WHERE absoluteparent=" . $parentid;
-	debug($query);
+	qdebug($query);
 	my $sth = $lyricDbh->prepare($query)
 	  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 	$sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4892,12 +4942,12 @@ sub bgdir_load {
 	# Disable dir buttons
 	$widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(FALSE);
 
-	my $a = $globals->{'bgpath_system'};
-	my $b = $globals->{'bgpath_user'};
-	$a =~ s/\//\\\//g;
-	$b =~ s/\//\\\//g;
+	my $sys = $globals->{'bgpath_system'};
+	my $user = $globals->{'bgpath_user'};
+	$sys =~ s/\//\\\//g;
+	$user =~ s/\//\\\//g;
 	my $dirlisting =
-`find $globals->{'bgpath_system'}/$directory $globals->{'bgpath_user'}/$directory -maxdepth 1 -follow -type f -name \\*\\.\\* | sed -e 's/^$a//g' | sed -e 's/^$b//g' | sort -u`;
+`find $globals->{'bgpath_system'}/$directory $globals->{'bgpath_user'}/$directory -maxdepth 1 -follow -type f -name \\*\\.\\* | sed -e 's/^$sys//g' | sed -e 's/^$user//g' | sort -u`;
 	my @items = split (/\n/, $dirlisting);
 
 	$widgets->{'main'}->get_widget('hboxBackImage')->hide();
@@ -5182,7 +5232,7 @@ sub apply_transition {
 		my $query =
 		  "SELECT type,data FROM playlist WHERE playorder="
 		  . $model->get($iter, 2);
-		debug($query);
+		qdebug($query);
 		my $sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		my $rv = $sth->execute
@@ -5202,7 +5252,7 @@ sub apply_transition {
 			  . " WHERE playorder="
 			  . $model->get($iter, 2);
 		}
-		debug($query);
+		qdebug($query);
 		$sth = $lyricDbh->prepare($query)
 		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 		$rv = $sth->execute
@@ -5562,3 +5612,4 @@ sub create_pixbuf {
 		return $pixbuf->scale_simple($width, $height, 'nearest');
 	}
 }
+
