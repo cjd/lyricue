@@ -105,15 +105,15 @@ use constant WAIT  => 16;
 #
 
 my ($globals);
-$globals->{'etcdir'}         = "/etc/lds/";
-$globals->{'basedir'}        = $ENV{'HOME'} . "/.lds/";
-$globals->{'sharedir'}       = "/usr/share/lds/";
+$globals->{'etcdir'}   = "/etc/lds/";
+$globals->{'basedir'}  = $ENV{'HOME'} . "/.lds/";
+$globals->{'sharedir'} = "/usr/share/lds/";
 
 #
 # You shouldn't have to change anything after this line
 #
 
-$globals->{'version'}  = "1.9.1";
+$globals->{'version'}        = "1.9.1";
 $globals->{'accessfile'}     = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'}    = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}     = $globals->{'basedir'} . "config2";
@@ -143,7 +143,6 @@ my $current_point   = -1;
 my $steps           = 20;
 my $bgimage_changed = FALSE;
 my @points;
-
 
 my ($errorcodes);
 $errorcodes->{'lyricdbopen'} =
@@ -234,13 +233,12 @@ my $bibleDbh =
   || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'}, $!);
 
 # Create the window
-debug("Creating window\n");
+debug("Creating window");
 my ($window);
 my ($headerText, $mainText, $footerText);
 
 my ($pixmap, $textcol);
 
-print $MINISERV. "\n";
 if ($MINISERV > 0) {
 	$window = Gtk2::Plug->new($MINISERV);
 } else {
@@ -262,13 +260,13 @@ if ($MINISERV >= 0) {
 	$width  /= $MINISCALE;
 	$height /= $MINISCALE;
 
-	debug("Running in MINISERV (preview window) mode\n");
-	debug("W * H:" . $width . "*" . $height . "\n");
+	debug("Running in MINISERV (preview window) mode");
+	debug("W * H:" . $width . "*" . $height);
 } else {
 	$window->show();
 	$window->fullscreen();
 
-	debug("Running in SERVER (normal) mode\n");
+	debug("Running in SERVER (normal) mode");
 }
 
 while (Gtk2->events_pending) {
@@ -295,7 +293,7 @@ my $tmpdesc = Gtk2::Pango::FontDescription->from_string($config->{'Header'});
 $layout->set_font_description($tmpdesc);
 my ($headhigh, $headwide) = $layout->get_pixel_size;
 
-debug("Loading background\n");
+debug("Loading background");
 
 my ($background, $pixbuf);
 my $backdrop = $config->{'BGImage'};
@@ -308,13 +306,13 @@ if (-e $globals->{'bgpath_user'} . $backdrop
 {
 	$backdrop = $globals->{'bgpath_system'} . $backdrop;
 } else {
-	debug("Unable to read " . $backdrop . " in any background directories\n");
+	debug("Unable to read " . $backdrop . " in any background directories");
 }
 
 eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
 
 if ($@) {
-	debug("Unable to load background " . $backdrop . "\n");
+	debug("Unable to load background " . $backdrop);
 } else {
 	$background = Gnome2::Canvas::Item->new(
 		$root, 'Gnome2::Canvas::Pixbuf', pixbuf => $pixbuf,
@@ -327,7 +325,7 @@ if ($@) {
 	);
 }
 
-debug("Creating text areas\n");
+debug("Creating text areas");
 
 # Create the areas for text and set styles
 
@@ -428,28 +426,26 @@ while (Gtk2->events_pending) {
 
 # Load tmpconf if there
 if (open(TMPCONF, "/tmp/lyric.conf")) {
-	debug("Temp config exists, loading\n");
+	debug("Temp config exists, loading");
 	my $ci = <TMPCONF>;
 	chomp $ci;
 	my $bg = <TMPCONF>;
 	chomp $bg;
 	close TMPCONF;
-	debug("display" . ":" . $ci . ":0\n");
-	update_display("display", $ci, 0);
-	debug("backdrop" . ":" . $bg . ":\n");
+	update_display("display",  $ci, 0);
 	update_display("backdrop", $bg, 0);
 	unlink "/tmp/lyric.conf";
 }
 
 # set window attributes and show it
-debug("Showing window\n");
+debug("Showing window");
 $window->show_all();
 $window->signal_connect("configure_event", \&Configure_event);
 Configure_event();
-debug("Done\n");
+debug("Done");
 
 # Gtk event loop
-debug("Main program running\n");
+debug("Main program running");
 
 #my $timer = Gtk2::Gdk->input_add($socket->fileno(), ['read'], \&check_socket, $socket);
 my $sockaddr = 'S n a4 x8';
@@ -463,6 +459,7 @@ $socket or display_fatal($errorcodes->{'socketopen'}, $!);
 my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
+debug("Listening on " . $globals->{'use_port'});
 
 while (1) {
 	my @ready = $s->can_read(1);
@@ -493,11 +490,11 @@ exit(0);
 # SOURCE
 #
 sub process_input {
-	debug("\n\nBeginning transaction from socket\n\n");
+	debug("\n\nBeginning transaction from socket");
 	my ($input) = @_;
 	my $status = "";
 
-	debug("Received :" . $input . "\n");
+	debug("Received :" . $input);
 	if ($input) {
 		chomp($input);
 		my @line = split (/:/, $input);
@@ -559,7 +556,7 @@ sub process_input {
 				$pointtext =~ s/<.*?>//g;
 				set_maintext($pointtext, NONE);
 			} else {
-				debug("Cannont advance one point - no points waiting\n");
+				debug("Cannont advance one point - no points waiting");
 			}
 		} elsif (/^preview$/) {
 			$line[1] =~ s/#SEMI#/:/g;
@@ -579,7 +576,7 @@ sub process_input {
 			}
 		} elsif (/^loopparent$/) {
 			$LOOPPARENT = $line[1];
-			debug("Set loop parent to: " . $LOOPPARENT . "\n");
+			debug("Set loop parent to: " . $LOOPPARENT);
 		} elsif (/^display$/ && $line[1] ne "") {
 
 			#
@@ -589,7 +586,7 @@ sub process_input {
 			# display new lyrics
 			my $query =
 			  "SELECT * FROM playlist WHERE playorder=" . $current_item;
-			debug($query . "\n");
+			debug($query);
 			my $sth = $lyricDbh->prepare($query)
 			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 			my $rv = $sth->execute
@@ -597,13 +594,13 @@ sub process_input {
 			my $current_play = $sth->fetchrow_hashref();
 
 			if ($line[1] eq "playlist") {
-				debug("Changing playlist to " . $line[2] . "\n");
+				debug("Changing playlist to " . $line[2]);
 				$current_list = $line[2];
 			} elsif ($line[1] eq "next_page") {
 				my $query =
 				  "SELECT playlist FROM playlist WHERE playorder="
 				  . $current_item;
-				debug($query . "\n");
+				debug($query);
 				my $sth = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 				my $rv = $sth->execute
@@ -615,7 +612,7 @@ sub process_input {
 				  . " AND playorder>"
 				  . $current_item
 				  . " ORDER BY playorder";
-				debug($query . "\n");
+				debug($query);
 				$sth = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 				$rv = $sth->execute
@@ -638,7 +635,7 @@ sub process_input {
 							$query =
 "SELECT MIN(playorder) FROM playlist WHERE playlist="
 							  . $row[0];
-							debug($query . "\n");
+							debug($query);
 							$sth = $lyricDbh->prepare($query)
 							  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 							$rv = $sth->execute
@@ -661,7 +658,7 @@ sub process_input {
 								$query =
 "SELECT playlist FROM playlist WHERE playorder="
 								  . $item;
-								debug("\t" . $query . "\n");
+								debug("\t" . $query);
 								$sth = $lyricDbh->prepare($query)
 								  || display_fatal($errorcodes->{'sqlprepare'},
 									$!);
@@ -682,7 +679,7 @@ sub process_input {
 								  "SELECT playorder FROM playlist WHERE data="
 								  . $playlist[0]
 								  . " and (type='sub' or type='play')";
-								debug("\t" . $query . "\n");
+								debug("\t" . $query);
 								$sth = $lyricDbh->prepare($query)
 								  || display_fatal($errorcodes->{'sqlprepare'},
 									$!);
@@ -707,7 +704,7 @@ sub process_input {
 								  "SELECT MIN(playorder) FROM playlist WHERE "
 								  . " playlist=" . $_
 								  . " and playorder > " . $lastpo;
-								debug($query . "\n");
+								debug($query);
 								$sth = $lyricDbh->prepare($query)
 								  || display_fatal($errorcodes->{'sqlprepare'},
 									$!);
@@ -730,7 +727,7 @@ sub process_input {
 									  . " and (type='sub'"
 									  . " or type='play')";
 
-									debug("\t" . $query . "\n");
+									debug("\t" . $query);
 									$sth = $lyricDbh->prepare($query)
 									  || display_fatal(
 										$errorcodes->{'sqlprepare'}, $!);
@@ -754,7 +751,7 @@ sub process_input {
 								  "SELECT MIN(playorder) FROM playlist WHERE "
 								  . " playlist="
 								  . $LOOPPARENT;
-								debug($query . "\n");
+								debug($query);
 								$sth = $lyricDbh->prepare($query)
 								  || display_fatal($errorcodes->{'sqlprepare'},
 									$!);
@@ -771,7 +768,7 @@ sub process_input {
 				my $query =
 				  "SELECT playlist FROM playlist WHERE playorder="
 				  . $current_item;
-				debug($query . "\n");
+				debug($query);
 				my $sth = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 				my $rv = $sth->execute
@@ -783,7 +780,7 @@ sub process_input {
 				  . " AND playorder<"
 				  . $current_item
 				  . " ORDER BY playorder";
-				debug($query . "\n");
+				debug($query);
 				$sth = $lyricDbh->prepare($query)
 				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
 				$rv = $sth->execute
@@ -797,7 +794,7 @@ sub process_input {
 						$query =
 						  "SELECT MAX(playorder) FROM playlist WHERE playlist="
 						  . $row[0];
-						debug($query . "\n");
+						debug($query);
 						$sth = $lyricDbh->prepare($query)
 						  || die "Error : $!";
 						$rv = $sth->execute || die "Error : $!";
@@ -812,7 +809,7 @@ sub process_input {
 				my $query =
 "SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
 				  . $current_item;
-				debug($query . "\n");
+				debug($query);
 				my $sth = $lyricDbh->prepare($query) || die "Error : $!";
 				my $rv = $sth->execute || die "Error : $!";
 				my @row;
@@ -826,7 +823,7 @@ sub process_input {
 				  . $current_item
 				  . " AND playlist="
 				  . $current_list;
-				debug($query . "\n");
+				debug($query);
 				$sth = $lyricDbh->prepare($query) || die "Error : $!";
 				$rv = $sth->execute || die "Error : $!";
 				@row = $sth->fetchrow_array();
@@ -838,7 +835,7 @@ sub process_input {
 				my $query =
 "SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
 				  . $current_item;
-				debug($query . "\n");
+				debug($query);
 				my $sth = $lyricDbh->prepare($query) || die "Error : $!";
 				my $rv = $sth->execute || die "Error : $!";
 				my @row;
@@ -852,7 +849,7 @@ sub process_input {
 				  . $current_item
 				  . " AND playlist="
 				  . $current_list;
-				debug($query . "\n");
+				debug($query);
 				$sth = $lyricDbh->prepare($query) || die "Error : $!";
 				$rv = $sth->execute || die "Error : $!";
 				@row = $sth->fetchrow_array();
@@ -864,7 +861,7 @@ sub process_input {
 				my $query =
 				  "SELECT playlist FROM playlist WHERE playorder="
 				  . $current_item;
-				debug($query . "\n");
+				debug($query);
 				my $sth = $lyricDbh->prepare($query)
 				  || die "Error : $!";
 				my $rv = $sth->execute || die "Error : $!";
@@ -874,7 +871,7 @@ sub process_input {
 				  "SELECT playorder FROM playlist WHERE playlist="
 				  . $row[0]
 				  . " ORDER BY playorder";
-				debug($query . "\n");
+				debug($query);
 				$sth = $lyricDbh->prepare($query) || die "Error : $!";
 				$rv = $sth->execute || die "Error : $!";
 				my $count = 0;
@@ -898,7 +895,7 @@ sub process_input {
 				$preview_item = $tmp;
 			}
 			$query = "SELECT * FROM playlist WHERE playorder=" . $current_item;
-			debug($query . "\n");
+			debug($query);
 			$sth = $lyricDbh->prepare($query) || die "Error : $!";
 			$rv = $sth->execute || die "Error : $!";
 
@@ -914,7 +911,7 @@ sub process_input {
 			}
 
 			if ($exec_pid > 0) {
-				debug("Killing " . $exec_pid . "\n");
+				debug("Killing " . $exec_pid);
 				system('kill ' . $exec_pid);
 				system('kill -9 ' . $exec_pid);
 				$exec_pid = 0;
@@ -976,7 +973,7 @@ sub process_input {
 					my $query =
 "SELECT * FROM playlist,playlists WHERE playlist.playlist=playlists.id AND playorder="
 					  . $current_item;
-					debug($query . "\n");
+					debug($query);
 					my $sth = $lyricDbh->prepare($query)
 					  || die "Error : $!";
 					my $rv = $sth->execute || die "Error : $!";
@@ -1016,7 +1013,7 @@ sub process_input {
 						  . " AND versenum<="
 						  . $line[4] . "))";
 					}    ## end else
-					debug($query . "\n");
+					debug($query);
 					$sth = $bibleDbh->prepare($query)
 					  || die "Error : $!";
 					$rv = $sth->execute || die "Error : $!";
@@ -1027,7 +1024,7 @@ sub process_input {
 						  $row->{'chapternum'} . ":"
 						  . $row->{'versenum'} . "   "
 						  . $row->{'verse'};
-						$verse .= $line . "\n";
+						$verse .= $line;
 					}
 					set_maintext($verse, $transition);
 
@@ -1039,7 +1036,7 @@ sub process_input {
 					  "SELECT * FROM playlist WHERE playlist="
 					  . $row->{'data'}
 					  . " ORDER BY playorder";
-					debug($query . "\n");
+					debug($query);
 					$sth = $lyricDbh->prepare($query)
 					  || die "Error : $!";
 					my $rv = $sth->execute || die "Error : $!";
@@ -1056,7 +1053,7 @@ sub process_input {
 					my $query2 =
 "SELECT title,artist,lyrics,copyright,pagenum FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid="
 					  . $row->{'data'};
-					debug($query2 . "\n");
+					debug($query2);
 					my $sth2 = $lyricDbh->prepare($query2)
 					  || die "Error : $!";
 					my $rv2 = $sth2->execute || die "Error : $!";
@@ -1078,7 +1075,7 @@ sub process_input {
 
 					# Determine if this is a multi-point page
 					if ($row2->{'lyrics'} =~ m/<UL>/) {
-						debug("This page has multiple points...\n");
+						debug("This page has multiple points...");
 						$current_point = 1;
 						@points = split (/<LI>/, $row2->{'lyrics'});
 						my $pointtext = $points[$current_point];
@@ -1117,7 +1114,7 @@ sub process_input {
 			}
 		}    ## end elsif (/^display$/)
 	}    ## end if ($_)
-	debug("The status message sent is: " . $status . "\n");
+	debug("The status message sent is: " . $status);
 	return $status;
 }    ## end sub process_input
      #***
@@ -1136,7 +1133,7 @@ sub process_input {
 # SOURCE
 #
 sub CloseAppWindow {
-	debug("Exiting Child\n");
+	debug("Exiting Child");
 	$window->destroy;
 	exit;
 	return FALSE;
@@ -1182,7 +1179,7 @@ sub HandleKey {
 		# numpad 0
 		update_display("blank", 0, 0);
 	} else {
-		debug("Unknown key: " . $data->{'keyval'} . "\n");
+		debug("Unknown key: " . $data->{'keyval'});
 	}
 }    ## end sub HandleKey
      #***
@@ -1213,8 +1210,7 @@ sub change_backdrop {
 		{
 			$backdrop = $globals->{'imgpath_system'} . $backdrop;
 		} else {
-			debug(
-				"Unable to read " . $backdrop . " in any image directories\n");
+			debug("Unable to read " . $backdrop . " in any image directories");
 		}
 	} elsif ($type eq "bg") {
 		if (-e $globals->{'bgpath_user'} . $backdrop
@@ -1228,21 +1224,21 @@ sub change_backdrop {
 		} else {
 			debug("Unable to read "
 				. $backdrop
-				. " in any background directories\n");
+				. " in any background directories");
 		}
 	} else {
 		if (-e $backdrop && -r $backdrop) {
 
 			# All OK
 		} else {
-			debug("Unable to read " . $backdrop . "\n");
+			debug("Unable to read " . $backdrop);
 		}
 	}
 
-	debug("Changing backdrop to " . $backdrop . "\n");
+	debug("Changing backdrop to " . $backdrop);
 	eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
 	if ($@) {
-		debug("Error loading backdrop\n");
+		debug("Error loading backdrop");
 	} else {
 		$background->set(pixbuf => $pixbuf);
 	}
@@ -1312,7 +1308,8 @@ sub update_miniview {
 sub debug {
 	if ($DEBUG) {
 		my $text = shift;
-		print STDERR $text;
+		chomp($text);
+		print STDERR $text . "\n";
 	}
 }    ## end sub debug
 
@@ -1377,7 +1374,7 @@ sub check_socket {
 
 sub load_config {
 	my ($conf);
-	debug("Loading Preferences from " . $globals->{'configfile'} . "\n");
+	debug("Loading Preferences from " . $globals->{'configfile'});
 	my $bibleCount = 0;
 	my $appCount   = 0;
 	open(CONFIG, $globals->{'configfile'})
@@ -1404,6 +1401,8 @@ sub load_config {
 
 sub set_maintext {
 	my ($text, $transition) = @_;
+	if (!defined $text)       { $text       = ""; }
+	if (!defined $transition) { $transition = 0; }
 
 	# Set the transition values
 	my $old_direction = mod($transition, 32);
@@ -1613,8 +1612,8 @@ sub Configure_event {
 
 	}
 	$window->set_size_request($width, $config->{'Height'} / $MINISCALE);
-	debug($width . "x" . ($config->{'Height'} / $MINISCALE) . "\n");
-	debug("Scale: " . $MINISCALE . "\n");
+	debug($width . "x" . ($config->{'Height'} / $MINISCALE));
+	debug("Scale: " . $MINISCALE);
 }
 
 sub display_fatal {
@@ -1629,7 +1628,7 @@ sub display_fatal {
 
 sub close_dialog {
 	my ($widget) = @_;
-	debug("Close dialog\n");
+	debug("Close dialog");
 	$widget->get_toplevel->destroy;
 }
 
@@ -1641,6 +1640,7 @@ sub mod {
 
 sub set_footer {
 	my ($text) = @_;
+	if (!defined $text) { $text = ""; }
 	my $widget = Gtk2::Label->new();
 	my $layout = $widget->create_pango_layout("");
 	$layout->set_wrap('word');
@@ -1658,6 +1658,7 @@ sub set_footer {
 
 sub set_header {
 	my ($text) = @_;
+	if (!defined $text) { $text = ""; }
 	my $widget = Gtk2::Label->new();
 	my $layout = $widget->create_pango_layout("");
 	$layout->set_wrap('word');
