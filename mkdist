@@ -24,6 +24,7 @@ echo Creating debian package
 cp -R debian dist/lyricue-$VERSION
 cd dist/lyricue-$VERSION
 dpkg-buildpackage -rfakeroot
+rm -rf debian/tmp
 cd ../..
 
 echo Creating lyricue-$VERSION.tar.gz
