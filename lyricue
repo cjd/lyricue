@@ -362,6 +362,7 @@ sub update_playlist {
 		  ->map_expanded_rows(\&save_expanded, \$expanded);
 		$model->clear;
 	} else {
+
 		# Column 1 -> Visible text
 		# Column 2 -> Reserved for future expansion
 		# Column 3 -> playorder
@@ -374,6 +375,7 @@ sub update_playlist {
 		  Gtk2::TreeViewColumn->new_with_attributes("",
 			Gtk2::CellRendererText->new, text => 0);
 		$widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
+
 		# Not used currently
 		#$column =
 		#  Gtk2::TreeViewColumn->new_with_attributes("",
@@ -2500,8 +2502,9 @@ sub preview_playlist_item {
 "SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder="
 		  . $model->get($iter, 2);
 		debug($query);
-		$sth = $lyricDbh->prepare($query) || die "Error : $!";
-		$rv = $sth->execute || die "Error : $!";
+		$sth = $lyricDbh->prepare($query)
+		  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+		$rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 		my @row = $sth->fetchrow_array();
 		if (!defined $row[0]) { $row[0] = ""; }
 		$widgets->{'main'}->get_widget('textQuick')
@@ -2892,18 +2895,14 @@ sub change_preview {
 				$dir);
 		} else {
 			if ($globals->{'bg_previews'}) {
-				my ($pixbuf);
 				my $image =
 				  find_image($widgets->{'image'}->get_widget('labelImage')
 					->{'user_data'},
 					$widgets->{'image'}->get_widget('labelImage')->get_text
 					. "/"
 					. $filename);
-				eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
-				if ($@) {
-					debug("Unable to load " . $filename);
-				} else {
-					my $scaled = $pixbuf->scale_simple(480, 360, 'bilinear');
+				my $scaled = create_pixbuf($filename, 480, 360);
+				if ($scaled) {
 					$widgets->{'image'}->get_widget('imageImage')
 					  ->set_from_pixbuf($scaled);
 					$widgets->{'image'}->get_widget('imageImage')->{user_data} =
@@ -2934,13 +2933,9 @@ sub set_default_backdrop {
 	my ($widget) = @_;
 	my $image = $widgets->{'image'}->get_widget('imageImage')->{user_data};
 	if ($image) {
-		my ($pixbuf);
 		$image = find_image("bg", $image);
-		eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
-		if ($@) {
-			debug("Error loading " . $image);
-		} else {
-			my $scaled = $pixbuf->scale_simple(100, 75, 'bilinear');
+		my $scaled = create_pixbuf($image, 100, 75);
+		if ($scaled) {
 			$widgets->{'prefs'}->get_widget('imagePrefBG')
 			  ->set_from_pixbuf($scaled);
 			$widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} =
@@ -3031,41 +3026,23 @@ sub backdrop_clicked {
 		if ($globals->{'bg_previews'}) {
 			my $prevFile = $widget->{user_data};
 			$prevFile =~ s/^BG://g;
-			my ($pixbuf);
 			my $image = find_image("bg", $widgets->{'buttonCurr'}->{user_data});
-			if ($image =~ /\.bg$/) {
-				$image =~ s/^.*\/(.*?)\.bg$/$1/g;
-				my @xpm = ("1 1 1 1", "  c " . $image, " ");
-				$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
-			} else {
-				eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
-				if ($@) {
-					debug("Error loading "
-						. $widgets->{'buttonCurr'}->{user_data} . "\n");
-					return FALSE;
-				}
+			my $scaled = create_pixbuf($image, 72, 54);
+
+			if ($scaled) {
+				$widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
+				$widgets->{'buttonPrev'}->{user_data} =
+				  $widgets->{'buttonCurr'}->{user_data};
 			}
 
-			my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
-			$widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
-			$widgets->{'buttonPrev'}->{user_data} =
-			  $widgets->{'buttonCurr'}->{user_data};
 			$image = find_image("bg", $prevFile);
-			if ($image =~ /\.bg$/) {
-				$image =~ s/^.*\/(.*?)\.bg$/$1/g;
-				my @xpm = ("1 1 1 1", "  c " . $image, " ");
-				$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
-			} else {
-				eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
-				if ($@) {
-					debug("Error loading " . $prevFile);
-				}
+			$scaled = create_pixbuf($image, 72, 54);
+			if ($scaled) {
+				$widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
+				$widgets->{'buttonCurr'}->{user_data} = $prevFile;
 			}
 			update_display("backdrop",  $prevFile, "");
 			preview_display("backdrop", $prevFile, "");
-			$scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
-			$widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
-			$widgets->{'buttonCurr'}->{user_data} = $prevFile;
 		}
 	}
 }
@@ -3184,14 +3161,10 @@ sub create_dialog_prefs {
 	  ->set_active($config->{'DynamicPreview'});
 	$widgets->{'prefs'}->get_widget('checkPrefMiniview')
 	  ->set_active($config->{'Miniview'});
-	my ($pixbuf);
 	my $image = find_image("bg", $config->{'BGImage'});
-	eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image); };
+	my $scaled = create_pixbuf($image, 72, 54);
 
-	if ($@) {
-		debug("Error loading bg\n");
-	} else {
-		my $scaled = $pixbuf->scale_simple(72, 54, 'bilinear');
+	if ($scaled) {
 		$widgets->{'prefs'}->get_widget('imagePrefBG')
 		  ->set_from_pixbuf($scaled);
 		$widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} =
@@ -4723,14 +4696,10 @@ sub init_mainWindow {
 	debug("Initializing main window");
 
 	# Load bg thumbnails
-	my ($pixbuf);
 	my $backdrop = find_image("bg", $config->{'BGImage'});
 
-	eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
-	if ($@) {
-		debug("Error loading bg");
-	} else {
-		my $scaled = $pixbuf->scale_simple(72, 52, 'bilinear');
+	my $scaled = create_pixbuf($backdrop, 72, 52);
+	if ($scaled) {
 		my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
 		$widgets->{'pixmapCurr'} = $pixmap;
 		$widgets->{'buttonCurr'} = new Gtk2::Button();
@@ -4742,13 +4711,9 @@ sub init_mainWindow {
 		$widgets->{'buttonCurr'}->show();
 		$widgets->{'buttonCurr'}->signal_connect("clicked", "backdrop_clicked");
 	}
-	my ($pixbuf2);
 	my $image = find_image("bg", $config->{'BGImage'});
-	eval { $pixbuf2 = Gtk2::Gdk::Pixbuf->new_from_file($image); };
-	if ($@) {
-		debug("Error loading bg");
-	} else {
-		my $scaled = $pixbuf2->scale_simple(72, 52, 'bilinear');
+	$scaled = create_pixbuf($image, 72, 52);
+	if ($scaled) {
 		my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
 		$widgets->{'pixmapPrev'} = $pixmap;
 		$widgets->{'buttonPrev'} = new Gtk2::Button();
@@ -4943,23 +4908,9 @@ sub bgdir_load {
 			while (Gtk2->events_pending) {
 				Gtk2->main_iteration;
 			}
-			my ($pixbuf);
 			my $image = find_image("bg", $_);
-			eval {
-				if ($image =~ /\.bg$/)
-				{
-					$image =~ s/^.*\/(.*?)\.bg$/$1/g;
-					my @xpm = ("1 1 1 1", "  c " . $image, " ");
-					$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
-				} else {
-					$pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($image)
-					  || print STDERR "error";
-				}
-			};
-			if ($@) {
-				debug("error loading bg");
-			} else {
-				my $scaled = $pixbuf->scale_simple(64, 48, 'bilinear');
+			my $scaled = create_pixbuf($image, 64, 48);
+			if ($scaled) {
 				my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
 
 				$widgets->{'pixmaps'}[$counter] = $pixmap;
@@ -5577,6 +5528,7 @@ sub quick_show {
 	update_display("preview", "", $songtext);
 }
 
+# Called when the preview windows are resized
 sub resize_preview {
 	my ($widget, $event) = @_;
 
@@ -5588,3 +5540,25 @@ sub resize_preview {
 	return FALSE;
 }
 
+# Return a Gdk::Pixbuf of the given file at the given res
+sub create_pixbuf {
+	my ($filename, $width, $height) = @_;
+	my ($pixbuf);
+	if ($filename =~ /\.bg$/) {
+		$filename =~ s/^.*\/(.*?)\.bg$/$1/g;
+		my @xpm = ("1 1 1 1", "  c " . $filename, " ");
+		$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
+	} else {
+		eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($filename); };
+		if ($@) {
+			debug("Error loading " . $filename . "\n");
+			return FALSE;
+		}
+	}
+
+	if ($width == 0) {
+		return $pixbuf;
+	} else {
+		return $pixbuf->scale_simple($width, $height, 'nearest');
+	}
+}

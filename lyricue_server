@@ -718,8 +718,9 @@ sub process_input {
 						  . $row[0];
 						debug($query);
 						$sth = $lyricDbh->prepare($query)
-						  || die "Error : $!";
-						$rv = $sth->execute || die "Error : $!";
+						  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+						$rv = $sth->execute
+						  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 						my @row2 = $sth->fetchrow_array();
 						if ($row2[0]) {
 							$current_item = $row2[0];
@@ -732,8 +733,10 @@ sub process_input {
 "SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
 				  . $current_item;
 				debug($query);
-				my $sth = $lyricDbh->prepare($query) || die "Error : $!";
-				my $rv = $sth->execute || die "Error : $!";
+				my $sth = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				my $rv = $sth->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 				my @row;
 				if (@row = $sth->fetchrow_array()) {
 					$current_item = $row[0];
@@ -746,8 +749,10 @@ sub process_input {
 				  . " AND playlist="
 				  . $current_list;
 				debug($query);
-				$sth = $lyricDbh->prepare($query) || die "Error : $!";
-				$rv = $sth->execute || die "Error : $!";
+				$sth = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				$rv = $sth->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 				@row = $sth->fetchrow_array();
 
 				if (defined $row[0]) {
@@ -758,8 +763,10 @@ sub process_input {
 "SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
 				  . $current_item;
 				debug($query);
-				my $sth = $lyricDbh->prepare($query) || die "Error : $!";
-				my $rv = $sth->execute || die "Error : $!";
+				my $sth = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				my $rv = $sth->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 				my @row;
 				if (@row = $sth->fetchrow_array()) {
 					$current_item = $row[0];
@@ -772,8 +779,10 @@ sub process_input {
 				  . " AND playlist="
 				  . $current_list;
 				debug($query);
-				$sth = $lyricDbh->prepare($query) || die "Error : $!";
-				$rv = $sth->execute || die "Error : $!";
+				$sth = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				$rv = $sth->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 				@row = $sth->fetchrow_array();
 
 				if (defined $row[0]) {
@@ -785,8 +794,9 @@ sub process_input {
 				  . $current_item;
 				debug($query);
 				my $sth = $lyricDbh->prepare($query)
-				  || die "Error : $!";
-				my $rv = $sth->execute || die "Error : $!";
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				my $rv = $sth->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 				my @row = $sth->fetchrow_array();
 
 				$query =
@@ -794,9 +804,12 @@ sub process_input {
 				  . $row[0]
 				  . " ORDER BY playorder";
 				debug($query);
-				$sth = $lyricDbh->prepare($query) || die "Error : $!";
-				$rv = $sth->execute || die "Error : $!";
+				$sth = $lyricDbh->prepare($query)
+				  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+				$rv = $sth->execute
+				  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 				my $count = 0;
+
 				while (($count < $line[2]) && (@row = $sth->fetchrow_array())) {
 					$count++;
 				}
@@ -818,15 +831,18 @@ sub process_input {
 			}
 			$query = "SELECT * FROM playlist WHERE playorder=" . $current_item;
 			debug($query);
-			$sth = $lyricDbh->prepare($query) || die "Error : $!";
-			$rv = $sth->execute || die "Error : $!";
+			$sth = $lyricDbh->prepare($query)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			$rv = $sth->execute
+			  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
 			#Check for associate image and, if present, apply it.
 			my $imgquery =
 			  "SELECT imagename FROM associations WHERE playlist="
 			  . $current_item;
-			my $imgsth = $lyricDbh->prepare($imgquery) || die "Error : $!";
-			$imgsth->execute || die "Error : $!";
+			my $imgsth = $lyricDbh->prepare($imgquery)
+			  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+			$imgsth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
 			#Reset background if an image was shown
 			if ($bgimage_changed) {
@@ -903,8 +919,9 @@ sub process_input {
 					  . $current_item;
 					debug($query);
 					my $sth = $lyricDbh->prepare($query)
-					  || die "Error : $!";
-					my $rv = $sth->execute || die "Error : $!";
+					  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+					my $rv = $sth->execute
+					  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
 					my $row        = $sth->fetchrow_hashref();
 					my $transition = $row->{'transition'};
@@ -943,8 +960,9 @@ sub process_input {
 					}    ## end else
 					debug($query);
 					$sth = $bibleDbh->prepare($query)
-					  || die "Error : $!";
-					$rv = $sth->execute || die "Error : $!";
+					  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+					$rv = $sth->execute
+					  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 					my $verse = "";
 
 					while ($row = $sth->fetchrow_hashref()) {
@@ -966,8 +984,9 @@ sub process_input {
 					  . " ORDER BY playorder";
 					debug($query);
 					$sth = $lyricDbh->prepare($query)
-					  || die "Error : $!";
-					my $rv = $sth->execute || die "Error : $!";
+					  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+					my $rv = $sth->execute
+					  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 					my $row = $sth->fetchrow_hashref();
 					update_display("display", $row->{'playorder'}, 0);
 
@@ -977,8 +996,9 @@ sub process_input {
 					  . $row->{'data'};
 					debug($query2);
 					my $sth2 = $lyricDbh->prepare($query2)
-					  || die "Error : $!";
-					my $rv2 = $sth2->execute || die "Error : $!";
+					  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+					my $rv2 = $sth2->execute
+					  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 					my $row2 = $sth2->fetchrow_hashref();
 
 					$row2->{'lyrics'} =~ s/
@@ -1174,12 +1194,9 @@ sub change_backdrop {
 		);
 	} else {
 		debug("Changing backdrop image to " . $backdrop);
-		my $pixbuf;
-		eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($backdrop); };
+		my $pixbuf = create_pixbuf($backdrop, 0, 0);
 
-		if ($@) {
-			debug("Error loading backdrop");
-		} else {
+		if ($pixbuf) {
 			if (defined $background) {
 				$background->destroy;
 			}
@@ -1330,7 +1347,7 @@ sub load_config {
 	my $bibleCount = 0;
 	my $appCount   = 0;
 	open(CONFIG, $globals->{'configfile'})
-	  || die "Couldn't open config file : $!";
+	  || display_fatal("Couldn't open config file", $!);
 	$conf->{'Width'}  = 0;
 	$conf->{'Height'} = 0;
 	while (<CONFIG>) {
@@ -1590,11 +1607,19 @@ sub Configure_event {
 
 sub display_fatal {
 	my ($message, $error) = @_;
+	print STDERR "\n\n-------------\n";
+	print STDERR "FATAL ERROR!!\n";
+	print STDERR "-------------\n";
+	print STDERR "Error description\n";
+	print STDERR $message . "\n";
+	print STDERR "------------------\n";
 	my $errorxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError');
 	$errorxml->signal_autoconnect_from_package('');
 	$errorxml->get_widget('labelError')->set_text($message);
 	my $confirm = $errorxml->get_widget('dialogError')->run();
 	close_dialog($errorxml->get_widget('dialogError'));
+	print STDERR "Full error message\n";
+	print STDERR "------------------\n";
 	die ($error);
 }
 
@@ -1678,5 +1703,28 @@ sub set_header {
 	);
 	$buffer->set_text($text);
 	$buffer->apply_tag_by_name("Header", $buffer->get_bounds);
+}
+
+# Return a Gdk::Pixbuf of the given file at the given res
+sub create_pixbuf {
+	my ($filename, $width, $height) = @_;
+	my ($pixbuf);
+	if ($filename =~ /\.bg$/) {
+		$filename =~ s/^.*\/(.*?)\.bg$/$1/g;
+		my @xpm = ("1 1 1 1", "  c " . $filename, " ");
+		$pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
+	} else {
+		eval { $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($filename); };
+		if ($@) {
+			debug("Error loading " . $filename . "\n");
+			return FALSE;
+		}
+	}
+
+	if ($width == 0) {
+		return $pixbuf;
+	} else {
+		return $pixbuf->scale_simple($width, $height, 'bilinear');
+	}
 }
 
