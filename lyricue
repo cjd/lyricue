@@ -642,13 +642,13 @@ sub update_available {
 	} else {
 		$widgets->{'main'}->get_widget('treeAvailable')->{user_data} = "load";
 		my $column1 =
-		  Gtk2::TreeViewColumn->new_with_attributes("Title",
+		  Gtk2::TreeViewColumn->new_with_attributes(gettext("Title"),
 			Gtk2::CellRendererText->new, text => 0);
 		my $column2 =
-		  Gtk2::TreeViewColumn->new_with_attributes("Book",
+		  Gtk2::TreeViewColumn->new_with_attributes(gettext("Book"),
 			Gtk2::CellRendererText->new, text => 1);
 		my $column3 =
-		  Gtk2::TreeViewColumn->new_with_attributes("Song Number",
+		  Gtk2::TreeViewColumn->new_with_attributes(gettext("Song Number"),
 			Gtk2::CellRendererText->new, text => 2);
 		$column1->set_resizable(TRUE);
 		$column2->set_resizable(TRUE);
