@@ -23,6 +23,7 @@ my $bindir   = "/usr/bin/";
 my $etcdir   = "/etc/lds/";
 my $sharedir = "/usr/share/lds/";
 my $docdir = "/usr/share/doc/lds/";
+my $localedir = "/usr/share/locale/";
 
 my %replace = ( $sharedir."images/black.png" => 0644,
 		$sharedir."backgrounds/Solid/black.bg" => 0644,
@@ -42,6 +43,7 @@ my %replace = ( $sharedir."images/black.png" => 0644,
 my %addonly = (	$etcdir."access.conf" => 0644,
 		$etcdir."default.conf" => 0644
 		);
+
 if ($ARGV[0] eq "-u") {
 	print "Uninstalling Lyricue\n";
 	print "--------------------\n\n";
@@ -116,10 +118,25 @@ if ($ARGV[0] eq "-u") {
 	closedir (DIR);
 	foreach (@docs) {
 		if (! /^\./ ) {
+			print "doc -> ".$_."\n";
 			system ("cp docs/".$_." ".$docdir);
 		}
 	}
 	
+	my @locales;
+	opendir (DIR, "po");
+	@locales = readdir(DIR);
+	closedir (DIR);
+	foreach (@locales) {
+	    	if (! /^\./ ) {
+		    my $locale=$_;
+		    $locale =~ s/\.mo$//g;
+		    my $locdir = $localedir.$locale."/LC_MESSAGES";
+		    mkdir $locdir;
+		    print "translation -> ".$locdir."\n";
+		    system ("cp po/".$locale.".mo ".$locdir."/lyricue.mo");
+		}
+	}
 	my @ary = DBI->available_drivers(1);
 	my $mysql = 0;
 	foreach ( @ary ) {
