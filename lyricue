@@ -687,7 +687,7 @@ sub popup_play_menu {
 			'prepare_for_association', 1,
 			'',                        ''
 		],
-		['/Dis-addociate background', undef, 'disassociate_bg', 1, '', ''],
+		['/Dis-associate background', undef, 'disassociate_bg', 1, '', ''],
 		['/Move to sublist',          undef, 'move_to_sublist', 1, '', ''],
 		['/Preview this item', undef, 'preview_playlist_item', 1, '', ''],
 	);
@@ -3172,11 +3172,13 @@ sub create_dialog_prefs {
 # SOURCE
 #
 sub execute_app {
-	my ($widget, $app, $xinerama) = @_;
-	if ($xinerama) {
-		fork && exec($app. " -geometry +" . $config->{'Width'} . "+0");
+	my ($widget, $app) = @_;
+	my $command = $config->{'App'}[$app];
+	$command =~ s/^.*;//g;
+	if ($config->{'Xinerama'}) {
+		system($command. " -geometry +" . $config->{'Width'} . "+0 &");
 	} else {
-		fork && exec("DISPLAY=:0.1 " . $app);
+		system("DISPLAY=:0.1 " . $command." &");
 	}
 }
 
@@ -4706,6 +4708,24 @@ sub init_mainWindow {
 		$menutop->append($bibleMenu[$_]);
 	}
 	$widgets->{'main'}->get_widget('bible1')->set_submenu($menutop);
+
+	# Update the application menu
+	my $menutop2 = Gtk2::Menu->new();
+	my $group2   = 0;
+	my @appMenu = ();
+	foreach (0 .. $config->{'AppCount'} - 1) {
+		my $app = $config->{'App'}[$_];
+		$app =~ s/^(.*);.*$/$1/g;
+
+		$appMenu[$_] = Gtk2::RadioMenuItem->new_with_label($group, $app);
+		if ($_ == 0) {
+			$group = $appMenu[$_]->get_group;
+		}
+		$appMenu[$_]->signal_connect("toggled", "execute_app", $_);
+		$appMenu[$_]->show;
+		$menutop2->append($appMenu[$_]);
+	}
+	$widgets->{'main'}->get_widget('applications1')->set_submenu($menutop2);
 
 	my @target_table =
 	  ({'target' => "STRING", 'flags' => 'same-app', 'info' => 0},);
