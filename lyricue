@@ -363,8 +363,10 @@ sub update_playlist {
 	my $playlist =
 	  $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
 
+	my ($expanded);
 	my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
 	if ($model) {
+		 $widgets->{'main'}->get_widget('treePlaylist')->map_expanded_rows(\&save_expanded,\$expanded);
 		$model->clear;
 	} else {
 		$model =
@@ -382,7 +384,7 @@ sub update_playlist {
 
 		$widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
 	}
-	add_playlist($playlist, undef, $model, $id);
+	add_playlist($playlist, undef, $model, $id,\$expanded);
 }
 
 #***
@@ -402,7 +404,7 @@ sub update_playlist {
 #   A bigger playlist
 # SOURCE
 sub add_playlist {
-	my ($playlist, $iter, $model, $id) = @_;
+	my ($playlist, $iter, $model, $id,$expanded) = @_;
 	my $query =
 	  "SELECT * FROM playlist WHERE playlist="
 	  . $playlist
@@ -479,6 +481,7 @@ sub add_playlist {
 			$imagename = $row3->{'imagename'};
 		}
 
+		my $playorder = $row->{'playorder'};
 		my $newiter = $model->append($iter);
 		$model->set(
 			$newiter, 0 => $title,
@@ -500,21 +503,25 @@ sub add_playlist {
 
 		# Set sub-item if transition associated
 		if ($row->{'transition'}) {
-			my $imgiter = $model->append($newiter);
+			my $transiter = $model->append($newiter);
 			$model->set(
-				$imgiter, 0=>"* Page Transition Set",
+				$transiter, 0=>"* Page Transition Set",
 				1 => "",
 				2 => $row->{'playorder'},
 				3 => $row->{'transition'}
 			);
 		}
 		if (defined $id && $row->{'playorder'} == $id) {
-			$widgets->{'main'}->get_widget('treePlaylist')
-			  ->get_selection->select_iter($newiter);
+			$widgets->{'main'}->get_widget('treePlaylist')->get_selection->select_iter($newiter);
 		}
 
 		if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
-			add_playlist($row->{'data'}, $newiter, $model, $id);
+			add_playlist($row->{'data'}, $newiter, $model, $id,$expanded);
+		}
+
+		if ($$expanded->{$playorder}) {
+			debug("expanding $playorder");
+			$widgets->{'main'}->get_widget('treePlaylist')->expand_row($model->get_path($newiter),FALSE);
 		}
 	}
 }
@@ -5524,3 +5531,11 @@ sub resize_preview {
 	return FALSE;
 }
 
+
+# Save the expanded state
+sub save_expanded {
+	my ($tree,$path,$expanded) = @_;
+	my $iter = $tree->get_model->get_iter($path);
+	$$expanded->{$tree->get_model->get($iter,2)} = TRUE;
+	return FALSE;
+}
