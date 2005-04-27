@@ -1,14 +1,15 @@
-Source: lyricue
+Source: lyricue-cvs
 Section: x11
 Priority: optional
 Maintainer: lds-devel <lds-devel@lists.sourceforge.net>
 Standards-Version: 3.5.8
 Build-Depends: debmake
 
-Package: lyricue
+Package: lyricue-cvs
 Architecture: all
 Depends: libdbd-mysql-perl, mysql-server, libgtk2-perl, libgtk2-gladexml-perl, libgtk2-spell-perl, libgtk2-trayicon-perl, libdbi-perl, libglib-perl, ${shlibs:Depends}
 Recommends: diatheke, libgnome2-canvas-perl
+Conflicts: lyricue
 Description: The GNU Lyric Display System
  This application is used to edit/display song lyrics on a second screen/projector for use at singing events such as church services.
  Features

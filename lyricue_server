@@ -146,7 +146,7 @@ $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'mediadb'}     = "mediaDb";
 $globals->{'bibledb'}     = "";
 $globals->{'biblename'}   = "";
-$globals->{'usesword'}    = FALSE;
+$globals->{'usesword'}    = TRUE;
 $globals->{'fast'}        = FALSE;
 $globals->{'bg_file'}     = "/tmp/lyricue.bg";
 $globals->{'use_port'}      = "2346";    #port used for lyric server socket
@@ -163,7 +163,7 @@ if ($@) {
 } else {
     import Gnome2::Canvas;
 }
-if ($globals->{'diatheke'}="") {
+if ($globals->{'diatheke'} eq "") {
    $globals->{'diatheke'}="true";
 }
 
@@ -1092,6 +1092,7 @@ sub process_input {
                         }
 		    } else {
 		        my $command = "";
+print "dia: ".$globals->{'diatheke'}."\n";
 			$command = sprintf("%s -b %s -k %s %d:%d-%d:%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$line[0],$line[1],$line[2],$line[3],$line[4],$line[0]);
 			debug($command);
 			my @command_out=split(/$line[0]/,Encode::decode('utf-8',`$command`));
@@ -1471,6 +1472,9 @@ sub debug {
 sub change_to_db {
     my ($db,$type) = @_;
     $globals->{'bibledb'} = $db;
+    if (!$globals->{'usesword'}) {
+        $bibleDbh->disconnect;
+    }
     if ($type eq "db") {
         $bibleDbh = DBI->connect("DBI:mysql:$db:$globals->{'host'}", "lyric", "")
           || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
@@ -1481,6 +1485,8 @@ sub change_to_db {
     }
     $globals->{'biblename'} = $config->{'Bibles'}->{$globals->{'bibledb'}};
     $globals->{'biblename'} =~ s/^.*?://g;
+    $globals->{'biblename'} =~ s/^.*?;//g;
+    $globals->{'biblename'} =~ s/_//g;
 } ## end sub debug
 
 #****f* lyricue_server/check_socket

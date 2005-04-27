@@ -144,7 +144,7 @@ $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
 $globals->{'biblename'}   = "";
 $globals->{'access'}      = "";
-$globals->{'usesword'}    = FALSE;
+$globals->{'usesword'}    = TRUE;
 $globals->{'mediadb'}     = "mediaDb";
 $globals->{'sortby'}      = "title";
 $globals->{'bg_previews'} = TRUE;
@@ -378,14 +378,7 @@ $config = load_config();
 my @tmpbible = split(/;/,$config->{'DefBible'},2);
 $globals->{'biblename'} = $tmpbible[1];
 @tmpbible = split(/:/,$tmpbible[0],2);
-$globals->{'bibledb'} = $tmpbible[0];
-if ($tmpbible[1] eq "sword") {
-    $globals->{'usesword'} = TRUE;
-} else {
-    $globals->{'usesword'} = FALSE;
-    $bibleDbh = DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}", "lyric", "") || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'}, $DBI::errstr);
-
-}
+do_change_bible($tmpbible[1], $tmpbible[0]);
 
 # Create tray icon
 if ($globals->{'trayicon'}) {
@@ -3884,18 +3877,22 @@ sub select_bible_db {
     if ($widget && ($widget->get_active)) {
         debug ("Changing bible to $bibledb");
 	my @line = split(/;/,$bibledb,2);
-        $globals->{'bibledb'} = $line[1];
-        update_display("change_to_db", $line[1],$line[0]);
-	if ($line[0] eq "db") {
-	    $globals->{'usesword'} = FALSE;
-            $bibleDbh =
-              DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}",
-                "lyric", "")
-              || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
-                $DBI::errstr);
-	} else {
-    	    $globals->{'usesword'} = TRUE;
-	}
+        do_change_bible($line[0],$line[1]);
+    }
+}
+
+sub do_change_bible {
+    my ($type,$bibledb) = @_;
+    $globals->{'bibledb'} = $bibledb;
+    update_display("change_to_db", $bibledb,$type);
+    if (!$globals->{'usesword'}){
+        $bibleDbh->disconnect;
+    }
+    if ($type eq "db") {
+        $globals->{'usesword'} = FALSE;
+        $bibleDbh = DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}", "lyric", "") || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'}, $DBI::errstr);
+    } else {
+        $globals->{'usesword'} = TRUE;
     }
 } 
 
@@ -6594,12 +6591,14 @@ sub navigator_changed {
 	my $command = sprintf("%s -b %s -e UTF8 -k %s %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$startverse,$endverse,$book);
 	qdebug($command);
 	$book=ucfirst($book."[a-z]*");
-	my @command_out=split(/$book /,Encode::decode("utf-8",`$command`));
-	foreach (@command_out) {
+	my $command_out=Encode::decode("utf-8",`$command`);
+	($book,undef) = split (/\s/, $command_out,2);
+	my @command_lines=split(/$book /,$command_out);
+	foreach (@command_lines) {
 	    chomp;
 	    my $line2 = $_;
 	    if ($line2 ne "") {
-	        $quicktext .= $line2 . "\n";
+	        $quicktext .= $book." ".$line2 . "\n";
 	    }
 	}
 
@@ -6614,6 +6613,7 @@ sub navigator_changed {
 	}
     }
 
+    $widgets->{'main'}->get_widget('entryNavVerse')->{user_data} = $book." ".$chapter." ".$startverse."-".$endverse;
     my $oldtext=get_buffer_text($widgets->{'main'}->get_widget('textNavView')->get_buffer());
     if ($oldtext ne $quicktext) {
         $widgets->{'main'}->get_widget('textNavView')->get_buffer->set_text($quicktext);
@@ -6629,6 +6629,7 @@ sub navigator_show {
     my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
     $songtext =~ s/\n/#BREAK#/g;
     $songtext =~ s/:/#SEMI#/g;
-    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+    #my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
     update_display("preview", $verse, $songtext);
 }
