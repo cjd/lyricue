@@ -6582,6 +6582,7 @@ sub navigator_changed {
     debug("Navigator changed");
     my $quicktext = "";
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+    $widgets->{'main'}->get_widget('entryNavVerse')->set_activates_default(TRUE);
     $verse =~ s/ (\D)/_$1/;
     my ($book, $chapter, $startverse,$endverse) = split (/[ :\-,]/, $verse,4);
     $book =~ s/_/ /g;
