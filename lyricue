@@ -1762,7 +1762,7 @@ sub do_add_verse {
 
     my (@command_out);
     if ($globals->{'usesword'}) {
-        my $command = sprintf("%s -b %s -k %s %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$globals->{'verses'},$globals->{'verseEnd'},$book);
+        my $command = sprintf("%s -b %s -k '%s' %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$globals->{'verses'},$globals->{'verseEnd'},$book);
 	qdebug($command);
 	@command_out=split(/$book/,Encode::decode("utf-8",`$command`));
     } else {
@@ -3159,7 +3159,7 @@ sub create_dialogChapter {
     my $cont=FALSE;
     my $maxchap=0;
     if ($globals->{'usesword'}) {
-        my $command = sprintf("%s -b %s -k %s | grep '^%s'| tail -2 | head -1",$globals->{'diatheke'},$globals->{'bibledb'},$book,$book);
+        my $command = sprintf("%s -b %s -k '%s' | grep '^%s'| tail -2 | head -1",$globals->{'diatheke'},$globals->{'bibledb'},$book,$book);
         qdebug($command);
 	$maxchap = Encode::decode("utf-8",`$command`);
 	$maxchap =~ s/^$book ([0-9]*):[0-9].*$/$1/g;
@@ -3231,7 +3231,7 @@ sub create_dialogVerse {
     my $chapter = int($widget->get_label);
     my $maxverse = 0;
     if ($globals->{'usesword'}) {
-        my $command = sprintf("%s -b %s -k %s %d | grep '^%s' | tail -2 | head -1",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$book);
+        my $command = sprintf("%s -b %s -k '%s' %d | grep '^%s' | tail -2 | head -1",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$book);
         qdebug($command);
 	$maxverse = Encode::decode("utf-8",`$command`);
 	$maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
@@ -6290,7 +6290,7 @@ sub update_quickedit {
                 my @row = $sth->fetchrow_array();
 		my @line = split(/:/, $row[0]);
 		if ($globals->{'usesword'} ) {
-		    my $command = sprintf("%s -b %s -k %s %d:%d-%d:%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$line[0],$line[1],$startv, $line[1],$endv,$line[0]);
+		    my $command = sprintf("%s -b %s -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$line[0],$line[1],$startv, $line[1],$endv,$line[0]);
 		    debug($command);
                     my @command_out=split(/$line[0]/,Encode::decode("utf-8",`$command`));
 		    foreach (@command_out) {
@@ -6582,13 +6582,15 @@ sub navigator_changed {
     debug("Navigator changed");
     my $quicktext = "";
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
-    my ($book, $chapter, $startverse,$endverse) = split (/[:\-,]/, $verse,4);
-    if ((! defined $chapter) or ($chapter eq "")) { $chapter=1; }
-    if ((! defined $startverse) or ($startverse eq "")) { $startverse=1; }
-    if ((! defined $endverse) or ($endverse eq "") or ($endverse<$startverse)) { $endverse=$startverse; }
+    $verse =~ s/ (\D)/_$1/;
+    my ($book, $chapter, $startverse,$endverse) = split (/[ :\-,]/, $verse,4);
+    $book =~ s/_/ /g;
+    if ((! defined $chapter) or ($chapter eq "") or ($chapter =~ /\D/)) { $chapter=1; }
+    if ((! defined $startverse) or ($startverse eq "") or ($startverse =~ /\D/)) { $startverse=1; }
+    if ((! defined $endverse) or ($endverse eq "") or ($endverse =~ /\D/) or ($endverse<$startverse)) { $endverse=$startverse; }
     debug("Book ".$book." chapter ".$chapter." verses ".$startverse."-".$endverse);
     if ($globals->{'usesword'}) {
-	my $command = sprintf("%s -b %s -e UTF8 -k %s %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$startverse,$endverse,$book);
+	my $command = sprintf("%s -b %s -e UTF8 -k '%s' %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$startverse,$endverse,$book);
 	qdebug($command);
 	$book=ucfirst($book."[a-z]*");
 	my $command_out=Encode::decode("utf-8",`$command`);

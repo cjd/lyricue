@@ -1093,7 +1093,7 @@ sub process_input {
 		    } else {
 		        my $command = "";
 print "dia: ".$globals->{'diatheke'}."\n";
-			$command = sprintf("%s -b %s -k %s %d:%d-%d:%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$line[0],$line[1],$line[2],$line[3],$line[4],$line[0]);
+			$command = sprintf("%s -b %s -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$line[0],$line[1],$line[2],$line[3],$line[4],$line[0]);
 			debug($command);
 			my @command_out=split(/$line[0]/,Encode::decode('utf-8',`$command`));
 
