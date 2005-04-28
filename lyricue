@@ -2128,16 +2128,21 @@ sub add_single_song {
     # Find song info
     my $title = "";
     $query =
-        "SELECT title,pageid FROM lyricMain, page WHERE songid=id AND id="
+        "SELECT title,pageid,keywords FROM lyricMain, page WHERE songid=id AND id="
       . $availableSelection
       . " ORDER BY pagenum";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    my $audit = TRUE;
     while ($row = $sth->fetchrow_hashref()) {
 
         # Add the pages
+        my $keywords = $row->{'keywords'};
+        if ($keywords =~ /^NOAUDIT /) {
+             $audit = FALSE;
+        }
         $title = $row->{'title'};
         $playorder++;
         my $query2 =
@@ -2167,7 +2172,7 @@ sub add_single_song {
     # audit this addition
     # currently always runs due to problem with passing in widgets
     debug("Audit: $config->{'Audit'}");
-    if ($config->{'Audit'}) {
+    if ($config->{'Audit'} && $audit) {
         $query =
             "INSERT INTO audit (id,songid,playdate) VALUES(0,"
           . $availableSelection
