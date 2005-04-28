@@ -1285,11 +1285,15 @@ sub do_save_song {
                 $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
             )
           );
+        my $noaudit = "";
+        if (!$widgets->{'add'}->get_widget('checkEditAudit')->get_active()) {
+            $noaudit="NOAUDIT ";
+        }
         $query .= ", keywords="
           . quote(
             Encode::encode(
                 "iso-8859-1",
-                $widgets->{'add'}->get_widget('entryEditKeywords')->get_text()
+                $noaudit.$widgets->{'add'}->get_widget('entryEditKeywords')->get_text()
             )
           );
         $query .= " WHERE id=" . $songid;
@@ -2023,6 +2027,12 @@ sub update_songinfo {
               ->set_text($row->{'songnum'});
             $widgets->{'add'}->get_widget('entryEditArtist')
               ->set_text($row->{'artist'});
+            if ($row->{'keywords'} =~ /^NOAUDIT /) {
+                $row->{'keywords'} =~ s/^NOAUDIT //g;
+                $widgets->{'add'}->get_widget('checkEditAudit')->set_active(FALSE);
+            } else {
+                $widgets->{'add'}->get_widget('checkEditAudit')->set_active(TRUE);
+            }
             $widgets->{'add'}->get_widget('entryEditKeywords')
               ->set_text($row->{'keywords'});
             $widgets->{'add'}->get_widget('entryEditCopyright')
@@ -6582,7 +6592,6 @@ sub navigator_changed {
     debug("Navigator changed");
     my $quicktext = "";
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
-    $widgets->{'main'}->get_widget('entryNavVerse')->set_activates_default(TRUE);
     $verse =~ s/ (\D)/_$1/;
     my ($book, $chapter, $startverse,$endverse) = split (/[ :\-,]/, $verse,4);
     $book =~ s/_/ /g;
