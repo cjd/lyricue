@@ -177,7 +177,7 @@ if ($@) {
     import Gtk2::TrayIcon;
 }
 if ($globals->{'diatheke'} eq "") {
-    $globals->{'diatheke'}="true";
+    $globals->{'diatheke'} = "true";
 }
 
 # Transitions
@@ -258,11 +258,11 @@ my @delete_items = ("delete_song1");
 
 # access 's'
 my @display_items = (
-    "previous_page1",   "next_page1",
-    "display_now1",     "blank_display1",
-    "buttonMainPrev",   "buttonMainNext",
-    "buttonMainPoint",  "buttonMainBlank",
-    "notebookRight", "buttonQuickShow"
+    "previous_page1",  "next_page1",
+    "display_now1",    "blank_display1",
+    "buttonMainPrev",  "buttonMainNext",
+    "buttonMainPoint", "buttonMainBlank",
+    "notebookRight",   "buttonQuickShow"
 );
 
 # access 'p'
@@ -337,7 +337,6 @@ my $mediaDbh =
 # Some global stuff
 my ($query, $row, $sth, $rv);
 
-
 # Set umask
 umask 0002;
 
@@ -358,7 +357,6 @@ $widgets->{'main'} =
 $widgets->{'main'}->signal_autoconnect_from_package('');
 $globals->{'access'} = load_access();
 
-
 if (-d $globals->{'basedir'}) {
     if (!-e $globals->{'configfile'}) {
         system(
@@ -375,9 +373,9 @@ if (-d $globals->{'basedir'}) {
 
 # Load the config file
 $config = load_config();
-my @tmpbible = split(/;/,$config->{'DefBible'},2);
+my @tmpbible = split(/;/, $config->{'DefBible'}, 2);
 $globals->{'biblename'} = $tmpbible[1];
-@tmpbible = split(/:/,$tmpbible[0],2);
+@tmpbible = split(/:/, $tmpbible[0], 2);
 do_change_bible($tmpbible[1], $tmpbible[0]);
 
 # Create tray icon
@@ -834,7 +832,7 @@ sub popup_avail_menu {
     if ($event->button == 3) {
         my $path = $widget->get_path_at_pos($event->x, $event->y);
         $widget->get_selection->select_path($path);
-        debug ($path. " path");
+        debug($path . " path");
         my @items = ();
         if ($globals->{'access'} =~ /e/) {
             push @items,
@@ -885,7 +883,7 @@ sub popup_avail_menu {
             $event->time);
         return (TRUE);
     } elsif ($event->button == 1 && $event->type eq '2button-press') {
-        debug ("Add song");
+        debug("Add song");
         add_to_playlist();
         return (TRUE);
     }
@@ -1287,13 +1285,15 @@ sub do_save_song {
           );
         my $noaudit = "";
         if (!$widgets->{'add'}->get_widget('checkEditAudit')->get_active()) {
-            $noaudit="NOAUDIT ";
+            $noaudit = "NOAUDIT ";
         }
         $query .= ", keywords="
           . quote(
             Encode::encode(
                 "iso-8859-1",
-                $noaudit.$widgets->{'add'}->get_widget('entryEditKeywords')->get_text()
+                $noaudit
+                  . $widgets->{'add'}->get_widget('entryEditKeywords')
+                  ->get_text()
             )
           );
         $query .= " WHERE id=" . $songid;
@@ -1677,12 +1677,17 @@ sub do_add_verse {
     $book =~ s/ -.*$//g;
     my $chapter = $widget->get_toplevel->{user_data};
     $chapter =~ s/^.*- //g;
+    insert_verse($book,$chapter,$globals->{'verses'},$globals->{'verseEnd'});
+    close_dialog($widget);
+}
 
+sub insert_verse {
+    my ($book,$chapter,$start,$end) = @_;
     my $verse =
         $book . ":" . $chapter . ":"
-      . $globals->{'verses'} . "-"
+      . $start . "-"
       . $chapter . ":"
-      . $globals->{'verseEnd'};
+      . $end;
     debug($verse);
 
     my ($sth, $rv, $row, $playorder, $playlist);
@@ -1755,9 +1760,9 @@ sub do_add_verse {
 
     my $pagenum    = 1;
     my $pageHeight = 0;
-    my $minv       = $globals->{'verses'};
+    my $minv       = $start;
 
-    my $layout = $widget->create_pango_layout("");
+    my $layout = $widgets->{'main'}->get_widget('windowMain')->create_pango_layout("");
     $layout->set_wrap('word');
     $layout->set_width($config->{'Width'} * PANGO_SCALE);
     $layout->set_font_description(
@@ -1766,47 +1771,52 @@ sub do_add_verse {
 
     my (@command_out);
     if ($globals->{'usesword'}) {
-        my $command = sprintf("%s -b %s -k '%s' %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$globals->{'verses'},$globals->{'verseEnd'},$book);
-	qdebug($command);
-	@command_out=split(/$book/,Encode::decode("utf-8",`$command`));
+        my $command = sprintf(
+            "%s -b %s -k '%s' %d:%d-%d |tr \\\\n \' \'",
+            $globals->{'diatheke'},
+            $globals->{'bibledb'}, $book, $chapter, $start,
+            $end, $book
+        );
+        qdebug($command);
+        @command_out = split(/$book/, Encode::decode("utf-8", `$command`));
     } else {
         $query =
             "SELECT * FROM  verse WHERE book=\"" . $book
           . "\" AND chapternum="
           . $chapter
           . " AND versenum>="
-          . $globals->{'verses'}
+          . $start
           . " AND versenum <= "
-          . $globals->{'verseEnd'}
+          . $end
           . " ORDER BY versenum";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    
+
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     }
 
-    my $loop=TRUE;
+    my $loop = TRUE;
     while ($loop) {
-	my $line = "";
-	my $versenum = "";
+        my $line     = "";
+        my $versenum = "";
         if ($globals->{'biblename'} ne "") {
             if ($row = $sth->fetchrow_hashref()) {
                 $line =
-                   $row->{'chapternum'} . ":"
-                 . $row->{'versenum'} . "   "
-                 . $row->{'verse'};
-	        $versenum = $row->{'versenum'};
+                    $row->{'chapternum'} . ":"
+                  . $row->{'versenum'} . "   "
+                  . $row->{'verse'};
+                $versenum = $row->{'versenum'};
             } else {
-	        $loop=FALSE;
+                $loop = FALSE;
             }
         } else {
-	    $line = shift @command_out;
-	    chomp($line);
-	    $versenum=$line;
-	    $line =~ s/^$book //g;
-	    $versenum=~s/^.*:([0-9]*):.*$/$1/g;
-	    if (! defined $line) { $loop=FALSE;}
+            $line = shift @command_out;
+            chomp($line);
+            $versenum = $line;
+            $line     =~ s/^$book //g;
+            $versenum =~ s/^.*:([0-9]*):.*$/$1/g;
+            if (!defined $line) { $loop = FALSE; }
         }
 
         $layout->set_text($page . "\n" . $line);
@@ -1843,7 +1853,7 @@ sub do_add_verse {
       . $playorder
       . ", type=\"vers\", data=\""
       . $minv . "-"
-      . $globals->{'verseEnd'} . "\"";
+      . $end . "\"";
     $playorder++;
     qdebug($query);
     my $sth2 = $lyricDbh->prepare($query)
@@ -1851,7 +1861,6 @@ sub do_add_verse {
 
     my $rv2 = $sth2->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-    close_dialog($widget);
     update_playlist();
 }
 
@@ -2029,9 +2038,11 @@ sub update_songinfo {
               ->set_text($row->{'artist'});
             if ($row->{'keywords'} =~ /^NOAUDIT /) {
                 $row->{'keywords'} =~ s/^NOAUDIT //g;
-                $widgets->{'add'}->get_widget('checkEditAudit')->set_active(FALSE);
+                $widgets->{'add'}->get_widget('checkEditAudit')
+                  ->set_active(FALSE);
             } else {
-                $widgets->{'add'}->get_widget('checkEditAudit')->set_active(TRUE);
+                $widgets->{'add'}->get_widget('checkEditAudit')
+                  ->set_active(TRUE);
             }
             $widgets->{'add'}->get_widget('entryEditKeywords')
               ->set_text($row->{'keywords'});
@@ -2128,7 +2139,7 @@ sub add_single_song {
     # Find song info
     my $title = "";
     $query =
-        "SELECT title,pageid,keywords FROM lyricMain, page WHERE songid=id AND id="
+"SELECT title,pageid,keywords FROM lyricMain, page WHERE songid=id AND id="
       . $availableSelection
       . " ORDER BY pagenum";
     qdebug($query);
@@ -2141,7 +2152,7 @@ sub add_single_song {
         # Add the pages
         my $keywords = $row->{'keywords'};
         if ($keywords =~ /^NOAUDIT /) {
-             $audit = FALSE;
+            $audit = FALSE;
         }
         $title = $row->{'title'};
         $playorder++;
@@ -2375,9 +2386,9 @@ sub display_song {
             return TRUE;
         } elsif ($event->type eq 'button-press') {
             my $path = $widget->get_path_at_pos($event->x, $event->y);
-	    if (defined $path) {
+            if (defined $path) {
                 $widget->get_selection->select_path($path);
-	    }
+            }
             if ($event->button == 3) {
                 popup_play_menu($event);
                 return TRUE;
@@ -2909,7 +2920,7 @@ sub change_image_category {
 #
 sub update_display {
     my ($command, $primary, $secondary) = @_;
-    my $biblechanged="";
+    my $biblechanged = "";
 
     if ($globals->{'access'} !~ /s/) {
 
@@ -2924,8 +2935,8 @@ sub update_display {
     if (!defined($primary)) {
         $primary = "";
     }
-    $primary=~ s/:/#SEMI#/g;
-    $secondary=~ s/:/#SEMI#/g;
+    $primary   =~ s/:/#SEMI#/g;
+    $secondary =~ s/:/#SEMI#/g;
     debug("Command: " . $command . ":" . $primary . ":" . $secondary);
     if (
         my $server = IO::Socket::INET->new(
@@ -2935,7 +2946,8 @@ sub update_display {
         )
       )
     {
-        print $server Encode::encode("utf-8",$command . ":" . $primary . ":" . $secondary . "\n");
+        print $server Encode::encode("utf-8",
+            $command . ":" . $primary . ":" . $secondary . "\n");
         if (defined(my $status = <$server>)) {
             chomp($status);
             if ($status =~ /^pl:/) {
@@ -2962,7 +2974,7 @@ sub update_display {
                         $config->{'Main'} = $item[1];
                     } elsif ($item[0] eq "B") {
                         if ($item[1] ne $globals->{'biblename'}) {
-                            $biblechanged=$item[1];
+                            $biblechanged = $item[1];
                         }
                     }
                 }
@@ -2975,7 +2987,7 @@ sub update_display {
         close($server);
         debug("Sent ");
         if ($biblechanged ne "") {
-	    $bibleMenu->{$biblechanged}->set_active(TRUE);
+            $bibleMenu->{$biblechanged}->set_active(TRUE);
         }
     }
 }
@@ -3171,16 +3183,20 @@ sub create_dialogChapter {
     my ($widget) = @_;
     my $book = $widget->get_label;
     debug("Selected " . $book);
-    my $cont=FALSE;
-    my $maxchap=0;
+    my $cont    = FALSE;
+    my $maxchap = 0;
     if ($globals->{'usesword'}) {
-        my $command = sprintf("%s -b %s -k '%s' | grep '^%s'| tail -2 | head -1",$globals->{'diatheke'},$globals->{'bibledb'},$book,$book);
+        my $command = sprintf(
+            "%s -b %s -k '%s' | grep '^%s'| tail -2 | head -1",
+            $globals->{'diatheke'},
+            $globals->{'bibledb'}, $book, $book
+        );
         qdebug($command);
-	$maxchap = Encode::decode("utf-8",`$command`);
-	$maxchap =~ s/^$book ([0-9]*):[0-9].*$/$1/g;
-	if ($maxchap) {
-	    $cont = TRUE;
-	}
+        $maxchap = Encode::decode("utf-8", `$command`);
+        $maxchap =~ s/^$book ([0-9]*):[0-9].*$/$1/g;
+        if ($maxchap) {
+            $cont = TRUE;
+        }
     } else {
         my $query =
           "SELECT MAX(chapternum) FROM verse WHERE book like \""
@@ -3190,9 +3206,9 @@ sub create_dialogChapter {
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         if (my @row = $sth->fetchrow_array) {
-	    $cont = TRUE;
-	    $maxchap = $row[0];
-	}
+            $cont    = TRUE;
+            $maxchap = $row[0];
+        }
         $sth->finish;
     }
 
@@ -3243,15 +3259,19 @@ sub create_dialogChapter {
 #
 sub create_dialogVerse {
     my ($widget, $book) = @_;
-    my $chapter = int($widget->get_label);
+    my $chapter  = int($widget->get_label);
     my $maxverse = 0;
     if ($globals->{'usesword'}) {
-        my $command = sprintf("%s -b %s -k '%s' %d | grep '^%s' | tail -2 | head -1",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$book);
+        my $command = sprintf(
+            "%s -b %s -k '%s' %d | grep '^%s' | tail -2 | head -1",
+            $globals->{'diatheke'},
+            $globals->{'bibledb'}, $book, $chapter, $book
+        );
         qdebug($command);
-	$maxverse = Encode::decode("utf-8",`$command`);
-	$maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
+        $maxverse = Encode::decode("utf-8", `$command`);
+        $maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
     } else {
-        my $query   =
+        my $query =
             "SELECT MAX(versenum) FROM verse WHERE book=\""
           . Encode::encode("iso-8859-1", $book)
           . "\" AND chapternum="
@@ -3262,7 +3282,7 @@ sub create_dialogVerse {
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
         if (my @row = $sth->fetchrow_array) {
-	   $maxverse = $row[0];
+            $maxverse = $row[0];
         }
     }
 
@@ -3723,8 +3743,8 @@ sub create_dialog_prefs {
     my (@list);
     my $bibles = $config->{'Bibles'};
     foreach (keys %$bibles) {
-        my $bible = $_.":".$config->{'Bibles'}->{$_};
-	push @list, $bible;
+        my $bible = $_ . ":" . $config->{'Bibles'}->{$_};
+        push @list, $bible;
     }
 
     $widgets->{'prefs'}->get_widget('comboPrefBible')
@@ -3890,26 +3910,30 @@ sub select_bible_db {
     my ($widget, $bibledb) = @_;
 
     if ($widget && ($widget->get_active)) {
-        debug ("Changing bible to $bibledb");
-	my @line = split(/;/,$bibledb,2);
-        do_change_bible($line[0],$line[1]);
+        debug("Changing bible to $bibledb");
+        my @line = split(/;/, $bibledb, 2);
+        do_change_bible($line[0], $line[1]);
     }
 }
 
 sub do_change_bible {
-    my ($type,$bibledb) = @_;
+    my ($type, $bibledb) = @_;
     $globals->{'bibledb'} = $bibledb;
-    update_display("change_to_db", $bibledb,$type);
-    if (!$globals->{'usesword'}){
+    update_display("change_to_db", $bibledb, $type);
+    if (!$globals->{'usesword'}) {
         $bibleDbh->disconnect;
     }
     if ($type eq "db") {
         $globals->{'usesword'} = FALSE;
-        $bibleDbh = DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}", "lyric", "") || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'}, $DBI::errstr);
+        $bibleDbh =
+          DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}",
+            "lyric", "")
+          || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
+            $DBI::errstr);
     } else {
         $globals->{'usesword'} = TRUE;
     }
-} 
+}
 
 #***
 
@@ -4760,7 +4784,7 @@ sub load_config {
     close CONFIG;
     $conf->{'BibleCount'} = $bibleCount;
     $conf->{'AppCount'}   = $appCount;
-    $conf->{'Bibles'} = get_bibles();
+    $conf->{'Bibles'}     = get_bibles();
     return $conf;
 }
 
@@ -4817,8 +4841,7 @@ sub save_preferences {
       . $widgets->{'prefs'}->get_widget('checkPrefCentreY')->get_active()
       . "\n";
     print CONFIG "FastServer = "
-      . $widgets->{'prefs'}->get_widget('checkPrefFast')->get_active()
-      . "\n";
+      . $widgets->{'prefs'}->get_widget('checkPrefFast')->get_active() . "\n";
     print CONFIG "BGImage = "
       . $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} . "\n";
     print CONFIG "FrameLeft = "
@@ -4831,8 +4854,10 @@ sub save_preferences {
         print CONFIG "Bible = " . $config->{'Bible'}[$_] . "\n";
         debug("Bible = " . $config->{'Bible'}[$_]);
     }
-    print CONFIG "DefBible = " . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text()."\n";
-    debug("DefBible = " . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text());
+    print CONFIG "DefBible = "
+      . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text() . "\n";
+    debug("DefBible = "
+          . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text());
     foreach (0 .. $config->{'AppCount'} - 1) {
         print CONFIG "App = " . $config->{'App'}[$_] . "\n";
     }
@@ -5238,15 +5263,17 @@ sub init_mainWindow {
     # Update the bible menu
     my $menutop = Gtk2::Menu->new();
     my $group   = -1;
-    my $bibles = $config->{'Bibles'};
+    my $bibles  = $config->{'Bibles'};
     foreach (keys %$bibles) {
-        my @bible = split(/;/,$config->{'Bibles'}->{$_},2);
+        my @bible = split(/;/, $config->{'Bibles'}->{$_}, 2);
 
-        $bibleMenu->{$_} = Gtk2::RadioMenuItem->new_with_label($group, $bible[1]);
+        $bibleMenu->{$_} =
+          Gtk2::RadioMenuItem->new_with_label($group, $bible[1]);
         if ($group == -1) {
             $group = $bibleMenu->{$_}->get_group;
         }
-        $bibleMenu->{$_}->signal_connect("toggled", "select_bible_db", $bible[0].";".$_);
+        $bibleMenu->{$_}
+          ->signal_connect("toggled", "select_bible_db", $bible[0] . ";" . $_);
         if ($_ eq $config->{'DefBible'}) {
             $bibleMenu->{$_}->set_active(TRUE);
         }
@@ -5301,7 +5328,7 @@ sub init_mainWindow {
     } else {
         my ($width, $height) =
           $widgets->{'main'}->get_widget('windowMain')->get_size();
-        debug($width. "- width");
+        debug($width . "- width");
         if ($globals->{'access'} =~ /p/) {
             $widgets->{'main'}->get_widget('hpanedMainLeft')
               ->set_position($width / 5 * 2);
@@ -5451,8 +5478,10 @@ sub spell_check {
     if ($globals->{'spell'}) {
         debug("Running spell checker");
 
-        foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} }
-            keys %pageOrder)
+        foreach $page (
+            sort { $pageOrder{$a} cmp $pageOrder{$b} }
+            keys %pageOrder
+          )
         {
             if (!defined $widgets->{'spellAPage'}{$page}) {
                 $widgets->{'spellAPage'}{$page} =
@@ -6215,7 +6244,7 @@ sub do_import_media {
             $data .= $_;
         }
         close MEDIA;
-        debug("Length: " . length($data) );
+        debug("Length: " . length($data));
         my $sth =
           $mediaDbh->prepare(
 q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)}
@@ -6303,22 +6332,28 @@ sub update_quickedit {
                 $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my @row = $sth->fetchrow_array();
-		my @line = split(/:/, $row[0]);
-		if ($globals->{'usesword'} ) {
-		    my $command = sprintf("%s -b %s -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$line[0],$line[1],$startv, $line[1],$endv,$line[0]);
-		    debug($command);
-                    my @command_out=split(/$line[0]/,Encode::decode("utf-8",`$command`));
-		    foreach (@command_out) {
-		        chomp;
-			my $line2 = $_;
-			$line2 =~ s/^$line[0] //g;
-			if ($line2 ne "") {
-			    $quicktext .= $line2 . "\n";
-			}
-		    }
-		} else {
+                my @line = split(/:/, $row[0]);
+                if ($globals->{'usesword'}) {
+                    my $command = sprintf(
+                        "%s -b %s -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",
+                        $globals->{'diatheke'},
+                        $globals->{'bibledb'}, $line[0], $line[1], $startv,
+                        $line[1], $endv, $line[0]
+                    );
+                    debug($command);
+                    my @command_out =
+                      split(/$line[0]/, Encode::decode("utf-8", `$command`));
+                    foreach (@command_out) {
+                        chomp;
+                        my $line2 = $_;
+                        $line2 =~ s/^$line[0] //g;
+                        if ($line2 ne "") {
+                            $quicktext .= $line2 . "\n";
+                        }
+                    }
+                } else {
                     $query =
-                        "SELECT chapternum,versenum,verse FROM verse WHERE book=\""
+"SELECT chapternum,versenum,verse FROM verse WHERE book=\""
                       . $line[0]
                       . "\" AND chapternum="
                       . $line[1]
@@ -6331,12 +6366,12 @@ sub update_quickedit {
                       || display_fatal($errorcodes->{'sqlprepare'}, $!);
                     $rv = $sth->execute
                       || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    
+
                     while (@row = $sth->fetchrow_array()) {
                         $quicktext .=
                           $row[0] . ":" . $row[1] . "   " . $row[2] . "\n";
                     }
-		}
+                }
                 $loop = 1;
                 $widgets->{'main'}->get_widget('textQuick')
                   ->set_wrap_mode('word');
@@ -6467,7 +6502,7 @@ sub restore_db {
                 if (/^USE/) {
                     $db = $_;
                     $db =~ s/^USE (.*);.*$/$1/g;
-                    debug ($db. " - database");
+                    debug($db . " - database");
                     if ($db eq "lyricDb") {
                         $dbh = $lyricDbh;
                     } elsif ($db eq "mediaDb") {
@@ -6560,31 +6595,32 @@ sub backup_db_browse {
 
 sub get_bibles {
     my $bibles;
-    open (CONFIG, $globals->{'configfile'})
-      || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'}, $!);
+    open(CONFIG, $globals->{'configfile'})
+      || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
+        $!);
     while (<CONFIG>) {
         chomp;
-	my @line = split(/=/);
-	$line[0] =~ s/ *$//g;
-	$line[1] =~ s/ *$//g;
-	$line[1] =~ s/^ *//g;
-	my @line2 = split(/;/,$line[1],2);
-	if ($line[0] eq "Bible") {
-	    $bibles->{$line2[1]} = "db;".$line2[0];
-	}
+        my @line = split(/=/);
+        $line[0] =~ s/ *$//g;
+        $line[1] =~ s/ *$//g;
+        $line[1] =~ s/^ *//g;
+        my @line2 = split(/;/, $line[1], 2);
+        if ($line[0] eq "Bible") {
+            $bibles->{$line2[1]} = "db;" . $line2[0];
+        }
     }
-    open(SWORD,$globals->{'diatheke'}." -b system -k modulelist|");
+    open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
     while (<SWORD>) {
         if (/^Biblical Texts:/) {
             while (<SWORD>) {
-                if ( /^Commentaries:/) {
-                    while(<SWORD>) { }
+                if (/^Commentaries:/) {
+                    while (<SWORD>) { }
                 } else {
-    	            chomp;
-                    my @bible = split(/:/,$_,2);
-                    $bible[0]=~ s/\s+$//; 
-                    $bible[1]=~ s/^\s+//;
-                    $bibles->{$bible[0]} = "sword;".$bible[1];
+                    chomp;
+                    my @bible = split(/:/, $_, 2);
+                    $bible[0] =~ s/\s+$//;
+                    $bible[1] =~ s/^\s+//;
+                    $bibles->{$bible[0]} = "sword;" . $bible[1];
                 }
             }
         }
@@ -6596,45 +6632,80 @@ sub get_bibles {
 sub navigator_changed {
     debug("Navigator changed");
     my $quicktext = "";
-    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+    my $verse     = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
     $verse =~ s/ (\D)/_$1/;
-    my ($book, $chapter, $startverse,$endverse) = split (/[ :\-,]/, $verse,4);
+    my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
     $book =~ s/_/ /g;
-    if ((! defined $chapter) or ($chapter eq "") or ($chapter =~ /\D/)) { $chapter=1; }
-    if ((! defined $startverse) or ($startverse eq "") or ($startverse =~ /\D/)) { $startverse=1; }
-    if ((! defined $endverse) or ($endverse eq "") or ($endverse =~ /\D/) or ($endverse<$startverse)) { $endverse=$startverse; }
-    debug("Book ".$book." chapter ".$chapter." verses ".$startverse."-".$endverse);
+    if ((!defined $chapter) or ($chapter eq "") or ($chapter =~ /\D/)) {
+        $chapter = 1;
+    }
+    if ((!defined $startverse) or ($startverse eq "") or ($startverse =~ /\D/))
+    {
+        $startverse = 1;
+    }
+    if (   (!defined $endverse)
+        or ($endverse eq "")
+        or ($endverse =~ /\D/)
+        or ($endverse < $startverse))
+    {
+        $endverse = $startverse;
+    }
+    debug(  "Book " . $book
+          . " chapter "
+          . $chapter
+          . " verses "
+          . $startverse . "-"
+          . $endverse);
     if ($globals->{'usesword'}) {
-	my $command = sprintf("%s -b %s -e UTF8 -k '%s' %d:%d-%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$book,$chapter,$startverse,$endverse,$book);
-	qdebug($command);
-	$book=ucfirst($book."[a-z]*");
-	my $command_out=Encode::decode("utf-8",`$command`);
-	($book,undef) = split (/\s/, $command_out,2);
-	my @command_lines=split(/$book /,$command_out);
-	foreach (@command_lines) {
-	    chomp;
-	    my $line2 = $_;
-	    if ($line2 ne "") {
-	        $quicktext .= $book." ".$line2 . "\n";
-	    }
-	}
+        my $command = sprintf(
+            "%s -b %s -e UTF8 -k '%s' %d:%d-%d |tr \\\\n \' \'",
+            $globals->{'diatheke'},
+            $globals->{'bibledb'}, $book, $chapter, $startverse, $endverse,
+            $book
+        );
+        qdebug($command);
+        $book = ucfirst($book . "[a-z]*");
+        my $command_out = Encode::decode("utf-8", `$command`);
+        ($book, undef) = split(/\s/, $command_out, 2);
+        my @command_lines = split(/$book /, $command_out);
+        foreach (@command_lines) {
+            chomp;
+            my $line2 = $_;
+            if ($line2 ne "") {
+                $quicktext .= $book . " " . $line2 . "\n";
+            }
+        }
 
     } else {
-        $query = "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \"" . $book . "%\" AND chapternum=" . $chapter . " AND versenum>=" . $startverse . " AND versenum <= " . $endverse . " ORDER BY versenum";
-	qdebug($query);
+        $query =
+          "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \""
+          . $book
+          . "%\" AND chapternum="
+          . $chapter
+          . " AND versenum>="
+          . $startverse
+          . " AND versenum <= "
+          . $endverse
+          . " ORDER BY versenum";
+        qdebug($query);
         $sth = $bibleDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-	while (my @row = $sth->fetchrow_array()) {
-	    $quicktext .= $row[0]." ".$row[1] . ":" . $row[2] . "   " . $row[3] . "\n";
-	}
+        while (my @row = $sth->fetchrow_array()) {
+            $quicktext .=
+              $row[0] . " " . $row[1] . ":" . $row[2] . "   " . $row[3] . "\n";
+        }
     }
 
-    $widgets->{'main'}->get_widget('entryNavVerse')->{user_data} = $book." ".$chapter." ".$startverse."-".$endverse;
-    my $oldtext=get_buffer_text($widgets->{'main'}->get_widget('textNavView')->get_buffer());
+    $widgets->{'main'}->get_widget('entryNavVerse')->{user_data} =
+      $book . " " . $chapter . " " . $startverse . "-" . $endverse;
+    my $oldtext =
+      get_buffer_text(
+        $widgets->{'main'}->get_widget('textNavView')->get_buffer());
     if ($oldtext ne $quicktext) {
-        $widgets->{'main'}->get_widget('textNavView')->get_buffer->set_text($quicktext);
-        if ($widgets->{'main'}->get_widget('checkNavAuto')->get_active()){
+        $widgets->{'main'}->get_widget('textNavView')
+          ->get_buffer->set_text($quicktext);
+        if ($widgets->{'main'}->get_widget('checkNavAuto')->get_active()) {
             navigator_show();
         }
     }
@@ -6646,7 +6717,16 @@ sub navigator_show {
     my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
     $songtext =~ s/\n/#BREAK#/g;
     $songtext =~ s/:/#SEMI#/g;
-    #my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
     update_display("preview", $verse, $songtext);
+}
+
+sub navigator_add {
+    debug("Adding verses from Bible navigator to playlist");
+    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
+    $verse =~ s/ (\D)/_$1/;
+    my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
+    $book =~ s/_/ /g;
+    insert_verse($book,$chapter,$startverse,$endverse);
 }

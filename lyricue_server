@@ -153,7 +153,7 @@ $globals->{'use_port'}      = "2346";    #port used for lyric server socket
 $globals->{'server_port'}   = "2346";    #port used for lyric server socket
 $globals->{'preview_port'}  = "2347";    #port used for lyric server socket
 $globals->{'miniview_port'} = "2348";    #port used for lyric server socket
-$globals->{'diatheke'}    = `which diatheke`;
+$globals->{'diatheke'} = `which diatheke`;
 chomp $globals->{'diatheke'};
 
 eval { require Gnome2::Canvas; };
@@ -164,7 +164,7 @@ if ($@) {
     import Gnome2::Canvas;
 }
 if ($globals->{'diatheke'} eq "") {
-   $globals->{'diatheke'}="true";
+    $globals->{'diatheke'} = "true";
 }
 
 my $DEBUG           = FALSE;
@@ -275,9 +275,9 @@ foreach (keys %$config) {
         $preset[$num] = $config->{$_};
     } elsif (/^DefBible/) {
         my @tmp = split(/;/, $config->{$_}, 2);
-	my @tmp2 = split(/:/, $tmp[0], 2);
+        my @tmp2 = split(/:/, $tmp[0], 2);
         $globals->{'bibledb'} = $tmp2[0];
-        change_to_db($globals->{'bibledb'},$tmp2[1]);
+        change_to_db($globals->{'bibledb'}, $tmp2[1]);
     }
 }
 
@@ -299,7 +299,6 @@ my $mediaDbh =
   DBI->connect("DBI:mysql:$globals->{'mediadb'}:$globals->{'host'}",
     "lyric", "")
   || display_fatal($errorcodes->{'mediadbopen'}, $!);
-
 
 # Create the window
 debug("Creating window");
@@ -517,7 +516,7 @@ sub process_input {
 
     debug("Received :" . $input);
     if ($input) {
-        Encode::decode("utf-8",$input);
+        Encode::decode("utf-8", $input);
         chomp($input);
         my @line = split(/:/, $input);
         $_ = lc($line[0]);
@@ -541,10 +540,8 @@ sub process_input {
             set_footer("");
             $status = "Screen blanked";
         } elsif (/^change_to_db$/) {
-            change_to_db($line[1],$line[2]);
-            $status =
-                "Bible changed to "
-              . $globals->{'bibledb'};
+            change_to_db($line[1], $line[2]);
+            $status = "Bible changed to " . $globals->{'bibledb'};
         } elsif (/^next_point$/) {
             if ($current_point > -1 && scalar(@points) > $current_point + 1) {
                 my $pointtext = "";
@@ -581,7 +578,7 @@ sub process_input {
             $line[2] =~ s/#BREAK#/\n/g;
             $line[2] =~ s/#SEMI#/:/g;
             $line[2] =~ s/<.*?>//g;
-            set_maintext(Encode::decode("utf-8",$line[2]), NONE, TRUE);
+            set_maintext(Encode::decode("utf-8", $line[2]), NONE, TRUE);
 
             if ($extras[2]) {
                 set_footer(
@@ -1046,10 +1043,10 @@ sub process_input {
                     my $versetext = $row->{'title'};
                     my @line      = split(/[:-]/, $row->{'title'});
                     my $verses    = $row->{'data'};
-                    my $verse = "";
+                    my $verse     = "";
 
                     ($line[2], $line[4]) = split(/-/, $row->{'data'});
-		    if (!$globals->{'usesword'}) {
+                    if (!$globals->{'usesword'}) {
                         if ($line[1] == $line[3]) {
                             $query =
                                 "SELECT * FROM  verse WHERE book=\""
@@ -1090,22 +1087,30 @@ sub process_input {
                               . $row->{'verse'};
                             $verse .= $line . "\n";
                         }
-		    } else {
-		        my $command = "";
-print "dia: ".$globals->{'diatheke'}."\n";
-			$command = sprintf("%s -b %s -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",$globals->{'diatheke'},$globals->{'bibledb'},$line[0],$line[1],$line[2],$line[3],$line[4],$line[0]);
-			debug($command);
-			my @command_out=split(/$line[0]/,Encode::decode('utf-8',`$command`));
+                    } else {
+                        my $command = "";
+                        print "dia: " . $globals->{'diatheke'} . "\n";
+                        $command = sprintf(
+                            "%s -b %s -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",
+                            $globals->{'diatheke'}, $globals->{'bibledb'},
+                            $line[0],               $line[1],
+                            $line[2],               $line[3],
+                            $line[4],               $line[0]
+                        );
+                        debug($command);
+                        my @command_out =
+                          split(/$line[0]/,
+                            Encode::decode('utf-8', `$command`));
 
-			foreach (@command_out) {
-			    chomp;
-			    my $line2 = $_;
-			    $line2 =~ s/^$line[0] //g;
-			    if ($line2 ne "") {
-			        $verse .= $line2 . "\n";
-			    }
-			}
-	            }
+                        foreach (@command_out) {
+                            chomp;
+                            my $line2 = $_;
+                            $line2 =~ s/^$line[0] //g;
+                            if ($line2 ne "") {
+                                $verse .= $line2 . "\n";
+                            }
+                        }
+                    }
 
                     set_maintext($verse, $transition, TRUE);
 
@@ -1470,18 +1475,19 @@ sub debug {
 # SOURCE
 #
 sub change_to_db {
-    my ($db,$type) = @_;
+    my ($db, $type) = @_;
     $globals->{'bibledb'} = $db;
     if (!$globals->{'usesword'}) {
         $bibleDbh->disconnect;
     }
     if ($type eq "db") {
-        $bibleDbh = DBI->connect("DBI:mysql:$db:$globals->{'host'}", "lyric", "")
+        $bibleDbh =
+          DBI->connect("DBI:mysql:$db:$globals->{'host'}", "lyric", "")
           || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
             $!);
-	$globals->{'usesword'} = FALSE;
+        $globals->{'usesword'} = FALSE;
     } else {
-	$globals->{'usesword'} = TRUE;
+        $globals->{'usesword'} = TRUE;
     }
     $globals->{'biblename'} = $config->{'Bibles'}->{$globals->{'bibledb'}};
     $globals->{'biblename'} =~ s/^.*?://g;
@@ -1550,7 +1556,7 @@ sub load_config {
         }
     }
     $conf->{'AppCount'} = $appCount;
-    $conf->{'Bibles'} = get_bibles();
+    $conf->{'Bibles'}   = get_bibles();
     return $conf;
 }
 
@@ -1978,8 +1984,8 @@ sub set_header {
 
 sub get_bibles {
     my $bibles;
-    open (CONFIG, $globals->{'configfile'})
-        || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
+    open(CONFIG, $globals->{'configfile'})
+      || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
         $!);
     while (<CONFIG>) {
         chomp;
@@ -1987,23 +1993,23 @@ sub get_bibles {
         $line[0] =~ s/ *$//g;
         $line[1] =~ s/ *$//g;
         $line[1] =~ s/^ *//g;
-        my @line2 = split(/;/,$line[1],2);
+        my @line2 = split(/;/, $line[1], 2);
         if ($line[0] eq "Bible") {
-            $bibles->{$line2[1]} = "db;".$line2[0];
+            $bibles->{$line2[1]} = "db;" . $line2[0];
         }
     }
-    open(SWORD,$globals->{'diatheke'}." -b system -k modulelist|");
+    open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
     while (<SWORD>) {
         if (/^Biblical Texts:/) {
             while (<SWORD>) {
-                if ( /^Commentaries:/) {
-                    while(<SWORD>) { }
+                if (/^Commentaries:/) {
+                    while (<SWORD>) { }
                 } else {
                     chomp;
-                    my @bible = split(/:/,$_,2);
-                    $bible[0]=~ s/\s+$//; 
-                    $bible[1]=~ s/^\s+//;
-                    $bibles->{$bible[0]} = "sword;".$bible[1];
+                    my @bible = split(/:/, $_, 2);
+                    $bible[0] =~ s/\s+$//;
+                    $bible[1] =~ s/^\s+//;
+                    $bibles->{$bible[0]} = "sword;" . $bible[1];
                 }
             }
         }
