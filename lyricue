@@ -6672,10 +6672,11 @@ sub navigator_changed {
             chomp;
             my $line2 = $_;
             if ($line2 ne "") {
-                $quicktext .= $book . " " . $line2 . "\n";
+                $quicktext .= $line2."\n";
             }
         }
-
+	# remove the trailing bible name
+	$quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
     } else {
         $query =
           "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \""
@@ -6693,12 +6694,12 @@ sub navigator_changed {
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         while (my @row = $sth->fetchrow_array()) {
             $quicktext .=
-              $row[0] . " " . $row[1] . ":" . $row[2] . "   " . $row[3] . "\n";
+              $row[1] . ":" . $row[2] . "   " . $row[3] . "\n";
         }
     }
 
     $widgets->{'main'}->get_widget('entryNavVerse')->{user_data} =
-      $book . " " . $chapter . " " . $startverse . "-" . $endverse;
+      $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
     my $oldtext =
       get_buffer_text(
         $widgets->{'main'}->get_widget('textNavView')->get_buffer());
