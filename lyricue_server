@@ -1047,11 +1047,19 @@ sub process_input {
 
                     ($line[2], $line[4]) = split(/-/, $row->{'data'});
                     if (!$globals->{'usesword'}) {
+                        $query = "SELECT book FROM verse WHERE book LIKE \"".$line[0]."%\"";
+                        $sth = $bibleDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        my @bookrow = $sth->fetchrow_array();
+                        $line[0] = $bookrow[0];
+
                         if ($line[1] == $line[3]) {
                             $query =
-                                "SELECT * FROM  verse WHERE book=\""
+                                "SELECT * FROM  verse WHERE book LIKE \""
                               . $line[0]
-                              . "\" AND chapternum="
+                              . "%\" AND chapternum="
                               . $line[1]
                               . " AND versenum>="
                               . $line[2]
@@ -1059,9 +1067,9 @@ sub process_input {
                               . $line[4];
                         } else {
                             $query =
-                                "SELECT * FROM verse WHERE book=\""
+                                "SELECT * FROM verse WHERE book LIKE \""
                               . $line[0]
-                              . "\" AND ((chapternum="
+                              . "%\" AND ((chapternum="
                               . $line[1]
                               . " AND versenum>="
                               . $line[2]

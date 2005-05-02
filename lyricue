@@ -6678,6 +6678,13 @@ sub navigator_changed {
 	# remove the trailing bible name
 	$quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
     } else {
+        $query = "SELECT book FROM verse WHERE book LIKE \"".$book."%\"";
+        qdebug ($query);
+        $sth = $bibleDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my @bookrow = $sth->fetchrow_array();
+	$book = $bookrow[0];
         $query =
           "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \""
           . $book
