@@ -551,7 +551,7 @@ sub add_playlist {
             my $row2 = $sth2->fetchrow_hashref();
             $title = "Image: " . $row2->{'description'};
         } elsif ($row->{'type'} eq "vers") {
-            $title = $row->{'data'};
+            $title = "Verses ".$row->{'data'};
         } elsif ($row->{'type'} eq "song") {
             my $query2 =
               "SELECT lyrics FROM page WHERE pageid=" . $row->{'data'};
@@ -6685,23 +6685,25 @@ sub navigator_changed {
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my @bookrow = $sth->fetchrow_array();
 	$book = $bookrow[0];
-        $query =
-          "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \""
-          . $book
-          . "%\" AND chapternum="
-          . $chapter
-          . " AND versenum>="
-          . $startverse
-          . " AND versenum <= "
-          . $endverse
-          . " ORDER BY versenum";
-        qdebug($query);
-        $sth = $bibleDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-        while (my @row = $sth->fetchrow_array()) {
-            $quicktext .=
-              $row[1] . ":" . $row[2] . "   " . $row[3] . "\n";
+        if ($book ne "") {
+            $query =
+              "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \""
+              . $book
+              . "%\" AND chapternum="
+              . $chapter
+              . " AND versenum>="
+              . $startverse
+              . " AND versenum <= "
+              . $endverse
+              . " ORDER BY versenum";
+            qdebug($query);
+            $sth = $bibleDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            while (my @row = $sth->fetchrow_array()) {
+                $quicktext .=
+                  $row[1] . ":" . $row[2] . "   " . $row[3] . "\n";
+            }
         }
     }
 
