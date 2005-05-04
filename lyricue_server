@@ -1046,6 +1046,9 @@ sub process_input {
                     my $verse     = "";
 
                     ($line[2], $line[4]) = split(/-/, $row->{'data'});
+                    if ($line[4] eq "") {
+                        $line[4]=$line[2];
+                    }
                     if (!$globals->{'usesword'}) {
                         $query = "SELECT book FROM verse WHERE book LIKE \"".$line[0]."%\"";
                         $sth = $bibleDbh->prepare($query)
@@ -1814,30 +1817,32 @@ sub set_maintext {
         $mainText->set_buffer($buffer);
         $mainText->show();
 
-        # Add the shadow
-        $mainTextShadow = Gnome2::Canvas::Item->new(
-            $root, 'Gnome2::Canvas::RichText',
-            x => $centreX + ($config->{'ShadowSize'} / 2),
-            y => $centreY + ($config->{'ShadowSize'} / 2),
-            width            => $w,
-            height           => $h,
-            anchor           => 'GTK_ANCHOR_CENTER',
-            'cursor-visible' => FALSE
-        );
-        my $buffer2 = $mainTextShadow->get_buffer();
-        my $tags    = $buffer2->create_tag(
-            "MainShadow",              "font",
-            $config->{'Main'},         "foreground",
-            $config->{'ShadowColour'}, "wrap-mode",
-            "word",                    "editable-set",
-            TRUE,                      "editable",
-            FALSE
-        );
-        $buffer2->set_text($text);
-        $buffer2->apply_tag_by_name("MainShadow", $buffer2->get_bounds);
-        $mainTextShadow->set_buffer($buffer2);
-        $mainText->raise_to_top();
-        $mainTextShadow->show();
+        if (!$MINISERV) {
+            # Add the shadow
+            $mainTextShadow = Gnome2::Canvas::Item->new(
+                $root, 'Gnome2::Canvas::RichText',
+                x => $centreX + ($config->{'ShadowSize'} / 2),
+                y => $centreY + ($config->{'ShadowSize'} / 2),
+                width            => $w,
+                height           => $h,
+                anchor           => 'GTK_ANCHOR_CENTER',
+                'cursor-visible' => FALSE
+            );
+            my $buffer2 = $mainTextShadow->get_buffer();
+            my $tags    = $buffer2->create_tag(
+                "MainShadow",              "font",
+                $config->{'Main'},         "foreground",
+                $config->{'ShadowColour'}, "wrap-mode",
+                "word",                    "editable-set",
+                TRUE,                      "editable",
+                FALSE
+            );
+            $buffer2->set_text($text);
+            $buffer2->apply_tag_by_name("MainShadow", $buffer2->get_bounds);
+            $mainTextShadow->set_buffer($buffer2);
+            $mainText->raise_to_top();
+            $mainTextShadow->show();
+        }
     }
 }
 
