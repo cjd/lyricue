@@ -154,6 +154,7 @@ $globals->{'server_port'}   = "2346";    #port used for lyric server
 $globals->{'preview_port'}  = "2347";    #port used for preview
 $globals->{'miniview_port'} = "2348";    #port used for miniview
 $globals->{'update_timer'}  = FALSE;
+$globals->{'nav_update_timer'}  = FALSE;
 $globals->{'timer'}         = FALSE;
 $globals->{'debugging'}     = FALSE;
 $globals->{'spell'}         = TRUE;
@@ -6631,6 +6632,18 @@ sub get_bibles {
 
 sub navigator_changed {
     debug("Navigator changed");
+    if ($globals->{'nav_update_timer'}) {
+        Glib::Source->remove($globals->{'nav_update_timer'});
+    }
+    $globals->{'nav_update_timer'} = Glib::Timeout->add(500, \&navigator_update);
+}
+
+sub navigator_update {
+    debug ("Updating navigator");
+    if ($globals->{'nav_update_timer'}) {
+        Glib::Source->remove($globals->{'nav_update_timer'});
+        $globals->{'nav_update_timer'} = FALSE;
+    }
     my $quicktext = "";
     my $verse     = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
     $verse =~ s/ (\D)/_$1/;
