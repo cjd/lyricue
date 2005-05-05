@@ -84,6 +84,8 @@ use Gtk2::Pango;
 use Gtk2::GladeXML;
 use Gtk2::Gdk::Keysyms;
 use Glib;
+binmode(STDOUT, ":utf8");
+binmode(STDERR, ":utf8");
 eval { require Locale::gettext };
 
 if ($@) {

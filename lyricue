@@ -95,6 +95,8 @@ die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
 use Gtk2::GladeXML;
 use Gtk2::Pango;
 eval { require Locale::gettext };
+binmode (STDOUT, ":utf8");
+binmode (STDERR, ":utf8");
 
 if ($@) {
     print "Gettext not available, english text only\n";
