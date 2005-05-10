@@ -291,7 +291,7 @@ if ($pid) {
     kill 9, $pid;
 }
 
-# Open lyricDB and bibleDB
+# Open lyricDB and mediaDB
 my $lyricDbh =
   DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}",
     "lyric", "")
@@ -1501,6 +1501,7 @@ sub change_to_db {
         $globals->{'usesword'} = FALSE;
     } else {
         $globals->{'usesword'} = TRUE;
+        $bibleDbh="";
     }
     $globals->{'biblename'} = $config->{'Bibles'}->{$globals->{'bibledb'}};
     $globals->{'biblename'} =~ s/^.*?://g;
@@ -1870,12 +1871,13 @@ sub display_fatal {
     print STDERR "Error description\n";
     print STDERR $message . "\n";
     print STDERR "------------------\n";
-    my $errorxml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
-    $errorxml->signal_autoconnect_from_package('');
-    $errorxml->get_widget('labelError')->set_text($message);
-    my $confirm = $errorxml->get_widget('dialogError')->run();
-    close_dialog($errorxml->get_widget('dialogError'));
+    # Don't want this to show up on projector
+    #my $errorxml =
+    #  Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
+    #$errorxml->signal_autoconnect_from_package('');
+    #$errorxml->get_widget('labelError')->set_text($message);
+    #my $confirm = $errorxml->get_widget('dialogError')->run();
+    #close_dialog($errorxml->get_widget('dialogError'));
     print STDERR "Full error message\n";
     print STDERR "------------------\n";
     die($error);

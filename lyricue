@@ -728,10 +728,7 @@ sub change_sort_order {
 #   updated list of available songs
 # SOURCE
 sub update_available {
-    if ($globals->{'update_timer'}) {
-        Glib::Source->remove($globals->{'update_timer'});
-        $globals->{'update_timer'} = FALSE;
-    }
+    reset_timer($globals->{'update_timer'});
 
     my $store =
       Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Glib::Uint',
@@ -1139,8 +1136,7 @@ sub do_delete_song {
         #removed items represents a possible crash risk - better safe
         #than sorry.
         #
-        debug("Cancelling loop timers");
-        Glib::Source->remove($globals->{'timer'});
+        reset_timer($globals->{'timer'});
 
         #
     }
@@ -2219,8 +2215,7 @@ sub remove_from_playlist {
     #items represents a major crash risk - better safe
     #than sorry.
     #
-    debug("Cancelling loop timers");
-    Glib::Source->remove($globals->{'timer'});
+    reset_timer($globals->{'timer'});
 
     #
 
@@ -2258,10 +2253,7 @@ sub remove_single_item {
     #items represents a major crash risk - better safe
     #than sorry.
     #
-    debug("Cancelling loop timers");
-    if ($globals->{'timer'}) {
-        Glib::Source->remove($globals->{'timer'});
-    }
+    reset_timer($globals->{'timer'});
 
     #
 
@@ -2332,8 +2324,7 @@ sub clear_playlist {
     #items represents a major crash risk - better safe
     #than sorry.
     #
-    debug("Cancelling loop timers");
-    Glib::Source->remove($globals->{'timer'});
+    reset_timer($globals->{'timer'});
 
     #
 
@@ -2373,12 +2364,7 @@ sub display_song {
     #debug ("event $event");
     if (defined($event->type)) {
         if ($event->type eq '2button-press') {
-            if ($globals->{'timer'}) {
-
-                #Cancel any loop timers
-                debug("Cancelling loop timers");
-                Glib::Source->remove($globals->{'timer'});
-            }
+            reset_timer($globals->{'timer'});
             my $selection =
               $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
             my ($model, $iter) = $selection->get_selected;
@@ -2480,12 +2466,7 @@ sub display_now {
     my ($widget) = @_;
     debug("Display clicked");
 
-    if ($globals->{'timer'}) {
-
-        #Cancel any loop timers
-        debug("Cancelling loop timers");
-        Glib::Source->remove($globals->{'timer'});
-    }
+    reset_timer($globals->{'timer'});
 
     my $selection =
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
@@ -2512,13 +2493,7 @@ sub display_now {
 #
 sub prev_page {
 
-    if ($globals->{'timer'}) {
-
-        #Cancel any loop timers
-        debug("Cancelling loop timers");
-        Glib::Source->remove($globals->{'timer'});
-    }
-
+    reset_timer($globals->{'timer'});
     debug("Prev clicked");
     update_display("display", "prev_page", $config->{'Loop'});
 }
@@ -2540,13 +2515,7 @@ sub prev_page {
 #
 sub next_page {
 
-    if ($globals->{'timer'}) {
-
-        #Cancel any loop timers
-        debug("Cancelling loop timers");
-        Glib::Source->remove($globals->{'timer'});
-    }
-
+    reset_timer($globals->{'timer'});
     debug("Next clicked");
     update_display("display", "next_page", $config->{'Loop'});
 }
@@ -2568,13 +2537,7 @@ sub next_page {
 #
 sub prev_song {
 
-    if ($globals->{'timer'}) {
-
-        #Cancel any loop timers
-        debug("Cancelling loop timers");
-        Glib::Source->remove($globals->{'timer'});
-    }
-
+    reset_timer($globals->{'timer'}) ;
     debug("Prev clicked");
     update_display("display", "prev_song", $config->{'Loop'});
 }
@@ -2596,12 +2559,7 @@ sub prev_song {
 #
 sub next_song {
 
-    if ($globals->{'timer'}) {
-
-        #Cancel any loop timers
-        debug("Cancelling loop timers");
-        Glib::Source->remove($globals->{'timer'});
-    }
+    reset_timer($globals->{'timer'});
 
     debug("Next clicked");
     update_display("display", "next_song", $config->{'Loop'});
@@ -2624,13 +2582,7 @@ sub next_song {
 #
 sub blank_page {
 
-    if ($globals->{'timer'}) {
-
-        #Cancel any loop timers
-        debug("Cancelling loop timers");
-        Glib::Source->remove($globals->{'timer'});
-    }
-
+    reset_timer($globals->{'timer'});
     debug("Blank page clicked");
     update_display("blank", "", "");
 }
@@ -2671,12 +2623,7 @@ sub next_point {
 sub preview_page {
     my ($widget, $MODE) = @_;
 
-    if ($globals->{'timer'}) {
-
-        #Cancel any loop timers
-        debug("Cancelling loop timers");
-        Glib::Source->remove($globals->{'timer'});
-    }
+    reset_timer($globals->{'timer'});
 
     my $current_page =
       $widgets->{'add'}->get_widget('notebookEditPages')->get_current_page() +
@@ -4712,8 +4659,7 @@ sub begin_loop {
 sub establish_timer {
     my ($widget, $loopxml) = @_;
 
-    #Cancel any existing loop timers
-    Glib::Source->remove($globals->{'timer'});
+    reset_timer($globals->{'timer'});
 
     my $seconds = $loopxml->get_widget('spinLoopSeconds')->get_value_as_int();
     my $milliseconds =
@@ -5962,9 +5908,7 @@ sub add_user {
 
 sub search_changed {
     debug("Search changed");
-    if ($globals->{'update_timer'}) {
-        Glib::Source->remove($globals->{'update_timer'});
-    }
+    reset_timer($globals->{'update_timer'});
     $globals->{'update_timer'} = Glib::Timeout->add(500, \&update_available);
 }
 
@@ -6636,18 +6580,13 @@ sub get_bibles {
 
 sub navigator_changed {
     debug("Navigator changed");
-    if ($globals->{'nav_update_timer'}) {
-        Glib::Source->remove($globals->{'nav_update_timer'});
-    }
+    reset_timer($globals->{'nav_update_timer'});
     $globals->{'nav_update_timer'} = Glib::Timeout->add(500, \&navigator_update);
 }
 
 sub navigator_update {
     debug ("Updating navigator");
-    if ($globals->{'nav_update_timer'}) {
-        Glib::Source->remove($globals->{'nav_update_timer'});
-        $globals->{'nav_update_timer'} = FALSE;
-    }
+    reset_timer($globals->{'nav_update_timer'});
     my $quicktext = "";
     my $verse     = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
     $verse =~ s/ (\D)/_$1/;
@@ -6681,7 +6620,7 @@ sub navigator_update {
             $book
         );
         qdebug($command);
-        $book = ucfirst($book . "[a-z]*");
+        $book = ucfirst($book . "[:alpha:]*");
         my $command_out = Encode::decode("utf-8", `$command`);
         ($book, undef) = split(/\s/, $command_out, 2);
         my @command_lines = split(/$book /, $command_out);
@@ -6692,8 +6631,8 @@ sub navigator_update {
                 $quicktext .= $line2."\n";
             }
         }
-	# remove the trailing bible name
-	$quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
+	    # remove the trailing bible name
+	    $quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
     } else {
         $query = "SELECT book FROM verse WHERE book LIKE \"".$book."%\"";
         qdebug ($query);
@@ -6701,8 +6640,7 @@ sub navigator_update {
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my @bookrow = $sth->fetchrow_array();
-	$book = $bookrow[0];
-        if ($book ne "") {
+        if ((defined $bookrow[0]) && ($book ne "")) {
             $query =
               "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \""
               . $book
@@ -6756,4 +6694,13 @@ sub navigator_add {
     my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
     $book =~ s/_/ /g;
     insert_verse($book,$chapter,$startverse,$endverse);
+}
+
+sub reset_timer {
+    my ($timer) = @_;
+    debug("Cancelling timer");
+    if ($timer) {
+        Glib::Source->remove($timer);
+        $timer = FALSE;
+    }
 }
