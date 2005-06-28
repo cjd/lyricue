@@ -310,43 +310,29 @@ my ($headhigh,   $headwide, $canvas, $root, $mainTextShadow);
 
 my ($pixmap, $textcol);
 
-if ($MINISERV > 0) {
-    $window = Gtk2::Plug->new($MINISERV);
-} else {
-    $window = new Gtk2::Window->new('toplevel');
-}
+$window = new Gtk2::Window->new('toplevel');
 $window->set_title("Lyric Server");
 
 while (Gtk2->events_pending) {
     Gtk2->main_iteration;
 }
 
+$window->show();
 if ($MINISERV >= 0) {
-    $window->show();
-    $window->realize();
-    my $width  = $config->{'Width'};
-    my $height = $config->{'Height'};
-    my ($width2, $height2) = $window->get_size();
-    $MINISCALE = $width / $width2;
-    $width  /= $MINISCALE;
-    $height /= $MINISCALE;
-
+    $window->resize($config->{'Width'},$config->{'Height'});
     debug("Running in MINISERV (preview window) mode");
-    debug("W * H:" . $width . "*" . $height);
 } else {
-    $window->show();
     $window->fullscreen();
-    my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
-    my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap(
-        $bitmap, $bitmap,
-        Gtk2::Gdk::Color->new(0, 0, 0),
-        Gtk2::Gdk::Color->new(0, 0, 0),
-        0, 0
-    );
-    $window->window->set_cursor($cursor);
-
     debug("Running in SERVER (normal) mode");
 }
+my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
+my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap(
+  $bitmap, $bitmap,
+  Gtk2::Gdk::Color->new(0, 0, 0),
+  Gtk2::Gdk::Color->new(0, 0, 0),
+  0, 0
+);
+$window->window->set_cursor($cursor);
 
 while (Gtk2->events_pending) {
     Gtk2->main_iteration;
@@ -393,7 +379,7 @@ if ($globals->{'fast'}) {
     $canvas = Gnome2::Canvas->new();
     $canvas->set_scroll_region(1, 1, $config->{'Width'}, $config->{'Height'});
     $canvas->set_center_scroll_region(TRUE);
-    $canvas->set_pixels_per_unit(1 / $MINISCALE);
+    #$canvas->set_pixels_per_unit(1 / $MINISCALE);
 
     $window->add($canvas);
     $root = $canvas->root;
@@ -460,7 +446,7 @@ $window->show_all();
 $window->signal_connect("configure_event", \&Configure_event);
 Configure_event();
 
-if (!$MINISERV && !$globals->{'fast'}) {
+if (!$globals->{'fast'}) {
     $canvas->update_now();
 }
 
@@ -1468,6 +1454,9 @@ sub debug {
     if ($DEBUG) {
         my $text = shift;
         chomp($text);
+        if ($MINISERV > 0) {
+            print STDERR "SERVER: ";
+        }
         print STDERR $text . "\n";
     }
 } ## end sub debug
@@ -1820,7 +1809,7 @@ sub set_maintext {
         $mainText->set_buffer($buffer);
         $mainText->show();
 
-        if (!$MINISERV) {
+        if ($MINISERV<0) {
             # Add the shadow
             $mainTextShadow = Gnome2::Canvas::Item->new(
                 $root, 'Gnome2::Canvas::RichText',
@@ -1850,14 +1839,14 @@ sub set_maintext {
 }
 
 sub Configure_event {
-    my ($width, $height) = $window->get_size();
-    $MINISCALE = $config->{'Width'} / $width;
-    if (!$globals->{'fast'}) {
-        if ($canvas) {
-            $canvas->set_pixels_per_unit(1 / $MINISCALE);
-        }
-    }
-    $window->set_size_request($width, $config->{'Height'} / $MINISCALE);
+    #my ($width, $height) = $window->get_size();
+    #$MINISCALE = $config->{'Width'} / $width;
+    #if (!$globals->{'fast'}) {
+    #    if ($canvas) {
+    #        $canvas->set_pixels_per_unit(1 / $MINISCALE);
+    #    }
+    #}
+    #$window->set_size_request($width, $config->{'Height'} / $MINISCALE);
 
     #debug($width . "x" . ($config->{'Height'} / $MINISCALE));
     #debug("Scale: " . $MINISCALE);
