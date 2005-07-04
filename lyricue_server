@@ -570,7 +570,6 @@ sub process_input {
             if ((defined $extras[3]) && ($extras[3] eq "wrap")) {
                 $wrap=TRUE;
             }
-print "wrap: $wrap\n";
             set_maintext(Encode::decode("utf-8", $line[2]), NONE, $wrap);
 
             if ($extras[2]) {

@@ -6723,7 +6723,6 @@ sub navigator_show {
     $songtext =~ s/\n/#BREAK#/g;
     $songtext =~ s/:/#SEMI#/g;
 
-    #my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data}."#BREAK##BREAK##BREAK#wrap";
     update_display("preview", $verse, $songtext);
 }
