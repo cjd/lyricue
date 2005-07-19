@@ -6189,7 +6189,7 @@ sub select_category {
         $choosexml->get_widget('treeChoosePlay')->append_column($column);
     }
 
-    my $query = "SELECT DISTINCT category FROM media ORDER BY category";
+    my $query = "SELECT DISTINCT category FROM media WHERE type=\"".$type."\" ORDER BY category";
     my $sth   = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
