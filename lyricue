@@ -3014,23 +3014,24 @@ sub preview_display {
                 debug($status);
                 close($server);
             }
-            my $preview_image =
-`xwd -root -display :1.0 | convert - -resize 200x150 /tmp/lyricue_preview.png`;
-            my $scaled =
-              Gtk2::Gdk::Pixbuf->new_from_file("/tmp/lyricue_preview.png");
-            $widgets->{'preview_image'}->set_from_pixbuf($scaled);
+            reset_timer($globals->{'preview_timer'});
+            $globals->{'preview_timer'} = Glib::Idle->add(\&update_preview_image);
         } else {
 
             #tcp/ip socket failure so server must be not running yet!
             debug("Preview not running?");
-
-            #init_preview();
-            #redo PUPDATE;
         }
     }
 }
 
 #***
+
+sub update_preview_image {
+    my $preview_image = `xwd -root -display :1.0 | convert - -resize 200x150 /tmp/lyricue_preview.png`;
+    my $scaled = Gtk2::Gdk::Pixbuf->new_from_file("/tmp/lyricue_preview.png");
+    $widgets->{'preview_image'}->set_from_pixbuf($scaled);
+    return FALSE;
+}
 
 sub open_dialogColour {
     my ($widget, $event, $item) = @_;
@@ -6148,15 +6149,16 @@ sub import_media {
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "select_category", $filexml);
     $filexml->get_widget('dialogFile')->{user_data} = $type;
+    $filexml->get_widget('dialogFile')->set_select_multiple(TRUE);
 }
 
 sub select_category {
     my ($widget, $filexml) = @_;
     debug ("select category");
     my $hashnum  = 0;
-    my $filename = $filexml->get_widget('dialogFile')->get_filename;
+    my @filenames = $filexml->get_widget('dialogFile')->get_selections;
+    debug(@filenames);
     my $type     = $filexml->get_widget('dialogFile')->{user_data};
-    debug($filename);
     my $choosexml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
     $choosexml->get_widget('buttonLoad')->set_label("Select");
@@ -6169,7 +6171,7 @@ sub select_category {
     $choosexml->get_widget('buttonCancel')
       ->signal_connect("clicked", "close_dialog");
     $choosexml->get_widget('windowChoosePlay')->show;
-    $choosexml->get_widget('windowChoosePlay')->{'user_data'} = $filename;
+    $choosexml->get_widget('windowChoosePlay')->{'user_data'} = \@filenames;
     $choosexml->get_widget('treeChoosePlay')->{'user_data'}   = $type;
     my $store = $choosexml->get_widget('treeChoosePlay')->get_model();
 
@@ -6207,36 +6209,39 @@ sub do_import_media {
     if ($choosexml->get_widget('entryChoosePlay')->get_text() ne "") {
         my $type     = $choosexml->get_widget('treeChoosePlay')->{'user_data'};
         my $category = $choosexml->get_widget('entryChoosePlay')->get_text();
-        my $filename =
+        my $filenames =
           $choosexml->get_widget('windowChoosePlay')->{'user_data'};
-        my $format = $filename;
-        $format =~ s/^.*\.//g;
-        my $description = $filename;
-        $description =~ s/^.*\///g;
-        $description =~ s/\..*?$//g;
-        my $owner = getpwuid($<);
-        my @date  = localtime(time);
-        my $time  = sprintf(
-            "%04d-%02d-%02d %02d:%02d:%02d",
-            $date[5] + 1900,
-            $date[4], $date[3], $date[2], $date[1], $date[0]
-        );
-        debug("Category: $category\nFilename: $filename");
-        open(MEDIA, $filename);
-        my $data = "";
-
-        while (<MEDIA>) {
-            $data .= $_;
+        my $filename="";
+        foreach $filename (@$filenames) {
+            my $format = $filename;
+            $format =~ s/^.*\.//g;
+            my $description = $filename;
+            $description =~ s/^.*\///g;
+            $description =~ s/\..*?$//g;
+            my $owner = getpwuid($<);
+            my @date  = localtime(time);
+            my $time  = sprintf(
+                "%04d-%02d-%02d %02d:%02d:%02d",
+                $date[5] + 1900,
+                $date[4], $date[3], $date[2], $date[1], $date[0]
+            );
+            debug("Category: $category\nFilename: $filename");
+            open(MEDIA, $filename);
+            my $data = "";
+    
+            while (<MEDIA>) {
+                $data .= $_;
+            }
+            close MEDIA;
+            debug("Length: " . length($data));
+            my $sth =
+            $mediaDbh->prepare(
+    q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)}
+            );
+            my $rv =
+            $sth->execute($category, "", $type, $format, $owner, $time,
+                $description, $data);
         }
-        close MEDIA;
-        debug("Length: " . length($data));
-        my $sth =
-          $mediaDbh->prepare(
-q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)}
-          );
-        my $rv =
-          $sth->execute($category, "", $type, $format, $owner, $time,
-            $description, $data);
     }
     close_dialog($widget);
     my $category =
