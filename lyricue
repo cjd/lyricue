@@ -779,7 +779,7 @@ sub update_available {
     my $songname = $widgets->{'main'}->get_widget('entrySearch')->get_text();
 
     my $query =
-"SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"Today%nnouncements\"";
+"SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"".$config->{'SpecialSong'}."\"";
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1058,7 +1058,7 @@ sub delete_song {
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
         my $songid = $model->get($iter, 3);
-        if (!($model->get($iter, 1) =~ /Today.*Announcements/)) {
+        if (!($model->get($iter, 1) eq $config->{'SpecialSong'})) {
             $query =
               "SELECT title,songnum,book,artist FROM lyricMain WHERE id="
               . $songid;
@@ -2765,12 +2765,16 @@ sub update_imagedir {
     my ($type, $category) = @_;
     debug("update image directory");
 
-    if ($category eq "") {
-        debug("changing to Main");
-        $category = "Main";
+    my $main = "";
+    if ($type eq "bg") {
+        $main = $config->{'SpecialBack'};
     } else {
-        debug("changing to $category");
+        $main = $config->{'SpecialImage'};
     }
+    if ($category eq "") {
+        $category = $main;
+    }
+    debug("changing to $category");
 
     # display sorted list
 
@@ -2782,14 +2786,14 @@ sub update_imagedir {
       $widgets->{'image'}->get_widget('optionImageCategory')->get_history();
     my $menu = Gtk2::Menu->new();
     $widgets->{'image'}->get_widget('optionImageCategory')->set_menu($menu);
-    my $item = Gtk2::MenuItem->new_with_label("Main");
+    my $item = Gtk2::MenuItem->new_with_label($main);
     $item->show();
-    $item->{user_data} = "Main";
+    $item->{user_data} = $main;
     $menu->append($item);
 
     $query =
         "SELECT DISTINCT category FROM media WHERE type=\"" . $type
-      . "\" AND category != \"Main\" ORDER BY category";
+      . "\" AND category != \"".$main."\" ORDER BY category";
     qdebug($query);
     $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -3711,6 +3715,12 @@ sub create_dialog_prefs {
       ->set_popdown_strings(@list);
     $widgets->{'prefs'}->get_widget('entryPrefBible')
       ->set_text($config->{'DefBible'});
+    $widgets->{'prefs'}->get_widget('entryPrefSpecialSong')
+      ->set_text($config->{'SpecialSong'});
+    $widgets->{'prefs'}->get_widget('entryPrefSpecialImage')
+      ->set_text($config->{'SpecialImage'});
+    $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')
+      ->set_text($config->{'SpecialBack'});
     $widgets->{'prefs'}->get_widget('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
     $widgets->{'prefs'}->get_widget('entryPrefMain')
@@ -4818,6 +4828,12 @@ sub save_preferences {
     print CONFIG "FrameRight = "
       . $widgets->{'main'}->get_widget('hpanedMainRight')->get_position()
       . "\n";
+    print CONFIG "SpecialSong = "
+      . $widgets->{'prefs'}->get_widget('entryPrefSpecialSong')->get_text() . "\n";
+    print CONFIG "SpecialImage = "
+      . $widgets->{'prefs'}->get_widget('entryPrefSpecialImage')->get_text() . "\n";
+    print CONFIG "SpecialBack = "
+      . $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text() . "\n";
 
     foreach (0 .. $config->{'BibleCount'} - 1) {
         print CONFIG "Bible = " . $config->{'Bible'}[$_] . "\n";
@@ -5315,19 +5331,25 @@ sub bgdir_list {
     debug("Loading directory list");
     my $counter = 0;
     debug("Adding Main image dir button");
+    my @categories=($config->{'SpecialBack'});
     my $query =
-      "SELECT DISTINCT category FROM media WHERE type=\"bg\" ORDER BY category";
+      "SELECT DISTINCT category FROM media WHERE type=\"bg\" AND category !=\"".$config->{'SpecialBack'}."\" ORDER BY category";
     my $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     while ($row = $sth->fetchrow_hashref()) {
-        debug("Adding image dir button for " . $row->{'category'});
+        push @categories, $row->{'category'};
+    }
+
+    my $cat = "";
+    foreach $cat (@categories){
+        debug("Adding image dir button for " . $cat);
         $widgets->{'dirbuttons'}[$counter] =
-          new Gtk2::Button($row->{'category'});
+          new Gtk2::Button($cat);
         $widgets->{'main'}->get_widget('vboxBackDir')
           ->add($widgets->{'dirbuttons'}[$counter]);
         $widgets->{'dirbuttons'}[$counter]
-          ->signal_connect("clicked", \&bgdir_change, $row->{'category'});
+          ->signal_connect("clicked", \&bgdir_change, $cat);
         $widgets->{'dirbuttons'}[$counter]->show;
         $counter++;
     }
