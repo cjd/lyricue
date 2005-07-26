@@ -1782,15 +1782,7 @@ sub insert_verse {
     my $page = "";
 
     my (@command_out);
-    if ($globals->{'usesword'}) {
-        my $command = sprintf(
-            "%s -b %s -k '%s' %d:%d-%d |tr \\\\n \' \'",
-            $globals->{'diatheke'},
-            $globals->{'bibledb'}, $book, $chapter, $start, $end, $book
-        );
-        qdebug($command);
-        @command_out = split(/$book/, Encode::decode("utf-8", `$command`));
-    } else {
+    if (!$globals->{'usesword'}) {
         $query =
             "SELECT * FROM  verse WHERE book=\"" . $book
           . "\" AND chapternum="
@@ -1808,10 +1800,22 @@ sub insert_verse {
     }
 
     my $loop = TRUE;
+    my $versenum = $minv;
     while ($loop) {
         my $line     = "";
-        my $versenum = "";
-        if ($globals->{'biblename'} ne "") {
+        if ($globals->{'usesword'}) {
+            my $command = sprintf(
+                "%s -b %s -k '%s' %d:%d-%d | sed -e 's/^%s //g' | head -n -1",
+                $globals->{'diatheke'},
+                $globals->{'bibledb'}, $book, $chapter, $minv, $versenum, $book
+            );
+            qdebug($command);
+            $line = Encode::decode("utf-8", `$command`);
+            $versenum++;
+            if ($versenum>$end-1) { $loop = FALSE; }
+            chomp($line);
+        } else {
+            if (!defined $line) { $loop = FALSE; }
             if ($row = $sth->fetchrow_hashref()) {
                 $line =
                     $row->{'chapternum'} . ":"
@@ -1821,13 +1825,6 @@ sub insert_verse {
             } else {
                 $loop = FALSE;
             }
-        } else {
-            $line = shift @command_out;
-            chomp($line);
-            $versenum = $line;
-            $line     =~ s/^$book //g;
-            $versenum =~ s/^.*:([0-9]*):.*$/$1/g;
-            if (!defined $line) { $loop = FALSE; }
         }
 
         $layout->set_text($page . "\n" . $line);
@@ -6686,6 +6683,7 @@ sub navigator_update {
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my @bookrow = $sth->fetchrow_array();
         if ((defined $bookrow[0]) && ($book ne "")) {
+            $book = $bookrow[0];
             $query =
 "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \""
               . $book
