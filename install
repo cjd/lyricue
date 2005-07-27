@@ -10,11 +10,11 @@ use Gtk2;
 use Gtk2::GladeXML;
 use Gtk2::Pango;
 eval {require Gtk2::Spell};
-if ($@) { print "Optional module Gtk2::Spell not available, please install for spell checking\n" };
+if ($@) { debug( "Optional module Gtk2::Spell not available, please install for spell checking\n") };
 eval {require Gtk2::TrayIcon};
-if ($@) { print "Optional module Gtk2::TrayIcon not available, please install for Tray Icon\n" };
+if ($@) { debug( "Optional module Gtk2::TrayIcon not available, please install for Tray Icon\n") };
 eval {require Gnome2::Canvas};
-if ($@) { print "Optional module Gnome2::Canvas not available, please install for Fullserver\n" };
+if ($@) { debug( "Optional module Gnome2::Canvas not available, please install for Fullserver\n") };
 use Getopt::Std;
 use Glib;
 
@@ -24,11 +24,12 @@ my $install_files = 1;
 my $dbpass = "";
 my $dbuser = "root";
 my $adminuser = "";
+my $quiet = 0;
 my %opts;
 
-getopts('f:du:p:a:h', \%opts);
+getopts('f:dqu:p:a:h', \%opts);
 if (defined $opts{h}) {
-	print "Usage: install [-h] [-f PREFIX] [-d] [-u DBUSER] [-p DBPASS] [-a ADMINUSER]\n";
+	debug( "Usage: install [-h] [-f PREFIX] [-d] [-q] [-u DBUSER] [-p DBPASS] [-a ADMINUSER]\n");
 	exit(1);
 }
 if (defined $opts{f}) {
@@ -47,12 +48,15 @@ if (defined $opts{u}) {
 if (defined $opts{p}) {
 	$dbpass = $opts{p};
 }
+if (defined $opts{q}) {
+    $quiet = 1;
+}
 
 
-print "Lyric Display System\n";
-print "--------------------\n";
-print "This script will check that the nessecary items are installed\n";
-print "then install the files and create the MySql tables nessecary\n";
+debug( "Lyric Display System\n");
+debug( "--------------------\n");
+debug( "This script will check that the nessecary items are installed\n");
+debug( "then install the files and create the MySql tables nessecary\n");
 
 my $bindir   = $prefix."/usr/bin/";
 my $etcdir   = $prefix."/etc/lyricue/";
@@ -79,52 +83,52 @@ my %addonly = (	$etcdir."access.conf" => 0644,
 		);
 
 if ($ARGV[0] eq "-u") {
-	print "Uninstalling Lyricue\n";
-	print "--------------------\n\n";
-	print "Do you want to remove global images/backgrounds? (y/N):";
+	debug( "Uninstalling Lyricue\n");
+	debug( "--------------------\n\n");
+	debug( "Do you want to remove global images/backgrounds? (y/N):");
 	my $globals = <STDIN>;
 	chomp ($globals);
-	print "\nDo you want to remove the databases? (y/N):";
+	debug( "\nDo you want to remove the databases? (y/N):");
 	my $database = <STDIN>;
 	chomp($database);
 	if (uc($database) eq "Y") {
 		if ($dbpass eq "") {
-			print "Please enter the password for your ".$dbuser." mysql user: ";
+			debug( "Please enter the password for your ".$dbuser." mysql user: ");
 			$dbpass=<STDIN>;
 			chomp $dbpass;
 		}
 	}
-	print "\n\nAbout to delete Lyricue\n";
-	print "\nAre you SURE? (y/N):";
+	debug( "\n\nAbout to delete Lyricue\n");
+	debug( "\nAre you SURE? (y/N):");
 	my $confirm = <STDIN>;
 	chomp ($confirm);
 	if (uc($confirm) ne "Y") {
-		print "\n\nCancelled ... Exiting\n";
+		debug( "\n\nCancelled ... Exiting\n");
 		exit;
 	}
-	print "Removing executables\n";
+	debug( "Removing executables\n");
 	system ("rm $bindir/lyricue $bindir/lyricue_server $bindir/lyricue_remote");
-	print "Removing most files in share directory\n";
+	debug( "Removing most files in share directory\n");
 	system ("rm $sharedir/*");
-	print "Removing Documentation\n";
+	debug( "Removing Documentation\n");
 	system ("rm -rf $docdir");
-	print "Removing System Settings\n";
+	debug( "Removing System Settings\n");
 	system ("rm -rf $etcdir");
 	if (uc($globals) eq "Y") {
-		print "Removing entire lyricue share directory\n";
+		debug( "Removing entire lyricue share directory\n");
 		system("rm -rf $sharedir");
 	}
 	if (uc($database) eq "Y") {
-		print "Removing Databases\n";
+		debug( "Removing Databases\n");
 		system ("echo 'DROP DATABASE lyricDb' | mysql -u $dbuser --password=$dbpass");
 		system("echo 'DROP DATABASE bibleDb' | mysql -u $dbuser --password=$dbpass");
 		system("echo 'DROP DATABASE mediaDb' | mysql -u $dbuser --password=$dbpass");
-		print "Removing Lyric user from the database\n";
+		debug( "Removing Lyric user from the database\n");
 		system ("echo \"DELETE FROM user WHERE User='lyric';\"| mysql -u$dbuser --password=$dbpass mysql");
 
 		system("mysqladmin -u$dbuser --password=$dbpass reload");
 	}
-	print "\n\nUninstalled\n";
+	debug( "\n\nUninstalled\n");
 } else {
 	if ( -d $ldssharedir ) {
 		system("mv $ldssharedir $sharedir");
@@ -136,15 +140,15 @@ if ($ARGV[0] eq "-u") {
 	}
 
 	if ($install_files) {
-		print "Creating directories:\n";
-		foreach my $dir (@parentdirs, $bindir,$etcdir,$sharedir,$docdir) {
-			print "dir -> ".$dir."\n";
+		debug( "Creating directories:\n");
+		foreach my $dir (@parentdirs, $bindir,$etcdir,$sharedir,$docdir, $desktopdir) {
+			debug( "dir -> ".$dir."\n");
 			mkdir $dir,0755;
 		}
 	
-		print "\nCopying files:\n";
+		debug( "\nCopying files:\n");
 		foreach my $file (keys %replace) {
-			print "file -> ".$file."\n";
+			debug( "file -> ".$file."\n");
 			my $basename = $file;
 			$basename =~ s/^.*\///g;
 			system ("cp ".$basename." ".$file);
@@ -152,7 +156,7 @@ if ($ARGV[0] eq "-u") {
 	
 		foreach my $file (keys %addonly) {
 			if ( ! -e $file ) {
-				print "file -> ".$file."\n";
+				debug( "file -> ".$file."\n");
 				my $basename = $file;
 				$basename =~ s/^.*\///g;
 				system ("cp ".$basename." ".$file);
@@ -165,7 +169,7 @@ if ($ARGV[0] eq "-u") {
 		closedir (DIR);
 		foreach (@docs) {
 			if (! /^\./ ) {
-				print "doc -> ".$_."\n";
+				debug( "doc -> ".$_."\n");
 				system ("cp docs/".$_." ".$docdir);
 			}
 		}
@@ -181,7 +185,7 @@ if ($ARGV[0] eq "-u") {
 		    	my $locdir = $localedir.$locale."/LC_MESSAGES";
 		    	mkdir $localedir.$locale;
 		    	mkdir $locdir;
-		    	print "translation -> ".$locdir."\n";
+		    	debug( "translation -> ".$locdir."\n");
 		    	system ("cp po/".$locale.".mo ".$locdir."/lyricue.mo");
 			}
 		}
@@ -202,7 +206,7 @@ if ($ARGV[0] eq "-u") {
 			die "Mysql doesn't appear to be running, please restart it\n";
 		}
 		if ( $dbpass eq "") {
-			print "Please enter the password for your $dbuser mysql user: ";
+			debug( "Please enter the password for your $dbuser mysql user: ");
 			my $dbpass=<STDIN>;
 			chomp $dbpass;
 		}
@@ -211,36 +215,36 @@ if ($ARGV[0] eq "-u") {
 		my $sth = $dbh->prepare ("select * from user where User='lyric'");
 		my $rv = $sth->execute;
 		if ($sth->rows) {
-			print "User already setup\n";
+			debug( "User already setup\n");
 		} else {
-			print "Creating mysql user..";
+			debug( "Creating mysql user..");
 			$sth = $dbh->prepare ("insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
 			$sth->execute;
 			$sth = $dbh->prepare ("insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
 			$sth->execute;
-			print "Done\n";
+			debug( "Done\n");
 		}
 	
-		print "Checking for existing Databases:\n";
+		debug( "Checking for existing Databases:\n");
 		my @ary = DBI->data_sources("mysql");
 		my $lyricdb = 0;
 		my $bibledb = 0;
 		my $mediadb = 0;
 		foreach ( @ary ) {
 			if (/lyricDb/) {
-				print "Found lyricDb\n";
+				debug( "Found lyricDb\n");
 				$lyricdb = 1;
 			} elsif (/bibleDb/) {
-				print "Found bibleDb\n";
+				debug( "Found bibleDb\n");
 				$bibledb = 1;
 			} elsif (/mediaDb/) {
-		    		print "Found mediaDb\n";
+		    		debug( "Found mediaDb\n");
 				$mediadb = 1;
 			}
 		}
 		
 		if (! $lyricdb) {
-	    		print "Creating lyricDb\n";
+	    		debug( "Creating lyricDb\n");
 			system ("cat mysql/MySQL_create_Table.sql | mysql -u $dbuser --password=$dbpass");
 		} else {
 			my $dbh2 = DBI->connect("DBI:mysql:lyricDb", "$dbuser","$dbpass");
@@ -250,10 +254,10 @@ if ($ARGV[0] eq "-u") {
 				%table->{$_->[0]} = 1;
 			}
 			if (! defined %table->{'associations'}) {
-				print "Associations table not found\n";
-				print "Upgrading database from < 1.2 to 1.2\n";
+				debug( "Associations table not found\n");
+				debug( "Upgrading database from < 1.2 to 1.2\n");
 				system ("cat mysql/Update_1.2.sql | mysql -u $dbuser --password=$dbpass");
-				print "Done\n";
+				debug( "Done\n");
 			}
 		
 			my $fields = $dbh2->selectall_arrayref("describe playlist");
@@ -262,37 +266,37 @@ if ($ARGV[0] eq "-u") {
 				%trans->{$_->[0]} = 1;
 			}
 			if (! defined %trans->{'transition'}) {
-				print "Transition field not found\n";
-				print "Upgrading database from 1.2 to 1.9\n";
+				debug( "Transition field not found\n");
+				debug( "Upgrading database from 1.2 to 1.9\n");
 				system ("cat mysql/Update_1.9.sql | mysql -u $dbuser --password=$dbpass");
-				print "Done\n";
+				debug( "Done\n");
 			}
 	
 		}
 		
 		if (! $bibledb) {
-	    		print "Creating bibleDb\n";
+	    		debug( "Creating bibleDb\n");
 			system ("cat mysql/MySQL_create_bible_KJV.sql | mysql -u $dbuser --password=$dbpass");
 		}
 	
 		if (! $mediadb) {
-	    		print "Creating media database\n";
+	    		debug( "Creating media database\n");
 	    		system ("cat mysql/MySQL_create_media.sql | mysql -u $dbuser --password=$dbpass");
 		}
 	
 		system("mysqladmin -u$dbuser --password=$dbpass reload");
 	
 		if (! $mediadb) {
-			print "Importing existing backgrounds/images\n";
+			debug( "Importing existing backgrounds/images\n");
 			system ("./import_media img $sharedir/images");
 			system ("./import_media bg $sharedir/backgrounds");
-			print "Done\n";
+			debug( "Done\n");
 		}
 	}
 	
 	if ($install_files) {
 		if ($adminuser eq "") {
-			print "Please enter the user that you will be administering Lyricue from: ";
+			debug( "Please enter the user that you will be administering Lyricue from: ");
 			$adminuser=<STDIN>;
 			chomp $adminuser;
 		}
@@ -308,9 +312,16 @@ if ($ARGV[0] eq "-u") {
 		close ACCESS;
 		system ("mv ".$etcdir."access.conf.tmp ".$etcdir."access.conf");
 		
-		print "\n\n";
+		debug( "\n\n");
 	}
-	print "Finished installing Lyricue\n\n";
-	print "Run /usr/bin/lyricue_server on one screen\n";
-	print "and load up /usr/bin/lyricue on the other\n";
+	debug( "Finished installing Lyricue\n\n");
+	debug( "Run /usr/bin/lyricue_server on one screen\n");
+	debug( "and load up /usr/bin/lyricue on the other\n");
+}
+
+sub debug {
+    my $text = shift;   
+    if ($quiet == 0) {
+        print $text;
+    }
 }

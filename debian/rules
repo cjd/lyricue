@@ -23,12 +23,10 @@ binary-indep: checkroot build
 	rm -rf debian/tmp
 	install -d debian/tmp
 	cd debian/tmp && install -d `cat ../dirs`
-	./install -f "`pwd`/debian/tmp" -a root
+	./install -q -f "`pwd`/debian/tmp" -a root
 	install import_media `pwd`/debian/tmp/usr/bin
 	install install `pwd`/debian/tmp/usr/lib/lyricue
-	install mysql/*.sql `pwd`/debian/tmp/usr/share/lyricue/mysql/
-	install debian/lyricue.desktop `pwd`/debian/tmp/usr/share/application
-	install debian/lyricue_server.desktop `pwd`/debian/tmp/usr/share/application
+	install --mode=644 mysql/*.sql `pwd`/debian/tmp/usr/share/lyricue/mysql/
 # Must have debmake installed for this to work. Otherwise please copy
 # /usr/bin/debstd into the debian directory and change debstd to debian/debstd
 	debstd 

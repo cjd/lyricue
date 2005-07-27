@@ -38,7 +38,7 @@ case "$1" in
 	fi
 	PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }'`
 	cd /usr/share/lyricue
-	/usr/lib/lyricue/install -d -u debian-sys-maint -p $PASS
+	/usr/lib/lyricue/install -q -d -u debian-sys-maint -p $PASS
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
