@@ -407,8 +407,7 @@ choose_playlist();
 # Don't let them cancel out of the playlist dialog yet
 $widgets->{'choose'}->get_widget('buttonCancel')->hide;
 
-# Gtk event loop
-Gtk2->main;
+Gtk2->main();
 
 # Should never get here
 exit(0);
@@ -445,10 +444,6 @@ sub close_main {
     if ($globals->{'xvfb_pid'}) {
         debug("Killing $globals->{'xvfb_pid'}");
         kill 9, $globals->{'xvfb_pid'};
-    }
-    if ($globals->{'miniview_pid'}) {
-        debug("Killing $globals->{'miniview_pid'}");
-        kill 9, $globals->{'miniview_pid'};
     }
     exit();
     return FALSE;
@@ -2895,6 +2890,22 @@ sub update_display {
         print $server Encode::encode("utf-8",
             $command . ":" . $primary . ":" . $secondary . "\n");
         if (defined(my $status = <$server>)) {
+            if ($command eq "snapshot") {
+                if ($status ne "\n") {
+                    debug ("Loading snapshot");
+                    my $linein = $status;
+                    while ($linein ne "ENDRESPONSE") {
+                        $linein = <$server>;
+                        $status .= $linein;
+                        chomp($linein);
+                    }
+                    my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+                    eval { $pixbuf_loader->write($status); };
+                    eval { $pixbuf_loader->close() };
+                    my $pixbuf = $pixbuf_loader->get_pixbuf();
+                    $widgets->{'miniview_image'}->set_from_pixbuf($pixbuf);
+                }
+            } else {
             chomp($status);
             if ($status =~ /^pl:/) {
                 my @line = split(/:/, $status);
@@ -2929,12 +2940,17 @@ sub update_display {
                   ->push(1, $status);
             }
             debug($status);
+            }
         }
         close($server);
         debug("Sent ");
         if ($biblechanged ne "") {
             $bibleMenu->{$biblechanged}->set_active(TRUE);
         }
+    }
+    reset_timer($globals->{'miniview_timer'});
+    if ($command ne "snapshot") {
+        $globals->{'miniview_timer'} = Glib::Timeout->add(100, \&update_miniview_image);
     }
 }
 
@@ -2974,6 +2990,7 @@ sub preview_playlist_item {
 #
 sub preview_display {
     my ($command, $primary, $secondary) = @_;
+    if ($config->{'DynamicPreview'}) {
     if (!defined($secondary)) {
         $secondary = "";
     }
@@ -3016,21 +3033,31 @@ sub preview_display {
                 close($server);
             }
             reset_timer($globals->{'preview_timer'});
-            $globals->{'preview_timer'} = Glib::Idle->add(\&update_preview_image);
+            if ($command ne "snapshot") {
+                $globals->{'preview_timer'} = Glib::Timeout->add(100, \&update_preview_image);
+            }
         } else {
 
             #tcp/ip socket failure so server must be not running yet!
             debug("Preview not running?");
         }
     }
+    }
 }
 
 #***
 
 sub update_preview_image {
-    my $preview_image = `xwd -root -display :1.0 | convert - -resize 200x150 /tmp/lyricue_preview.png`;
-    my $scaled = Gtk2::Gdk::Pixbuf->new_from_file("/tmp/lyricue_preview.png");
-    $widgets->{'preview_image'}->set_from_pixbuf($scaled);
+    if ($config->{'DynamicPreview'}) {
+        preview_display("snapshot","","");
+    }
+    return FALSE;
+}
+
+sub update_miniview_image {
+    if ($config->{'Miniview'}) {
+        update_display("snapshot","","");
+    }
     return FALSE;
 }
 
@@ -5962,14 +5989,14 @@ sub search_changed {
 
 sub init_preview {
     debug ("init preview");
-    # Start/stop miniview as needed
+    # Start/stop preview as needed
     if ($config->{'DynamicPreview'} && (!defined($widgets->{'preview'}))) {
         $widgets->{'preview_image'} = Gtk2::Image->new();
-        $widgets->{'preview_image'}->show();
-        $widgets->{'main'}->get_widget('framePreview')->show();
         $widgets->{'preview_image'}->set_size_request(200, 150);
+        $widgets->{'main'}->get_widget('framePreview')->show();
         $widgets->{'main'}->get_widget('framePreview')
           ->add($widgets->{'preview_image'});
+        $widgets->{'preview_image'}->show();
 
         $globals->{'xvfb_pid'} = fork;
         if ($globals->{'xvfb_pid'} < 0) {
@@ -5977,7 +6004,7 @@ sub init_preview {
                 "Unable to start the lyricue server as a preview window", $!);
         }
         if ($globals->{'xvfb_pid'} == 0) {
-            my $command = sprintf("Xvfb :1 -screen 0 %dx%dx16 -ac", $config->{'Width'},$config->{'Height'});
+            my $command = sprintf("/usr/X11R6/bin/Xvfb :1 -screen 0 %dx%dx16 -ac", $config->{'Width'},$config->{'Height'});
             debug ($command);
             exec ($command);
         } else {
@@ -6014,56 +6041,17 @@ sub init_miniview {
     debug("init miniview");
 
     # Start/stop miniview as needed
-    if ($config->{'Miniview'} && (!defined($widgets->{'miniview'}))) {
+    if ($config->{'Miniview'} && (!defined($widgets->{'miniview_image'}))) {
         $widgets->{'main'}->get_widget('frameCurrent')->show();
-        $widgets->{'miniview'} = Gtk2::Socket->new;
-        $widgets->{'miniview'}->show;
-        $widgets->{'miniview'}->set_size_request(280, 210);
+        $widgets->{'miniview_image'} = Gtk2::Image->new;
+        $widgets->{'miniview_image'}->set_size_request(200, 150);
         $widgets->{'main'}->get_widget('frameCurrent')
-          ->add($widgets->{'miniview'});
-        debug(
-            sprintf(
-                "$^X %slyricue_server -d -m %d -p %d\n",
-                $globals->{'bindir'}, $widgets->{'miniview'}->get_id,
-                $globals->{'miniview_port'}
-            )
-        );
-
-        $globals->{'miniview_pid'} = fork;
-        if ($globals->{'miniview_pid'} < 0) {
-            display_fatal(
-                "Unable to start the lyricue server as a preview window", $!);
-        }
-        my $debug_cmd="";
-        if ($globals->{'debugging'}) {
-            $debug_cmd="-d";
-        }
-        if ($globals->{'miniview_pid'} == 0) {
-            exec(
-                sprintf(
-                    "$^X %slyricue_server %s -m %d -p %d\n",
-                    $globals->{'bindir'},
-                    $debug_cmd,
-                    $widgets->{'miniview'}->get_id,
-                    $globals->{'miniview_port'}
-                )
-            );
-        }
-
-        $widgets->{'miniview'}->signal_connect(
-            'plug-removed' => sub {
-                debug("Lyricue miniview died..restarting");
-                $widgets->{'main'}->get_widget('frameCurrent')
-                  ->remove($widgets->{'miniview'});
-                init_miniview();
-                1;
-            }
-        );
+          ->add($widgets->{'miniview_image'});
+        $widgets->{'miniview_image'}->show;
     } else {
-        if ($widgets->{'miniview'}) {
-            $widgets->{'miniview'}->destroy;
-            undef $widgets->{'miniview'};
-            kill 9, $globals->{'miniview_pid'};
+        if ($widgets->{'miniview_image'}) {
+            $widgets->{'miniview_image'}->destroy;
+            undef $widgets->{'miniview_image'};
         }
         $widgets->{'main'}->get_widget('frameCurrent')->hide();
     }

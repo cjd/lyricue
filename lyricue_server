@@ -154,7 +154,6 @@ $globals->{'bg_file'}     = "/tmp/lyricue.bg";
 $globals->{'use_port'}      = "2346";    #port used for lyric server socket
 $globals->{'server_port'}   = "2346";    #port used for lyric server socket
 $globals->{'preview_port'}  = "2347";    #port used for lyric server socket
-$globals->{'miniview_port'} = "2348";    #port used for lyric server socket
 $globals->{'diatheke'} = `which diatheke`;
 chomp $globals->{'diatheke'};
 
@@ -422,6 +421,8 @@ change_backdrop($config->{'BGImage'});
 
 # callback registration
 $window->signal_connect("delete_event", \&CloseAppWindow);
+$globals->{'windowid'} = $window->window->XWINDOW;
+debug ("Window ID: ".$globals->{'windowid'});
 
 $window->signal_connect("key_press_event", \&HandleKey);
 
@@ -515,6 +516,19 @@ sub process_input {
               . $config->{'Height'} . ",F:"
               . $config->{'Main'} . ",B:"
               . $globals->{'bibledb'};
+        } elsif (/^snapshot$/) {
+            $status="";
+            if ($globals->{'snapshot_changed'} || ($line[1] eq "force")) {
+                open (IMG,"/tmp/lyricue_".$globals->{'use_port'}.".png");
+                while (<IMG>) {
+                    $status .= $_;
+                }
+                close BGIMG;
+                $globals->{'snapshot_changed'} =  FALSE;
+            }
+            $status .= "\nENDRESPONSE";
+            debug("Returning image data");
+            return $status;
         } elsif (/^reconfig$/) {
             $config = load_config();
             $status = "Configuration reloaded";
@@ -522,11 +536,15 @@ sub process_input {
             $config->{'BGImage'} = $line[1];
             change_backdrop($config->{'BGImage'});
             $status = "Backdrop changed to " . $config->{'BGImage'};
+            reset_timer($globals->{'snapshot_timer'});
+            $globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
         } elsif (/^blank$/) {
             set_header("");
             set_maintext("", NONE, FALSE);
             set_footer("");
             $status = "Screen blanked";
+            reset_timer($globals->{'snapshot_timer'});
+            $globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
         } elsif (/^change_to_db$/) {
             change_to_db($line[1], $line[2]);
             $status = "Bible changed to " . $globals->{'bibledb'};
@@ -580,6 +598,8 @@ sub process_input {
                     set_footer(gettext("Written by ") . $extras[1]);
                 }
             }
+            reset_timer($globals->{'snapshot_timer'});
+            $globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
         } elsif (/^loopparent$/) {
             $LOOPPARENT = $line[1];
             debug("Set loop parent to: " . $LOOPPARENT);
@@ -979,25 +999,10 @@ sub process_input {
                                 $exec_pid = fork;
                                 if ($exec_pid > 0) {
 
-  #my $wid = `xwininfo -name "Lyric Server" |grep "Window id:" | cut -f4 -d" "`;
-                                    my $command = "mplayer " . $row->{'data'};
-                                    if ($MINISERV >= 0) {
-                                        my ($x, $y, $wid, $high, $depth) =
-                                          $window->window->get_geometry;
-                                        ($x, $y) =
-                                          $window->window->get_root_origin;
-                                        $command .=
-                                            " -ao null -nofs -geometry " . $wid
-                                          . "x"
-                                          . $high . "+"
-                                          . $x . "+"
-                                          . $y;
-                                    } else {
-                                        system($command);
-                                        print $command. "\n";
-                                    }
+                                    my $command = "mplayer -loop 0 -zoom -really-quiet -wid ".$globals->{'windowid'}." ". $row->{'data'};
+                                    debug ($command);
 
-                         #system('mplayer ' . $row->{'data'} . ' -wid ' . $wid);
+                                    system($command);
                                 }
                             }
                         }
@@ -1203,6 +1208,8 @@ sub process_input {
                 $current_item = $preview_item;
                 $preview_item = 0;
             }
+            reset_timer($globals->{'snapshot_timer'});
+            $globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
         } ## end elsif (/^display$/)
     } ## end if ($_)
     debug("The status message sent is: " . $status);
@@ -1423,22 +1430,6 @@ sub update_display {
     }
 } ## end sub update_display
 
-sub update_miniview {
-    my ($command) = @_;
-
-    if (
-        my $server = IO::Socket::INET->new(
-            Proto    => "tcp",
-            PeerAddr => "localhost",
-            PeerPort => $globals->{'miniview_port'}
-        )
-      )
-    {
-        print $server $command;
-        close($server);
-    }
-} ## end sub update_miniview
-
 #***
 
 #****f* lyricue_server/debug
@@ -1525,11 +1516,6 @@ sub check_socket {
         my $stat  = process_input($value);
         chomp($stat);
         print $new_sock $stat . "\n";
-
-        # Forward onto miniserver (if not the miniserver)
-        if ($globals->{'use_port'} == $globals->{'server_port'}) {
-            update_miniview($value);
-        }
     }
     close($new_sock);
 
@@ -2027,3 +2013,22 @@ sub get_bibles {
     close SWORD;
     return $bibles;
 }
+
+sub update_snapshot {
+    my $command = "import -window ".$globals->{'windowid'}." -resize 200x150 /tmp/lyricue_".$globals->{'use_port'}.".png";
+    #my $command = "import -window root -resize 200x150 /tmp/lyricue_".$globals->{'use_port'}.".png";
+    debug ($command);
+    `$command`;
+    $globals->{'snapshot_changed'} = TRUE;
+    reset_timer ($globals->{'snapshot_timer'});
+}
+
+sub reset_timer {
+    my ($timer) = @_;
+    if ($timer) {
+        debug("Cancelling timer");
+        Glib::Source->remove($timer);
+        $timer = FALSE;
+    }
+}
+
