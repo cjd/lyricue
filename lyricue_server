@@ -2015,8 +2015,8 @@ sub get_bibles {
 }
 
 sub update_snapshot {
-    my $command = "import -window ".$globals->{'windowid'}." -resize 200x150 /tmp/lyricue_".$globals->{'use_port'}.".png";
-    #my $command = "import -window root -resize 200x150 /tmp/lyricue_".$globals->{'use_port'}.".png";
+    #my $command = "import -window ".$globals->{'windowid'}." -resize 200x150 /tmp/lyricue_".$globals->{'use_port'}.".png";
+    my $command = "import -window root -resize 200x150 /tmp/lyricue_".$globals->{'use_port'}.".png";
     debug ($command);
     `$command`;
     $globals->{'snapshot_changed'} = TRUE;
