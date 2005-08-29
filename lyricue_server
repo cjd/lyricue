@@ -869,10 +869,7 @@ sub process_input {
                                 $exec_pid = fork;
                                 if ($exec_pid > 0) {
 
-                                    my $command =
-"mplayer -loop 0 -zoom -really-quiet -wid "
-                                      . $globals->{'windowid'} . " "
-                                      . $row->{'data'};
+                                    my $command = "mplayer -loop 0 -zoom -really-quiet -fs " . $row->{'data'};
                                     debug($command);
 
                                     system($command);
@@ -1255,6 +1252,10 @@ sub change_backdrop {
                 my $pixbuf = $pixbuf_loader->get_pixbuf();
                 if ($globals->{'server_type'} == TRANS) {
                     ## FIXME TRANS
+                    $pixbuf->save($globals->{'bg_file'}, 'png');
+                    my $command = "display -geometry ".$config->{'Width'}."x".$config->{'Height'}."+0+0 -resize ".$config->{'Width'}."!x".$config->{'Height'}."! -immutable -quiet -window root $globals->{'bg_file'} &";
+                    debug ($command);
+                    system ($command);
                 } elsif ($globals->{'server_type'} == SIMPLE) {
                     $pixbuf->save($globals->{'bg_file'}, 'png');
                 } else {
@@ -1444,12 +1445,14 @@ sub load_config {
 }
 
 sub set_maintext {
+    my ($text, $transition, $wrap) = @_;
+    if (!defined $text)       { $text       = " "; }
     if ($globals->{'server_type'} == TRANS) {
-        set_maintext_trans(@_);
+        set_maintext_trans($text,$transition, $wrap);
     } elsif ($globals->{'server_type'} == SIMPLE) {
-        set_maintext_simple(@_);
+        set_maintext_simple($text,$transition, $wrap);
     } else {
-        set_maintext_canvas(@_);
+        set_maintext_canvas($text,$transition, $wrap);
     }
 }
 
@@ -1475,7 +1478,6 @@ sub set_maintext_canvas {
     my ($text, $transition, $wrap) = @_;
     debug("Set maintext canvas");
     my ($oldText);
-    if (!defined $text)       { $text       = ""; }
     if (!defined $transition) { $transition = 0; }
 
     # Set the transition values
@@ -1737,6 +1739,13 @@ sub set_maintext_trans {
     #Get the size of this layout after the text was set.
     my ($dwMain_w, $dwMain_h) = $globals->{'main_layout'}->get_pixel_size;
 
+    # If string was empty then hide windows
+    if ($dwMain_w==0) {
+        $globals->{'mainShadow_window'}->hide();
+        $globals->{'main_window'}->hide();
+        return;
+    }
+
     #Now we have the size, we can create a pixmap that will be the
     #'Gtk2::Gdk::Drawable' that we will draw upon
     my $dwMain_pixmap = Gtk2::Gdk::Pixmap->new($globals->{'main_text'}->window,
@@ -1845,7 +1854,7 @@ sub mod {
 
 sub set_footer {
     my ($text) = @_;
-    if (!defined $text) { $text = ""; }
+    if (!defined $text) { $text = " "; }
     if ($globals->{'server_type'} == TRANS) {
         set_footer_trans($text);
     } elsif ($globals->{'server_type'} == SIMPLE) {
@@ -1919,10 +1928,17 @@ sub set_footer_trans {
     #Get the size of this layout after the text was set.
     my ($dwFooter_w, $dwFooter_h) = $globals->{'footer_layout'}->get_pixel_size;
 
+    # If string was empty then hide windows
+    if ($dwFooter_w==0) {
+        $globals->{'footerShadow_window'}->hide();
+        $globals->{'footer_window'}->hide();
+        return;
+    }
+
     #Now we have the size, we can create a pixmap that will be the
     #'Gtk2::Gdk::Drawable' that we will draw upon
     my $dwFooter_pixmap =
-      Gtk2::Gdk::Pixmap->new($globals->{'main_text'}->window,
+      Gtk2::Gdk::Pixmap->new($globals->{'footer_text'}->window,
         $dwFooter_w, $dwFooter_h, -1);
 
     #
@@ -1988,7 +2004,7 @@ sub set_footer_trans {
 
 sub set_header {
     my ($text) = @_;
-    if (!defined $text) { $text = ""; }
+    if (!defined $text) { $text = " "; }
     if ($globals->{'server_type'} == TRANS) {
         set_header_trans($text);
     } elsif ($globals->{'server_type'} == SIMPLE) {
@@ -2063,6 +2079,13 @@ sub set_header_trans {
 
     #Get the size of this layout after the text was set.
     my ($dwHeader_w, $dwHeader_h) = $globals->{'header_layout'}->get_pixel_size;
+
+    # If string was empty then hide windows
+    if ($dwHeader_w==0) {
+        $globals->{'headerShadow_window'}->hide();
+        $globals->{'header_window'}->hide();
+        return;
+    }
 
     #Now we have the size, we can create a pixmap that will be the
     #'Gtk2::Gdk::Drawable' that we will draw upon
@@ -2248,6 +2271,14 @@ sub create_window_trans {
     $globals->{'main_window'}->show_all();
     $globals->{'footerShadow_window'}->show_all();
     $globals->{'footer_window'}->show_all();
+
+    # Now hide the windows
+    $globals->{'headerShadow_window'}->hide();
+    $globals->{'header_window'}->hide();
+    $globals->{'mainShadow_window'}->hide();
+    $globals->{'main_window'}->hide();
+    $globals->{'footerShadow_window'}->hide();
+    $globals->{'footer_window'}->hide();
 
     #Create a drawing area, and set is big enough to hold the maximum size our
     ##text will ever be.
