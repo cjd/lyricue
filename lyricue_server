@@ -323,9 +323,7 @@ if ($globals->{'use_port'} !~ /^\d+$/) {
       getservbyport($globals->{'use_port'}, 'tcp');
 }
 
-while (Gtk2->events_pending) {
-    Gtk2->main_iteration;
-}
+do_pending();
 
 debug("Main program running");
 
@@ -349,9 +347,7 @@ while (1) {
     foreach $h (@ready) {
         check_socket($socket);
     }
-    while (Gtk2->events_pending) {
-        Gtk2->main_iteration;
-    }
+    do_pending();
 }
 
 # Should never get here
@@ -1611,9 +1607,7 @@ sub set_maintext_canvas {
                     $globals->{'mainText'}->set(y => ($ny + ($step * $nstepy)));
                 }
                 select(undef, undef, undef, 0.01);
-                while (Gtk2->events_pending) {
-                    Gtk2->main_iteration;
-                }
+                do_pending();
             }
         }
         if (($old_direction & WAIT) || ($new_direction & WAIT)) {
@@ -1627,9 +1621,7 @@ sub set_maintext_canvas {
                     $globals->{'mainText'}->set(y => ($ny + ($step * $nstepy)));
                 }
                 select(undef, undef, undef, 0.01);
-                while (Gtk2->events_pending) {
-                    Gtk2->main_iteration;
-                }
+                do_pending();
             }
         }
     } elsif ($effect == WIPE) {
@@ -1651,9 +1643,7 @@ sub set_maintext_canvas {
         {
             $items[0]->set(x2 => $fx);
             select(undef, undef, undef, 0.01);
-            while (Gtk2->events_pending) {
-                Gtk2->main_iteration;
-            }
+            do_pending();
         }
         $buffer->set_text($text);
         $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
@@ -1674,9 +1664,7 @@ sub set_maintext_canvas {
         {
             $items[0]->set(x1 => $fx);
             select(undef, undef, undef, 0.01);
-            while (Gtk2->events_pending) {
-                Gtk2->main_iteration;
-            }
+            do_pending();
         }
         $items[0]->destroy;
     } else {
@@ -1791,14 +1779,19 @@ sub set_maintext_trans {
     $globals->{'main_img'}->set_from_pixmap($dwMain_blank,             undef);
     $globals->{'mainShadow_img'}->set_from_pixmap($dwMainShadow_blank, undef);
 
-#                                                                                                                                                                #shape our window accordingly
+    $globals->{'mainShadow_window'}->hide();
+    $globals->{'main_window'}->hide();
+    #shape our window accordingly
     $globals->{'main_window'}->shape_combine_mask($dwMain_m,       0, 0);
     $globals->{'mainShadow_window'}->shape_combine_mask($dwMain_m, 0, 0);
     $globals->{'main_window'}->set_position('center-always');
+    do_pending();
     my ($dwMain_x, $dwMain_y) = $globals->{'main_window'}->get_position();
     my ($dwMain_width, $dwMain_height) = $globals->{'main_window'}->get_size();
     $globals->{'mainShadow_window'}->move($dwMain_x + 2, $dwMain_y + 2);
     $globals->{'mainShadow_window'}->resize($dwMain_width, $dwMain_height);
+    $globals->{'mainShadow_window'}->show();
+    $globals->{'main_window'}->show();
     return 1;
 }
 
@@ -1933,15 +1926,15 @@ sub set_footer_trans {
         $dwFooter_w, $dwFooter_h, -1);
 
     #
-    my $dwFooter_blank = Gtk2::Gdk::Pixmap->new($globals->{'main_text'}->window,
+    my $dwFooter_blank = Gtk2::Gdk::Pixmap->new($globals->{'footer_text'}->window,
         $dwFooter_w, $dwFooter_h, -1);
     my $dwFooterShadow_blank =
-      Gtk2::Gdk::Pixmap->new($globals->{'mainShadow_text'}->window,
+      Gtk2::Gdk::Pixmap->new($globals->{'footer_text'}->window,
         $dwFooter_w, $dwFooter_h, -1);
-    $dwFooter_blank->draw_rectangle($globals->{'main_text'}->style->white_gc,
+    $dwFooter_blank->draw_rectangle($globals->{'footer_text'}->style->white_gc,
         TRUE, 0, 0, $dwFooter_w, $dwFooter_h);
     $dwFooterShadow_blank->draw_rectangle(
-        $globals->{'main_text'}->style->black_gc,
+        $globals->{'footer_text'}->style->black_gc,
         TRUE, 0, 0, $dwFooter_w, $dwFooter_h);
 
     #draw the pango layout on the drawable.
@@ -1968,6 +1961,9 @@ sub set_footer_trans {
     my ($dwFooter_pm, $dwFooter_m) =
       $dwFooter_pixbuf->render_pixmap_and_mask(1);
 
+    $globals->{'footerShadow_window'}->hide();
+    $globals->{'footer_window'}->hide();
+
     #replace the old $img with the new pixmap and mask
     $globals->{'footer_img'}->set_from_pixmap($dwFooter_blank, undef);
     $globals->{'footerShadow_img'}
@@ -1984,6 +1980,8 @@ sub set_footer_trans {
         $position + $config->{'ShadowSize'},
         $config->{'Height'} - $dwFooter_h
     );
+    $globals->{'footerShadow_window'}->show();
+    $globals->{'footer_window'}->show();
 
     return 1;
 }
@@ -2069,7 +2067,7 @@ sub set_header_trans {
     #Now we have the size, we can create a pixmap that will be the
     #'Gtk2::Gdk::Drawable' that we will draw upon
     my $dwHeader_pixmap =
-      Gtk2::Gdk::Pixmap->new($globals->{'main_text'}->window,
+      Gtk2::Gdk::Pixmap->new($globals->{'header_text'}->window,
         $dwHeader_w, $dwHeader_h, -1);
     my $dwHeader_blank =
       Gtk2::Gdk::Pixmap->new($globals->{'header_text'}->window,
@@ -2077,11 +2075,11 @@ sub set_header_trans {
     my $dwHeaderShadow_blank =
       Gtk2::Gdk::Pixmap->new($globals->{'headerShadow_text'}->window,
         $dwHeader_w, $dwHeader_h, -1);
-    $dwHeader_blank->draw_rectangle($globals->{'main_text'}->style->white_gc,
-        TRUE, 0, 0, $dwHeader_h, $dwHeader_h);
+    $dwHeader_blank->draw_rectangle($globals->{'header_text'}->style->white_gc,
+        TRUE, 0, 0, $dwHeader_w, $dwHeader_h);
     $dwHeaderShadow_blank->draw_rectangle(
-        $globals->{'main_text'}->style->black_gc,
-        TRUE, 0, 0, $dwHeader_h, $dwHeader_h);
+        $globals->{'header_text'}->style->black_gc,
+        TRUE, 0, 0, $dwHeader_w, $dwHeader_h);
 
     #draw the pango layout on the drawable.
     $dwHeader_pixmap->draw_rectangle(
@@ -2108,6 +2106,9 @@ sub set_header_trans {
     my ($dwHeader_pm, $dwHeader_m) =
       $dwHeader_pixbuf->render_pixmap_and_mask(1);
 
+    $globals->{'headerShadow_window'}->hide();
+    $globals->{'header_window'}->hide();
+
     #replace the old $img with the new pixmap and mask
     $globals->{'header_img'}->set_from_pixmap($dwHeader_blank, undef);
     $globals->{'headerShadow_img'}
@@ -2121,6 +2122,8 @@ sub set_header_trans {
     $globals->{'header_window'}->move($position, 0);
     $globals->{'headerShadow_window'}
       ->move($position + $config->{'ShadowSize'}, $config->{'ShadowSize'});
+    $globals->{'headerShadow_window'}->show();
+    $globals->{'header_window'}->show();
 
     return 1;
 }
@@ -2312,9 +2315,7 @@ sub create_window_normal {
     $globals->{'window'} = new Gtk2::Window->new('toplevel');
     $globals->{'window'}->set_title("Lyric Server");
 
-    while (Gtk2->events_pending) {
-        Gtk2->main_iteration;
-    }
+    do_pending();
 
     $globals->{'window'}->show();
     if ($MINISERV >= 0) {
@@ -2333,9 +2334,7 @@ sub create_window_normal {
     );
     $globals->{'window'}->window->set_cursor($cursor);
 
-    while (Gtk2->events_pending) {
-        Gtk2->main_iteration;
-    }
+    do_pending();
 
     my $aspect = $config->{'Width'} / $config->{'Height'};
     my $geom   = Gtk2::Gdk::Geometry->new;
@@ -2457,5 +2456,11 @@ sub refresh_screen {
         $globals->{'window'}->show_all();
     } else {
         $globals->{'window'}->show_all();
+    }
+}
+
+sub do_pending {
+    while (Gtk2->events_pending) {
+        Gtk2->main_iteration;
     }
 }
