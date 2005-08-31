@@ -95,9 +95,6 @@ die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
 use Gtk2::GladeXML;
 use Gtk2::Pango;
 eval { require Locale::gettext };
-binmode(STDOUT, ":utf8");
-binmode(STDERR, ":utf8");
-
 if ($@) {
     print "Gettext not available, english text only\n";
 
@@ -117,6 +114,9 @@ if ($@) {
         c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
     }
 }
+binmode(STDOUT, ":utf8");
+binmode(STDERR, ":utf8");
+
 
 #
 # Site Configuration.  You should only have to
@@ -124,9 +124,6 @@ if ($@) {
 #
 my ($globals);
 
-$globals->{'bindir'} = "/usr/bin/";
-
-#$globals->{'bindir'}   = "/home/cjd/source/lyricue/";
 $globals->{'etcdir'}   = "/etc/lyricue/";
 $globals->{'basedir'}  = $ENV{'HOME'} . "/.lyricue/";
 $globals->{'sharedir'} = "/usr/share/lyricue/";
@@ -157,7 +154,6 @@ $globals->{'diatheke'}    = `which diatheke`;
 chomp $globals->{'diatheke'};
 $globals->{'server_port'}      = "2346";    #port used for lyric server
 $globals->{'preview_port'}     = "2347";    #port used for preview
-$globals->{'miniview_port'}    = "2348";    #port used for miniview
 $globals->{'update_timer'}     = FALSE;
 $globals->{'nav_update_timer'} = FALSE;
 $globals->{'timer'}            = FALSE;
@@ -166,7 +162,6 @@ $globals->{'spell'}            = TRUE;
 $globals->{'trayicon'}         = TRUE;
 $globals->{'preview_pid'}      = FALSE;
 $globals->{'xvfb_pid'}         = FALSE;
-$globals->{'miniview_pid'}     = FALSE;
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -371,9 +366,7 @@ if (-d $globals->{'basedir'}) {
         create_dialog_prefs();
         $globals->{'configured'} = FALSE;
         while (!$globals->{'configured'}) {
-            while (Gtk2->events_pending) {
-                Gtk2->main_iteration;
-            }
+            do_pending();
         }
     }
 }
@@ -408,6 +401,10 @@ choose_playlist();
 # Don't let them cancel out of the playlist dialog yet
 $widgets->{'choose'}->get_widget('buttonCancel')->hide;
 
+# Update preview timers
+$globals->{'preview_timer'} = Glib::Timeout->add (5000, \&update_preview_image);
+$globals->{'miniview_timer'} = Glib::Timeout->add (5000, \&update_miniview_image);
+
 Gtk2->main();
 
 # Should never get here
@@ -429,9 +426,7 @@ exit(0);
 # SOURCE
 sub close_main {
     debug("Quitting");
-    while (Gtk2->events_pending) {
-        Gtk2->main_iteration;
-    }
+    do_pending();
     $lyricDbh->disconnect;
     if (!$globals->{'usesword'}) {
         $bibleDbh->disconnect;
@@ -2906,12 +2901,15 @@ sub update_display {
                         $linein = <$server>;
                         $status .= $linein;
                         chomp($linein);
+                        do_pending();
                     }
+                    debug("Got Snapshot");
                     my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
                     eval { $pixbuf_loader->write($status); };
                     eval { $pixbuf_loader->close() };
                     my $pixbuf = $pixbuf_loader->get_pixbuf();
                     $widgets->{'miniview_image'}->set_from_pixbuf($pixbuf);
+                    debug("Loaded image");
                 }
             } else {
                 chomp($status);
@@ -2956,11 +2954,11 @@ sub update_display {
             $bibleMenu->{$biblechanged}->set_active(TRUE);
         }
     }
-    reset_timer($globals->{'miniview_timer'});
-    if ($command ne "snapshot") {
-        $globals->{'miniview_timer'} =
-          Glib::Timeout->add(100, \&update_miniview_image);
-    }
+    #reset_timer($globals->{'miniview_timer'});
+    #if ($command ne "snapshot") {
+        #$globals->{'miniview_timer'} =
+          #Glib::Timeout->add(100, \&update_miniview_image);
+    #}
 }
 
 #***
@@ -3022,32 +3020,46 @@ sub preview_display {
                   . $secondary . "\n";
 
                 if (defined(my $status = <$server>)) {
-                    chomp($status);
-                    if ($status =~ /^pl:/) {
-                        my @line = split(/:/, $status);
-                        $status = gettext("Previewed ");
-                        if ($line[1] eq "v") {
-                            $status .= gettext(" verses ");
-                        } else {
-                            $status .= gettext(" page ") . $line[3];
-                            $widgets->{'main'}->get_widget('treePlaylist')
-                              ->select_item($line[2]);
+                    if ($command eq "snapshot") {
+                        if ($status ne "\n") {
+                            debug("Loading preview");
+                            my $linein = $status;
+                            while ($linein ne "ENDRESPONSE") {
+                                $linein = <$server>;
+                                $status .= $linein;
+                                chomp($linein);
+                                do_pending();
+                            }
+                            debug("Got preview");
+                            my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+                            eval { $pixbuf_loader->write($status); };
+                            eval { $pixbuf_loader->close() };
+                            my $pixbuf = $pixbuf_loader->get_pixbuf();
+                            $widgets->{'preview_image'}->set_from_pixbuf($pixbuf);
+                            debug("Loaded preview");
                         }
-                        $widgets->{'main'}->get_widget('statusPlaylist')
-                          ->push(1, $status);
                     } else {
-
-                        $widgets->{'main'}->get_widget('statusPlaylist')
-                          ->push(1, $status);
+                        chomp($status);
+                        if ($status =~ /^pl:/) {
+                            my @line = split(/:/, $status);
+                            $status = gettext("Previewed ");
+                            if ($line[1] eq "v") {
+                                $status .= gettext(" verses ");
+                            } else {
+                                $status .= gettext(" page ") . $line[3];
+                                $widgets->{'main'}->get_widget('treePlaylist')
+                                ->select_item($line[2]);
+                            }
+                            $widgets->{'main'}->get_widget('statusPlaylist')->push(1, $status);
+                        } else {
+    
+                            $widgets->{'main'}->get_widget('statusPlaylist')
+                            ->push(1, $status);
+                        }
+                        debug($status);
                     }
-                    debug($status);
-                    close($server);
                 }
-                reset_timer($globals->{'preview_timer'});
-                if ($command ne "snapshot") {
-                    $globals->{'preview_timer'} =
-                      Glib::Timeout->add(100, \&update_preview_image);
-                }
+                close($server);
             } else {
 
                 #tcp/ip socket failure so server must be not running yet!
@@ -3063,14 +3075,14 @@ sub update_preview_image {
     if ($config->{'DynamicPreview'}) {
         preview_display("snapshot", "", "");
     }
-    return FALSE;
+    return TRUE;
 }
 
 sub update_miniview_image {
     if ($config->{'Miniview'}) {
         update_display("snapshot", "", "");
     }
-    return FALSE;
+    return TRUE;
 }
 
 sub open_dialogColour {
@@ -4366,6 +4378,8 @@ sub debug {
         my $text = shift;
         chomp($text);
         if ($text) {
+            my ($sec,$min,$hour,undef) = localtime(time);
+            print STDERR $hour.":".$min.":".$sec."|";
             print STDERR $text . "\n";
         }
     }
@@ -6073,8 +6087,8 @@ sub init_preview {
                 $debug_cmd = "-d";
             }
             my $command =
-              sprintf("DISPLAY=:1.0 %slyricue_server %s -m %d -p %d\n",
-                $globals->{'bindir'}, $debug_cmd, 1,
+              sprintf("DISPLAY=:1.0 lyricue_server %s -m %d -p %d\n",
+                , $debug_cmd, 1,
                 $globals->{'preview_port'});
             debug($command);
             exec($command);
@@ -6815,5 +6829,11 @@ sub reset_timer {
         debug("Cancelling timer");
         Glib::Source->remove($timer);
         $timer = FALSE;
+    }
+}
+
+sub do_pending {
+    while (Gtk2->events_pending) {
+     Gtk2->main_iteration;
     }
 }
