@@ -74,6 +74,7 @@ my %replace = ( $sharedir."lyricue.png" => 0644,
 		$bindir."lyricue" => 0644,
 		$bindir."lyricue_remote" => 0644,
 		$bindir."lyricue_server" =>0644,
+		$bindir."lyricue_preview" =>0644,
 		$desktopdir."lyricue.desktop" => 0644,
 		$desktopdir."lyricue_server.desktop" => 0644
 		);
@@ -107,7 +108,7 @@ if ($ARGV[0] eq "-u") {
 		exit;
 	}
 	debug( "Removing executables\n");
-	system ("rm $bindir/lyricue $bindir/lyricue_server $bindir/lyricue_remote");
+	system ("rm $bindir/lyricue $bindir/lyricue_server $bindir/lyricue_remote $bindir/lyricue_preview");
 	debug( "Removing most files in share directory\n");
 	system ("rm $sharedir/*");
 	debug( "Removing Documentation\n");

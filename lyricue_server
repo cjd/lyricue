@@ -2190,24 +2190,22 @@ sub get_bibles {
 }
 
 sub update_snapshot {
-
+    debug ("Updating snapshot");
     my $command =
       "import -window root -resize 200x150 /tmp/lyricue_"
       . $globals->{'use_port'} . ".png";
-    debug($command);
-    ## FIXME Too slow!
-    #`$command`;
-    my $main_loop = Glib::MainLoop->new;
-    my $pid = open my $child, '-|', $command
-      or display_fatal("Can't fork import", $!);
-
-    Glib::IO->add_watch (fileno $child, ['hup'], sub {
-        $main_loop->quit;
-       FALSE;
-    });
-
-    $main_loop->run;
-    close $child or warn "import died with exit status ".($? >> 8)."\n";
+    #debug($command);
+    #if (defined $globals->{'import_pid'}) {
+    #    `kill -9 $globals->{'import_pid'}`;
+    #}
+    #$globals->{'import_pid'} = fork;
+    #if ($globals->{'import_pid'} < 0) {
+    #    debug("Unable to grab screen");
+    #}
+    #if ($globals->{'import_pid'} == 0) {
+    #    exec ($command);
+    #}
+    `$command`;
     $globals->{'snapshot_changed'} = TRUE;
     reset_timer($globals->{'snapshot_timer'});
 }

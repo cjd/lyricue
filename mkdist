@@ -8,7 +8,7 @@ rm -rf dist/lyricue*
 
 echo Copying new dist files
 mkdir dist/lyricue-$VERSION
-cp *.1 *.desktop images/black.png import_media install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server lyricue_remote access.conf default.conf dist/lyricue-$VERSION
+cp *.1 *.desktop images/black.png import_media install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server lyricue_remote lyricue_preview access.conf default.conf dist/lyricue-$VERSION
 
 for F in black white gray red green blue yellow orange;do touch dist/lyricue-$VERSION/$F.bg;done
 
