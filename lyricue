@@ -6098,7 +6098,7 @@ sub init_miniview {
             sprintf(
                 "$^X lyricue_preview -m %d -p %d\n",
                 $widgets->{'miniview'}->get_id,
-                $globals->{'miniview_port'}
+                $globals->{'server_port'}
             )
         );
 
@@ -6113,7 +6113,7 @@ sub init_miniview {
                     "$^X lyricue_preview -m %d -p %d\n",
                     $globals->{'bindir'},
                     $widgets->{'miniview'}->get_id,
-                    $globals->{'miniview_port'}
+                    $globals->{'server_port'}
                 )
             );
         }
