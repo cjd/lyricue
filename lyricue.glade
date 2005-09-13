@@ -7662,17 +7662,17 @@ http://www.adebenham.com/lyricue</property>
       <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
       <property name="toolbar_style">GTK_TOOLBAR_ICONS</property>
       <property name="tooltips">True</property>
-      <property name="show_arrow">True</property>
+      <property name="show_arrow">False</property>
 
       <child>
-	<widget class="GtkToolButton" id="toolbutton1">
+	<widget class="GtkToolButton" id="trayUp">
 	  <property name="visible">True</property>
 	  <property name="label" translatable="yes"></property>
 	  <property name="use_underline">True</property>
 	  <property name="stock_id">gtk-go-up</property>
 	  <property name="visible_horizontal">True</property>
 	  <property name="visible_vertical">True</property>
-	  <property name="is_important">False</property>
+	  <property name="is_important">True</property>
 	  <signal name="clicked" handler="prev_song" last_modification_time="Tue, 16 Aug 2005 07:27:14 GMT"/>
 	</widget>
 	<packing>
@@ -7682,14 +7682,14 @@ http://www.adebenham.com/lyricue</property>
       </child>
 
       <child>
-	<widget class="GtkToolButton" id="toolbutton2">
+	<widget class="GtkToolButton" id="trayDown">
 	  <property name="visible">True</property>
 	  <property name="label" translatable="yes"></property>
 	  <property name="use_underline">True</property>
 	  <property name="stock_id">gtk-go-down</property>
 	  <property name="visible_horizontal">True</property>
 	  <property name="visible_vertical">True</property>
-	  <property name="is_important">False</property>
+	  <property name="is_important">True</property>
 	  <signal name="clicked" handler="next_song" last_modification_time="Tue, 16 Aug 2005 07:27:24 GMT"/>
 	</widget>
 	<packing>
@@ -7699,14 +7699,14 @@ http://www.adebenham.com/lyricue</property>
       </child>
 
       <child>
-	<widget class="GtkToolButton" id="toolbutton3">
+	<widget class="GtkToolButton" id="trayLeft">
 	  <property name="visible">True</property>
 	  <property name="label" translatable="yes"></property>
 	  <property name="use_underline">True</property>
 	  <property name="stock_id">gtk-media-previous</property>
 	  <property name="visible_horizontal">True</property>
 	  <property name="visible_vertical">True</property>
-	  <property name="is_important">False</property>
+	  <property name="is_important">True</property>
 	  <signal name="clicked" handler="prev_page" last_modification_time="Tue, 16 Aug 2005 07:27:34 GMT"/>
 	</widget>
 	<packing>
@@ -7716,14 +7716,14 @@ http://www.adebenham.com/lyricue</property>
       </child>
 
       <child>
-	<widget class="GtkToolButton" id="toolbutton4">
+	<widget class="GtkToolButton" id="trayRight">
 	  <property name="visible">True</property>
 	  <property name="label" translatable="yes"></property>
 	  <property name="use_underline">True</property>
 	  <property name="stock_id">gtk-media-next</property>
 	  <property name="visible_horizontal">True</property>
 	  <property name="visible_vertical">True</property>
-	  <property name="is_important">False</property>
+	  <property name="is_important">True</property>
 	  <signal name="clicked" handler="next_page" last_modification_time="Tue, 16 Aug 2005 07:27:43 GMT"/>
 	</widget>
 	<packing>
@@ -7733,14 +7733,14 @@ http://www.adebenham.com/lyricue</property>
       </child>
 
       <child>
-	<widget class="GtkToolButton" id="toolbutton5">
+	<widget class="GtkToolButton" id="trayClear">
 	  <property name="visible">True</property>
 	  <property name="label" translatable="yes"></property>
 	  <property name="use_underline">True</property>
 	  <property name="stock_id">gtk-clear</property>
 	  <property name="visible_horizontal">True</property>
 	  <property name="visible_vertical">True</property>
-	  <property name="is_important">False</property>
+	  <property name="is_important">True</property>
 	  <signal name="clicked" handler="blank_screen" last_modification_time="Tue, 16 Aug 2005 07:27:53 GMT"/>
 	</widget>
 	<packing>

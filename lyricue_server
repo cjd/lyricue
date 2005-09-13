@@ -1731,6 +1731,8 @@ sub set_maintext_trans {
         $text = " ";
     }
 
+    $globals->{'main_layout'}->set_width(1400 * Gtk2::Pango->scale);
+    $globals->{'main_layout'}->set_wrap('word_char');
     #Set our pango layout, to reflect the text and format that we want.
     #NOTE We delebritely set the background to a certain color to convert
     #that color to a alpha channel, that will give us the "clear" background.
@@ -2238,6 +2240,7 @@ sub create_window_trans {
     $globals->{'mainShadow_window'}   = Gtk2::Window->new('popup');
     $globals->{'footer_window'}       = Gtk2::Window->new('popup');
     $globals->{'footerShadow_window'} = Gtk2::Window->new('popup');
+    $globals->{'screen_width'} = $globals->{'main_window'}->get_screen->get_width;
 
     #standard packing widget my $dwHeader_vbox = Gtk2::VBox->new(FALSE,0);
     my $dwHeader_vbox       = Gtk2::VBox->new(FALSE, 0);
@@ -2350,21 +2353,24 @@ sub create_window_trans {
     #create a new pango layout for this drawing area
     $globals->{'header_layout'} =
       $globals->{'header_text'}->create_pango_layout("");
-    $globals->{'headerShadow_layout'} =
-      $globals->{'headerShadow_text'}->create_pango_layout("");
     $globals->{'main_layout'} =
       $globals->{'main_text'}->create_pango_layout("");
     $globals->{'footer_layout'} =
       $globals->{'footer_text'}->create_pango_layout("");
-    $globals->{'footerShadow_layout'} =
-      $globals->{'footerShadow_text'}->create_pango_layout("");
 
     #set appropriate alignment
     $globals->{'header_layout'}->set_alignment('center');
-    $globals->{'headerShadow_layout'}->set_alignment('center');
-    $globals->{'main_layout'}->set_alignment('center');
+    $globals->{'main_layout'}->set_alignment('left');
     $globals->{'footer_layout'}->set_alignment('center');
-    $globals->{'footerShadow_layout'}->set_alignment('center');
+    
+    #set wrap size/type
+    $globals->{'header_layout'}->set_width($globals->{'screen_width'} * PANGO_SCALE);
+    $globals->{'main_layout'}->set_width($globals->{'screen_width'} * PANGO_SCALE);
+    $globals->{'footer_layout'}->set_width($screen_width * PANGO_SCALE);
+    $globals->{'header_layout'}->set_wrap('word_char');
+    $globals->{'main_layout'}->set_wrap('word_char');
+    $globals->{'footer_layout'}->set_wrap('word_char');
+
 
     #get the defalt colormap (will be needed later on)
     $globals->{'colourmap'} = Gtk2::Gdk::Colormap->get_system;
