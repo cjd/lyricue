@@ -152,6 +152,9 @@ if ($ARGV[0] eq "-u") {
 			debug( "file -> ".$file."\n");
 			my $basename = $file;
 			$basename =~ s/^.*\///g;
+            if ($basename =~ /png$/ ) {
+                $basename = "images/".$basename;
+            }
 			system ("cp ".$basename." ".$file);
 		}
 	
@@ -180,14 +183,16 @@ if ($ARGV[0] eq "-u") {
 		@locales = readdir(DIR);
 		closedir (DIR);
 		foreach (@locales) {
-	    		if (! /^\./ ) {
-		    	my $locale=$_;
-		    	$locale =~ s/\.mo$//g;
-		    	my $locdir = $localedir.$locale."/LC_MESSAGES";
-		    	mkdir $localedir.$locale;
-		    	mkdir $locdir;
-		    	debug( "translation -> ".$locdir."\n");
-		    	system ("cp po/".$locale.".mo ".$locdir."/lyricue.mo");
+	    	if (! /^\./ ) {
+                if (/\.po$/ ) {
+		     	    my $locale=$_;
+		    	    $locale =~ s/\.po$//g;
+		    	    my $locdir = $localedir.$locale."/LC_MESSAGES";
+		    	    mkdir $localedir.$locale;
+		    	    mkdir $locdir;
+		    	    debug( "translation -> ".$locdir."\n");
+		    	    system ("msgfmt po/".$locale.".po -o ".$locdir."/lyricue.mo");
+                }
 			}
 		}
 	}
@@ -275,7 +280,7 @@ if ($ARGV[0] eq "-u") {
 	
 		}
 		
-		if (! $bibledb) {
+		if ((! $bibledb) && (-e "mysql/MySQL_create_bible_KJV.sql" )){
 	    		debug( "Creating bibleDb\n");
 			system ("cat mysql/MySQL_create_bible_KJV.sql | mysql -u $dbuser --password=$dbpass");
 		}

@@ -2366,7 +2366,7 @@ sub create_window_trans {
     #set wrap size/type
     $globals->{'header_layout'}->set_width($globals->{'screen_width'} * PANGO_SCALE);
     $globals->{'main_layout'}->set_width($globals->{'screen_width'} * PANGO_SCALE);
-    $globals->{'footer_layout'}->set_width($screen_width * PANGO_SCALE);
+    $globals->{'footer_layout'}->set_width($globals->{'screen_width'} * PANGO_SCALE);
     $globals->{'header_layout'}->set_wrap('word_char');
     $globals->{'main_layout'}->set_wrap('word_char');
     $globals->{'footer_layout'}->set_wrap('word_char');

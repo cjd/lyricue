@@ -6,35 +6,45 @@ package=lyricue-cvs
 
 build:
 	$(checkdir)
-	
-#	$(MAKE) CFLAGS="-O2 -g -Wall"
 	touch build
 
 clean:
 	$(checkdir)
 	rm -f build
-#	-$(MAKE) clean
 	rm -rf dist/lyricue-$(DEB_VERSION)
 	rm -f `find . -name "*~"`
-	rm -rf debian/tmp debian/files* core debian/substvars
+	rm -rf debian/lyricue-kjvdb debian/tmp debian/files* core debian/substvars
 
-binary-indep: checkroot build
+binary-indep: checkroot
 	$(checkdir)
+	rm -f build
+	rm -rf debian/lyricue-kjvdb
 	rm -rf debian/tmp
+	install -d debian/lyricue-kjvdb
 	install -d debian/tmp
 	cd debian/tmp && install -d `cat ../dirs`
 	./install -q -f "`pwd`/debian/tmp" -a root
 	install import_media `pwd`/debian/tmp/usr/bin
 	install install `pwd`/debian/tmp/usr/lib/lyricue
-	install --mode=644 mysql/*.sql `pwd`/debian/tmp/usr/share/lyricue/mysql/
+	install --mode=644 mysql/MySQL_cre*.sql mysql/Update*.sql `pwd`/debian/tmp/usr/share/lyricue/mysql/
+	install --mode=644 images/lyricue-icon.xpm `pwd`/debian/tmp/usr/share/lyricue
+	install -d `pwd`/debian/lyricue-kjvdb/usr/share/doc/lyricue-kjvdb
+	install debian/lyricue-kjvdb.copyright debian/lyricue-kjvdb/usr/share/doc/lyricue-kjvdb/copyright
+	rm `pwd`/debian/tmp/usr/share/doc/lyricue/COPYING
 # Must have debmake installed for this to work. Otherwise please copy
 # /usr/bin/debstd into the debian directory and change debstd to debian/debstd
+	dh_installdebconf
+	dh_installchangelogs
+	dh_perl
 	debstd 
-	dh_installdebconf	
-	dpkg-gencontrol -isp
+	dpkg-gencontrol -isp -plyricue-cvs
+	dpkg-gencontrol -isp -plyricue-kjvdb -Pdebian/lyricue-kjvdb
 	chown -R root:root debian/tmp
 	chmod -R go=rX debian/tmp
 	dpkg --build debian/tmp ..
+	chown -R root:root debian/lyricue-kjvdb
+	chmod -R go=rX debian/lyricue-kjvdb
+	dpkg --build debian/lyricue-kjvdb ..
 
 define checkdir
 	test -f debian/rules
@@ -48,16 +58,9 @@ mkdist:
 	cd dist && tar xvzf lyricue-$(DEB_VERSION).tar.gz
 	cp debian dist/lyricue-$(DEB_VERSION) -R
 
-binary-cvs: mkdist
-	cd dist/lyricue-$(DEB_VERSION) && fakeroot debian/rules binary
-
 checkroot:
 	$(checkdir)
 	test root = "`whoami`"
 
 .PHONY: binary binary-arch binary-indep clean checkroot
 
-.PHONY: update-cvs-snapshot
-update-cvs-snapshot:
-	cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/lds login
-	cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/lds update

@@ -4,38 +4,25 @@ VERSION=`head -1 debian/changelog |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.:/
 LC_ALL=C;export LC_ALL
 
 echo Removing old dist files
-rm -rf dist/lyricue*
+rm -rf dist/l*
 
-echo Copying new dist files
-mkdir dist/lyricue-$VERSION
-cp *.1 *.desktop images/black.png import_media install images/lyricue.png images/lyricue-icon.png lyricue.glade lyricue lyricue_server lyricue_remote lyricue_preview access.conf default.conf dist/lyricue-$VERSION
+echo Creating new files
+mkdir dist
+mkdir dist/lyricue-${VERSION}
+cp -R * dist/lyricue-${VERSION}
+rm -rf dist/dist
+rm dist/lyricue-${VERSION}/mysql/MySQL_create_bible_NIV*.sql
+pushd dist/lyricue-${VERSION}
+rm -rf dist
+rm images/desktop.png images/*.svg
+find . -name CVS -type d -exec rm -r \{} \; 2>/dev/null
 
-for F in black white gray red green blue yellow orange;do touch dist/lyricue-$VERSION/$F.bg;done
-
-mkdir dist/lyricue-$VERSION/po
-for F in po/*.po;do LANG=`basename $F .po`; msgfmt po/$LANG.po -o dist/lyricue-$VERSION/po/$LANG.mo;done
-
-mkdir dist/lyricue-$VERSION/docs
-cp docs/AUTHORS docs/COPYING docs/Development.txt docs/example_song.txt docs/INSTALL docs/NEWS docs/README docs/song_template.txt docs/TODO docs/User_Guide.pdf dist/lyricue-$VERSION/docs
-
-mkdir dist/lyricue-$VERSION/mysql
-cp mysql/MySQL_create_bible_KJV.sql mysql/MySQL_create_Table.sql mysql/Update_1.2.sql mysql/Update_1.9.sql mysql/MySQL_create_media.sql dist/lyricue-$VERSION/mysql
-
-echo Creating debian package
-cp -R debian dist/lyricue-$VERSION
-cd dist/lyricue-$VERSION
+echo Creating Debian packages
 dpkg-buildpackage -rfakeroot
-rm -rf debian/tmp
-cd ../..
+popd
+rm -rf dist/lyricue-${VERSION}
 
-echo Creating lyricue-$VERSION.tar.bz2
-cd dist
-tar cf - lyricue-$VERSION | bzip2 -c > lyricue-$VERSION.tar.bz2
-rm lyricue-$VERSION/mysql/MySQL_create_bible_KJV.sql
-echo Creating lyricue-upgrade-$VERSION.tar.bz2
-tar cf - lyricue-$VERSION | bzip2 -c > lyricue-upgrade-$VERSION.tar.bz2
-cd ..
-rm -rf dist/lyricue-$VERSION
+echo Pushing to repository
 cp dist/*deb dist/*.dsc dist/*.gz  /var/www/debian
 cd /var/www/debian
 dpkg-scanpackages . /dev/null | gzip -c > Packages.gz
