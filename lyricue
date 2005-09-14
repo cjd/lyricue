@@ -6111,7 +6111,6 @@ sub init_miniview {
             exec(
                 sprintf(
                     "lyricue_preview -m %d -p %d\n",
-                    $globals->{'bindir'},
                     $widgets->{'miniview'}->get_id,
                     $globals->{'server_port'}
                 )
