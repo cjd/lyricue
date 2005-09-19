@@ -6088,6 +6088,7 @@ sub init_miniview {
 
     # Start/stop miniview as needed
     if ($config->{'Miniview'} && (!defined($widgets->{'miniview_image'}))) {
+        update_display("status","previewon","");
         $widgets->{'main'}->get_widget('frameCurrent')->show();
         $widgets->{'miniview'} = Gtk2::Socket->new;
         $widgets->{'miniview'}->show;
@@ -6133,6 +6134,7 @@ sub init_miniview {
             undef $widgets->{'miniview'};
             kill 9, $globals->{'miniview_pid'};
         }
+        update_display("status","previewoff","");
         $widgets->{'main'}->get_widget('frameCurrent')->hide();
     }
 }
@@ -6848,3 +6850,4 @@ sub do_pending {
      Gtk2->main_iteration;
     }
 }
+
