@@ -157,6 +157,7 @@ $globals->{'bibledb'}     = "";
 $globals->{'biblename'}   = "";
 $globals->{'usesword'}    = TRUE;
 $globals->{'bg_file'}     = "/tmp/lyricue.bg";
+$globals->{'preview'}     = FALSE;
 $globals->{'use_port'}     = "2346";          #port used for lyric server socket
 $globals->{'server_port'}  = "2346";          #port used for lyric server socket
 $globals->{'preview_port'} = "2347";          #port used for lyric server socket
@@ -389,6 +390,11 @@ sub process_input {
               . $config->{'Height'} . ",F:"
               . $config->{'Main'} . ",B:"
               . $globals->{'bibledb'};
+            if ($line[1] eq "previewon") {
+                $globals->{'preview'} = TRUE;
+            } else {
+                $globals->{'preview'} = FALSE;
+            }
         } elsif (/^snapshot$/) {
             $status = "";
             if ($globals->{'snapshot_changed'} || ($line[1] eq "force")) {
@@ -2193,22 +2199,13 @@ sub get_bibles {
 
 sub update_snapshot {
     debug ("Updating snapshot");
-    my $command =
-      "import -window root -resize 200x150 /tmp/lyricue_"
-      . $globals->{'use_port'} . ".png";
-    #debug($command);
-    #if (defined $globals->{'import_pid'}) {
-    #    `kill -9 $globals->{'import_pid'}`;
-    #}
-    #$globals->{'import_pid'} = fork;
-    #if ($globals->{'import_pid'} < 0) {
-    #    debug("Unable to grab screen");
-    #}
-    #if ($globals->{'import_pid'} == 0) {
-    #    exec ($command);
-    #}
-    `$command`;
-    $globals->{'snapshot_changed'} = TRUE;
+    if ($globals->{'preview'}) {
+        my $command =
+         "import -silent -window root -resize 200x150 /tmp/lyricue_"
+          . $globals->{'use_port'} . ".png";
+        `$command`;
+        $globals->{'snapshot_changed'} = TRUE;
+    }
     reset_timer($globals->{'snapshot_timer'});
 }
 
