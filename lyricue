@@ -381,16 +381,17 @@ do_change_bible($tmpbible[1], $tmpbible[0]);
 # Create tray icon
 if ($globals->{'trayicon'}) {
     debug("Creating Tray icons");
-    my ($tray);
-    eval { $tray = Gtk2::TrayIcon->new("Lyricue"); };
-    if ($@) {
-        debug("Unable to load system tray");
-    } else {
-        my $trayxml =
-          Gtk2::GladeXML->new($globals->{'gladefile'}, 'trayBar', 'lyricue');
-        $trayxml->signal_autoconnect_from_package('');
-        $tray->add($trayxml->get_widget('trayBar'));
-        $tray->show_all;
+    foreach my $trayicon ('trayUp', 'trayDown', 'trayLeft', 'trayRight','trayClear') {
+        my ($tray);
+        eval { $tray = Gtk2::TrayIcon->new("Lyricue-".$trayicon); };
+        if ($@) {
+            debug("Unable to load system tray");
+        } else {
+            my $trayxml = Gtk2::GladeXML->new($globals->{'gladefile'}, $trayicon, 'lyricue');
+            $trayxml->signal_autoconnect_from_package('');
+            $tray->add($trayxml->get_widget($trayicon));
+            $tray->show_all;
+        }
     }
 }
 $0 = "Lyricue Interface";
