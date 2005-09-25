@@ -381,7 +381,7 @@ do_change_bible($tmpbible[1], $tmpbible[0]);
 # Create tray icon
 if ($globals->{'trayicon'}) {
     debug("Creating Tray icons");
-    foreach my $trayicon ('trayUp', 'trayDown', 'trayLeft', 'trayRight','trayClear') {
+    foreach my $trayicon ('trayClear','trayDown','trayUp','trayRight','trayLeft') {
         my ($tray);
         eval { $tray = Gtk2::TrayIcon->new("Lyricue-".$trayicon); };
         if ($@) {
@@ -4218,9 +4218,9 @@ sub move_item {
         my @row = $sth->fetchrow_array;
 
         if ($row[0]) {
-            renumber_item($item,   9999);
+            renumber_item($item,   -1);
             renumber_item($row[0], $item);
-            renumber_item(9999,    $row[0]);
+            renumber_item(-1,    $row[0]);
             update_playlist($row[0]);
         }
     }
@@ -5308,10 +5308,7 @@ sub init_mainWindow {
         my $app = $config->{'App'}[$_];
         $app =~ s/^(.*);.*$/$1/g;
 
-        $appMenu[$_] = Gtk2::RadioMenuItem->new_with_label($group, $app);
-        if ($_ == 0) {
-            $group = $appMenu[$_]->get_group;
-        }
+        $appMenu[$_] = Gtk2::MenuItem->new_with_label($app);
         $appMenu[$_]->signal_connect("toggled", "execute_app", $_);
         $appMenu[$_]->show;
         $menutop2->append($appMenu[$_]);

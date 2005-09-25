@@ -224,6 +224,16 @@ sub close_main {
 # SOURCE
 #
 sub update_display {
+    my $command =
+      "nice -n 20 import -silent -display :1.0 -window root -resize 200x150 /tmp/lyricue_mini.png";
+    `$command`;
+    my $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file("/tmp/lyricue_mini.png");
+    $globals->{'image'}->set_from_pixbuf($pixbuf);
+    debug("Loaded image");
+    return TRUE;
+}
+
+sub update_display_old {
     debug("update display");
     if (
         my $server = IO::Socket::INET->new(

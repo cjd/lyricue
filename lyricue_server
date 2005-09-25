@@ -2200,11 +2200,11 @@ sub get_bibles {
 sub update_snapshot {
     debug ("Updating snapshot");
     if ($globals->{'preview'}) {
-        my $command =
-         "import -silent -window root -resize 200x150 /tmp/lyricue_"
-          . $globals->{'use_port'} . ".png";
-        `$command`;
-        $globals->{'snapshot_changed'} = TRUE;
+        #my $command =
+        # "import -silent -window root -resize 200x150 /tmp/lyricue_"
+        #  . $globals->{'use_port'} . ".png";
+        #`$command`;
+        #$globals->{'snapshot_changed'} = TRUE;
     }
     reset_timer($globals->{'snapshot_timer'});
 }
