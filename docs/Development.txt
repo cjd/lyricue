@@ -130,13 +130,13 @@ Following is a description of each possible line.
 'Main'     - Font used for main lyrics on server
 'Header'   - Font used for header section on server
 'Footer'   - Font used for footer section on server
-'Colour'   - Colour used for text on server
-'ShadowColour' - Colour used for text shadow
+'Colour'   - Colour used for text on server (hex value)
+'ShadowColour' - Colour used for text shadow (hex value)
 'ShadowSize'   - Num of Pixels that shadow is moved down/right of text
 'Height'   - Window height for server/interface
 'Width'    - Window width for server/interface
-'OverscanH'
-'OverscanW'
+'OverscanH' - Size of border that is not written to in server
+'OverscanW' - Size of border that is not written to in server
 'Loop'     - Boolean state of looping (ie. if you press next at the last
              page should it return to the first page)
 'Xinerama' - Boolean state of xinerama
@@ -147,7 +147,12 @@ Following is a description of each possible line.
 'App'      - Command-line to be run from interface on server screen, can
              be multiple
 'DynamicPreview' - Boolean state of preview window
-'MiniView' - Boolean state of miniview window
+'MiniView'   - Boolean state of miniview window
+'FrameLeft'  - Size of left pane
+'FrameRight' - Size of right pane
+'FrameMain'  - Size of main pane
+'SpecialSong' - Song that will sit at top of available songs always
+'SpecialImage' - Image category that will be selected by default
 
 
 ---------------
