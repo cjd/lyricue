@@ -4854,6 +4854,9 @@ sub save_preferences {
     print CONFIG "FrameRight = "
       . $widgets->{'main'}->get_widget('hpanedMainRight')->get_position()
       . "\n";
+    print CONFIG "FrameMain = "
+      . $widgets->{'main'}->get_widget('vpanedMain')->get_position()
+      . "\n";
     print CONFIG "SpecialSong = "
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialSong')->get_text()
       . "\n";
@@ -5309,7 +5312,7 @@ sub init_mainWindow {
         $app =~ s/^(.*);.*$/$1/g;
 
         $appMenu[$_] = Gtk2::MenuItem->new_with_label($app);
-        $appMenu[$_]->signal_connect("toggled", "execute_app", $_);
+        $appMenu[$_]->signal_connect("activate", "execute_app", $_);
         $appMenu[$_]->show;
         $menutop2->append($appMenu[$_]);
     }
@@ -5334,6 +5337,7 @@ sub init_mainWindow {
         $widgets->{'main'}->get_widget('windowMain')->maximize;
     }
 
+    do_pending();
     # Adjust frame sizes
     if ((defined $config->{'FrameRight'}) && ($config->{'FrameRight'} != 0)) {
         $widgets->{'main'}->get_widget('hpanedMainLeft')
@@ -5350,6 +5354,12 @@ sub init_mainWindow {
             $widgets->{'main'}->get_widget('hpanedMainRight')
               ->set_position($width / 5 * 2);
         }
+    }
+    if (defined $config->{'FrameMain'}) {
+        $widgets->{'main'}->get_widget('vpanedMain')->set_position($config->{'FrameMain'});
+    } else {
+        my ($width,$height) = $widgets->{'main'}->get_widget('windowMain')->get_size();
+        $widgets->{'main'}->get_widget('vpanedMain')->set_position($height-200);
     }
 }
 
