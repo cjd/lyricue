@@ -6149,6 +6149,15 @@ sub quick_save {
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my @row = $sth->fetchrow_array();
 
+    if ($row[1] eq "play") {
+        $query = "SELECT data,type FROM playlist WHERE playlist=5 ORDER BY playorder";
+        qdebug($query);
+            $sth = $lyricDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        @row = $sth->fetchrow_array();
+    }
+
     if ($row[1] eq "song") {
         if (!defined $row[0]) { $row[0] = ""; }
 
