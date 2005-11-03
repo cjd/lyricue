@@ -2565,6 +2565,9 @@ sub blank_page {
     debug("Blank page clicked");
     reset_timer($globals->{'timer'});
     update_display("blank", "", "");
+    if (!(defined($config->{'BlankFunction'}) && $config->{'BlankFunction'})) {
+        update_display("backdrop",$config->{'BGImage'},"");
+    }
 }
 
 #****m* lyricue/next_point
@@ -3708,6 +3711,8 @@ sub create_dialog_prefs {
       ->set_active($config->{'DynamicPreview'});
     $widgets->{'prefs'}->get_widget('checkPrefMiniview')
       ->set_active($config->{'Miniview'});
+    $widgets->{'prefs'}->get_widget('checkPrefBlank')
+      ->set_active($config->{'BlankFunction'});
     my $scaled = create_pixbuf($config->{'BGImage'}, 72, 54);
 
     if ($scaled) {
@@ -4828,6 +4833,9 @@ sub save_preferences {
     print CONFIG "Miniview = "
       . $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active()
       . "\n";
+    print CONFIG "BlankFunction = "
+      . $widgets->{'prefs'}->get_widget('checkPrefBlank')->get_active()
+      . "\n";
     print CONFIG "Xinerama = "
       . $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
       . "\n";
@@ -5544,9 +5552,9 @@ sub create_search {
     $widgets->{'search'} =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSearch', 'lyricue');
     $widgets->{'search'}->signal_autoconnect_from_package('');
-    my @target_table = ({'target' => "STRING", 'flags' => 0, 'info' => 0},);
+    my @target_table = ({'target' => "STRING", 'flags' => [], 'info' => 0},);
     $widgets->{'search'}->get_widget('treeSearch')
-      ->drag_source_set(['button1_mask'], ['copy', 'move'], @target_table);
+      ->drag_source_set(['button1_mask'], ['copy'], @target_table);
     $widgets->{'main'}->get_widget('treePlaylist')
       ->drag_dest_set('all', ['copy'], @target_table);
 }

@@ -6495,6 +6495,7 @@ http://www.adebenham.com/lyricue</property>
 	      <property name="hover_selection">False</property>
 	      <property name="hover_expand">False</property>
 	      <signal name="cursor_changed" handler="update_adv_search" last_modification_time="Tue, 04 Nov 2003 00:35:00 GMT"/>
+	      <signal name="drag_data_get" handler="on_treeSearch_drag_data_get" last_modification_time="Thu, 03 Nov 2005 06:06:54 GMT"/>
 	    </widget>
 	  </child>
 	</widget>
@@ -9117,7 +9118,7 @@ http://www.adebenham.com/lyricue</property>
 	  </child>
 
 	  <child>
-	    <widget class="GtkVBox" id="vbox4">
+	    <widget class="GtkVBox" id="vboxPrefsOptions">
 	      <property name="visible">True</property>
 	      <property name="homogeneous">False</property>
 	      <property name="spacing">0</property>
@@ -9222,6 +9223,25 @@ http://www.adebenham.com/lyricue</property>
 		  <property name="visible">True</property>
 		  <property name="can_focus">True</property>
 		  <property name="label" translatable="yes">Miniview</property>
+		  <property name="use_underline">True</property>
+		  <property name="relief">GTK_RELIEF_NORMAL</property>
+		  <property name="focus_on_click">True</property>
+		  <property name="active">False</property>
+		  <property name="inconsistent">False</property>
+		  <property name="draw_indicator">True</property>
+		</widget>
+		<packing>
+		  <property name="padding">0</property>
+		  <property name="expand">False</property>
+		  <property name="fill">False</property>
+		</packing>
+	      </child>
+
+	      <child>
+		<widget class="GtkCheckButton" id="checkPrefBlank">
+		  <property name="visible">True</property>
+		  <property name="can_focus">True</property>
+		  <property name="label" translatable="yes">Blank screen button just clears text</property>
 		  <property name="use_underline">True</property>
 		  <property name="relief">GTK_RELIEF_NORMAL</property>
 		  <property name="focus_on_click">True</property>
