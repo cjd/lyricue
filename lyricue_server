@@ -424,6 +424,10 @@ sub process_input {
             $status = "Screen blanked";
             reset_timer($globals->{'snapshot_timer'});
             $globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
+            if ($line[1] ne "") {
+                $config->{'BGImage'} = $line[1];
+                change_backdrop($config->{'BGImage'});
+            }
         } elsif (/^change_to_db$/) {
             change_to_db($line[1], $line[2]);
             $status = "Bible changed to " . $globals->{'bibledb'};

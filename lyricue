@@ -2580,9 +2580,10 @@ sub next_song {
 sub blank_page {
     debug("Blank page clicked");
     reset_timer($globals->{'timer'});
-    update_display("blank", "", "");
-    if (!(defined($config->{'BlankFunction'}) && $config->{'BlankFunction'})) {
-        update_display("backdrop",$config->{'BGImage'},"");
+    if (defined($config->{'BlankFunction'}) && $config->{'BlankFunction'}) {
+        update_display("blank", "", "");
+    } else {
+        update_display("blank",$config->{'BGImage'},"");
     }
 }
 
