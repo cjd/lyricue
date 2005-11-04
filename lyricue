@@ -767,8 +767,8 @@ sub update_available {
     my $songname = $widgets->{'main'}->get_widget('entrySearch')->get_text();
 
     my $query =
-      "SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \""
-      . $config->{'SpecialSong'} . "\"";
+      "SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"%"
+      . $config->{'SpecialSong'} . "\"%";
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
