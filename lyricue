@@ -802,6 +802,22 @@ sub update_available {
             $row->{'songnum'}, 3, $row->{'id'}
         );
     }
+
+    $query = "SELECT id,title,songnum,book FROM page,lyricMain WHERE pagenum=1 AND SUBSTRING_INDEX(lyrics,'\n',1) LIKE \"%".$songname."%\" AND page.songid=lyricMain.id ORDER BY " . $globals->{'sortby'};
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+    while ($row = $sth->fetchrow_hashref()) {
+        my $iter = $store->append;
+        $store->set(
+            $iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
+            $row->{'songnum'}, 3, $row->{'id'}
+        );
+    }
+
+
     $widgets->{'main'}->get_widget('treeAvailable')->set_model($store);
     $widgets->{'main'}->get_widget('treeAvailable')
       ->set_headers_clickable(TRUE);
@@ -4077,6 +4093,7 @@ sub do_adv_search {
 "SELECT id,title,songnum,book,count(id) as count FROM lyricMain,page WHERE lyricMain.id=page.songid AND page.lyrics LIKE \"%"
       . $widgets->{'search'}->get_widget('entrySearchSongs')->get_text()
       . "%\" GROUP BY id ORDER BY count DESC";
+    qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
