@@ -768,7 +768,7 @@ sub update_available {
 
     my $query =
       "SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"%"
-      . $config->{'SpecialSong'} . "\"%";
+      . $config->{'SpecialSong'} . "%\"";
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
