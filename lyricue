@@ -803,20 +803,21 @@ sub update_available {
         );
     }
 
-    $query = "SELECT id,title,songnum,book,SUBSTRING_INDEX(lyrics,'\n',1) as line FROM page,lyricMain WHERE pagenum=1 AND SUBSTRING_INDEX(lyrics,'\n',1) LIKE \"%".$songname."%\" AND page.songid=lyricMain.id ORDER BY " . $globals->{'sortby'};
-    qdebug($query);
-    $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    if ($songname ne "") {
+        $query = "SELECT id,title,songnum,book,SUBSTRING_INDEX(lyrics,'\n',1) as line FROM page,lyricMain WHERE pagenum=1 AND SUBSTRING_INDEX(lyrics,'\n',1) LIKE \"%".$songname."%\" AND page.songid=lyricMain.id ORDER BY " . $globals->{'sortby'};
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+        || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-    while ($row = $sth->fetchrow_hashref()) {
-        my $iter = $store->append;
-        $store->set(
-            $iter,             0, $row->{'line'}." (".$row->{'title'}.")", 1, $row->{'book'}, 2,
-            $row->{'songnum'}, 3, $row->{'id'}
-        );
+        while ($row = $sth->fetchrow_hashref()) {
+            my $iter = $store->append;
+            $store->set(
+                $iter,             0, $row->{'line'}." (".$row->{'title'}.")", 1, $row->{'book'}, 2,
+                $row->{'songnum'}, 3, $row->{'id'}
+            );
+        }
     }
-
 
     $widgets->{'main'}->get_widget('treeAvailable')->set_model($store);
     $widgets->{'main'}->get_widget('treeAvailable')
