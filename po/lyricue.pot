@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: lyricue 1.9.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-10-04 14:53+1000\n"
+"POT-Creation-Date: 2005-11-07 11:14+1100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,216 +16,419 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../lyricue.glade.h:1
-msgid "-"
+#: ../lyricue:211 ../lyricue_server:191
+msgid ""
+"I'm sorry but I could not open the lyric database.\n"
+"Please confirm that Lyricue is installed correctly and MySql is running"
 msgstr ""
 
-#: ../lyricue.glade.h:2
+#: ../lyricue:217 ../lyricue_server:197
+msgid ""
+"I'm sorry but I could not open the bible database.\n"
+"Please confirm that Lyricue is installed correctly and the current bible "
+"database exists.\n"
+"The requested database was named "
+msgstr ""
+
+#: ../lyricue:223
+msgid ""
+"I'm sorry but I could not open the media database.\n"
+"Please confirm that Lyricue is installed correctly and MySql is running"
+msgstr ""
+
+#: ../lyricue:227 ../lyricue_server:201
+msgid ""
+"Unable to prepare query.\n"
+"Has mysql died?"
+msgstr ""
+
+#: ../lyricue:229 ../lyricue_server:203
+msgid ""
+"Unable to execute query.\n"
+"Has mysql died?"
+msgstr ""
+
+#: ../lyricue:233 ../lyricue_server:207
+msgid ""
+"Sorry, I was unable to listen on the network.\n"
+"Please make sure I am not already running"
+msgstr ""
+
+#: ../lyricue:237
+msgid "Could not open "
+msgstr ""
+
+#: ../lyricue:241
+msgid ""
+"Unable to read the file, are you sure it exists?\n"
+"The file asked for was "
+msgstr ""
+
+#: ../lyricue:247
+msgid ""
+"Unable to write to the file, you may not have sufficent permissions.\n"
+"Please check the permissions for "
+msgstr ""
+
+#: ../lyricue:253
+msgid ""
+"\n"
+"Usage: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n"
+"\n"
+msgstr ""
+
+#: ../lyricue:254
+msgid "\t-v:  Prints Lyricue version information & exits\n"
+msgstr ""
+
+#: ../lyricue:255
+msgid "\t-l:  Outputs song list in HTML & exits\n"
+msgstr ""
+
+#: ../lyricue:256
+msgid "\t-b:  Loads Lyricue without background previews\n"
+msgstr ""
+
+#: ../lyricue:257
+msgid "\t-s:  Specify the host on which the lyric server is located\n"
+msgstr ""
+
+#: ../lyricue:258
+msgid "\t-d:  Prints debugging messages\n"
+msgstr ""
+
+#: ../lyricue:259
+msgid ""
+"\t-dq: Prints debugging messages + sql\n"
+"\n"
+msgstr ""
+
+#: ../lyricue:751
+msgid "Title"
+msgstr ""
+
+#: ../lyricue:754 ../lyricue.glade.h:53
+msgid "Book"
+msgstr ""
+
+#: ../lyricue:757 ../lyricue.glade.h:213
+msgid "Song Number"
+msgstr ""
+
+#: ../lyricue:861
+msgid "/Edit Song"
+msgstr ""
+
+#: ../lyricue:868
+msgid "/Delete Song"
+msgstr ""
+
+#: ../lyricue:875
+msgid "/Refresh List"
+msgstr ""
+
+#: ../lyricue:879
+msgid "/Order - Songbook -> No."
+msgstr ""
+
+#: ../lyricue:883
+msgid "/Order - Songbook -> Name."
+msgstr ""
+
+#: ../lyricue:895
+msgid "/Add to Playlist"
+msgstr ""
+
+#: ../lyricue:970
+msgid "/Duplicate Item"
+msgstr ""
+
+#: ../lyricue:974
+msgid "/Remove from Playlist"
+msgstr ""
+
+#: ../lyricue:978
+msgid "/Refresh Playlist"
+msgstr ""
+
+#: ../lyricue:981
+msgid "/Add Verse"
+msgstr ""
+
+#: ../lyricue:983
+msgid "/Invert Line Display"
+msgstr ""
+
+#: ../lyricue:987
+msgid "/Loop this playlist item"
+msgstr ""
+
+#: ../lyricue:991
+msgid "/Associate background"
+msgstr ""
+
+#: ../lyricue:995
+msgid "/Dis-associate background"
+msgstr ""
+
+#: ../lyricue:999
+msgid "/Preview this item"
+msgstr ""
+
+#: ../lyricue:1003
+msgid "/Move to sublist/Main"
+msgstr ""
+
+#: ../lyricue:1009
+msgid "/Move to sublist/"
+msgstr ""
+
+#: ../lyricue:1083 ../lyricue:6547
+msgid "Are you sure you wish to delete \""
+msgstr ""
+
+#: ../lyricue:1088
+msgid "from the book \""
+msgstr ""
+
+#: ../lyricue:1092
+msgid "which was written by \""
+msgstr ""
+
+#: ../lyricue:1533 ../lyricue:1567 ../lyricue:1577 ../lyricue:2642
+msgid "Page "
+msgstr ""
+
+#: ../lyricue:2922
+msgid "Displaying "
+msgstr ""
+
+#: ../lyricue:2924 ../lyricue:3028
+msgid " verses "
+msgstr ""
+
+#: ../lyricue:2926 ../lyricue:3030
+msgid " page "
+msgstr ""
+
+#: ../lyricue:3026
+msgid "Previewed "
+msgstr ""
+
+#: ../lyricue:5623
+msgid "Set as Default"
+msgstr ""
+
+#: ../lyricue_server:478 ../lyricue_server:481 ../lyricue_server:1048
+msgid "Written by "
+msgstr ""
+
+#: ../lyricue.glade.h:1
 msgid "1 Chronicles"
 msgstr ""
 
-#: ../lyricue.glade.h:3
+#: ../lyricue.glade.h:2
 msgid "1 Corinthians"
 msgstr ""
 
-#: ../lyricue.glade.h:4
+#: ../lyricue.glade.h:3
 msgid "1 John"
 msgstr ""
 
-#: ../lyricue.glade.h:5
+#: ../lyricue.glade.h:4
 msgid "1 Kings"
 msgstr ""
 
-#: ../lyricue.glade.h:6
+#: ../lyricue.glade.h:5
 msgid "1 Peter"
 msgstr ""
 
-#: ../lyricue.glade.h:7
+#: ../lyricue.glade.h:6
 msgid "1 Samuel"
 msgstr ""
 
-#: ../lyricue.glade.h:8
+#: ../lyricue.glade.h:7
 msgid "1 Thessalonians"
 msgstr ""
 
-#: ../lyricue.glade.h:9
+#: ../lyricue.glade.h:8
 msgid "1 Timothy"
 msgstr ""
 
-#: ../lyricue.glade.h:10
+#: ../lyricue.glade.h:9
 msgid "2 Chronicles"
 msgstr ""
 
-#: ../lyricue.glade.h:11
+#: ../lyricue.glade.h:10
 msgid "2 Corinthians"
 msgstr ""
 
-#: ../lyricue.glade.h:12
+#: ../lyricue.glade.h:11
 msgid "2 John"
 msgstr ""
 
-#: ../lyricue.glade.h:13
+#: ../lyricue.glade.h:12
 msgid "2 Kings"
 msgstr ""
 
-#: ../lyricue.glade.h:14
+#: ../lyricue.glade.h:13
 msgid "2 Peter"
 msgstr ""
 
-#: ../lyricue.glade.h:15
+#: ../lyricue.glade.h:14
 msgid "2 Samuel"
 msgstr ""
 
-#: ../lyricue.glade.h:16
+#: ../lyricue.glade.h:15
 msgid "2 Thessalonians"
 msgstr ""
 
-#: ../lyricue.glade.h:17
+#: ../lyricue.glade.h:16
 msgid "2 Timothy"
 msgstr ""
 
-#: ../lyricue.glade.h:18
+#: ../lyricue.glade.h:17
 msgid "3 John"
 msgstr ""
 
-#: ../lyricue.glade.h:19
+#: ../lyricue.glade.h:18
 msgid "About Lyricue"
 msgstr ""
 
-#: ../lyricue.glade.h:20
+#: ../lyricue.glade.h:19
 msgid "Acts"
 msgstr ""
 
-#: ../lyricue.glade.h:21
+#: ../lyricue.glade.h:20
 msgid "Add Image(s)"
 msgstr ""
 
-#: ../lyricue.glade.h:22
+#: ../lyricue.glade.h:21
 msgid "Add Page"
 msgstr ""
 
-#: ../lyricue.glade.h:23
+#: ../lyricue.glade.h:22
 msgid "Add Song"
 msgstr ""
 
-#: ../lyricue.glade.h:24
+#: ../lyricue.glade.h:23
 msgid "Add Sublist"
 msgstr ""
 
-#: ../lyricue.glade.h:25
+#: ../lyricue.glade.h:24
 msgid "Add _File"
 msgstr ""
 
-#: ../lyricue.glade.h:26
+#: ../lyricue.glade.h:25
 msgid "Add _Image"
 msgstr ""
 
-#: ../lyricue.glade.h:27
+#: ../lyricue.glade.h:26
 msgid "Add _Verse"
 msgstr ""
 
-#: ../lyricue.glade.h:28
+#: ../lyricue.glade.h:27
 msgid "Add new Song"
 msgstr ""
 
-#: ../lyricue.glade.h:29
+#: ../lyricue.glade.h:28
 msgid "Add the selected song to the playlist"
 msgstr ""
 
-#: ../lyricue.glade.h:30
+#: ../lyricue.glade.h:29
 msgid "Add to Playlist"
 msgstr ""
 
-#: ../lyricue.glade.h:31
+#: ../lyricue.glade.h:30
 msgid "Add to playlist"
 msgstr ""
 
-#: ../lyricue.glade.h:32
+#: ../lyricue.glade.h:31
 msgid "Add user"
 msgstr ""
 
-#: ../lyricue.glade.h:33
+#: ../lyricue.glade.h:32
 msgid "Admin"
 msgstr ""
 
-#: ../lyricue.glade.h:34
+#: ../lyricue.glade.h:33
 msgid "Advanced Search"
 msgstr ""
 
-#: ../lyricue.glade.h:35
+#: ../lyricue.glade.h:34
 msgid "Advanced _Search"
 msgstr ""
 
-#: ../lyricue.glade.h:36
+#: ../lyricue.glade.h:35
 msgid "Amos"
 msgstr ""
 
-#: ../lyricue.glade.h:37
+#: ../lyricue.glade.h:36
 msgid "Any copyright information"
 msgstr ""
 
-#: ../lyricue.glade.h:38
+#: ../lyricue.glade.h:37
 msgid "Apply to current item"
 msgstr ""
 
-#: ../lyricue.glade.h:39
+#: ../lyricue.glade.h:38
 msgid "Are you sure?"
 msgstr ""
 
-#: ../lyricue.glade.h:40
+#: ../lyricue.glade.h:39
 msgid "Artist"
 msgstr ""
 
-#: ../lyricue.glade.h:41
+#: ../lyricue.glade.h:40
 msgid "Audit Song"
 msgstr ""
 
-#: ../lyricue.glade.h:42
+#: ../lyricue.glade.h:41
 msgid "Audit Songs"
 msgstr ""
 
-#: ../lyricue.glade.h:43
+#: ../lyricue.glade.h:42
 msgid "Autoshow"
 msgstr ""
 
-#: ../lyricue.glade.h:44
+#: ../lyricue.glade.h:43
 msgid "Available Songs"
 msgstr ""
 
-#: ../lyricue.glade.h:45
+#: ../lyricue.glade.h:44
 msgid "Available songs"
 msgstr ""
 
-#: ../lyricue.glade.h:46
+#: ../lyricue.glade.h:45
 msgid "Background"
 msgstr ""
 
-#: ../lyricue.glade.h:47
+#: ../lyricue.glade.h:46
 msgid "Backgrounds"
 msgstr ""
 
-#: ../lyricue.glade.h:48
+#: ../lyricue.glade.h:47
 msgid "Backup Database"
 msgstr ""
 
-#: ../lyricue.glade.h:49
+#: ../lyricue.glade.h:48
 msgid "Bible"
 msgstr ""
 
-#: ../lyricue.glade.h:50
+#: ../lyricue.glade.h:49
 msgid "Bible Navigator"
 msgstr ""
 
-#: ../lyricue.glade.h:51
+#: ../lyricue.glade.h:50
 msgid "Bible Verse"
 msgstr ""
 
-#: ../lyricue.glade.h:52
+#: ../lyricue.glade.h:51
 msgid "Blank Screen"
 msgstr ""
 
-#: ../lyricue.glade.h:53 ../lyricue:749
-msgid "Book"
+#: ../lyricue.glade.h:52
+msgid "Blank screen button just clears text"
 msgstr ""
 
 #: ../lyricue.glade.h:54
@@ -864,10 +1067,6 @@ msgstr ""
 msgid "Song Name"
 msgstr ""
 
-#: ../lyricue.glade.h:213 ../lyricue:752
-msgid "Song Number"
-msgstr ""
-
 #: ../lyricue.glade.h:214
 msgid "Song of Solomon"
 msgstr ""
@@ -1103,170 +1302,4 @@ msgstr ""
 
 #: ../lyricue.glade.h:275
 msgid "abcdefghijk ABCDEFGHIJK"
-msgstr ""
-
-#: ../lyricue:211 ../lyricue_server:191
-msgid ""
-"I'm sorry but I could not open the lyric database.\n"
-"Please confirm that Lyricue is installed correctly and MySql is running"
-msgstr ""
-
-#: ../lyricue:217 ../lyricue_server:197
-msgid ""
-"I'm sorry but I could not open the bible database.\n"
-"Please confirm that Lyricue is installed correctly and the current bible "
-"database exists.\n"
-"The requested database was named "
-msgstr ""
-
-#: ../lyricue:223
-msgid ""
-"I'm sorry but I could not open the media database.\n"
-"Please confirm that Lyricue is installed correctly and MySql is running"
-msgstr ""
-
-#: ../lyricue:227 ../lyricue_server:201
-msgid ""
-"Unable to prepare query.\n"
-"Has mysql died?"
-msgstr ""
-
-#: ../lyricue:229 ../lyricue_server:203
-msgid ""
-"Unable to execute query.\n"
-"Has mysql died?"
-msgstr ""
-
-#: ../lyricue:233 ../lyricue_server:207
-msgid ""
-"Sorry, I was unable to listen on the network.\n"
-"Please make sure I am not already running"
-msgstr ""
-
-#: ../lyricue:237
-msgid "Could not open "
-msgstr ""
-
-#: ../lyricue:241
-msgid ""
-"Unable to read the file, are you sure it exists?\n"
-"The file asked for was "
-msgstr ""
-
-#: ../lyricue:247
-msgid ""
-"Unable to write to the file, you may not have sufficent permissions.\n"
-"Please check the permissions for "
-msgstr ""
-
-#: ../lyricue:746
-msgid "Title"
-msgstr ""
-
-#: ../lyricue:839
-msgid "/Edit Song"
-msgstr ""
-
-#: ../lyricue:846
-msgid "/Delete Song"
-msgstr ""
-
-#: ../lyricue:853
-msgid "/Refresh List"
-msgstr ""
-
-#: ../lyricue:857
-msgid "/Order - Songbook -> No."
-msgstr ""
-
-#: ../lyricue:861
-msgid "/Order - Songbook -> Name."
-msgstr ""
-
-#: ../lyricue:873
-msgid "/Add to Playlist"
-msgstr ""
-
-#: ../lyricue:948
-msgid "/Duplicate Item"
-msgstr ""
-
-#: ../lyricue:952
-msgid "/Remove from Playlist"
-msgstr ""
-
-#: ../lyricue:956
-msgid "/Refresh Playlist"
-msgstr ""
-
-#: ../lyricue:959
-msgid "/Add Verse"
-msgstr ""
-
-#: ../lyricue:961
-msgid "/Invert Line Display"
-msgstr ""
-
-#: ../lyricue:965
-msgid "/Loop this playlist item"
-msgstr ""
-
-#: ../lyricue:969
-msgid "/Associate background"
-msgstr ""
-
-#: ../lyricue:973
-msgid "/Dis-associate background"
-msgstr ""
-
-#: ../lyricue:977
-msgid "/Preview this item"
-msgstr ""
-
-#: ../lyricue:981
-msgid "/Move to sublist/Main"
-msgstr ""
-
-#: ../lyricue:987
-msgid "/Move to sublist/"
-msgstr ""
-
-#: ../lyricue:1061 ../lyricue:6496
-msgid "Are you sure you wish to delete \""
-msgstr ""
-
-#: ../lyricue:1066
-msgid "from the book \""
-msgstr ""
-
-#: ../lyricue:1070
-msgid "which was written by \""
-msgstr ""
-
-#: ../lyricue:1511 ../lyricue:1545 ../lyricue:1555 ../lyricue:2616
-msgid "Page "
-msgstr ""
-
-#: ../lyricue:2896
-msgid "Displaying "
-msgstr ""
-
-#: ../lyricue:2898 ../lyricue:3002
-msgid " verses "
-msgstr ""
-
-#: ../lyricue:2900 ../lyricue:3004
-msgid " page "
-msgstr ""
-
-#: ../lyricue:3000
-msgid "Previewed "
-msgstr ""
-
-#: ../lyricue:5581
-msgid "Set as Default"
-msgstr ""
-
-#: ../lyricue_server:474 ../lyricue_server:477 ../lyricue_server:1044
-msgid "Written by "
 msgstr ""

@@ -1,232 +1,458 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# French translation of lyricue.
+# Copyright (C) 2005 Chris Debenham
 # This file is distributed under the same license as the lyricue package.
 # Claude Paroz, 2005
-#
-#, fuzzy
+# , fuzzy
+# 
+# 
 msgid ""
 msgstr ""
-"Project-Id-Version: Lyricue 1.9.2\n"
+"Project-Id-Version: lyricue 1.9.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-10-04 14:53+1000\n"
-"PO-Revision-Date: 2005-11-04 12:00\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: fr <lds-devel@lists.sourceforge.net>\n"
+"POT-Creation-Date: 2005-11-07 11:14+1100\n"
+"PO-Revision-Date: 2005-11-07 11:19+1100\n"
+"Last-Translator: Claude Paroz <paroz@email.ch>\n"
+"Language-Team: French <lds-devel@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../lyricue.glade.h:1
-msgid "-"
-msgstr "-"
+#: ../lyricue:211 ../lyricue_server:191
+msgid ""
+"I'm sorry but I could not open the lyric database.\n"
+"Please confirm that Lyricue is installed correctly and MySql is running"
+msgstr ""
+"DÃ©solÃ©, impossible d'ouvrir la base de donnÃ©es de paroles.\n"
+"Veuillez vÃ©rifier que Lyricue est installÃ© correctement et que MySql "
+"fonctionne"
 
-#: ../lyricue.glade.h:2
+#: ../lyricue:217 ../lyricue_server:197
+msgid ""
+"I'm sorry but I could not open the bible database.\n"
+"Please confirm that Lyricue is installed correctly and the current bible "
+"database exists.\n"
+"The requested database was named "
+msgstr ""
+"DÃ©solÃ©, impossible d'ouvrir la base de donnÃ©es de bibles.\n"
+"Veuillez vÃ©rifier que Lyricue est installÃ© correctement et que la base de "
+"donnÃ©es\n"
+"de bibles existe.\n"
+"La base de donnÃ©es requise s'appelle "
+
+#: ../lyricue:223
+msgid ""
+"I'm sorry but I could not open the media database.\n"
+"Please confirm that Lyricue is installed correctly and MySql is running"
+msgstr ""
+"DÃ©solÃ©, impossible d'ouvrir la base de donnÃ©es de mÃ©dias.\n"
+"Veuillez vÃ©rifier que Lyricue est installÃ© correctement et que MySql "
+"fonctionne"
+
+#: ../lyricue:227 ../lyricue_server:201
+msgid ""
+"Unable to prepare query.\n"
+"Has mysql died?"
+msgstr ""
+"Impossible de prÃ©parer la requÃªte.\n"
+"Est-ce que MySql s'est arrÃªtÃ©?"
+
+#: ../lyricue:229 ../lyricue_server:203
+msgid ""
+"Unable to execute query.\n"
+"Has mysql died?"
+msgstr ""
+"Impossible d'exÃ©cuter la requÃªte.\n"
+"Est-ce que MySql s'est arrÃªtÃ©?"
+
+#: ../lyricue:233 ../lyricue_server:207
+msgid ""
+"Sorry, I was unable to listen on the network.\n"
+"Please make sure I am not already running"
+msgstr ""
+"DÃ©solÃ©, impossible de dÃ©tecter le rÃ©seau.\n"
+"VÃ©rifiez que l'application ne fonctionne pas dÃ©jÃ "
+
+#: ../lyricue:237
+msgid "Could not open "
+msgstr "Impossible d'ouvrir "
+
+#: ../lyricue:241
+msgid ""
+"Unable to read the file, are you sure it exists?\n"
+"The file asked for was "
+msgstr ""
+"Impossible de lire le fichier, Ãªtes-vous sÃ»r qu'il existe ?\n"
+"Le fichier concernÃ© se nomme "
+
+#: ../lyricue:247
+msgid ""
+"Unable to write to the file, you may not have sufficent permissions.\n"
+"Please check the permissions for "
+msgstr ""
+"Impossible d'enregistrer le fichier, vous ne disposez peut-Ãªtre pas des "
+"permissions.\n"
+"VÃ©rifiez les permissions de "
+
+#: ../lyricue:253
+msgid ""
+"\n"
+"Usage: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n"
+"\n"
+msgstr ""
+
+#: ../lyricue:254
+msgid "\t-v:  Prints Lyricue version information & exits\n"
+msgstr ""
+
+#: ../lyricue:255
+msgid "\t-l:  Outputs song list in HTML & exits\n"
+msgstr ""
+
+#: ../lyricue:256
+msgid "\t-b:  Loads Lyricue without background previews\n"
+msgstr ""
+
+#: ../lyricue:257
+msgid "\t-s:  Specify the host on which the lyric server is located\n"
+msgstr ""
+
+#: ../lyricue:258
+msgid "\t-d:  Prints debugging messages\n"
+msgstr ""
+
+#: ../lyricue:259
+msgid ""
+"\t-dq: Prints debugging messages + sql\n"
+"\n"
+msgstr ""
+
+#: ../lyricue:751
+msgid "Title"
+msgstr "Titre"
+
+#: ../lyricue:754 ../lyricue.glade.h:53
+msgid "Book"
+msgstr "Livre"
+
+#: ../lyricue:757 ../lyricue.glade.h:213
+msgid "Song Number"
+msgstr "NumÃ©ro du chant"
+
+#: ../lyricue:861
+msgid "/Edit Song"
+msgstr "/Ãditer le chant"
+
+#: ../lyricue:868
+msgid "/Delete Song"
+msgstr "/Supprimer le chant"
+
+#: ../lyricue:875
+msgid "/Refresh List"
+msgstr "/RafraÃ®chir la liste"
+
+#: ../lyricue:879
+msgid "/Order - Songbook -> No."
+msgstr "/Classer chants par numÃ©ro"
+
+#: ../lyricue:883
+msgid "/Order - Songbook -> Name."
+msgstr "/Classer chants par titre"
+
+#: ../lyricue:895
+msgid "/Add to Playlist"
+msgstr "/Ajouter Ã  la liste de lecture"
+
+#: ../lyricue:970
+msgid "/Duplicate Item"
+msgstr "/Dupliquer l'Ã©lÃ©ment"
+
+#: ../lyricue:974
+msgid "/Remove from Playlist"
+msgstr "/Supprimer de la liste de lecture"
+
+#: ../lyricue:978
+msgid "/Refresh Playlist"
+msgstr "/RafraÃ®chir la liste de lecture"
+
+#: ../lyricue:981
+msgid "/Add Verse"
+msgstr "/Ajouter un verset"
+
+#: ../lyricue:983
+msgid "/Invert Line Display"
+msgstr "/Inverser l'affichage des lignes"
+
+#: ../lyricue:987
+msgid "/Loop this playlist item"
+msgstr "/Passer en boucle cet Ã©lÃ©ment de la liste"
+
+#: ../lyricue:991
+msgid "/Associate background"
+msgstr "/Associer Ã  l'arriÃ¨re-plan"
+
+#: ../lyricue:995
+msgid "/Dis-associate background"
+msgstr "/Enlever l'association Ã  l'arriÃ¨re-plan"
+
+#: ../lyricue:999
+msgid "/Preview this item"
+msgstr "/PrÃ©visualiser cet Ã©lÃ©ment"
+
+#: ../lyricue:1003
+msgid "/Move to sublist/Main"
+msgstr "/DÃ©placer Ã  la sous-liste/Principale"
+
+#: ../lyricue:1009
+msgid "/Move to sublist/"
+msgstr "/DÃ©placer Ã  la sous-liste/"
+
+#: ../lyricue:1083 ../lyricue:6547
+msgid "Are you sure you wish to delete \""
+msgstr "Voulez-vous rÃ©ellement supprimer \""
+
+#: ../lyricue:1088
+msgid "from the book \""
+msgstr "du livre \""
+
+#: ../lyricue:1092
+msgid "which was written by \""
+msgstr "Ã©crit par \""
+
+#: ../lyricue:1533 ../lyricue:1567 ../lyricue:1577 ../lyricue:2642
+msgid "Page "
+msgstr "Page "
+
+#: ../lyricue:2922
+msgid "Displaying "
+msgstr "Affichage de "
+
+#: ../lyricue:2924 ../lyricue:3028
+msgid " verses "
+msgstr " versets "
+
+#: ../lyricue:2926 ../lyricue:3030
+msgid " page "
+msgstr " page "
+
+#: ../lyricue:3026
+msgid "Previewed "
+msgstr "PrÃ©visualisation de "
+
+#: ../lyricue:5623
+msgid "Set as Default"
+msgstr "Par dÃ©faut"
+
+#: ../lyricue_server:478 ../lyricue_server:481 ../lyricue_server:1048
+msgid "Written by "
+msgstr "Ãcrit par "
+
+#: ../lyricue.glade.h:1
 msgid "1 Chronicles"
 msgstr "1 Chroniques"
 
-#: ../lyricue.glade.h:3
+#: ../lyricue.glade.h:2
 msgid "1 Corinthians"
 msgstr "1 Corinthiens"
 
-#: ../lyricue.glade.h:4
+#: ../lyricue.glade.h:3
 msgid "1 John"
 msgstr "1 Jean"
 
-#: ../lyricue.glade.h:5
+#: ../lyricue.glade.h:4
 msgid "1 Kings"
 msgstr "1 Rois"
 
-#: ../lyricue.glade.h:6
+#: ../lyricue.glade.h:5
 msgid "1 Peter"
 msgstr "1 Pierre"
 
-#: ../lyricue.glade.h:7
+#: ../lyricue.glade.h:6
 msgid "1 Samuel"
 msgstr "1 Samuel"
 
-#: ../lyricue.glade.h:8
+#: ../lyricue.glade.h:7
 msgid "1 Thessalonians"
 msgstr "1 Thessaloniciens"
 
-#: ../lyricue.glade.h:9
+#: ../lyricue.glade.h:8
 msgid "1 Timothy"
-msgstr "1 Timothée"
+msgstr "1 TimothÃ©e"
 
-#: ../lyricue.glade.h:10
+#: ../lyricue.glade.h:9
 msgid "2 Chronicles"
 msgstr "2 Chroniques"
 
-#: ../lyricue.glade.h:11
+#: ../lyricue.glade.h:10
 msgid "2 Corinthians"
 msgstr "2 Corinthiens"
 
-#: ../lyricue.glade.h:12
+#: ../lyricue.glade.h:11
 msgid "2 John"
 msgstr "2 Jean"
 
-#: ../lyricue.glade.h:13
+#: ../lyricue.glade.h:12
 msgid "2 Kings"
 msgstr "2 Rois"
 
-#: ../lyricue.glade.h:14
+#: ../lyricue.glade.h:13
 msgid "2 Peter"
 msgstr "2 Pierre"
 
-#: ../lyricue.glade.h:15
+#: ../lyricue.glade.h:14
 msgid "2 Samuel"
 msgstr "2 Samuel"
 
-#: ../lyricue.glade.h:16
+#: ../lyricue.glade.h:15
 msgid "2 Thessalonians"
 msgstr "2 Thessaloniciens"
 
-#: ../lyricue.glade.h:17
+#: ../lyricue.glade.h:16
 msgid "2 Timothy"
-msgstr "2 Timothée"
+msgstr "2 TimothÃ©e"
 
-#: ../lyricue.glade.h:18
+#: ../lyricue.glade.h:17
 msgid "3 John"
 msgstr "3 Jean"
 
-#: ../lyricue.glade.h:19
+#: ../lyricue.glade.h:18
 msgid "About Lyricue"
-msgstr "À propos de Lyricue"
+msgstr "Ã propos de Lyricue"
 
-#: ../lyricue.glade.h:20
+#: ../lyricue.glade.h:19
 msgid "Acts"
 msgstr "Actes"
 
-#: ../lyricue.glade.h:21
+#: ../lyricue.glade.h:20
 msgid "Add Image(s)"
 msgstr "Ajouter image(s)"
 
-#: ../lyricue.glade.h:22
+#: ../lyricue.glade.h:21
 msgid "Add Page"
 msgstr "Ajouter page"
 
-#: ../lyricue.glade.h:23
+#: ../lyricue.glade.h:22
 msgid "Add Song"
 msgstr "Ajouter chant"
 
-#: ../lyricue.glade.h:24
+#: ../lyricue.glade.h:23
 msgid "Add Sublist"
 msgstr "Ajouter liste"
 
-#: ../lyricue.glade.h:25
+#: ../lyricue.glade.h:24
 msgid "Add _File"
 msgstr "Ajouter _fichier"
 
-#: ../lyricue.glade.h:26
+#: ../lyricue.glade.h:25
 msgid "Add _Image"
 msgstr "Ajouter _image"
 
-#: ../lyricue.glade.h:27
+#: ../lyricue.glade.h:26
 msgid "Add _Verse"
 msgstr "Ajouter _verset"
 
-#: ../lyricue.glade.h:28
+#: ../lyricue.glade.h:27
 msgid "Add new Song"
 msgstr "Ajouter nouveau chant"
 
-#: ../lyricue.glade.h:29
+#: ../lyricue.glade.h:28
 msgid "Add the selected song to the playlist"
-msgstr "Ajouter le chant sélectionné à la liste de lecture"
+msgstr "Ajouter le chant sÃ©lectionnÃ© Ã  la liste de lecture"
+
+#: ../lyricue.glade.h:29
+msgid "Add to Playlist"
+msgstr "Ajouter Ã  la liste de lecture"
 
 #: ../lyricue.glade.h:30
-msgid "Add to Playlist"
-msgstr "Ajouter à la liste de lecture"
+msgid "Add to playlist"
+msgstr "Ajouter Ã  la liste de lecture"
 
 #: ../lyricue.glade.h:31
-msgid "Add to playlist"
-msgstr "Ajouter à la liste de lecture"
-
-#: ../lyricue.glade.h:32
 msgid "Add user"
 msgstr "Ajouter utilisateur"
 
-#: ../lyricue.glade.h:33
+#: ../lyricue.glade.h:32
 msgid "Admin"
 msgstr "Admin"
 
-#: ../lyricue.glade.h:34
+#: ../lyricue.glade.h:33
 msgid "Advanced Search"
-msgstr "Recherche avancée"
+msgstr "Recherche avancÃ©e"
+
+#: ../lyricue.glade.h:34
+msgid "Advanced _Search"
+msgstr "Recherche _avancÃ©e"
 
 #: ../lyricue.glade.h:35
-msgid "Advanced _Search"
-msgstr "Recherche _avancée"
-
-#: ../lyricue.glade.h:36
 msgid "Amos"
 msgstr "Amos"
 
-#: ../lyricue.glade.h:37
+#: ../lyricue.glade.h:36
 msgid "Any copyright information"
 msgstr "Information sur le droit d'auteur"
 
-#: ../lyricue.glade.h:38
+#: ../lyricue.glade.h:37
 msgid "Apply to current item"
-msgstr "Appliquer à l'élément courant"
+msgstr "Appliquer Ã  l'Ã©lÃ©ment courant"
+
+#: ../lyricue.glade.h:38
+msgid "Are you sure?"
+msgstr "Ãtes-vous certain ?"
 
 #: ../lyricue.glade.h:39
-msgid "Are you sure?"
-msgstr "Êtes-vous certain ?"
-
-#: ../lyricue.glade.h:40
 msgid "Artist"
 msgstr "Artiste"
 
-#: ../lyricue.glade.h:41
+#: ../lyricue.glade.h:40
 msgid "Audit Song"
 msgstr "Journaliser chant"
 
-#: ../lyricue.glade.h:42
+#: ../lyricue.glade.h:41
 msgid "Audit Songs"
 msgstr "Journaliser chants"
 
-#: ../lyricue.glade.h:43
+#: ../lyricue.glade.h:42
 msgid "Autoshow"
-msgstr "Déroulement auto"
+msgstr "DÃ©roulement auto"
 
-#: ../lyricue.glade.h:44
+#: ../lyricue.glade.h:43
 msgid "Available Songs"
 msgstr "Chants disponibles"
 
-#: ../lyricue.glade.h:45
+#: ../lyricue.glade.h:44
 msgid "Available songs"
 msgstr "Chants disponibles"
 
-#: ../lyricue.glade.h:46
+#: ../lyricue.glade.h:45
 msgid "Background"
-msgstr "Arrière-plan"
+msgstr "ArriÃ¨re-plan"
+
+#: ../lyricue.glade.h:46
+msgid "Backgrounds"
+msgstr "ArriÃ¨re-plans"
 
 #: ../lyricue.glade.h:47
-msgid "Backgrounds"
-msgstr "Arrière-plans"
+msgid "Backup Database"
+msgstr "Base de donnÃ©es de sauvegarde"
 
 #: ../lyricue.glade.h:48
-msgid "Backup Database"
-msgstr "Base de données de sauvegarde"
-
-#: ../lyricue.glade.h:49
 msgid "Bible"
 msgstr "Bible"
 
-#: ../lyricue.glade.h:50
+#: ../lyricue.glade.h:49
 msgid "Bible Navigator"
 msgstr "Navigateur de bible"
 
-#: ../lyricue.glade.h:51
+#: ../lyricue.glade.h:50
 msgid "Bible Verse"
 msgstr "Verset biblique"
 
-#: ../lyricue.glade.h:52
+#: ../lyricue.glade.h:51
 msgid "Blank Screen"
-msgstr "Écran vierge"
+msgstr "Ãcran vierge"
 
-#: ../lyricue.glade.h:53 ../lyricue:749
-msgid "Book"
-msgstr "Livre"
+#: ../lyricue.glade.h:52
+msgid "Blank screen button just clears text"
+msgstr ""
 
 #: ../lyricue.glade.h:54
 msgid "Browse"
@@ -242,11 +468,11 @@ msgstr "Canvas"
 
 #: ../lyricue.glade.h:57
 msgid "Capitalize some words etc"
-msgstr "Mettre des majuscules à certains mots, etc."
+msgstr "Mettre des majuscules Ã  certains mots, etc."
 
 #: ../lyricue.glade.h:58
 msgid "Category"
-msgstr "Catégorie"
+msgstr "CatÃ©gorie"
 
 #: ../lyricue.glade.h:59
 msgid "Centre Text Across"
@@ -278,7 +504,7 @@ msgstr "Choisir la plage de versets"
 
 #: ../lyricue.glade.h:66
 msgid "Clear Screen"
-msgstr "Nettoyer l'écran"
+msgstr "Nettoyer l'Ã©cran"
 
 #: ../lyricue.glade.h:67
 msgid "Close"
@@ -306,11 +532,11 @@ msgstr "Daniel"
 
 #: ../lyricue.glade.h:73
 msgid "Database"
-msgstr "Base de données"
+msgstr "Base de donnÃ©es"
 
 #: ../lyricue.glade.h:74
 msgid "Default Background"
-msgstr "Arrière-plan par défaut"
+msgstr "ArriÃ¨re-plan par dÃ©faut"
 
 #: ../lyricue.glade.h:75
 msgid "Delete"
@@ -318,7 +544,7 @@ msgstr "Effacer"
 
 #: ../lyricue.glade.h:76
 msgid "Deuteronomy"
-msgstr "Deutéronome"
+msgstr "DeutÃ©ronome"
 
 #: ../lyricue.glade.h:77
 msgid "Display"
@@ -330,19 +556,19 @@ msgstr "En bas"
 
 #: ../lyricue.glade.h:79
 msgid "Down + Left"
-msgstr "En bas et à gauche"
+msgstr "En bas et Ã  gauche"
 
 #: ../lyricue.glade.h:80
 msgid "Down + Right"
-msgstr "En bas et à droite"
+msgstr "En bas et Ã  droite"
 
 #: ../lyricue.glade.h:81
 msgid "Dynamic Preview"
-msgstr "Prévisualisation dynamique"
+msgstr "PrÃ©visualisation dynamique"
 
 #: ../lyricue.glade.h:82
 msgid "Ecclesiastes"
-msgstr "Ecclésiaste"
+msgstr "EcclÃ©siaste"
 
 #: ../lyricue.glade.h:83
 msgid "Edit"
@@ -354,11 +580,11 @@ msgstr "Editer chant"
 
 #: ../lyricue.glade.h:85
 msgid "Enter Verse to display"
-msgstr "Taper le verset à afficher"
+msgstr "Taper le verset Ã  afficher"
 
 #: ../lyricue.glade.h:86
 msgid "Ephesians"
-msgstr "Ephésiens"
+msgstr "EphÃ©siens"
 
 #: ../lyricue.glade.h:87
 msgid "Esther"
@@ -374,7 +600,7 @@ msgstr "Exporter"
 
 #: ../lyricue.glade.h:90
 msgid "Ezekiel"
-msgstr "Ezéchiel"
+msgstr "EzÃ©chiel"
 
 #: ../lyricue.glade.h:91
 msgid "Ezra"
@@ -406,7 +632,7 @@ msgstr "Galates"
 
 #: ../lyricue.glade.h:98
 msgid "Genesis"
-msgstr "Genèse"
+msgstr "GenÃ¨se"
 
 #: ../lyricue.glade.h:99
 msgid "Habakkuk"
@@ -414,15 +640,15 @@ msgstr "Habacuc"
 
 #: ../lyricue.glade.h:100
 msgid "Haggai"
-msgstr "Aggée"
+msgstr "AggÃ©e"
 
 #: ../lyricue.glade.h:101
 msgid "Header"
-msgstr "En-tête"
+msgstr "En-tÃªte"
 
 #: ../lyricue.glade.h:102
 msgid "Hebrews"
-msgstr "Hébreux"
+msgstr "HÃ©breux"
 
 #: ../lyricue.glade.h:103
 msgid "Height"
@@ -438,7 +664,7 @@ msgstr "Surbalayage horizontal"
 
 #: ../lyricue.glade.h:106
 msgid "Hosea"
-msgstr "Osée"
+msgstr "OsÃ©e"
 
 #: ../lyricue.glade.h:107
 msgid "Images"
@@ -446,7 +672,7 @@ msgstr "Images"
 
 #: ../lyricue.glade.h:108
 msgid "Images, Backgrounds, Media"
-msgstr "Images, arrière-plans, médias"
+msgstr "Images, arriÃ¨re-plans, mÃ©dias"
 
 #: ../lyricue.glade.h:109
 msgid "Import"
@@ -454,15 +680,15 @@ msgstr "Importer"
 
 #: ../lyricue.glade.h:110
 msgid "In Direction"
-msgstr "Direction en entrée"
+msgstr "Direction en entrÃ©e"
 
 #: ../lyricue.glade.h:111
 msgid "Insert preset copyright"
-msgstr "Insérer copyright par défaut"
+msgstr "InsÃ©rer copyright par dÃ©faut"
 
 #: ../lyricue.glade.h:112
 msgid "Isaiah"
-msgstr "Esaïe"
+msgstr "EsaÃ¯e"
 
 #: ../lyricue.glade.h:113
 msgid "James"
@@ -470,7 +696,7 @@ msgstr "Jacques"
 
 #: ../lyricue.glade.h:114
 msgid "Jeremiah"
-msgstr "Jérémie"
+msgstr "JÃ©rÃ©mie"
 
 #: ../lyricue.glade.h:115
 msgid "Job"
@@ -478,7 +704,7 @@ msgstr "Job"
 
 #: ../lyricue.glade.h:116
 msgid "Joel"
-msgstr "Joël"
+msgstr "JoÃ«l"
 
 #: ../lyricue.glade.h:117
 msgid "John"
@@ -490,7 +716,7 @@ msgstr "Jonas"
 
 #: ../lyricue.glade.h:119
 msgid "Joshua"
-msgstr "Josué"
+msgstr "JosuÃ©"
 
 #: ../lyricue.glade.h:120
 msgid "Jude"
@@ -502,11 +728,11 @@ msgstr "Juges"
 
 #: ../lyricue.glade.h:122
 msgid "Keywords"
-msgstr "Mots-clés"
+msgstr "Mots-clÃ©s"
 
 #: ../lyricue.glade.h:123
 msgid "Lamentations"
-msgstr "Lamentations de Jérémie"
+msgstr "Lamentations de JÃ©rÃ©mie"
 
 #: ../lyricue.glade.h:124
 msgid "Left"
@@ -514,7 +740,7 @@ msgstr "Gauche"
 
 #: ../lyricue.glade.h:125
 msgid "Leviticus"
-msgstr "Lévitique"
+msgstr "LÃ©vitique"
 
 #: ../lyricue.glade.h:126
 msgid "Load"
@@ -550,11 +776,11 @@ msgstr "Malachie"
 
 #: ../lyricue.glade.h:134
 msgid "Manage _Background"
-msgstr "Gérer les _arrière-plans"
+msgstr "GÃ©rer les _arriÃ¨re-plans"
 
 #: ../lyricue.glade.h:135
 msgid "Manage _Images"
-msgstr "Gérer les _images"
+msgstr "GÃ©rer les _images"
 
 #: ../lyricue.glade.h:136
 msgid "Mark"
@@ -566,7 +792,7 @@ msgstr "Matthieu"
 
 #: ../lyricue.glade.h:138
 msgid "Micah"
-msgstr "Michée"
+msgstr "MichÃ©e"
 
 #: ../lyricue.glade.h:139
 msgid "Milliseconds"
@@ -586,11 +812,11 @@ msgstr "Monter"
 
 #: ../lyricue.glade.h:143
 msgid "Move the current item down"
-msgstr "Descendre l'élément courant"
+msgstr "Descendre l'Ã©lÃ©ment courant"
 
 #: ../lyricue.glade.h:144
 msgid "Move the current item up"
-msgstr "Monter l'élément courant"
+msgstr "Monter l'Ã©lÃ©ment courant"
 
 #: ../lyricue.glade.h:145
 msgid "Nahum"
@@ -598,7 +824,7 @@ msgstr "Nahum"
 
 #: ../lyricue.glade.h:146
 msgid "Nehemiah"
-msgstr "Néhémie"
+msgstr "NÃ©hÃ©mie"
 
 #: ../lyricue.glade.h:147
 msgid "New"
@@ -622,7 +848,7 @@ msgstr "Chant suivant"
 
 #: ../lyricue.glade.h:152
 msgid "No Playlist loaded"
-msgstr "Aucune liste de lecture chargée"
+msgstr "Aucune liste de lecture chargÃ©e"
 
 #: ../lyricue.glade.h:153
 msgid "None"
@@ -654,7 +880,7 @@ msgstr "Page"
 
 #: ../lyricue.glade.h:160
 msgid "Philemon"
-msgstr "Philémon"
+msgstr "PhilÃ©mon"
 
 #: ../lyricue.glade.h:161
 msgid "Philippians"
@@ -666,35 +892,35 @@ msgstr "Liste de lecture"
 
 #: ../lyricue.glade.h:163
 msgid "Playlist _Item"
-msgstr "_Elément de liste de lecture"
+msgstr "_ElÃ©ment de liste de lecture"
 
 #: ../lyricue.glade.h:164
 msgid "Preferences"
-msgstr "Préférences"
+msgstr "PrÃ©fÃ©rences"
 
 #: ../lyricue.glade.h:165
 msgid "Prev. Page"
-msgstr "Page préc."
+msgstr "Page prÃ©c."
 
 #: ../lyricue.glade.h:166
 msgid "Preview"
-msgstr "Prévisualiser"
+msgstr "PrÃ©visualiser"
 
 #: ../lyricue.glade.h:167
 msgid "Preview Page"
-msgstr "Prévisualiser la page"
+msgstr "PrÃ©visualiser la page"
 
 #: ../lyricue.glade.h:168
 msgid "Previous"
-msgstr "Précédent"
+msgstr "PrÃ©cÃ©dent"
 
 #: ../lyricue.glade.h:169
 msgid "Previous Page"
-msgstr "Page précédente"
+msgstr "Page prÃ©cÃ©dente"
 
 #: ../lyricue.glade.h:170
 msgid "Previous Song"
-msgstr "Chant précédent"
+msgstr "Chant prÃ©cÃ©dent"
 
 #: ../lyricue.glade.h:171
 msgid "Proverbs"
@@ -706,11 +932,11 @@ msgstr "Psaumes"
 
 #: ../lyricue.glade.h:173
 msgid "Quick Update"
-msgstr "Mise à jour rapide"
+msgstr "Mise Ã  jour rapide"
 
 #: ../lyricue.glade.h:174
 msgid "Recovery Options"
-msgstr "Options de récupération"
+msgstr "Options de rÃ©cupÃ©ration"
 
 #: ../lyricue.glade.h:175
 msgid "Refresh"
@@ -734,7 +960,7 @@ msgstr "Supprimer la page"
 
 #: ../lyricue.glade.h:180
 msgid "Remove the current item from the playlist"
-msgstr "Supprimer l'élément actuel de la liste de lecture"
+msgstr "Supprimer l'Ã©lÃ©ment actuel de la liste de lecture"
 
 #: ../lyricue.glade.h:181
 msgid "Rename"
@@ -742,11 +968,11 @@ msgstr "Renommer"
 
 #: ../lyricue.glade.h:182
 msgid "Restore Database"
-msgstr "Restaurer la base de données"
+msgstr "Restaurer la base de donnÃ©es"
 
 #: ../lyricue.glade.h:183
 msgid "Return to first page after last page of songs"
-msgstr "Retour à la première page après la dernière page des chants"
+msgstr "Retour Ã  la premiÃ¨re page aprÃ¨s la derniÃ¨re page des chants"
 
 #: ../lyricue.glade.h:184
 msgid "Revelation"
@@ -790,27 +1016,27 @@ msgstr "Secondes"
 
 #: ../lyricue.glade.h:194
 msgid "Select Colour"
-msgstr "Sélectionner une couleur"
+msgstr "SÃ©lectionner une couleur"
 
 #: ../lyricue.glade.h:195
 msgid "Select Databases to backup"
-msgstr "Sélectionner les bases de données à sauvegarder"
+msgstr "SÃ©lectionner les bases de donnÃ©es Ã  sauvegarder"
 
 #: ../lyricue.glade.h:196
 msgid "Select File"
-msgstr "Sélectionner un fichier"
+msgstr "SÃ©lectionner un fichier"
 
 #: ../lyricue.glade.h:197
 msgid "Select Font"
-msgstr "Sélectionner une police"
+msgstr "SÃ©lectionner une police"
 
 #: ../lyricue.glade.h:198
 msgid "Select Screen Transition"
-msgstr "Sélectionner la transition d'écran"
+msgstr "SÃ©lectionner la transition d'Ã©cran"
 
 #: ../lyricue.glade.h:199
 msgid "Select a Chapter"
-msgstr "Sélectionner un chapitre"
+msgstr "SÃ©lectionner un chapitre"
 
 #: ../lyricue.glade.h:200
 msgid "Server"
@@ -822,11 +1048,11 @@ msgstr "Type de serveur"
 
 #: ../lyricue.glade.h:202
 msgid "Set Loop timer"
-msgstr "Régler la durée de la boucle"
+msgstr "RÃ©gler la durÃ©e de la boucle"
 
 #: ../lyricue.glade.h:203
 msgid "Settings for projector"
-msgstr "Réglages du projecteur"
+msgstr "RÃ©glages du projecteur"
 
 #: ../lyricue.glade.h:204
 msgid "Shadow Colour"
@@ -850,7 +1076,7 @@ msgstr "Simple"
 
 #: ../lyricue.glade.h:209
 msgid "Slide Text"
-msgstr "Dérouler texte"
+msgstr "DÃ©rouler texte"
 
 #: ../lyricue.glade.h:210
 msgid "Song Book"
@@ -864,10 +1090,6 @@ msgstr "Contenus du chant"
 msgid "Song Name"
 msgstr "Titre du chant"
 
-#: ../lyricue.glade.h:213 ../lyricue:752
-msgid "Song Number"
-msgstr "Numéro du chant"
-
 #: ../lyricue.glade.h:214
 msgid "Song of Solomon"
 msgstr "Cantique des cantiques"
@@ -878,11 +1100,11 @@ msgstr "Chants, listes de lecture, utilisation"
 
 #: ../lyricue.glade.h:216
 msgid "Special items that will be first in lists"
-msgstr "Éléments spéciaux en tête de listes"
+msgstr "ÃlÃ©ments spÃ©ciaux en tÃªte de listes"
 
 #: ../lyricue.glade.h:217
 msgid "Specials"
-msgstr "Spéciaux"
+msgstr "SpÃ©ciaux"
 
 #: ../lyricue.glade.h:218
 msgid "Spell Check"
@@ -898,7 +1120,7 @@ msgstr "Remerciements"
 
 #: ../lyricue.glade.h:221
 msgid "The song number within the book"
-msgstr "Numéro du chant dans son recueil"
+msgstr "NumÃ©ro du chant dans son recueil"
 
 #: ../lyricue.glade.h:222
 msgid "The songbook name"
@@ -918,11 +1140,11 @@ msgstr "Annonces du jour"
 
 #: ../lyricue.glade.h:226
 msgid "Topics of song"
-msgstr "Thèmes du chant"
+msgstr "ThÃ¨mes du chant"
 
 #: ../lyricue.glade.h:227
 msgid "Track what songs were used and when"
-msgstr "Mémoriser quel chant a été utilisé à quel moment"
+msgstr "MÃ©moriser quel chant a Ã©tÃ© utilisÃ© Ã  quel moment"
 
 #: ../lyricue.glade.h:228
 msgid "Transition"
@@ -930,7 +1152,7 @@ msgstr "Transition"
 
 #: ../lyricue.glade.h:229
 msgid "Transparent (experimental)"
-msgstr "Transparent (expérimental)"
+msgstr "Transparent (expÃ©rimental)"
 
 #: ../lyricue.glade.h:230
 msgid "Up"
@@ -950,7 +1172,7 @@ msgstr "Identifiant"
 
 #: ../lyricue.glade.h:234
 msgid "Various defaults"
-msgstr "Diverses valeurs par défaut"
+msgstr "Diverses valeurs par dÃ©faut"
 
 #: ../lyricue.glade.h:235
 msgid ""
@@ -961,7 +1183,7 @@ msgid ""
 "http://www.adebenham.com/lyricue"
 msgstr ""
 "Version 1.9.2\n"
-"Écrit par:\n"
+"Ãcrit par:\n"
 "Chris Debenham & Clint Turner\n"
 "Site Web:\n"
 "http://www.adebenham.com/lyricue"
@@ -976,7 +1198,7 @@ msgstr "Attendre?"
 
 #: ../lyricue.glade.h:242
 msgid "Who wrote this"
-msgstr "Qui a écrit cela"
+msgstr "Qui a Ã©crit cela"
 
 #: ../lyricue.glade.h:243
 msgid "Width"
@@ -1004,7 +1226,7 @@ msgstr "Sophonie"
 
 #: ../lyricue.glade.h:249
 msgid "_About"
-msgstr "_À propos de"
+msgstr "_Ã propos de"
 
 #: ../lyricue.glade.h:250
 msgid "_Add Song"
@@ -1012,7 +1234,7 @@ msgstr "_Ajouter chant"
 
 #: ../lyricue.glade.h:251
 msgid "_Add from Available"
-msgstr "_Ajouter selon disponibilités"
+msgstr "_Ajouter selon disponibilitÃ©s"
 
 #: ../lyricue.glade.h:252
 msgid "_Applications"
@@ -1024,7 +1246,7 @@ msgstr "_Bible"
 
 #: ../lyricue.glade.h:254
 msgid "_Blank Display"
-msgstr "_Effacer l'écran"
+msgstr "_Effacer l'Ã©cran"
 
 #: ../lyricue.glade.h:255
 msgid "_Clear Image Associations"
@@ -1048,15 +1270,15 @@ msgstr "A_fficher maintenant"
 
 #: ../lyricue.glade.h:260
 msgid "_Edit"
-msgstr "_Éditer"
+msgstr "_Ãditer"
 
 #: ../lyricue.glade.h:261
 msgid "_Edit Song"
-msgstr "_Éditer chant"
+msgstr "_Ãditer chant"
 
 #: ../lyricue.glade.h:262
 msgid "_Edit Transitions"
-msgstr "_Éditer transitions"
+msgstr "_Ãditer transitions"
 
 #: ../lyricue.glade.h:263
 msgid "_File"
@@ -1080,19 +1302,19 @@ msgstr "_Liste de lecture"
 
 #: ../lyricue.glade.h:268
 msgid "_Preferences"
-msgstr "_Préférences"
+msgstr "_PrÃ©fÃ©rences"
 
 #: ../lyricue.glade.h:269
 msgid "_Previous Page"
-msgstr "_Page précédente"
+msgstr "_Page prÃ©cÃ©dente"
 
 #: ../lyricue.glade.h:270
 msgid "_Refresh List"
-msgstr "_Rafraîchir liste"
+msgstr "_RafraÃ®chir liste"
 
 #: ../lyricue.glade.h:271
 msgid "_Refresh Playlist"
-msgstr "_Rafraîchir liste de lecture"
+msgstr "_RafraÃ®chir liste de lecture"
 
 #: ../lyricue.glade.h:272
 msgid "_Remove from Playlist"
@@ -1100,7 +1322,7 @@ msgstr "_Supprimer de la liste de lecture"
 
 #: ../lyricue.glade.h:273
 msgid "_Select Playlist"
-msgstr "_Sélectionner liste de lecture"
+msgstr "_SÃ©lectionner liste de lecture"
 
 #: ../lyricue.glade.h:274
 msgid "_User Administration"
@@ -1110,186 +1332,5 @@ msgstr "Administration des _utilisateurs"
 msgid "abcdefghijk ABCDEFGHIJK"
 msgstr "abcdefghijk ABCDEFGHIJK"
 
-#: ../lyricue:211 ../lyricue_server:191
-msgid ""
-"I'm sorry but I could not open the lyric database.\n"
-"Please confirm that Lyricue is installed correctly and MySql is running"
-msgstr ""
-"Désolé, impossible d'ouvrir la base de données de paroles.\n"
-"Veuillez vérifier que Lyricue est installé correctement et que MySql fonctionne"
-
-#: ../lyricue:217 ../lyricue_server:197
-msgid ""
-"I'm sorry but I could not open the bible database.\n"
-"Please confirm that Lyricue is installed correctly and the current bible "
-"database exists.\n"
-"The requested database was named "
-msgstr ""
-"Désolé, impossible d'ouvrir la base de données de bibles.\n"
-"Veuillez vérifier que Lyricue est installé correctement et que la base de données\n"
-"de bibles existe.\n"
-"La base de données requise s'appelle "
-
-#: ../lyricue:223
-msgid ""
-"I'm sorry but I could not open the media database.\n"
-"Please confirm that Lyricue is installed correctly and MySql is running"
-msgstr ""
-"Désolé, impossible d'ouvrir la base de données de médias.\n"
-"Veuillez vérifier que Lyricue est installé correctement et que MySql fonctionne"
-
-#: ../lyricue:227 ../lyricue_server:201
-msgid ""
-"Unable to prepare query.\n"
-"Has mysql died?"
-msgstr ""
-"Impossible de préparer la requête.\n"
-"Est-ce que MySql s'est arrêté?"
-
-#: ../lyricue:229 ../lyricue_server:203
-msgid ""
-"Unable to execute query.\n"
-"Has mysql died?"
-msgstr ""
-"Impossible d'exécuter la requête.\n"
-"Est-ce que MySql s'est arrêté?"
-
-#: ../lyricue:233 ../lyricue_server:207
-msgid ""
-"Sorry, I was unable to listen on the network.\n"
-"Please make sure I am not already running"
-msgstr ""
-"Désolé, impossible de détecter le réseau.\n"
-"Vérifiez que l'application ne fonctionne pas déjà"
-
-#: ../lyricue:237
-msgid "Could not open "
-msgstr "Impossible d'ouvrir "
-
-#: ../lyricue:241
-msgid ""
-"Unable to read the file, are you sure it exists?\n"
-"The file asked for was "
-msgstr ""
-"Impossible de lire le fichier, êtes-vous sûr qu'il existe ?\n"
-"Le fichier concerné se nomme "
-
-#: ../lyricue:247
-msgid ""
-"Unable to write to the file, you may not have sufficent permissions.\n"
-"Please check the permissions for "
-msgstr ""
-"Impossible d'enregistrer le fichier, vous ne disposez peut-être pas des permissions.\n"
-"Vérifiez les permissions de "
-
-#: ../lyricue:746
-msgid "Title"
-msgstr "Titre"
-
-#: ../lyricue:839
-msgid "/Edit Song"
-msgstr "/Éditer le chant"
-
-#: ../lyricue:846
-msgid "/Delete Song"
-msgstr "/Supprimer le chant"
-
-#: ../lyricue:853
-msgid "/Refresh List"
-msgstr "/Rafraîchir la liste"
-
-#: ../lyricue:857
-msgid "/Order - Songbook -> No."
-msgstr "/Classer chants par numéro"
-
-#: ../lyricue:861
-msgid "/Order - Songbook -> Name."
-msgstr "/Classer chants par titre"
-
-#: ../lyricue:873
-msgid "/Add to Playlist"
-msgstr "/Ajouter à la liste de lecture"
-
-#: ../lyricue:948
-msgid "/Duplicate Item"
-msgstr "/Dupliquer l'élément"
-
-#: ../lyricue:952
-msgid "/Remove from Playlist"
-msgstr "/Supprimer de la liste de lecture"
-
-#: ../lyricue:956
-msgid "/Refresh Playlist"
-msgstr "/Rafraîchir la liste de lecture"
-
-#: ../lyricue:959
-msgid "/Add Verse"
-msgstr "/Ajouter un verset"
-
-#: ../lyricue:961
-msgid "/Invert Line Display"
-msgstr "/Inverser l'affichage des lignes"
-
-#: ../lyricue:965
-msgid "/Loop this playlist item"
-msgstr "/Passer en boucle cet élément de la liste"
-
-#: ../lyricue:969
-msgid "/Associate background"
-msgstr "/Associer à l'arrière-plan"
-
-#: ../lyricue:973
-msgid "/Dis-associate background"
-msgstr "/Enlever l'association à l'arrière-plan"
-
-#: ../lyricue:977
-msgid "/Preview this item"
-msgstr "/Prévisualiser cet élément"
-
-#: ../lyricue:981
-msgid "/Move to sublist/Main"
-msgstr "/Déplacer à la sous-liste/Principale"
-
-#: ../lyricue:987
-msgid "/Move to sublist/"
-msgstr "/Déplacer à la sous-liste/"
-
-#: ../lyricue:1061 ../lyricue:6496
-msgid "Are you sure you wish to delete \""
-msgstr "Voulez-vous réellement supprimer \""
-
-#: ../lyricue:1066
-msgid "from the book \""
-msgstr "du livre \""
-
-#: ../lyricue:1070
-msgid "which was written by \""
-msgstr "écrit par \""
-
-#: ../lyricue:1511 ../lyricue:1545 ../lyricue:1555 ../lyricue:2616
-msgid "Page "
-msgstr "Page "
-
-#: ../lyricue:2896
-msgid "Displaying "
-msgstr "Affichage de "
-
-#: ../lyricue:2898 ../lyricue:3002
-msgid " verses "
-msgstr " versets "
-
-#: ../lyricue:2900 ../lyricue:3004
-msgid " page "
-msgstr " page "
-
-#: ../lyricue:3000
-msgid "Previewed "
-msgstr "Prévisualisation de "
-
-#: ../lyricue:5581
-msgid "Set as Default"
-msgstr "Par défaut"
-
-#: ../lyricue_server:474 ../lyricue_server:477 ../lyricue_server:1044
-msgid "Written by "
-msgstr "Écrit par "
+#~ msgid "-"
+#~ msgstr "-"
