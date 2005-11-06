@@ -247,6 +247,18 @@ $errorcodes->{'fileopenwrite'} = Encode::decode(
 "Unable to write to the file, you may not have sufficent permissions.\nPlease check the permissions for "
     )
 );
+$errorcodes->{'usage'} = Encode::decode(
+    "utf-8",
+    gettext(
+            "\nUsage: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n\n"
+            . "\t-v:  Prints Lyricue version information & exits\n"
+            . "\t-l:  Outputs song list in HTML & exits\n"
+            . "\t-b:  Loads Lyricue without background previews\n"
+            . "\t-s:  Specify the host on which the lyric server is located\n"
+            . "\t-d:  Prints debugging messages\n"
+            . "\t-dq: Prints debugging messages + sql\n\n"
+    )
+);
 
 # Widgets affected by access controls
 # access 'e'
@@ -312,14 +324,7 @@ if ($ARGV[0]) {
 
             # ignore
         } else {
-            print "\nUsage: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n\n";
-            print "\t-v:  Prints Lyricue version information & exits\n";
-            print "\t-l:  Outputs song list in HTML & exits\n";
-            print "\t-b:  Loads Lyricue without background previews\n";
-            print
-              "\t-s:  Specify the host on which the lyric server is located\n";
-            print "\t-d:  Prints debugging messages\n";
-            print "\t-dq: Prints debugging messages + sql\n\n";
+            print $errorcodes->{'usage'};
             exit;
         }
     }
