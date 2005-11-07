@@ -28,8 +28,9 @@ case "$1" in
     configure)
 	PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }'`
 	cd /usr/share/lyricue
-    echo "DROP DATABASE bibleDb;" | mysql -udebian-sys-maint -p"$PASS"
-    cat mysql/MySQL_create_bible_KJV.sql | mysql -udebian-sys-maint -p"$PASS"
+    if [ "`mysql -e "show databases" | grep bibleDb`" == "" ]
+        then cat mysql/MySQL_create_bible_KJV.sql | mysql -udebian-sys-maint -p"$PASS"
+    fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
