@@ -276,7 +276,8 @@ my @display_items = (
     "display_now1",    "blank_display1",
     "buttonMainPrev",  "buttonMainNext",
     "buttonMainPoint", "buttonMainBlank",
-    "notebookRight",   "buttonQuickShow"
+    "notebookRight",   "buttonQuickShow",
+    "buttonMainClear", "clear_text1"
 );
 
 # access 'p'
@@ -2586,11 +2587,26 @@ sub next_song {
 sub blank_page {
     debug("Blank page clicked");
     reset_timer($globals->{'timer'});
-    if (defined($config->{'BlankFunction'}) && $config->{'BlankFunction'}) {
-        update_display("blank", "", "");
-    } else {
-        update_display("blank",$config->{'BGImage'},"");
-    }
+    update_display("blank",$config->{'BGImage'},"");
+}
+
+#****m* lyricue/clear_text
+# NAME
+#   clear_text --
+# SYNOPSIS
+#   clear_text ()
+# FUNCTION
+#   Clear the server text
+# INPUTS
+#   None
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub clear_text {
+    debug("Clear text clicked");
+    reset_timer($globals->{'timer'});
+    update_display("blank", "", "");
 }
 
 #****m* lyricue/next_point
@@ -3734,8 +3750,6 @@ sub create_dialog_prefs {
       ->set_active($config->{'DynamicPreview'});
     $widgets->{'prefs'}->get_widget('checkPrefMiniview')
       ->set_active($config->{'Miniview'});
-    $widgets->{'prefs'}->get_widget('checkPrefBlank')
-      ->set_active($config->{'BlankFunction'});
     my $scaled = create_pixbuf($config->{'BGImage'}, 72, 54);
 
     if ($scaled) {
@@ -4856,9 +4870,6 @@ sub save_preferences {
       . $widgets->{'prefs'}->get_widget('checkPrefView')->get_active() . "\n";
     print CONFIG "Miniview = "
       . $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active()
-      . "\n";
-    print CONFIG "BlankFunction = "
-      . $widgets->{'prefs'}->get_widget('checkPrefBlank')->get_active()
       . "\n";
     print CONFIG "Xinerama = "
       . $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()

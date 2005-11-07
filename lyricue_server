@@ -161,8 +161,9 @@ $globals->{'preview'}     = FALSE;
 $globals->{'use_port'}     = "2346";          #port used for lyric server socket
 $globals->{'server_port'}  = "2346";          #port used for lyric server socket
 $globals->{'preview_port'} = "2347";          #port used for lyric server socket
-$globals->{'diatheke'}     = `which diatheke`;
 $globals->{'server_type'}  = CANVAS;
+$globals->{'blanked_state'} = TRUE;
+$globals->{'diatheke'}     = `which diatheke`;
 chomp $globals->{'diatheke'};
 
 if ($globals->{'diatheke'} eq "") {
@@ -383,6 +384,7 @@ sub process_input {
         chomp($input);
         my @line = split(/:/, $input);
         $_ = lc($line[0]);
+print "blank: ".$globals->{'blanked_state'}."\n";
 
         if (/^status$/) {
             $status = "Status,W:"
@@ -428,10 +430,12 @@ sub process_input {
                 $config->{'BGImage'} = $line[1];
                 change_backdrop($config->{'BGImage'});
             }
+            $globals->{'blanked_state'} = TRUE;
         } elsif (/^change_to_db$/) {
             change_to_db($line[1], $line[2]);
             $status = "Bible changed to " . $globals->{'bibledb'};
         } elsif (/^next_point$/) {
+            $globals->{'blanked_state'} = FALSE;
             if ($current_point > -1 && scalar(@points) > $current_point + 1) {
                 my $pointtext = "";
                 $current_point++;
@@ -488,6 +492,8 @@ sub process_input {
             debug("Set loop parent to: " . $LOOPPARENT);
         } elsif (/^display$/ && $line[1] ne "") {
 
+            if (!(($line[1] eq "current") && $globals->{'blanked_state'})) {
+                $globals->{'blanked_state'} = FALSE; 
             #
             # Change it to lowercase
             $line[1] = lc($line[1]);
@@ -506,6 +512,7 @@ sub process_input {
                 debug("Changing playlist to " . $line[2]);
                 $current_list = $line[2];
             } elsif ($line[1] eq "current") {
+                $globals->{'blanked_state'} = FALSE;
 
                 # ignore and just display same page
             } elsif ($line[1] eq "next_page") {
@@ -1095,6 +1102,7 @@ sub process_input {
             }
             reset_timer($globals->{'snapshot_timer'});
             $globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
+            }
         } ## end elsif (/^display$/)
     } ## end if ($_)
     debug("The status message sent is: " . $status);
