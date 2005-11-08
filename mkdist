@@ -11,7 +11,9 @@ mkdir dist
 mkdir dist/lyricue-${VERSION}
 cp -R * dist/lyricue-${VERSION}
 rm -rf dist/dist
-rm dist/lyricue-${VERSION}/mysql/MySQL_create_bible_NIV_us.sql
+rm dist/lyricue-${VERSION}/mysql/MySQL_create_bible_*.sql
+rm -rf dist/lyricue-${VERSION}/debian/bible
+
 pushd dist/lyricue-${VERSION}
 rm -rf dist
 rm images/desktop.png images/*.svg
@@ -21,6 +23,22 @@ echo Creating Debian packages
 dpkg-buildpackage -rfakeroot
 popd
 rm -rf dist/lyricue-${VERSION}
+
+echo Making Bible packages
+for DB in KJV MES NIV NLT
+    do DISTDIR=dist/lyricue-bible-$DB
+    mkdir $DISTDIR
+    mkdir $DISTDIR/mysql
+    mkdir $DISTDIR/debian
+    cp mysql/MySQL_create_bible_$DB.sql $DISTDIR/mysql
+    cp debian/bibles/$DB/* $DISTDIR/debian
+    pushd $DISTDIR/debian
+    popd
+    pushd $DISTDIR
+    dpkg-buildpackage -rfakeroot
+    popd
+    rm -rf $DISTDIR
+done
 
 echo Pushing to repository
 cp dist/lyricue-cvs*deb dist/*.dsc dist/*.gz  /var/www/debian

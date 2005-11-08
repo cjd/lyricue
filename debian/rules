@@ -13,16 +13,12 @@ clean:
 	rm -f build
 	rm -rf dist/lyricue-$(DEB_VERSION)
 	rm -f `find . -name "*~"`
-	rm -rf debian/lyricue-kjvdb debian/lyricue-nivdb debian/tmp debian/files* core debian/substvars
+	rm -rf debian/tmp debian/files* core debian/substvars
 
 binary-indep: checkroot
 	$(checkdir)
 	rm -f build
-	rm -rf debian/lyricue-kjvdb
-	rm -rf debian/lyricue-nivdb
 	rm -rf debian/tmp
-	install -d debian/lyricue-kjvdb
-	install -d debian/lyricue-nivdb
 	install -d debian/tmp
 	cd debian/tmp && install -d `cat ../dirs`
 	./install -q -f "`pwd`/debian/tmp" -a root
@@ -30,29 +26,15 @@ binary-indep: checkroot
 	install install `pwd`/debian/tmp/usr/lib/lyricue
 	install --mode=644 mysql/MySQL_cre*.sql mysql/Update*.sql `pwd`/debian/tmp/usr/share/lyricue/mysql/
 	install --mode=644 images/lyricue-icon.xpm `pwd`/debian/tmp/usr/share/lyricue
-	install -d `pwd`/debian/lyricue-kjvdb/usr/share/doc/lyricue-kjvdb
-	install debian/lyricue-kjvdb.copyright debian/lyricue-kjvdb/usr/share/doc/lyricue-kjvdb/copyright
-	install -d `pwd`/debian/lyricue-nivdb/usr/share/doc/lyricue-nivdb
-	install debian/lyricue-nivdb.copyright debian/lyricue-nivdb/usr/share/doc/lyricue-nivdb/copyright
 	rm `pwd`/debian/tmp/usr/share/doc/lyricue/COPYING
-# Must have debmake installed for this to work. Otherwise please copy
-# /usr/bin/debstd into the debian directory and change debstd to debian/debstd
 	dh_installdebconf
 	dh_installchangelogs
 	dh_perl
 	debstd 
 	dpkg-gencontrol -isp -plyricue-cvs
-	dpkg-gencontrol -isp -plyricue-kjvdb -Pdebian/lyricue-kjvdb
-	dpkg-gencontrol -isp -plyricue-nivdb -Pdebian/lyricue-nivdb
 	chown -R root:root debian/tmp
 	chmod -R go=rX debian/tmp
 	dpkg --build debian/tmp ..
-	chown -R root:root debian/lyricue-kjvdb
-	chmod -R go=rX debian/lyricue-kjvdb
-	dpkg --build debian/lyricue-kjvdb ..
-	chown -R root:root debian/lyricue-nivdb
-	chmod -R go=rX debian/lyricue-nivdb
-	dpkg --build debian/lyricue-nivdb ..
 
 define checkdir
 	test -f debian/rules

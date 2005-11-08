@@ -8,7 +8,7 @@ Build-Depends-Indep: debmake, debhelper
 Package: lyricue-cvs
 Architecture: all
 Depends: libdbd-mysql-perl, mysql-server, libgtk2-perl, libgtk2-gladexml-perl, libgtk2-spell-perl, libgtk2-trayicon-perl, libdbi-perl, libglib-perl, xvfb, xbase-clients, imagemagick, ${misc:Depends}, ${perl:Depends}
-Recommends: diatheke, libgnome2-canvas-perl, lyricue-kjvdb
+Recommends: diatheke, libgnome2-canvas-perl, lyricue-bible-KJV
 Conflicts: lyricue
 Description: The GNU Lyric Display System
  This application is used to edit/display song lyrics on a second
@@ -27,15 +27,3 @@ Description: The GNU Lyric Display System
       to change all the songs
     * Can automatically create screens for bible verses
     * Quick searching for songs
-
-Package: lyricue-kjvdb
-Architecture: all
-Pre-Depends: lyricue-cvs | lyricue
-Description: King James Bible for use with lyricue
- The King James Bible as a mysql database for use in lyricue
-
-Package: lyricue-nivdb
-Architecture: all
-Pre-Depends: lyricue-cvs | lyricue
-Description: NIV Bible for use with lyricue
- The NIV Bible as a mysql database for use in lyricue
