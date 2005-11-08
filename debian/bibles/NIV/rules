@@ -1,0 +1,50 @@
+#!/usr/bin/make -f
+# Made with the aid of debmake, by Christoph Lameter,
+# based on the sample debian/rules file for GNU hello by Ian Jackson.
+
+bible=NIV
+package=lyricue-bible-$(bible)
+
+build:
+	$(checkdir)
+	touch build
+
+clean:
+	$(checkdir)
+	rm -f build
+	rm -f `find . -name "*~"`
+	rm -rf debian/tmp debian/files* core debian/substvars
+
+binary-indep: checkroot
+	$(checkdir)
+	rm -f build
+	rm -rf debian/tmp
+	install -d debian/tmp
+	cd debian/tmp && install -d `cat ../dirs`
+	install --mode=644 mysql/MySQL_create_bible_$(bible).sql `pwd`/debian/tmp/usr/share/lyricue/mysql/
+	dh_installchangelogs
+	dh_perl
+	debstd 
+	dpkg-gencontrol -isp
+	chown -R root:root debian/tmp
+	chmod -R go=rX debian/tmp
+	dpkg --build debian/tmp ..
+
+define checkdir
+	test -f debian/rules
+endef
+
+binary: binary-indep binary-arch
+
+.PHONY: mkdist
+mkdist:
+	./mkdist $(DEB_VERSION)
+	cd dist && tar xvzf lyricue-$(DEB_VERSION).tar.gz
+	cp debian dist/lyricue-$(DEB_VERSION) -R
+
+checkroot:
+	$(checkdir)
+	test root = "`whoami`"
+
+.PHONY: binary binary-arch binary-indep clean checkroot
+
