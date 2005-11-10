@@ -384,7 +384,6 @@ sub process_input {
         chomp($input);
         my @line = split(/:/, $input);
         $_ = lc($line[0]);
-print "blank: ".$globals->{'blanked_state'}."\n";
 
         if (/^status$/) {
             $status = "Status,W:"

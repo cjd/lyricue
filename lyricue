@@ -5328,7 +5328,7 @@ sub init_mainWindow {
     my $menutop = Gtk2::Menu->new();
     my $group   = -1;
     my $bibles  = $config->{'Bibles'};
-    foreach (keys %$bibles) {
+    foreach ( sort keys %$bibles) {
         my @bible = split(/;/, $config->{'Bibles'}->{$_}, 2);
 
         $bibleMenu->{$_} =
