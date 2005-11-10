@@ -2948,7 +2948,7 @@ sub update_display {
                 } elsif ($status =~ /^Status,/) {
                     my @line = split(/,/, $status);
                     foreach (@line) {
-                        my @item = split(/:/, $_);
+                       my @item = split(/:/, $_);
                         if ($item[0] eq "W") {
                             $config->{'Width'} = $item[1];
                         } elsif ($item[0] eq "H") {
@@ -3761,7 +3761,7 @@ sub create_dialog_prefs {
 
     my (@list);
     my $bibles = $config->{'Bibles'};
-    foreach (keys %$bibles) {
+    foreach (sort keys %$bibles) {
         my $bible = $_ . ":" . $config->{'Bibles'}->{$_};
         push @list, $bible;
     }
@@ -6739,6 +6739,8 @@ sub backup_db_browse {
 sub get_bibles {
     my $bibles;
     debug("Getting available bibles");
+
+    # Bibles defined in config
     open(CONFIG, $globals->{'configfile'})
       || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
         $!);
@@ -6753,6 +6755,8 @@ sub get_bibles {
             $bibles->{$line2[1]} = "db;" . $line2[0];
         }
     }
+
+    # Bibles provided by Sword libraries
     open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
     while (<SWORD>) {
         if (/^Biblical Texts:/) {
@@ -6770,6 +6774,34 @@ sub get_bibles {
         }
     }
     close SWORD;
+
+    # Bible databases found
+    my $query = "SHOW DATABASES";
+    qdebug($query);
+    my $sth = $lyricDbh->prepare($query) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+
+    my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    while (my @row = $sth->fetchrow_array()) {
+        my $db = DBI->connect("DBI:mysql:$row[0]:$globals->{'host'}", "lyric", "");
+        my $q2 = "SHOW TABLES";
+        qdebug($q2);
+        my $sth2 = $db->prepare($q2) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv2 = $sth2->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my @row2 = $sth2->fetchrow_array();
+        if ($row2[0] eq "verse") {
+            $q2 = "SELECT * FROM verse WHERE book=\"Bible\";";
+            qdebug($q2);
+            $sth2 = $db->prepare($q2) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            $rv2 = $sth2->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            my $row2 = $sth2->fetchrow_hashref();
+            if (defined $row2->{'verse'}) {
+                $bibles->{$row[0]} = "db;" . $row2->{'verse'};
+            }
+        }
+        $sth2->finish;
+        $db->disconnect();
+    }
+
     return $bibles;
 }
 
