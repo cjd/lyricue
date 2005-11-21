@@ -6550,6 +6550,84 @@ sub update_quickedit {
     }
 }
 
+sub media_move {
+    debug ("Moving media");
+    my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
+    my @selecteditems = $selection->get_selected_rows();
+    my @id            = ();
+    my $type= $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'};
+    if ($selecteditems[0]) {
+        foreach (@selecteditems) {
+            my $iter =
+              $widgets->{'image'}->get_widget('treeImage')
+              ->get_model->get_iter($_);
+            push @id, $widgets->{'image'}->get_widget('treeImage')
+              ->get_model->get($iter, 1);
+        }
+    }
+    if (@id) {
+        my $choosexml =
+          Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
+        $choosexml->get_widget('buttonLoad')->set_label("Select");
+        $choosexml->get_widget('buttonDelete')->hide();
+        $choosexml->get_widget('buttonRename')->hide();
+        $choosexml->get_widget('buttonLoad')
+          ->signal_connect("clicked", "do_move_media", $choosexml);
+        $choosexml->get_widget('buttonNew')
+          ->signal_connect("clicked", "do_move_media", $choosexml);
+        $choosexml->get_widget('buttonCancel')
+          ->signal_connect("clicked", "close_dialog");
+        $choosexml->get_widget('windowChoosePlay')->show;
+        $choosexml->get_widget('treeChoosePlay')->{'user_data'}   = $type;
+        $choosexml->get_widget('windowChoosePlay')->{'user_data'} = \@id;
+        my $store = $choosexml->get_widget('treeChoosePlay')->get_model();
+        if ($store) {
+                    $store->clear;
+        } else {
+            $store = Gtk2::ListStore->new('Glib::String');
+            $choosexml->get_widget('treeChoosePlay')->set_model($store);
+            my $renderer  = Gtk2::CellRendererText->new;
+            my $selection = $choosexml->get_widget('treeChoosePlay')->get_selection;
+            $selection->signal_connect("changed", "update_category", $choosexml);
+            my $column = Gtk2::TreeViewColumn->new_with_attributes("Category", $renderer, text => 0);
+            $choosexml->get_widget('treeChoosePlay')->append_column($column);
+        }
+
+        my $query = "SELECT DISTINCT category FROM media WHERE type=\"" . $type . "\" ORDER BY category";
+        my $sth = $mediaDbh->prepare($query)
+        || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my @row;
+        while (@row = $sth->fetchrow_array()) {
+            my $iter = $store->append;
+            $store->set($iter, 0, $row[0]);
+        }
+    }
+}
+
+sub do_move_media {
+    my ($widget,$choosexml) =@_;
+    debug ("Moving media");
+    if ($choosexml->get_widget('entryChoosePlay')->get_text() ne "") {
+        my $type      = $choosexml->get_widget('treeChoosePlay')->{'user_data'};        my $category  = $choosexml->get_widget('entryChoosePlay')->get_text();
+        my $id = $choosexml->get_widget('windowChoosePlay')->{'user_data'};
+        foreach (@$id) {
+            my $query = "UPDATE media SET category=\"".$category."\" WHERE id=\"".$_."\"";
+            qdebug($query);
+            $sth = $mediaDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        }
+    }
+    close_dialog($widget);
+    my $category =
+      $widgets->{'image'}->get_widget('optionImageCategory')
+      ->get_menu->get_active->{user_data};
+    update_imagedir(
+        $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'},
+        $category);
+}
+
 sub media_delete {
     debug("Deleting media");
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
