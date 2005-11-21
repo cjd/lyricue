@@ -95,6 +95,7 @@ die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
 use Gtk2::GladeXML;
 use Gtk2::Pango;
 eval { require Locale::gettext };
+
 if ($@) {
     print "Gettext not available, english text only\n";
 
@@ -116,7 +117,6 @@ if ($@) {
 }
 binmode(STDOUT, ":utf8");
 binmode(STDERR, ":utf8");
-
 
 #
 # Site Configuration.  You should only have to
@@ -141,6 +141,8 @@ $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
 $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
+
+#$globals->{'gladefile'}   = "lyricue_mini.glade";
 $globals->{'host'}        = "localhost";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
@@ -251,12 +253,12 @@ $errorcodes->{'usage'} = Encode::decode(
     "utf-8",
     gettext(
             "\nUsage: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n\n"
-            . "\t-v:  Prints Lyricue version information & exits\n"
-            . "\t-l:  Outputs song list in HTML & exits\n"
-            . "\t-b:  Loads Lyricue without background previews\n"
-            . "\t-s:  Specify the host on which the lyric server is located\n"
-            . "\t-d:  Prints debugging messages\n"
-            . "\t-dq: Prints debugging messages + sql\n\n"
+          . "\t-v:  Prints Lyricue version information & exits\n"
+          . "\t-l:  Outputs song list in HTML & exits\n"
+          . "\t-b:  Loads Lyricue without background previews\n"
+          . "\t-s:  Specify the host on which the lyric server is located\n"
+          . "\t-d:  Prints debugging messages\n"
+          . "\t-dq: Prints debugging messages + sql\n\n"
     )
 );
 
@@ -387,13 +389,17 @@ do_change_bible($tmpbible[1], $tmpbible[0]);
 # Create tray icon
 if ($globals->{'trayicon'}) {
     debug("Creating Tray icons");
-    foreach my $trayicon ('trayClear','trayDown','trayUp','trayRight','trayLeft') {
+    foreach
+      my $trayicon ('trayClear', 'trayDown', 'trayUp', 'trayRight', 'trayLeft')
+    {
         my ($tray);
-        eval { $tray = Gtk2::TrayIcon->new("Lyricue-".$trayicon); };
+        eval { $tray = Gtk2::TrayIcon->new("Lyricue-" . $trayicon); };
         if ($@) {
             debug("Unable to load system tray");
         } else {
-            my $trayxml = Gtk2::GladeXML->new($globals->{'gladefile'}, $trayicon, 'lyricue');
+            my $trayxml =
+              Gtk2::GladeXML->new($globals->{'gladefile'}, $trayicon,
+                'lyricue');
             $trayxml->signal_autoconnect_from_package('');
             $tray->add($trayxml->get_widget($trayicon));
             $tray->show_all;
@@ -810,18 +816,20 @@ sub update_available {
     }
 
     if ($songname ne "") {
-        $query = "SELECT id,title,songnum,book,SUBSTRING_INDEX(lyrics,'\n',1) as line FROM page,lyricMain WHERE pagenum=1 AND SUBSTRING_INDEX(lyrics,'\n',1) LIKE \"%".$songname."%\" AND page.songid=lyricMain.id ORDER BY " . $globals->{'sortby'};
+        $query =
+"SELECT id,title,songnum,book,SUBSTRING_INDEX(lyrics,'\n',1) as line FROM page,lyricMain WHERE pagenum=1 AND SUBSTRING_INDEX(lyrics,'\n',1) LIKE \"%"
+          . $songname
+          . "%\" AND page.songid=lyricMain.id ORDER BY "
+          . $globals->{'sortby'};
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-        || display_fatal($errorcodes->{'sqlprepare'}, $!);
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
         while ($row = $sth->fetchrow_hashref()) {
             my $iter = $store->append;
-            $store->set(
-                $iter,             0, $row->{'line'}." (".$row->{'title'}.")", 1, $row->{'book'}, 2,
-                $row->{'songnum'}, 3, $row->{'id'}
-            );
+            $store->set($iter, 0, $row->{'line'} . " (" . $row->{'title'} . ")",
+                1, $row->{'book'}, 2, $row->{'songnum'}, 3, $row->{'id'});
         }
     }
 
@@ -2587,7 +2595,7 @@ sub next_song {
 sub blank_page {
     debug("Blank page clicked");
     reset_timer($globals->{'timer'});
-    update_display("blank",$config->{'BGImage'},"");
+    update_display("blank", $config->{'BGImage'}, "");
 }
 
 #****m* lyricue/clear_text
@@ -2932,40 +2940,40 @@ sub update_display {
         print $server Encode::encode("utf-8",
             $command . ":" . $primary . ":" . $secondary . "\n");
         if (defined(my $status = <$server>)) {
-                chomp($status);
-                if ($status =~ /^pl:/) {
-                    my @line = split(/:/, $status);
-                    $status = gettext("Displaying ");
-                    if ($line[1] eq "v") {
-                        $status = gettext(" verses ");
-                    } else {
-                        $status = gettext(" page ") . $line[3];
-                        $widgets->{'main'}->get_widget('treePlaylist')
-                          ->select_item($line[2]);
-                    }
-                    $widgets->{'main'}->get_widget('statusPlaylist')
-                      ->push(1, $status);
-                } elsif ($status =~ /^Status,/) {
-                    my @line = split(/,/, $status);
-                    foreach (@line) {
-                       my @item = split(/:/, $_);
-                        if ($item[0] eq "W") {
-                            $config->{'Width'} = $item[1];
-                        } elsif ($item[0] eq "H") {
-                            $config->{'Height'} = $item[1];
-                        } elsif ($item[0] eq "F") {
-                            $config->{'Main'} = $item[1];
-                        } elsif ($item[0] eq "B") {
-                            if ($item[1] ne $globals->{'biblename'}) {
-                                $biblechanged = $item[1];
-                            }
+            chomp($status);
+            if ($status =~ /^pl:/) {
+                my @line = split(/:/, $status);
+                $status = gettext("Displaying ");
+                if ($line[1] eq "v") {
+                    $status = gettext(" verses ");
+                } else {
+                    $status = gettext(" page ") . $line[3];
+                    $widgets->{'main'}->get_widget('treePlaylist')
+                      ->select_item($line[2]);
+                }
+                $widgets->{'main'}->get_widget('statusPlaylist')
+                  ->push(1, $status);
+            } elsif ($status =~ /^Status,/) {
+                my @line = split(/,/, $status);
+                foreach (@line) {
+                    my @item = split(/:/, $_);
+                    if ($item[0] eq "W") {
+                        $config->{'Width'} = $item[1];
+                    } elsif ($item[0] eq "H") {
+                        $config->{'Height'} = $item[1];
+                    } elsif ($item[0] eq "F") {
+                        $config->{'Main'} = $item[1];
+                    } elsif ($item[0] eq "B") {
+                        if ($item[1] ne $globals->{'biblename'}) {
+                            $biblechanged = $item[1];
                         }
                     }
-                } else {
-                    $widgets->{'main'}->get_widget('statusPlaylist')
-                      ->push(1, $status);
                 }
-                debug($status);
+            } else {
+                $widgets->{'main'}->get_widget('statusPlaylist')
+                  ->push(1, $status);
+            }
+            debug($status);
         }
         close($server);
         debug("Sent ");
@@ -3034,26 +3042,28 @@ sub preview_display {
                   . $secondary . "\n";
                 close($server);
                 if (FALSE) {
-                        my $status="";
-               # if (defined(my $status = <$server>)) {
-                        chomp($status);
-                        if ($status =~ /^pl:/) {
-                            my @line = split(/:/, $status);
-                            $status = gettext("Previewed ");
-                            if ($line[1] eq "v") {
-                                $status .= gettext(" verses ");
-                            } else {
-                                $status .= gettext(" page ") . $line[3];
-                                $widgets->{'main'}->get_widget('treePlaylist')
-                                ->select_item($line[2]);
-                            }
-                            $widgets->{'main'}->get_widget('statusPlaylist')->push(1, $status);
+                    my $status = "";
+
+                    # if (defined(my $status = <$server>)) {
+                    chomp($status);
+                    if ($status =~ /^pl:/) {
+                        my @line = split(/:/, $status);
+                        $status = gettext("Previewed ");
+                        if ($line[1] eq "v") {
+                            $status .= gettext(" verses ");
                         } else {
-    
-                            $widgets->{'main'}->get_widget('statusPlaylist')
-                            ->push(1, $status);
+                            $status .= gettext(" page ") . $line[3];
+                            $widgets->{'main'}->get_widget('treePlaylist')
+                              ->select_item($line[2]);
                         }
-                        debug($status);
+                        $widgets->{'main'}->get_widget('statusPlaylist')
+                          ->push(1, $status);
+                    } else {
+
+                        $widgets->{'main'}->get_widget('statusPlaylist')
+                          ->push(1, $status);
+                    }
+                    debug($status);
                 }
                 close($server);
             } else {
@@ -4263,7 +4273,7 @@ sub move_item {
         if ($row[0]) {
             renumber_item($item,   -1);
             renumber_item($row[0], $item);
-            renumber_item(-1,    $row[0]);
+            renumber_item(-1,      $row[0]);
             update_playlist($row[0]);
         }
     }
@@ -4361,8 +4371,8 @@ sub debug {
         my $text = shift;
         chomp($text);
         if ($text) {
-            my ($sec,$min,$hour,undef) = localtime(time);
-            print STDERR $hour.":".$min.":".$sec."|INTERFACE: ";
+            my ($sec, $min, $hour, undef) = localtime(time);
+            print STDERR $hour . ":" . $min . ":" . $sec . "|INTERFACE: ";
             print STDERR $text . "\n";
         }
     }
@@ -4898,8 +4908,7 @@ sub save_preferences {
       . $widgets->{'main'}->get_widget('hpanedMainRight')->get_position()
       . "\n";
     print CONFIG "FrameMain = "
-      . $widgets->{'main'}->get_widget('vpanedMain')->get_position()
-      . "\n";
+      . $widgets->{'main'}->get_widget('vpanedMain')->get_position() . "\n";
     print CONFIG "SpecialSong = "
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialSong')->get_text()
       . "\n";
@@ -5328,7 +5337,7 @@ sub init_mainWindow {
     my $menutop = Gtk2::Menu->new();
     my $group   = -1;
     my $bibles  = $config->{'Bibles'};
-    foreach ( sort keys %$bibles) {
+    foreach (sort keys %$bibles) {
         my @bible = split(/;/, $config->{'Bibles'}->{$_}, 2);
 
         $bibleMenu->{$_} =
@@ -5381,6 +5390,7 @@ sub init_mainWindow {
     }
 
     do_pending();
+
     # Adjust frame sizes
     if ((defined $config->{'FrameRight'}) && ($config->{'FrameRight'} != 0)) {
         $widgets->{'main'}->get_widget('hpanedMainLeft')
@@ -5399,10 +5409,13 @@ sub init_mainWindow {
         }
     }
     if (defined $config->{'FrameMain'}) {
-        $widgets->{'main'}->get_widget('vpanedMain')->set_position($config->{'FrameMain'});
+        $widgets->{'main'}->get_widget('vpanedMain')
+          ->set_position($config->{'FrameMain'});
     } else {
-        my ($width,$height) = $widgets->{'main'}->get_widget('windowMain')->get_size();
-        $widgets->{'main'}->get_widget('vpanedMain')->set_position($height-100);
+        my ($width, $height) =
+          $widgets->{'main'}->get_widget('windowMain')->get_size();
+        $widgets->{'main'}->get_widget('vpanedMain')
+          ->set_position($height - 100);
     }
 }
 
@@ -5982,10 +5995,12 @@ sub load_access {
     }
 
     foreach my $item (@show_items) {
+        debug("Showing $item");
         $widgets->{'main'}->get_widget($item)->show();
     }
 
     foreach my $item (@remove_items) {
+        debug("Hiding $item");
         $widgets->{'main'}->get_widget($item)->hide();
     }
     return $access;
@@ -6073,8 +6088,7 @@ sub init_preview {
             exec(
                 sprintf(
                     "lyricue_preview %s -m %d -p %d\n",
-                    $debug_cmd,
-                    $widgets->{'preview'}->get_id,
+                    $debug_cmd, $widgets->{'preview'}->get_id,
                     $globals->{'preview_port'}
                 )
             );
@@ -6115,8 +6129,7 @@ sub init_preview {
             }
             my $command =
               sprintf("DISPLAY=:1.0 lyricue_server %s -m %d -p %d\n",
-                , $debug_cmd, 1,
-                $globals->{'preview_port'});
+                , $debug_cmd, 1, $globals->{'preview_port'});
             debug($command);
             exec($command);
         } else {
@@ -6139,7 +6152,7 @@ sub init_miniview {
 
     # Start/stop miniview as needed
     if ($config->{'Miniview'} && (!defined($widgets->{'miniview_image'}))) {
-        update_display("status","previewon","");
+        update_display("status", "previewon", "");
         $widgets->{'main'}->get_widget('frameCurrent')->show();
         $widgets->{'miniview'} = Gtk2::Socket->new;
         $widgets->{'miniview'}->show;
@@ -6185,7 +6198,7 @@ sub init_miniview {
             undef $widgets->{'miniview'};
             kill 9, $globals->{'miniview_pid'};
         }
-        update_display("status","previewoff","");
+        update_display("status", "previewoff", "");
         $widgets->{'main'}->get_widget('frameCurrent')->hide();
     }
 }
@@ -6203,10 +6216,11 @@ sub quick_save {
     my @row = $sth->fetchrow_array();
 
     if ($row[1] eq "play") {
-        $query = "SELECT data,type FROM playlist WHERE playlist=5 ORDER BY playorder";
+        $query =
+          "SELECT data,type FROM playlist WHERE playlist=5 ORDER BY playorder";
         qdebug($query);
-            $sth = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         @row = $sth->fetchrow_array();
     }
@@ -6540,45 +6554,51 @@ sub media_delete {
     debug("Deleting media");
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
     my @selecteditems = $selection->get_selected_rows();
+    my @id            = ();
     if ($selecteditems[0]) {
-        my $iter =
-          $widgets->{'image'}->get_widget('treeImage')
-          ->get_model->get_iter($selecteditems[0]);
-
-        my $id =
-          $widgets->{'image'}->get_widget('treeImage')
-          ->get_model->get($iter, 1);
-        my $title =
-          $widgets->{'image'}->get_widget('treeImage')
-          ->get_model->get($iter, 0);
-        if ($id != 0) {
+        my $title = "";
+        foreach (@selecteditems) {
+            my $iter =
+              $widgets->{'image'}->get_widget('treeImage')
+              ->get_model->get_iter($_);
+            push @id, $widgets->{'image'}->get_widget('treeImage')
+              ->get_model->get($iter, 1);
+            $title .= "\""
+              . $widgets->{'image'}->get_widget('treeImage')
+              ->get_model->get($iter, 0) . "\", ";
+        }
+        if ($title ne "") {
+            $title =~ s/, $//;
             debug("Deleting $title");
             my $labelText =
               Encode::decode("utf-8",
-                gettext("Are you sure you wish to delete \""))
-              . $title . "\"\n";
+                gettext("Are you sure you wish to delete "))
+              . $title . "\n";
             my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
                 'dialogConfirm', 'lyricue');
             $deletexml->signal_autoconnect_from_package('');
             $deletexml->get_widget('labelDelete')->set_text($labelText);
             my $confirm = $deletexml->get_widget('dialogConfirm')->run();
             if ($confirm eq "ok") {
-                my $query = "DELETE FROM media WHERE id=" . $id;
-                qdebug($query);
-                my $sth = $mediaDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                my $rv = $sth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-                close_dialog($deletexml->get_widget('dialogConfirm'));
-                my $category =
-                  $widgets->{'image'}->get_widget('optionImageCategory')
-                  ->get_menu->get_active->{user_data};
-                update_imagedir(
-                    $widgets->{'image'}->get_widget('optionImageCategory')
-                      ->{'user_data'},
-                    $category
-                );
+                foreach (@id) {
+                    my $query = "DELETE FROM media WHERE id=" . $_;
+                    qdebug($query);
+                    my $sth = $mediaDbh->prepare($query)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    my $rv = $sth->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+                    close_dialog($deletexml->get_widget('dialogConfirm'));
+                    my $category =
+                      $widgets->{'image'}->get_widget('optionImageCategory')
+                      ->get_menu->get_active->{user_data};
+                    update_imagedir(
+                        $widgets->{'image'}->get_widget('optionImageCategory')
+                          ->{'user_data'},
+                        $category
+                    );
+                }
             }
         }
     }
@@ -6778,21 +6798,27 @@ sub get_bibles {
     # Bible databases found
     my $query = "SHOW DATABASES";
     qdebug($query);
-    my $sth = $lyricDbh->prepare($query) || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
 
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     while (my @row = $sth->fetchrow_array()) {
-        my $db = DBI->connect("DBI:mysql:$row[0]:$globals->{'host'}", "lyric", "");
+        my $db =
+          DBI->connect("DBI:mysql:$row[0]:$globals->{'host'}", "lyric", "");
         my $q2 = "SHOW TABLES";
         qdebug($q2);
-        my $sth2 = $db->prepare($q2) || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        my $rv2 = $sth2->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my $sth2 = $db->prepare($q2)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv2 = $sth2->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my @row2 = $sth2->fetchrow_array();
         if ($row2[0] eq "verse") {
             $q2 = "SELECT * FROM verse WHERE book=\"Bible\";";
             qdebug($q2);
-            $sth2 = $db->prepare($q2) || display_fatal($errorcodes->{'sqlprepare'}, $!);
-            $rv2 = $sth2->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            $sth2 = $db->prepare($q2)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            $rv2 = $sth2->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
             my $row2 = $sth2->fetchrow_hashref();
             if (defined $row2->{'verse'}) {
                 $bibles->{$row[0]} = "db;" . $row2->{'verse'};
@@ -6939,7 +6965,7 @@ sub reset_timer {
 
 sub do_pending {
     while (Gtk2->events_pending) {
-     Gtk2->main_iteration;
+        Gtk2->main_iteration;
     }
 }
 
