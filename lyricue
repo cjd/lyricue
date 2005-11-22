@@ -7032,6 +7032,20 @@ sub navigator_add {
     insert_verse($book, $chapter, $startverse, $endverse);
 }
 
+sub navigator_next {
+    debug ("Showing next verse");
+    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
+    $verse =~ s/ (\D)/_$1/;
+    my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
+    $book =~ s/_/ /g;
+    $startverse++;
+    $endverse++;
+    $verse = $book." ".$chapter.":".$startverse."-".$endverse;
+    $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
+    navigator_update();
+    navigator_show();
+}
+
 sub reset_timer {
     my ($timer) = @_;
     if ($timer) {

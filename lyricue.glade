@@ -1853,18 +1853,48 @@
 				  </child>
 
 				  <child>
-				    <widget class="GtkEntry" id="entryNavVerse">
+				    <widget class="GtkHBox" id="hbox61">
 				      <property name="visible">True</property>
-				      <property name="can_focus">True</property>
-				      <property name="editable">True</property>
-				      <property name="visibility">True</property>
-				      <property name="max_length">0</property>
-				      <property name="text" translatable="yes"></property>
-				      <property name="has_frame">True</property>
-				      <property name="invisible_char">*</property>
-				      <property name="activates_default">False</property>
-				      <signal name="changed" handler="navigator_changed" last_modification_time="Fri, 18 Mar 2005 05:46:49 GMT"/>
-				      <signal name="activate" handler="navigator_show" last_modification_time="Thu, 28 Apr 2005 01:18:28 GMT"/>
+				      <property name="homogeneous">False</property>
+				      <property name="spacing">0</property>
+
+				      <child>
+					<widget class="GtkEntry" id="entryNavVerse">
+					  <property name="visible">True</property>
+					  <property name="can_focus">True</property>
+					  <property name="editable">True</property>
+					  <property name="visibility">True</property>
+					  <property name="max_length">0</property>
+					  <property name="text" translatable="yes"></property>
+					  <property name="has_frame">True</property>
+					  <property name="invisible_char">*</property>
+					  <property name="activates_default">False</property>
+					  <signal name="changed" handler="navigator_changed" last_modification_time="Fri, 18 Mar 2005 05:46:49 GMT"/>
+					  <signal name="activate" handler="navigator_show" last_modification_time="Thu, 28 Apr 2005 01:18:28 GMT"/>
+					</widget>
+					<packing>
+					  <property name="padding">0</property>
+					  <property name="expand">True</property>
+					  <property name="fill">True</property>
+					</packing>
+				      </child>
+
+				      <child>
+					<widget class="GtkButton" id="buttonNavNext">
+					  <property name="visible">True</property>
+					  <property name="can_focus">True</property>
+					  <property name="label" translatable="yes">+1</property>
+					  <property name="use_underline">True</property>
+					  <property name="relief">GTK_RELIEF_NORMAL</property>
+					  <property name="focus_on_click">True</property>
+					  <signal name="clicked" handler="navigator_next" last_modification_time="Tue, 22 Nov 2005 05:42:33 GMT"/>
+					</widget>
+					<packing>
+					  <property name="padding">0</property>
+					  <property name="expand">False</property>
+					  <property name="fill">False</property>
+					</packing>
+				      </child>
 				    </widget>
 				    <packing>
 				      <property name="padding">0</property>
