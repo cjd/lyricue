@@ -1781,113 +1781,31 @@ sub insert_verse {
     # Get current settings
     update_display("status", "", "");
 
-    if ($config->{'Main'} eq "") {
-        $config = load_config();
-    }
-    if ($config->{'Width'} == 0) {
-        $config->{'Width'}  = 800;
-        $config->{'Height'} = 600;
-    }
-
     my $pagenum    = 1;
-    my $pageHeight = 0;
-    my $minv       = $start;
-
-    my $layout =
-      $widgets->{'main'}->get_widget('windowMain')->create_pango_layout("");
-    $layout->set_wrap('word');
-    $layout->set_width($config->{'Width'} * PANGO_SCALE);
-    $layout->set_font_description(
-        Gtk2::Pango::FontDescription->from_string($config->{'Main'}));
-    my $page = "";
-
-    my (@command_out);
-    if (!$globals->{'usesword'}) {
+    my $loop=TRUE;
+    my $minv = $start;
+    while ($loop) {
+        my $maxv = get_max_verse($book, $chapter,$minv,$end);
         $query =
-            "SELECT * FROM  verse WHERE book=\"" . $book
-          . "\" AND chapternum="
-          . $chapter
-          . " AND versenum>="
-          . $start
-          . " AND versenum <= "
-          . $end
-          . " ORDER BY versenum";
+            "INSERT INTO playlist SET playlist="
+          . $playlist
+          . ", playorder="
+          . $playorder
+          . ", type=\"vers\", data=\""
+          . $minv . "-"
+          . $maxv . "\"";
+        $playorder++;
         qdebug($query);
-        $sth = $bibleDbh->prepare($query)
+        my $sth2 = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
 
-        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    }
-
-    my $loop     = TRUE;
-    my $versenum = $minv;
-    while ($loop) {
-        my $line = "";
-        if ($globals->{'usesword'}) {
-            my $command = sprintf(
-                "%s -b %s -k '%s' %d:%d-%d | sed -e 's/^%s //g' | head -n -1",
-                $globals->{'diatheke'},
-                $globals->{'bibledb'}, $book, $chapter, $minv, $versenum, $book
-            );
-            qdebug($command);
-            $line = Encode::decode("utf-8", `$command`);
-            $versenum++;
-            if ($versenum > $end - 1) { $loop = FALSE; }
-            chomp($line);
-        } else {
-            if (!defined $line) { $loop = FALSE; }
-            if ($row = $sth->fetchrow_hashref()) {
-                $line =
-                    $row->{'chapternum'} . ":"
-                  . $row->{'versenum'} . "   "
-                  . $row->{'verse'};
-                $versenum = $row->{'versenum'};
-            } else {
-                $loop = FALSE;
-            }
+        my $rv2 = $sth2->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        if ($maxv >= $end) {
+            $loop = FALSE;
         }
-
-        $layout->set_text($page . "\n" . $line);
-        my ($pageWidth, $pageHeight) = $layout->get_pixel_size;
-
-        if ($pageHeight > $config->{'Height'} - 100) {
-            my $maxv = $versenum - 1;
-            $query =
-                "INSERT INTO playlist SET playlist="
-              . $playlist
-              . ", playorder="
-              . $playorder
-              . ", type=\"vers\", data=\""
-              . $minv . "-"
-              . $maxv . "\"";
-            $playorder++;
-            qdebug($query);
-            my $sth2 = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'}, $!);
-
-            my $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'}, $!);
-            $minv = $versenum;
-            $page = $line;
-        } else {
-            $page = $page . "\n" . $line;
-        }
+        $minv=$maxv+1;
     }
-
-    $query =
-        "INSERT INTO playlist SET playlist="
-      . $playlist
-      . ", playorder="
-      . $playorder
-      . ", type=\"vers\", data=\""
-      . $minv . "-"
-      . $end . "\"";
-    $playorder++;
-    qdebug($query);
-    my $sth2 = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-
-    my $rv2 = $sth2->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
     update_playlist();
 }
@@ -7020,6 +6938,7 @@ sub navigator_show {
     my $verse =
       $widgets->{'main'}->get_widget('entryNavVerse')->{user_data}
       . "#BREAK##BREAK##BREAK#wrap";
+
     update_display("preview", $verse, $songtext);
 }
 
@@ -7038,8 +6957,31 @@ sub navigator_next {
     $verse =~ s/ (\D)/_$1/;
     my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
     $book =~ s/_/ /g;
-    $startverse++;
+    my $loop = TRUE;
     $endverse++;
+    while ($loop) {
+        my $maxv = get_max_verse($book, $chapter,$startverse,$endverse);
+        if ($maxv < $endverse) {
+            $startverse++;
+        } else {
+            $loop = FALSE;
+        }
+    }
+    $verse = $book." ".$chapter.":".$startverse."-".$endverse;
+    $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
+    navigator_update();
+    navigator_show();
+}
+
+sub navigator_prev {
+    debug ("Showing next verse");
+    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
+    $verse =~ s/ (\D)/_$1/;
+    my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
+    $book =~ s/_/ /g;
+    my $loop = TRUE;
+    $startverse--;
+    $endverse = get_max_verse($book, $chapter,$startverse,$endverse);
     $verse = $book." ".$chapter.":".$startverse."-".$endverse;
     $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
     navigator_update();
@@ -7061,3 +7003,80 @@ sub do_pending {
     }
 }
 
+sub get_max_verse {
+    my ($book, $chapter, $startverse, $endverse) = @_;
+
+    if ($config->{'Main'} eq "") {
+        $config = load_config();
+    }
+    if ($config->{'Width'} == 0) {
+        $config->{'Width'}  = 800;
+        $config->{'Height'} = 600;
+    }
+
+    my $pageHeight = 0;
+
+    my $layout =
+      $widgets->{'main'}->get_widget('windowMain')->create_pango_layout("");
+        $layout->set_wrap('word');
+    $layout->set_width($config->{'Width'} * PANGO_SCALE);
+    $layout->set_font_description(
+        Gtk2::Pango::FontDescription->from_string($config->{'Main'}));
+    my $page = "";
+    my (@command_out);
+    if (!$globals->{'usesword'}) {
+        $query =
+            "SELECT * FROM  verse WHERE book=\"" . $book
+          . "\" AND chapternum="
+          . $chapter
+          . " AND versenum>="
+          . $startverse
+          . " AND versenum <= "
+          . $endverse
+          . " ORDER BY versenum";
+        qdebug($query);
+        $sth = $bibleDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    }
+
+    my $loop     = TRUE;
+    my $versenum = $startverse;
+    while ($loop) {
+        my $line = "";
+        if ($globals->{'usesword'}) {
+            my $command = sprintf(
+                "%s -b %s -k '%s' %d:%d-%d | sed -e 's/^%s //g' | head -n -1",
+                $globals->{'diatheke'},
+                $globals->{'bibledb'}, $book, $chapter, $startverse, $versenum, $book
+            );
+            qdebug($command);
+            $line = Encode::decode("utf-8", `$command`);
+            $versenum++;
+            if ($versenum > $endverse - 1) { $loop = FALSE; }
+            chomp($line);
+        } else {
+            if (!defined $line) { $loop = FALSE; }
+            if ($row = $sth->fetchrow_hashref()) {
+                $line =
+                    $row->{'chapternum'} . ":"
+                  . $row->{'versenum'} . "   "
+                  . $row->{'verse'};
+                $versenum = $row->{'versenum'};
+            } else {
+                return $versenum;
+            }
+        }
+
+        $layout->set_text($page . "\n" . $line);
+        my ($pageWidth, $pageHeight) = $layout->get_pixel_size;
+
+        if ($pageHeight > $config->{'Height'} - 100) {
+            return $versenum-1;
+        } else {
+            $page = $page . "\n" . $line;
+        }
+    }
+    return $versenum;
+}
