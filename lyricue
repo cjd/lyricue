@@ -6876,19 +6876,17 @@ sub navigator_update {
         my $command_out = Encode::decode("utf-8", `$command`);
         ($book, undef) = split(/\s[0-9]/, $command_out, 2);
         my @command_lines = split(/$book /, $command_out);
+        my $mark=0;
         foreach (@command_lines) {
             chomp;
             my $line2 = $_;
             if ($line2 ne "") {
-                if ($line2 =~ /^[0-9]*:[0-9]*:/) {
-                    my ($chap,$verse,$line) = split (/:/,$line2,3);
-                    $verse = $chap.":".$verse.":";
-                    insert_link($buffer, $iter, $verse,$verse);
-                    $line2=$line;
-                }
-                $buffer->insert($iter,$line2."\n");
+                $buffer->create_mark($mark,$iter,TRUE);
+                insert_link($buffer, $iter,$mark,$line2."\n");
+                $mark++;
             }
         }
+        $buffer->create_mark($mark,$iter,TRUE);
 
         # remove the trailing bible name
         #$quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
@@ -6916,11 +6914,14 @@ sub navigator_update {
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
             $rv = $sth->execute
               || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            my $mark=0;
             while (my @row = $sth->fetchrow_array()) {
-                my $verse = $row[1] . ":" . $row[2];
-                insert_link($buffer, $iter, $verse, $verse);
-                $buffer->insert($iter, " ".$row[3] . "\n");
+                my $verse = $row[1] . ":" . $row[2]." ".$row[3]."\n";
+                $buffer->create_mark($mark,$iter,TRUE);
+                insert_link($buffer,$iter,$mark,$verse);
+                $mark++;
             }
+            $buffer->create_mark($mark,$iter,TRUE);
         }
     }
 
@@ -7095,10 +7096,15 @@ sub get_max_verse {
 # as a link.
 #
 sub insert_link {
-    my ($buffer, $iter, $text, $verse) = @_;
+    my ($buffer, $iter, $mark, $verse) = @_;
     my $tag = $buffer->create_tag (undef, foreground => "blue", underline => 'single');
-    $tag->{verse} = $verse;
-    $buffer->insert_with_tags ($iter, $text, $tag);
+    $tag->{markname} = $mark;
+    $buffer->create_mark($mark,$iter,TRUE);
+    my ($chap,$num,$text) = split(/[:\ ]/,$verse,3);
+    $verse = $chap.":".$num;
+    $text =" ".$text;
+    $buffer->insert_with_tags ($iter, $verse, $tag);
+    $buffer->insert($iter, $text);
 }
 
 # Looks at all tags covering the position of iter in the text view,
@@ -7112,9 +7118,14 @@ sub follow_if_link {
     my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
     $book =~ s/_/ /g;
     foreach my $tag ($iter->get_tags) {
-        my $verse = $tag->{verse};
+        my $buffer = $text_view->get_buffer();
+        my $mark = $buffer->get_mark($tag->{markname});
+        my $startiter=$buffer->get_iter_at_mark($mark);
+        my $enditer=$buffer->get_iter_at_mark($buffer->get_mark($tag->{markname}+1));
+        my $quicktext = $buffer->get_text($startiter,$enditer,FALSE);
         if ($verse ne "") {
             debug ("Showing $book $verse");
+            debug ($quicktext);
             last;
         }
     }
