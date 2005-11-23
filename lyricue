@@ -7107,10 +7107,14 @@ sub insert_link {
 #
 sub follow_if_link {
     my ($text_view, $iter) = @_;
+    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
+    $verse =~ s/ (\D)/_$1/;
+    my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
+    $book =~ s/_/ /g;
     foreach my $tag ($iter->get_tags) {
         my $verse = $tag->{verse};
         if ($verse ne "") {
-            debug ("Showing $verse");
+            debug ("Showing $book $verse");
             last;
         }
     }
