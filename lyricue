@@ -6837,7 +6837,9 @@ sub navigator_changed {
 sub navigator_update {
     debug("Updating navigator");
     reset_timer($globals->{'nav_update_timer'});
-    my $quicktext = "";
+    my $buffer = Gtk2::TextBuffer->new();
+    $buffer->set_text("");
+    my $iter = $buffer->get_iter_at_offset (0);
     my $verse     = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
     $verse =~ s/ (\D)/_$1/;
     my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
@@ -6872,18 +6874,24 @@ sub navigator_update {
         qdebug($command);
         $book = ucfirst($book . "[:alpha:]*");
         my $command_out = Encode::decode("utf-8", `$command`);
-        ($book, undef) = split(/\s/, $command_out, 2);
+        ($book, undef) = split(/\s[0-9]/, $command_out, 2);
         my @command_lines = split(/$book /, $command_out);
         foreach (@command_lines) {
             chomp;
             my $line2 = $_;
             if ($line2 ne "") {
-                $quicktext .= $line2 . "\n";
+                if ($line2 =~ /^[0-9]*:[0-9]*:/) {
+                    my ($chap,$verse,$line) = split (/:/,$line2,3);
+                    $verse = $chap.":".$verse.":";
+                    insert_link($buffer, $iter, $verse,$verse);
+                    $line2=$line;
+                }
+                $buffer->insert($iter,$line2."\n");
             }
         }
 
         # remove the trailing bible name
-        $quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
+        #$quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
     } else {
         $query = "SELECT book FROM verse WHERE book LIKE \"" . $book . "%\"";
         qdebug($query);
@@ -6909,19 +6917,19 @@ sub navigator_update {
             $rv = $sth->execute
               || display_fatal($errorcodes->{'sqlexecute'}, $!);
             while (my @row = $sth->fetchrow_array()) {
-                $quicktext .= $row[1] . ":" . $row[2] . "   " . $row[3] . "\n";
+                my $verse = $row[1] . ":" . $row[2];
+                insert_link($buffer, $iter, $verse, $verse);
+                $buffer->insert($iter, " ".$row[3] . "\n");
             }
         }
     }
 
     $widgets->{'main'}->get_widget('entryNavVerse')->{user_data} =
       $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
-    my $oldtext =
-      get_buffer_text(
-        $widgets->{'main'}->get_widget('textNavView')->get_buffer());
+    my $oldtext = get_buffer_text($widgets->{'main'}->get_widget('textNavView')->get_buffer());
+    my $quicktext = get_buffer_text($buffer);
     if ($oldtext ne $quicktext) {
-        $widgets->{'main'}->get_widget('textNavView')
-          ->get_buffer->set_text($quicktext);
+        $widgets->{'main'}->get_widget('textNavView')->set_buffer($buffer);
         if ($widgets->{'main'}->get_widget('checkNavAuto')->get_active()) {
             navigator_show();
         }
@@ -7080,3 +7088,46 @@ sub get_max_verse {
     }
     return $versenum;
 }
+
+# Inserts a piece of text into the buffer, giving it the usual
+# appearance of a hyperlink in a web browser: blue and underlined.
+# Additionally, attaches some data on the tag, to make it recognizable
+# as a link.
+#
+sub insert_link {
+    my ($buffer, $iter, $text, $verse) = @_;
+    my $tag = $buffer->create_tag (undef, foreground => "blue", underline => 'single');
+    $tag->{verse} = $verse;
+    $buffer->insert_with_tags ($iter, $text, $tag);
+}
+
+# Looks at all tags covering the position of iter in the text view,
+# and if one of them is a link, follow it by showing the page identified
+# by the data attached to it.
+#
+sub follow_if_link {
+    my ($text_view, $iter) = @_;
+    foreach my $tag ($iter->get_tags) {
+        my $verse = $tag->{verse};
+        if ($verse ne "") {
+            debug ("Showing $verse");
+            last;
+        }
+    }
+}
+
+sub navigator_event_after {
+    my ($text_view, $event) = @_;
+    debug("Navigator text clicked");
+    return FALSE unless $event->type eq 'button-release';
+    return FALSE unless $event->button == 1;
+    my $buffer = $text_view->get_buffer;
+    # we shouldn't follow a link if the user has selected something
+    my ($start, $end) = $buffer->get_selection_bounds;
+    return FALSE if defined $end and $start->get_offset != $end->get_offset;
+    my ($x, $y) = $text_view->window_to_buffer_coords ('widget', $event->x, $event->y);
+    my $iter = $text_view->get_iter_at_location ($x, $y);
+    follow_if_link ($text_view, $iter);
+    return FALSE;
+}
+
