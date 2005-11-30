@@ -164,6 +164,7 @@ $globals->{'spell'}            = TRUE;
 $globals->{'trayicon'}         = TRUE;
 $globals->{'preview_pid'}      = FALSE;
 $globals->{'xvfb_pid'}         = FALSE;
+$globals->{'hovering_over_link'} = FALSE;
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -5335,6 +5336,9 @@ sub init_mainWindow {
         $widgets->{'main'}->get_widget('vpanedMain')
           ->set_position($height - 100);
     }
+
+    $globals->{'hand_cursor'} = Gtk2::Gdk::Cursor->new('hand2');
+    $globals->{'text_cursor'} = Gtk2::Gdk::Cursor->new('xterm');
 }
 
 sub bgdir_list {
@@ -7144,5 +7148,44 @@ sub navigator_event_after {
     my $iter = $text_view->get_iter_at_location ($x, $y);
     follow_if_link ($text_view, $iter);
     return FALSE;
+}
+
+sub text_set_cursor_if_appropriate {
+    my ($text_view, $x, $y) = @_;
+    $globals->{'hovering'} = FALSE;
+    my $buffer = $text_view->get_buffer;
+    my $iter = $text_view->get_iter_at_location ($x, $y);
+    foreach my $tag ($iter->get_tags) {
+        if (defined $tag->{markname}) {
+            $globals->{'hovering'} = TRUE;
+            last;
+        }
+    }
+
+    if ($globals->{'hovering'} != $globals->{'hovering_over_link'}) {
+        $globals->{'hovering_over_link'} = $globals->{'hovering'};
+        $text_view->get_window ('text')->set_cursor ($globals->{'hovering_over_link'} ? $globals->{'hand_cursor'} : $globals->{'text_cursor'});
+    }
+}
+
+# Update the cursor image if the pointer moved.
+#
+sub text_motion_notify_event {
+    my ($text_view, $event) = @_;
+    my ($x, $y) = $text_view->window_to_buffer_coords ( 'widget', $event->x, $event->y);
+    text_set_cursor_if_appropriate ($text_view, $x, $y);
+    $text_view->window->get_pointer;
+    return FALSE;
+}
+
+# Also update the cursor image if the window becomes visible
+# (e.g. when a window covering it got iconified).
+#
+sub text_visibility_notify_event {
+  my ($text_view, $event) = @_;
+  my (undef, $wx, $wy, undef) = $text_view->window->get_pointer;
+  my ($bx, $by) = $text_view->window_to_buffer_coords ( 'widget', $wx, $wy);
+  text_set_cursor_if_appropriate ($text_view, $bx, $by);
+  return FALSE;
 }
 
