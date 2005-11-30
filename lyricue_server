@@ -2463,7 +2463,7 @@ sub create_window_normal {
     } else {
         debug("Using full server");
         $canvas = Gnome2::Canvas->new();
-        $canvas->set_scroll_region(1, 1, $config->{'Width'},
+        $canvas->set_scroll_region(0, 0, $config->{'Width'},
             $config->{'Height'});
         $canvas->set_center_scroll_region(TRUE);
 
