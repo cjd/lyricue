@@ -66,7 +66,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyric_interface Version 1.9.2
+Lyric_interface Version 1.9.3
 
 =cut
 
@@ -136,7 +136,7 @@ $globals->{'sharedir'} = "/usr/share/lyricue/";
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}     = "1.9.2";
+$globals->{'version'}     = "1.9.3";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
@@ -324,6 +324,9 @@ if ($ARGV[0]) {
         } elsif ($ARGV[$_] eq "-s") {
             $globals->{'host'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
+        } elsif ($ARGV[$_] eq "-i") {
+            import_song_from_file ($ARGV[$_ + 1]);
+            exit;
         } elsif ($ARGV[$_] eq "") {
 
             # ignore
@@ -3104,6 +3107,16 @@ sub create_dialogChapter {
     my $cont    = FALSE;
     my $maxchap = 0;
     if ($globals->{'usesword'}) {
+	# Find proper book name
+	my $command = sprintf(
+            "%s -b %s -e UTF8 -k '%s' 1:1",
+            $globals->{'diatheke'},$globals->{'bibledb'}, $book
+        );
+        qdebug($command);
+        $maxchap = Encode::decode("utf-8", `$command`);
+	($book, undef) = split(/\s\d/, $maxchap, 2);
+print $book."\n";
+
         my $command = sprintf(
             "%s -b %s -k '%s' | grep '^%s'| tail -2 | head -1",
             $globals->{'diatheke'},
@@ -6878,7 +6891,7 @@ sub navigator_update {
         qdebug($command);
         $book = ucfirst($book . "[:alpha:]*");
         my $command_out = Encode::decode("utf-8", `$command`);
-        ($book, undef) = split(/\s[0-9]/, $command_out, 2);
+        ($book, undef) = split(/\s\d/, $command_out, 2);
         my @command_lines = split(/$book /, $command_out);
         my $mark=0;
         foreach (@command_lines) {
@@ -7189,3 +7202,36 @@ sub text_visibility_notify_event {
   return FALSE;
 }
 
+
+sub import_song_from_file {
+    my ($filename) = @_;
+    import_song_opw($filename);
+}
+
+sub import_song_opw {
+    my ($filename) = @_;
+    my $input = "";
+    open (OPW, $filename) || die ("Unable to open $filename");
+    while (<OPW>) {
+        $input .= $_;
+    }
+    close OPW;
+
+    $input =~ /bundel>(.*)<\/bundel/;
+    my $book = $1;
+    $input =~ /nummer>(.*)<\/nummer/;
+    my $songnum = $1;
+    $input =~ /titel>(.*)<\/titel/;
+    my $title= $1;
+    $input =~ /copyrights>(.*)<\/copyrights/;
+    my $artist = $1;
+    $input =~ /beginregel>(.*)<\/beginregel/;
+    my $keywords = $1;
+    $input =~ /tekst>(.*)<\/tekst/s;
+    my $lyrics = $1;
+    my @lyrics = split(/\n \n/,$lyrics);
+    foreach (@lyrics) {
+        print "Verse\n".$_."\n";
+    }
+    print "$book $songnum - $title by $artist\nkeywords: $keywords\n";
+}
