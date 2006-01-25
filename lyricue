@@ -5270,6 +5270,7 @@ sub init_mainWindow {
     my $menutop = Gtk2::Menu->new();
     my $group   = -1;
     my $bibles  = $config->{'Bibles'};
+    my ($defbible,undef) = split(/\:/, $config->{'DefBible'},2);
     foreach (sort keys %$bibles) {
         my @bible = split(/;/, $config->{'Bibles'}->{$_}, 2);
 
@@ -5280,7 +5281,7 @@ sub init_mainWindow {
         }
         $bibleMenu->{$_}
           ->signal_connect("toggled", "select_bible_db", $bible[0] . ";" . $_);
-        if ($_ eq $config->{'DefBible'}) {
+        if ($_ eq $defbible) {
             $bibleMenu->{$_}->set_active(TRUE);
         }
         $bibleMenu->{$_}->show;
@@ -6841,7 +6842,7 @@ sub get_bibles {
         my $rv2 = $sth2->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my @row2 = $sth2->fetchrow_array();
-        if ($row2[0] eq "verse") {
+        if (defined $row2[0] && $row2[0] eq "verse") {
             $q2 = "SELECT * FROM verse WHERE book=\"Bible\";";
             qdebug($q2);
             $sth2 = $db->prepare($q2)
