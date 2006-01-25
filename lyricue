@@ -154,16 +154,16 @@ $globals->{'sortby'}      = "title";
 $globals->{'bg_previews'} = TRUE;
 $globals->{'diatheke'}    = `which diatheke`;
 chomp $globals->{'diatheke'};
-$globals->{'server_port'}      = "2346";    #port used for lyric server
-$globals->{'preview_port'}     = "2347";    #port used for preview
-$globals->{'update_timer'}     = FALSE;
-$globals->{'nav_update_timer'} = FALSE;
-$globals->{'timer'}            = FALSE;
-$globals->{'debugging'}        = FALSE;
-$globals->{'spell'}            = TRUE;
-$globals->{'trayicon'}         = TRUE;
-$globals->{'preview_pid'}      = FALSE;
-$globals->{'xvfb_pid'}         = FALSE;
+$globals->{'server_port'}        = "2346";    #port used for lyric server
+$globals->{'preview_port'}       = "2347";    #port used for preview
+$globals->{'update_timer'}       = FALSE;
+$globals->{'nav_update_timer'}   = FALSE;
+$globals->{'timer'}              = FALSE;
+$globals->{'debugging'}          = FALSE;
+$globals->{'spell'}              = TRUE;
+$globals->{'trayicon'}           = TRUE;
+$globals->{'preview_pid'}        = FALSE;
+$globals->{'xvfb_pid'}           = FALSE;
 $globals->{'hovering_over_link'} = FALSE;
 
 # Optional modules
@@ -325,7 +325,7 @@ if ($ARGV[0]) {
             $globals->{'host'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-i") {
-            import_song_from_file ($ARGV[$_ + 1]);
+            import_song_from_file($ARGV[$_ + 1]);
             exit;
         } elsif ($ARGV[$_] eq "") {
 
@@ -1785,11 +1785,11 @@ sub insert_verse {
     # Get current settings
     update_display("status", "", "");
 
-    my $pagenum    = 1;
-    my $loop=TRUE;
-    my $minv = $start;
+    my $pagenum = 1;
+    my $loop    = TRUE;
+    my $minv    = $start;
     while ($loop) {
-        my $maxv = get_max_verse($book, $chapter,$minv,$end);
+        my $maxv = get_max_verse($book, $chapter, $minv, $end);
         $query =
             "INSERT INTO playlist SET playlist="
           . $playlist
@@ -1808,7 +1808,7 @@ sub insert_verse {
         if ($maxv >= $end) {
             $loop = FALSE;
         }
-        $minv=$maxv+1;
+        $minv = $maxv + 1;
     }
 
     update_playlist();
@@ -3107,17 +3107,18 @@ sub create_dialogChapter {
     my $cont    = FALSE;
     my $maxchap = 0;
     if ($globals->{'usesword'}) {
-	# Find proper book name
-	my $command = sprintf(
+
+        # Find proper book name
+        my $command = sprintf(
             "%s -b %s -e UTF8 -k '%s' 1:1",
-            $globals->{'diatheke'},$globals->{'bibledb'}, $book
+            $globals->{'diatheke'},
+            $globals->{'bibledb'}, $book
         );
         qdebug($command);
         $maxchap = Encode::decode("utf-8", `$command`);
-	($book, undef) = split(/\s\d/, $maxchap, 2);
-print $book."\n";
+        ($book, undef) = split(/\s\d/, $maxchap, 2);
 
-        my $command = sprintf(
+        $command = sprintf(
             "%s -b %s -k '%s' | grep '^%s'| tail -2 | head -1",
             $globals->{'diatheke'},
             $globals->{'bibledb'}, $book, $book
@@ -6486,11 +6487,12 @@ sub update_quickedit {
 }
 
 sub media_move {
-    debug ("Moving media");
+    debug("Moving media");
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
     my @selecteditems = $selection->get_selected_rows();
     my @id            = ();
-    my $type= $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'};
+    my $type          =
+      $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'};
     if ($selecteditems[0]) {
         foreach (@selecteditems) {
             my $iter =
@@ -6516,22 +6518,30 @@ sub media_move {
         $choosexml->get_widget('treeChoosePlay')->{'user_data'}   = $type;
         $choosexml->get_widget('windowChoosePlay')->{'user_data'} = \@id;
         my $store = $choosexml->get_widget('treeChoosePlay')->get_model();
+
         if ($store) {
-                    $store->clear;
+            $store->clear;
         } else {
             $store = Gtk2::ListStore->new('Glib::String');
             $choosexml->get_widget('treeChoosePlay')->set_model($store);
             my $renderer  = Gtk2::CellRendererText->new;
-            my $selection = $choosexml->get_widget('treeChoosePlay')->get_selection;
-            $selection->signal_connect("changed", "update_category", $choosexml);
-            my $column = Gtk2::TreeViewColumn->new_with_attributes("Category", $renderer, text => 0);
+            my $selection =
+              $choosexml->get_widget('treeChoosePlay')->get_selection;
+            $selection->signal_connect("changed", "update_category",
+                $choosexml);
+            my $column =
+              Gtk2::TreeViewColumn->new_with_attributes("Category", $renderer,
+                text => 0);
             $choosexml->get_widget('treeChoosePlay')->append_column($column);
         }
 
-        my $query = "SELECT DISTINCT category FROM media WHERE type=\"" . $type . "\" ORDER BY category";
+        my $query =
+            "SELECT DISTINCT category FROM media WHERE type=\"" . $type
+          . "\" ORDER BY category";
         my $sth = $mediaDbh->prepare($query)
-        || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my @row;
         while (@row = $sth->fetchrow_array()) {
             my $iter = $store->append;
@@ -6541,17 +6551,23 @@ sub media_move {
 }
 
 sub do_move_media {
-    my ($widget,$choosexml) =@_;
-    debug ("Moving media");
+    my ($widget, $choosexml) = @_;
+    debug("Moving media");
     if ($choosexml->get_widget('entryChoosePlay')->get_text() ne "") {
-        my $type      = $choosexml->get_widget('treeChoosePlay')->{'user_data'};        my $category  = $choosexml->get_widget('entryChoosePlay')->get_text();
+        my $type     = $choosexml->get_widget('treeChoosePlay')->{'user_data'};
+        my $category = $choosexml->get_widget('entryChoosePlay')->get_text();
         my $id = $choosexml->get_widget('windowChoosePlay')->{'user_data'};
         foreach (@$id) {
-            my $query = "UPDATE media SET category=\"".$category."\" WHERE id=\"".$_."\"";
+            my $query =
+                "UPDATE media SET category=\""
+              . $category
+              . "\" WHERE id=\""
+              . $_ . "\"";
             qdebug($query);
             $sth = $mediaDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
-            $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            $rv = $sth->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
         }
     }
     close_dialog($widget);
@@ -6856,11 +6872,12 @@ sub navigator_update {
     reset_timer($globals->{'nav_update_timer'});
     my $buffer = Gtk2::TextBuffer->new();
     $buffer->set_text("");
-    my $iter = $buffer->get_iter_at_offset (0);
-    my $verse     = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+    my $iter  = $buffer->get_iter_at_offset(0);
+    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
     $verse =~ s/ (\D)/_$1/;
     my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
     $book =~ s/_/ /g;
+
     if ((!defined $chapter) or ($chapter eq "") or ($chapter =~ /\D/)) {
         $chapter = 1;
     }
@@ -6893,17 +6910,17 @@ sub navigator_update {
         my $command_out = Encode::decode("utf-8", `$command`);
         ($book, undef) = split(/\s\d/, $command_out, 2);
         my @command_lines = split(/$book /, $command_out);
-        my $mark=0;
+        my $mark = 0;
         foreach (@command_lines) {
             chomp;
             my $line2 = $_;
             if ($line2 ne "") {
-                $buffer->create_mark($mark,$iter,TRUE);
-                insert_link($buffer, $iter,$mark,$line2."\n");
+                $buffer->create_mark($mark, $iter, TRUE);
+                insert_link($buffer, $iter, $mark, $line2 . "\n");
                 $mark++;
             }
         }
-        $buffer->create_mark($mark,$iter,TRUE);
+        $buffer->create_mark($mark, $iter, TRUE);
 
         # remove the trailing bible name
         #$quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
@@ -6931,20 +6948,22 @@ sub navigator_update {
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
             $rv = $sth->execute
               || display_fatal($errorcodes->{'sqlexecute'}, $!);
-            my $mark=0;
+            my $mark = 0;
             while (my @row = $sth->fetchrow_array()) {
-                my $verse = $row[1] . ":" . $row[2]." ".$row[3]."\n";
-                $buffer->create_mark($mark,$iter,TRUE);
-                insert_link($buffer,$iter,$mark,$verse);
+                my $verse = $row[1] . ":" . $row[2] . " " . $row[3] . "\n";
+                $buffer->create_mark($mark, $iter, TRUE);
+                insert_link($buffer, $iter, $mark, $verse);
                 $mark++;
             }
-            $buffer->create_mark($mark,$iter,TRUE);
+            $buffer->create_mark($mark, $iter, TRUE);
         }
     }
 
     $widgets->{'main'}->get_widget('entryNavVerse')->{user_data} =
       $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
-    my $oldtext = get_buffer_text($widgets->{'main'}->get_widget('textNavView')->get_buffer());
+    my $oldtext =
+      get_buffer_text(
+        $widgets->{'main'}->get_widget('textNavView')->get_buffer());
     my $quicktext = get_buffer_text($buffer);
     if ($oldtext ne $quicktext) {
         $widgets->{'main'}->get_widget('textNavView')->set_buffer($buffer);
@@ -6978,7 +6997,7 @@ sub navigator_add {
 }
 
 sub navigator_next {
-    debug ("Showing next verse");
+    debug("Showing next verse");
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
     $verse =~ s/ (\D)/_$1/;
     my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
@@ -6986,29 +7005,29 @@ sub navigator_next {
     my $loop = TRUE;
     $endverse++;
     while ($loop) {
-        my $maxv = get_max_verse($book, $chapter,$startverse,$endverse);
+        my $maxv = get_max_verse($book, $chapter, $startverse, $endverse);
         if ($maxv < $endverse) {
             $startverse++;
         } else {
             $loop = FALSE;
         }
     }
-    $verse = $book." ".$chapter.":".$startverse."-".$endverse;
+    $verse = $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
     $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
     navigator_update();
     navigator_show();
 }
 
 sub navigator_prev {
-    debug ("Showing next verse");
+    debug("Showing next verse");
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
     $verse =~ s/ (\D)/_$1/;
     my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
     $book =~ s/_/ /g;
     my $loop = TRUE;
     $startverse--;
-    $endverse = get_max_verse($book, $chapter,$startverse,$endverse);
-    $verse = $book." ".$chapter.":".$startverse."-".$endverse;
+    $endverse = get_max_verse($book, $chapter, $startverse, $endverse);
+    $verse = $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
     $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
     navigator_update();
     navigator_show();
@@ -7044,12 +7063,13 @@ sub get_max_verse {
 
     my $layout =
       $widgets->{'main'}->get_widget('windowMain')->create_pango_layout("");
-        $layout->set_wrap('word');
+    $layout->set_wrap('word');
     $layout->set_width($config->{'Width'} * PANGO_SCALE);
     $layout->set_font_description(
         Gtk2::Pango::FontDescription->from_string($config->{'Main'}));
     my $page = "";
     my (@command_out);
+
     if (!$globals->{'usesword'}) {
         $query =
             "SELECT * FROM  verse WHERE book=\"" . $book
@@ -7075,7 +7095,8 @@ sub get_max_verse {
             my $command = sprintf(
                 "%s -b %s -k '%s' %d:%d-%d | sed -e 's/^%s //g' | head -n -1",
                 $globals->{'diatheke'},
-                $globals->{'bibledb'}, $book, $chapter, $startverse, $versenum, $book
+                $globals->{'bibledb'}, $book, $chapter, $startverse, $versenum,
+                $book
             );
             qdebug($command);
             $line = Encode::decode("utf-8", `$command`);
@@ -7099,7 +7120,7 @@ sub get_max_verse {
         my ($pageWidth, $pageHeight) = $layout->get_pixel_size;
 
         if ($pageHeight > $config->{'Height'} - 100) {
-            return $versenum-1;
+            return $versenum - 1;
         } else {
             $page = $page . "\n" . $line;
         }
@@ -7114,13 +7135,14 @@ sub get_max_verse {
 #
 sub insert_link {
     my ($buffer, $iter, $mark, $verse) = @_;
-    my $tag = $buffer->create_tag (undef, foreground => "blue", underline => 'single');
+    my $tag =
+      $buffer->create_tag(undef, foreground => "blue", underline => 'single');
     $tag->{markname} = $mark;
-    $buffer->create_mark($mark,$iter,TRUE);
-    my ($chap,$num,$text) = split(/[:\ ]/,$verse,3);
-    $verse = $chap.":".$num;
-    $text =" ".$text;
-    $buffer->insert_with_tags ($iter, $verse, $tag);
+    $buffer->create_mark($mark, $iter, TRUE);
+    my ($chap, $num, $text) = split(/[:\ ]/, $verse, 3);
+    $verse = $chap . ":" . $num;
+    $text  = " " . $text;
+    $buffer->insert_with_tags($iter, $verse, $tag);
     $buffer->insert($iter, $text);
 }
 
@@ -7135,14 +7157,15 @@ sub follow_if_link {
     my ($book, $chapter, $startverse, $endverse) = split(/[ :\-,]/, $verse, 4);
     $book =~ s/_/ /g;
     foreach my $tag ($iter->get_tags) {
-        my $buffer = $text_view->get_buffer();
-        my $mark = $buffer->get_mark($tag->{markname});
-        my $startiter=$buffer->get_iter_at_mark($mark);
-        my $enditer=$buffer->get_iter_at_mark($buffer->get_mark($tag->{markname}+1));
-        my $quicktext = $buffer->get_text($startiter,$enditer,FALSE);
+        my $buffer    = $text_view->get_buffer();
+        my $mark      = $buffer->get_mark($tag->{markname});
+        my $startiter = $buffer->get_iter_at_mark($mark);
+        my $enditer   =
+          $buffer->get_iter_at_mark($buffer->get_mark($tag->{markname} + 1));
+        my $quicktext = $buffer->get_text($startiter, $enditer, FALSE);
         if ($verse ne "") {
-            debug ("Showing $book $verse");
-            debug ($quicktext);
+            debug("Showing $book $verse");
+            debug($quicktext);
             last;
         }
     }
@@ -7154,12 +7177,14 @@ sub navigator_event_after {
     return FALSE unless $event->type eq 'button-release';
     return FALSE unless $event->button == 1;
     my $buffer = $text_view->get_buffer;
+
     # we shouldn't follow a link if the user has selected something
     my ($start, $end) = $buffer->get_selection_bounds;
     return FALSE if defined $end and $start->get_offset != $end->get_offset;
-    my ($x, $y) = $text_view->window_to_buffer_coords ('widget', $event->x, $event->y);
-    my $iter = $text_view->get_iter_at_location ($x, $y);
-    follow_if_link ($text_view, $iter);
+    my ($x, $y) =
+      $text_view->window_to_buffer_coords('widget', $event->x, $event->y);
+    my $iter = $text_view->get_iter_at_location($x, $y);
+    follow_if_link($text_view, $iter);
     return FALSE;
 }
 
@@ -7167,7 +7192,7 @@ sub text_set_cursor_if_appropriate {
     my ($text_view, $x, $y) = @_;
     $globals->{'hovering'} = FALSE;
     my $buffer = $text_view->get_buffer;
-    my $iter = $text_view->get_iter_at_location ($x, $y);
+    my $iter = $text_view->get_iter_at_location($x, $y);
     foreach my $tag ($iter->get_tags) {
         if (defined $tag->{markname}) {
             $globals->{'hovering'} = TRUE;
@@ -7177,7 +7202,10 @@ sub text_set_cursor_if_appropriate {
 
     if ($globals->{'hovering'} != $globals->{'hovering_over_link'}) {
         $globals->{'hovering_over_link'} = $globals->{'hovering'};
-        $text_view->get_window ('text')->set_cursor ($globals->{'hovering_over_link'} ? $globals->{'hand_cursor'} : $globals->{'text_cursor'});
+        $text_view->get_window('text')
+          ->set_cursor($globals->{'hovering_over_link'}
+            ? $globals->{'hand_cursor'}
+            : $globals->{'text_cursor'});
     }
 }
 
@@ -7185,8 +7213,9 @@ sub text_set_cursor_if_appropriate {
 #
 sub text_motion_notify_event {
     my ($text_view, $event) = @_;
-    my ($x, $y) = $text_view->window_to_buffer_coords ( 'widget', $event->x, $event->y);
-    text_set_cursor_if_appropriate ($text_view, $x, $y);
+    my ($x,         $y)     =
+      $text_view->window_to_buffer_coords('widget', $event->x, $event->y);
+    text_set_cursor_if_appropriate($text_view, $x, $y);
     $text_view->window->get_pointer;
     return FALSE;
 }
@@ -7195,13 +7224,12 @@ sub text_motion_notify_event {
 # (e.g. when a window covering it got iconified).
 #
 sub text_visibility_notify_event {
-  my ($text_view, $event) = @_;
-  my (undef, $wx, $wy, undef) = $text_view->window->get_pointer;
-  my ($bx, $by) = $text_view->window_to_buffer_coords ( 'widget', $wx, $wy);
-  text_set_cursor_if_appropriate ($text_view, $bx, $by);
-  return FALSE;
+    my ($text_view, $event) = @_;
+    my (undef, $wx, $wy, undef) = $text_view->window->get_pointer;
+    my ($bx, $by) = $text_view->window_to_buffer_coords('widget', $wx, $wy);
+    text_set_cursor_if_appropriate($text_view, $bx, $by);
+    return FALSE;
 }
-
 
 sub import_song_from_file {
     my ($filename) = @_;
@@ -7211,7 +7239,7 @@ sub import_song_from_file {
 sub import_song_opw {
     my ($filename) = @_;
     my $input = "";
-    open (OPW, $filename) || die ("Unable to open $filename");
+    open(OPW, $filename) || die("Unable to open $filename");
     while (<OPW>) {
         $input .= $_;
     }
@@ -7222,16 +7250,17 @@ sub import_song_opw {
     $input =~ /nummer>(.*)<\/nummer/;
     my $songnum = $1;
     $input =~ /titel>(.*)<\/titel/;
-    my $title= $1;
+    my $title = $1;
     $input =~ /copyrights>(.*)<\/copyrights/;
     my $artist = $1;
     $input =~ /beginregel>(.*)<\/beginregel/;
     my $keywords = $1;
     $input =~ /tekst>(.*)<\/tekst/s;
     my $lyrics = $1;
-    my @lyrics = split(/\n \n/,$lyrics);
+    my @lyrics = split(/\n \n/, $lyrics);
+
     foreach (@lyrics) {
-        print "Verse\n".$_."\n";
+        print "Verse\n" . $_ . "\n";
     }
     print "$book $songnum - $title by $artist\nkeywords: $keywords\n";
 }
