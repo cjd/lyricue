@@ -84,8 +84,6 @@ use Gtk2::Pango;
 use Gtk2::GladeXML;
 use Gtk2::Gdk::Keysyms;
 use Glib;
-binmode(STDOUT, ":utf8");
-binmode(STDERR, ":utf8");
 eval { require Locale::gettext };
 
 if ($@) {
@@ -107,6 +105,8 @@ if ($@) {
         c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
     }
 }
+binmode(STDOUT, ":utf8");
+binmode(STDERR, ":utf8");
 
 # convenience variables for true and false
 use constant FALSE => 0;
@@ -997,20 +997,21 @@ sub process_input {
                             }
                         } else {
                             my $command = "";
-                            print "dia: " . $globals->{'diatheke'} . "\n";
                             $command = sprintf(
-                                "%s -b %s -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",
+"%s -b %s -e UTF8 -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",
                                 $globals->{'diatheke'}, $globals->{'bibledb'},
                                 $line[0],               $line[1],
                                 $line[2],               $line[3],
                                 $line[4],               $line[0]
                             );
                             debug($command);
-                            my @command_out =
-                              split(/$line[0]/,
-                                Encode::decode('utf-8', `$command`));
+                            my $command_out =
+                              Encode::decode('utf-8', `$command`);
+                            ($line[0], undef) = split(/\s\d/, $command_out, 2);
+                            my @command_lines =
+                              split(/$line[0]/,, $command_out);
 
-                            foreach (@command_out) {
+                            foreach (@command_lines) {
                                 chomp;
                                 my $line2 = $_;
                                 $line2 =~ s/^$line[0] //g;
