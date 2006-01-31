@@ -4752,9 +4752,7 @@ sub load_config {
             $line[1] = "";
         }
         $line[1] =~ s/^ *//g;
-        if ($line[0] eq "Bible") {
-            $conf->{'Bible'}[$bibleCount++] = $line[1];
-        } elsif ($line[0] eq "App") {
+        if ($line[0] eq "App") {
             $conf->{'App'}[$appCount++] = $line[1];
         } else {
             $conf->{$line[0]} = $line[1];
@@ -4852,10 +4850,6 @@ sub save_preferences {
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text()
       . "\n";
 
-    foreach (0 .. $config->{'BibleCount'} - 1) {
-        print CONFIG "Bible = " . $config->{'Bible'}[$_] . "\n";
-        debug("Bible = " . $config->{'Bible'}[$_]);
-    }
     print CONFIG "DefBible = "
       . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text() . "\n";
     debug("DefBible = "
@@ -6790,22 +6784,6 @@ sub backup_db_browse {
 sub get_bibles {
     my $bibles;
     debug("Getting available bibles");
-
-    # Bibles defined in config
-    open(CONFIG, $globals->{'configfile'})
-      || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
-        $!);
-    while (<CONFIG>) {
-        chomp;
-        my @line = split(/=/);
-        $line[0] =~ s/ *$//g;
-        $line[1] =~ s/ *$//g;
-        $line[1] =~ s/^ *//g;
-        my @line2 = split(/;/, $line[1], 2);
-        if ($line[0] eq "Bible") {
-            $bibles->{$line2[1]} = "db;" . $line2[0];
-        }
-    }
 
     # Bibles provided by Sword libraries
     open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
