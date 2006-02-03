@@ -142,7 +142,6 @@ $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
 $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 
-#$globals->{'gladefile'}   = "lyricue_mini.glade";
 $globals->{'host'}        = "localhost";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
@@ -165,6 +164,7 @@ $globals->{'trayicon'}           = TRUE;
 $globals->{'preview_pid'}        = FALSE;
 $globals->{'xvfb_pid'}           = FALSE;
 $globals->{'hovering_over_link'} = FALSE;
+$globals->{'mini'}               = FALSE;
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -327,6 +327,9 @@ if ($ARGV[0]) {
         } elsif ($ARGV[$_] eq "-i") {
             import_song_from_file($ARGV[$_ + 1]);
             exit;
+        } elsif ($ARGV[$_] eq "-m") {
+            $globals->{'gladefile'}   = "lyricue_mini.glade";
+            $globals->{'mini'} = TRUE;
         } elsif ($ARGV[$_] eq "") {
 
             # ignore
@@ -370,6 +373,16 @@ $widgets->{'main'} =
   Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain', 'lyricue');
 $widgets->{'main'}->signal_autoconnect_from_package('');
 $globals->{'access'} = load_access();
+if ($globals->{'mini'} ) {
+    my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
+    my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap(
+        $bitmap, $bitmap,
+        Gtk2::Gdk::Color->new(0, 0, 0),
+        Gtk2::Gdk::Color->new(0, 0, 0),
+        0, 0
+    );
+    $widgets->{'main'}->get_widget('windowMain')->window->set_cursor($cursor);
+}
 
 if (-d $globals->{'basedir'}) {
     if (!-e $globals->{'configfile'}) {
