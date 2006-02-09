@@ -489,6 +489,12 @@ sub process_input {
         } elsif (/^loopparent$/) {
             $LOOPPARENT = $line[1];
             debug("Set loop parent to: " . $LOOPPARENT);
+        } elsif (/^get$/) {
+            if ($line[1] eq "playlist") {
+                $status=get_playlist($line[2]);
+            } elsif ($line[1] eq "playlists") {
+                $status=get_playlists();
+            }
         } elsif (/^display$/ && $line[1] ne "") {
 
             if (!(($line[1] eq "current") && $globals->{'blanked_state'})) {
@@ -2573,3 +2579,119 @@ sub do_pending {
         Gtk2->main_iteration;
     }
 }
+
+sub get_playlists {
+    my $data = "";
+    my $query =
+"SELECT title FROM playlists LEFT JOIN playlist ON BINARY playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' WHERE data IS NULL ORDER BY id";
+    debug($query);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    my @row;
+    while (@row = $sth->fetchrow_array()) {
+        $data .= $row[0]."\n";
+    }
+    return $data;
+}
+sub get_playlist {
+    my ($playlist,$pre) = @_;
+    my $data = "";
+    if ($playlist =~ /\D/) {
+        my $query = "SELECT id FROM playlists WHERE title=\"".$playlist."\"";
+        my $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my $row = $sth->fetchrow_hashref();
+        $playlist=$row->{'id'};
+    }
+    my $query =
+        "SELECT * FROM playlist WHERE playlist=\""
+      . $playlist
+      . "\" ORDER BY playorder";
+    debug($query);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    while (my $row = $sth->fetchrow_hashref()) {
+        my $title = "";
+        if ($row->{'type'} eq "back") {
+            my $query2 =
+              "SELECT description FROM media WHERE id=\""
+              . $row->{'data'} . "\"";
+            debug($query2);
+            my $sth2 = $mediaDbh->prepare($query2)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            my $rv2 = $sth2->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            my $row2 = $sth2->fetchrow_hashref();
+            $title = "Background : " . $row2->{'description'};
+        } elsif ($row->{'type'} eq "file") {
+            $title = "File: " . $row->{'data'};
+        } elsif ($row->{'type'} eq "imag") {
+            my $query2 =
+              "SELECT description FROM media WHERE id=\""
+              . $row->{'data'} . "\"";
+            my $sth2 = $mediaDbh->prepare($query2)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            my $rv2 = $sth2->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            my $row2 = $sth2->fetchrow_hashref();
+            $title = "Image: " . $row2->{'description'};
+        } elsif ($row->{'type'} eq "vers") {
+            $title = "Verses " . $row->{'data'};
+        } elsif ($row->{'type'} eq "song") {
+            my $query2 =
+              "SELECT lyrics FROM page WHERE pageid=" . $row->{'data'};
+            my $sth2 = $lyricDbh->prepare($query2)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            my $rv2 = $sth2->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            my $row2   = $sth2->fetchrow_hashref();
+            my $lyrics = $row2->{'lyrics'};
+            if ($globals->{'invert'}) {
+                my @lyricl = split(/\n/, $lyrics);
+                $title = $lyricl[@lyricl - 1];
+            } else {
+                ($title, undef) = split(/\n/, $lyrics);
+            }
+            if (!$title) {
+                $title = "";
+            }
+        } elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
+
+            # Leave this to later
+            my $query2 = "SELECT * FROM playlists WHERE id=" . $row->{'data'};
+            my $sth2   = $lyricDbh->prepare($query2)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            my $rv2 = $sth2->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            my $row2 = $sth2->fetchrow_hashref();
+
+            $title = $row2->{'title'};
+
+            if ($row2->{'ref'} && $row2->{'ref'} != 0) {
+                $query2 =
+                  "SELECT songnum FROM lyricMain WHERE id=" . $row2->{'ref'};
+                $sth2 = $lyricDbh->prepare($query2)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                $rv2 = $sth2->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                $row2 = $sth2->fetchrow_hashref();
+                if ($row2->{'songnum'} != 0) {
+                    $title = $row2->{'songnum'} . " - " . $title;
+                }
+            }
+        } else {
+            $title = "Unknown type";
+        }
+        $data .= $pre.$row->{'playorder'}.":".$title."\n";
+        # Add sublists/playlists
+        if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
+            $data .= get_playlist($row->{'data'},$pre."+");
+        }
+    }
+
+    return $data;
+}
+
