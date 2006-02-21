@@ -7113,7 +7113,8 @@ sub get_max_verse {
         my ($pageWidth, $pageHeight) = $layout->get_pixel_size;
 
         if ($pageHeight > $config->{'Height'} - 100) {
-            return $versenum - 1;
+            if ($versenum > $startverse) { $versenum--; };
+            return $versenum;
         } else {
             $page = $page . "\n" . $line;
         }
