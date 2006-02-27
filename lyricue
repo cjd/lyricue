@@ -5940,12 +5940,16 @@ sub load_access {
 
     foreach my $item (@show_items) {
         debug("Showing $item");
-        $widgets->{'main'}->get_widget($item)->show();
+        if ( defined $widgets->{'main'}->get_widget($item)) {
+            $widgets->{'main'}->get_widget($item)->show();
+        }
     }
 
     foreach my $item (@remove_items) {
         debug("Hiding $item");
-        $widgets->{'main'}->get_widget($item)->hide();
+        if ( defined $widgets->{'main'}->get_widget($item)) {
+            $widgets->{'main'}->get_widget($item)->hide();
+        }
     }
     return $access;
 }
