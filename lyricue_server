@@ -1855,8 +1855,8 @@ sub Configure_event {
 #my ($width, $height) = $globals->{'window'}->get_size();
 #$MINISCALE = $config->{'Width'} / $width;
 #if (!$globals->{'fast'}) {
-#    if ($canvas) {
-#        $canvas->set_pixels_per_unit(1 / $MINISCALE);
+#    if ($globals->{'canvas'}) {
+#        $globals->{'canvas'}->set_pixels_per_unit(1 / $MINISCALE);
 #    }
 #}
 #$globals->{'window'}->set_size_request($width, $config->{'Height'} / $MINISCALE);
@@ -2236,14 +2236,21 @@ sub get_bibles {
 
 sub update_snapshot {
     debug("Updating snapshot");
-    if ($globals->{'preview'}) {
+    #if ($globals->{'preview'}) {
 
-        #my $command =
-        # "import -silent -window root -resize 200x150 /tmp/lyricue_"
-        #  . $globals->{'use_port'} . ".png";
-        #`$command`;
-        #$globals->{'snapshot_changed'} = TRUE;
-    }
+        if (($globals->{'server_type'} == CANVAS) || ($globals->{'server_type'} == SIMPLE)) {
+            my $window = $globals->{'window'}->window();
+            my $pixmap = Gtk2::Gdk::Pixbuf->get_from_drawable($window,$window->get_colormap(),0,0,0,0,$window->get_size());
+            $pixmap->scale_simple(320,240,'nearest')->save("/tmp/lyricue.png","png");
+            $globals->{'snapshot_changed'} = TRUE;
+        } else {
+            my $command =
+             "import -silent -window root -resize 200x150 /tmp/lyricue_"
+             . $globals->{'use_port'} . ".png";
+            `$command`;
+            $globals->{'snapshot_changed'} = TRUE;
+        }
+    #}
     reset_timer($globals->{'snapshot_timer'});
 }
 
@@ -2422,8 +2429,6 @@ sub create_window_trans {
 }
 
 sub create_window_normal {
-    my ($canvas);
-
     my ($pixmap, $textcol);
 
     $globals->{'window'} = new Gtk2::Window->new('toplevel');
@@ -2436,6 +2441,8 @@ sub create_window_normal {
         $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
         debug("Running in MINISERV (preview window) mode");
     } else {
+        $globals->{'window'}->set_default_size($config->{'Width'}, $config->{'Height'});
+        $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
         $globals->{'window'}->fullscreen();
         debug("Running in SERVER (normal) mode");
     }
@@ -2499,16 +2506,14 @@ sub create_window_normal {
         $vbox->pack_start($globals->{'footerText'}, FALSE, FALSE, 0);
     } else {
         debug("Using full server");
-        $canvas = Gnome2::Canvas->new();
-        $canvas->set_scroll_region(0, 0, $config->{'Width'},
+        $globals->{'canvas'} = Gnome2::Canvas->new();
+        $globals->{'canvas'}->set_scroll_region(0, 0, $config->{'Width'},
             $config->{'Height'});
-        $canvas->set_center_scroll_region(TRUE);
+        $globals->{'canvas'}->set_center_scroll_region(TRUE);
 
-        #$canvas->set_pixels_per_unit(1 / $MINISCALE);
-
-        $globals->{'window'}->add($canvas);
-        $globals->{'root'} = $canvas->root;
-        $canvas->show();
+        $globals->{'window'}->add($globals->{'canvas'});
+        $globals->{'root'} = $globals->{'canvas'}->root;
+        $globals->{'canvas'}->show();
 
         # Find font sizes
         my $layout  = $globals->{'window'}->create_pango_layout("lj");
@@ -2557,7 +2562,7 @@ sub create_window_normal {
     Configure_event();
 
     if ($globals->{'server_type'} == CANVAS) {
-        $canvas->update_now();
+        $globals->{'canvas'}->update_now();
     }
 
     debug("Done");
