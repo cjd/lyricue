@@ -1978,6 +1978,7 @@ sub update_songinfo {
         $query =
             "SELECT lyrics FROM page WHERE songid=\"" . $songid
           . "\" ORDER BY pagenum";
+        qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1990,6 +1991,7 @@ sub update_songinfo {
         $query =
 "SELECT title,songnum,book,artist,keywords,copyright from lyricMain WHERE id="
           . $songid;
+        qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
