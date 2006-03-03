@@ -328,8 +328,8 @@ if ($ARGV[0]) {
             import_song_from_file($ARGV[$_ + 1]);
             exit;
         } elsif ($ARGV[$_] eq "-m") {
-            $globals->{'gladefile'}   = "lyricue_mini.glade";
-            $globals->{'mini'} = TRUE;
+            $globals->{'gladefile'} = "lyricue_mini.glade";
+            $globals->{'mini'}      = TRUE;
         } elsif ($ARGV[$_] eq "") {
 
             # ignore
@@ -373,7 +373,7 @@ $widgets->{'main'} =
   Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain', 'lyricue');
 $widgets->{'main'}->signal_autoconnect_from_package('');
 $globals->{'access'} = load_access();
-if ($globals->{'mini'} ) {
+if ($globals->{'mini'}) {
     my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
     my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap(
         $bitmap, $bitmap,
@@ -815,7 +815,7 @@ sub update_available {
     #	$query .= " AND keywords LIKE \"%" . $keywords . "%\"";
     #} elsif ($songname) {
     $songname =~ s/[\s,]/%/g;
-    $songname = Encode::encode("iso-8859-1",$songname);
+    $songname = Encode::encode("iso-8859-1", $songname);
     $query .= " AND title LIKE \"%" . $songname . "%\"";
 
     #}
@@ -5278,7 +5278,7 @@ sub init_mainWindow {
     my $menutop = Gtk2::Menu->new();
     my $group   = -1;
     my $bibles  = $config->{'Bibles'};
-    my ($defbible,undef) = split(/\:/, $config->{'DefBible'},2);
+    my ($defbible, undef) = split(/\:/, $config->{'DefBible'}, 2);
     foreach (sort keys %$bibles) {
         my @bible = split(/;/, $config->{'Bibles'}->{$_}, 2);
 
@@ -5941,14 +5941,14 @@ sub load_access {
 
     foreach my $item (@show_items) {
         debug("Showing $item");
-        if ( defined $widgets->{'main'}->get_widget($item)) {
+        if (defined $widgets->{'main'}->get_widget($item)) {
             $widgets->{'main'}->get_widget($item)->show();
         }
     }
 
     foreach my $item (@remove_items) {
         debug("Hiding $item");
-        if ( defined $widgets->{'main'}->get_widget($item)) {
+        if (defined $widgets->{'main'}->get_widget($item)) {
             $widgets->{'main'}->get_widget($item)->hide();
         }
     }
@@ -6447,7 +6447,7 @@ sub update_quickedit {
                     );
                     debug($command);
                     my $command_out = Encode::decode("utf-8", `$command`);
-		    ($line[0], undef) = split(/\s\d/, $command_out, 2);
+                    ($line[0], undef) = split(/\s\d/, $command_out, 2);
                     my @command_lines = split(/$line[0] /, $command_out);
                     foreach (@command_lines) {
                         chomp;
@@ -7118,7 +7118,7 @@ sub get_max_verse {
         my ($pageWidth, $pageHeight) = $layout->get_pixel_size;
 
         if ($pageHeight > $config->{'Height'} - 100) {
-            if ($versenum > $startverse) { $versenum--; };
+            if ($versenum > $startverse) { $versenum--; }
             return $versenum;
         } else {
             $page = $page . "\n" . $line;
@@ -7201,10 +7201,11 @@ sub text_set_cursor_if_appropriate {
 
     if ($globals->{'hovering'} != $globals->{'hovering_over_link'}) {
         $globals->{'hovering_over_link'} = $globals->{'hovering'};
-        $text_view->get_window('text')
-          ->set_cursor($globals->{'hovering_over_link'}
+        $text_view->get_window('text')->set_cursor(
+              $globals->{'hovering_over_link'}
             ? $globals->{'hand_cursor'}
-            : $globals->{'text_cursor'});
+            : $globals->{'text_cursor'}
+        );
     }
 }
 

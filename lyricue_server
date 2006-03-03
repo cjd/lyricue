@@ -491,9 +491,9 @@ sub process_input {
             debug("Set loop parent to: " . $LOOPPARENT);
         } elsif (/^get$/) {
             if ($line[1] eq "playlist") {
-                $status=get_playlist($line[2]);
+                $status = get_playlist($line[2]);
             } elsif ($line[1] eq "playlists") {
-                $status=get_playlists();
+                $status = get_playlists();
             }
         } elsif (/^display$/ && $line[1] ne "") {
 
@@ -2236,20 +2236,27 @@ sub get_bibles {
 
 sub update_snapshot {
     debug("Updating snapshot");
+
     #if ($globals->{'preview'}) {
 
-        if (($globals->{'server_type'} == CANVAS) || ($globals->{'server_type'} == SIMPLE)) {
-            my $window = $globals->{'window'}->window();
-            my $pixmap = Gtk2::Gdk::Pixbuf->get_from_drawable($window,$window->get_colormap(),0,0,0,0,$window->get_size());
-            $pixmap->scale_simple(320,240,'nearest')->save("/tmp/lyricue.png","png");
-            $globals->{'snapshot_changed'} = TRUE;
-        } else {
-            my $command =
-             "import -silent -window root -resize 200x150 /tmp/lyricue_"
-             . $globals->{'use_port'} . ".png";
-            `$command`;
-            $globals->{'snapshot_changed'} = TRUE;
-        }
+    if (   ($globals->{'server_type'} == CANVAS)
+        || ($globals->{'server_type'} == SIMPLE))
+    {
+        my $window = $globals->{'window'}->window();
+        my $pixmap =
+          Gtk2::Gdk::Pixbuf->get_from_drawable($window, $window->get_colormap(),
+            0, 0, 0, 0, $window->get_size());
+        $pixmap->scale_simple(320, 240, 'nearest')
+          ->save("/tmp/lyricue.png", "png");
+        $globals->{'snapshot_changed'} = TRUE;
+    } else {
+        my $command =
+          "import -silent -window root -resize 200x150 /tmp/lyricue_"
+          . $globals->{'use_port'} . ".png";
+        `$command`;
+        $globals->{'snapshot_changed'} = TRUE;
+    }
+
     #}
     reset_timer($globals->{'snapshot_timer'});
 }
@@ -2441,7 +2448,8 @@ sub create_window_normal {
         $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
         debug("Running in MINISERV (preview window) mode");
     } else {
-        $globals->{'window'}->set_default_size($config->{'Width'}, $config->{'Height'});
+        $globals->{'window'}
+          ->set_default_size($config->{'Width'}, $config->{'Height'});
         $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
         $globals->{'window'}->fullscreen();
         debug("Running in SERVER (normal) mode");
@@ -2507,8 +2515,8 @@ sub create_window_normal {
     } else {
         debug("Using full server");
         $globals->{'canvas'} = Gnome2::Canvas->new();
-        $globals->{'canvas'}->set_scroll_region(0, 0, $config->{'Width'},
-            $config->{'Height'});
+        $globals->{'canvas'}
+          ->set_scroll_region(0, 0, $config->{'Width'}, $config->{'Height'});
         $globals->{'canvas'}->set_center_scroll_region(TRUE);
 
         $globals->{'window'}->add($globals->{'canvas'});
@@ -2586,7 +2594,7 @@ sub do_pending {
 }
 
 sub get_playlists {
-    my $data = "";
+    my $data  = "";
     my $query =
 "SELECT title FROM playlists LEFT JOIN playlist ON BINARY playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' WHERE data IS NULL ORDER BY id";
     debug($query);
@@ -2595,20 +2603,23 @@ sub get_playlists {
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my @row;
     while (@row = $sth->fetchrow_array()) {
-        $data .= $row[0]."\n";
+        $data .= $row[0] . "\n";
     }
     return $data;
 }
+
 sub get_playlist {
-    my ($playlist,$pre) = @_;
+    my ($playlist, $pre) = @_;
     my $data = "";
     if ($playlist =~ /\D/) {
-        my $query = "SELECT id FROM playlists WHERE title=\"".$playlist."\"";
+        my $query =
+          "SELECT id FROM playlists WHERE title=\"" . $playlist . "\"";
         my $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my $row = $sth->fetchrow_hashref();
-        $playlist=$row->{'id'};
+        $playlist = $row->{'id'};
     }
     my $query =
         "SELECT * FROM playlist WHERE playlist=\""
@@ -2690,10 +2701,11 @@ sub get_playlist {
         } else {
             $title = "Unknown type";
         }
-        $data .= $pre.$row->{'playorder'}.":".$title."\n";
+        $data .= $pre . $row->{'playorder'} . ":" . $title . "\n";
+
         # Add sublists/playlists
         if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
-            $data .= get_playlist($row->{'data'},$pre."+");
+            $data .= get_playlist($row->{'data'}, $pre . "+");
         }
     }
 
