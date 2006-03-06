@@ -2916,7 +2916,9 @@ sub update_display {
         close($server);
         debug("Sent ");
         if ($biblechanged ne "") {
-            $bibleMenu->{$biblechanged}->set_active(TRUE);
+            if (defined $bibleMenu->{$biblechanged}) {
+                $bibleMenu->{$biblechanged}->set_active(TRUE);
+            }
         }
     }
 }
