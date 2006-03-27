@@ -1073,7 +1073,8 @@ sub add_song {
     add_page();
     $widgets->{'add'}->get_widget('windowEditSong')->{user_data} = 0;
     $widgets->{'add'}->get_widget('windowEditSong')->show_all();
-    $widgets->{'add'}->get_widget('buttonEditRemovePage')->visible(FALSE);
+    $widgets->{'add'}->get_widget('buttonEditRemovePage')->set_sensitive(FALSE);
+    $widgets->{'add'}->get_widget('remove_page1')->set_sensitive(FALSE);
 }
 
 #***
@@ -1107,8 +1108,8 @@ sub delete_song {
             $row = $sth->fetchrow_hashref();
             my $labelText =
               Encode::decode("utf-8",
-                gettext("Are you sure you wish to delete \""))
-              . $row->{'title'} . "\"\n";
+                gettext("Are you sure you wish to delete "))
+              . $row->{'title'} . "\n";
 
             if ($row->{'book'} ne "") {
                 $labelText .=
@@ -1515,7 +1516,8 @@ sub add_page {
     $widgets->{'add'}->get_widget('notebookEditPages')
       ->set_current_page($pagenum);
     $widgets->{'add'}->get_widget('notebookEditPages')->show_all();
-    $widgets->{'add'}->get_widget('buttonEditRemovePage')->visible(TRUE);
+    $widgets->{'add'}->get_widget('buttonEditRemovePage')->set_sensitive(TRUE);
+    $widgets->{'add'}->get_widget('remove_page1')->set_sensitive(TRUE);
 
     return $hashnum;
 }
@@ -1606,7 +1608,8 @@ sub remove_page {
     }
     %pageOrder = %newpageOrder;
     if ($count <= 2) {
-        $widgets->{'add'}->get_widget('buttonEditRemovePage')->visible(FALSE);
+        $widgets->{'add'}->get_widget('buttonEditRemovePage')->set_sensitive(FALSE);
+        $widgets->{'add'}->get_widget('remove_page1')->set_sensitive(FALSE);
     }
 }
 
@@ -4059,15 +4062,15 @@ sub do_adv_search {
             'Glib::String');
         $widgets->{'search'}->get_widget('treeSearch')->set_model($store);
         my $column =
-          Gtk2::TreeViewColumn->new_with_attributes("Title",
+          Gtk2::TreeViewColumn->new_with_attributes(Encode::decode("utf-8", gettext("Title")),
             Gtk2::CellRendererText->new, text => 0);
         $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
         $column =
-          Gtk2::TreeViewColumn->new_with_attributes("Book",
+          Gtk2::TreeViewColumn->new_with_attributes(Encode::decode("utf-8", gettext("Book")),
             Gtk2::CellRendererText->new, text => 1);
         $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
         $column =
-          Gtk2::TreeViewColumn->new_with_attributes("Song No",
+          Gtk2::TreeViewColumn->new_with_attributes(Encode::decode("utf-8", gettext("Song No")),
             Gtk2::CellRendererText->new, text => 2);
         $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
     }

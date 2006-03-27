@@ -25,6 +25,8 @@ popd
 rm -rf dist/lyricue-${VERSION}
 
 echo Making Bible packages
+if [ "$1" = "-b" ]
+then echo Making bibles
 for DB in KJV MES NIV NLT
     do DISTDIR=dist/lyricue-bible-$DB
     mkdir $DISTDIR
@@ -39,6 +41,7 @@ for DB in KJV MES NIV NLT
     popd
     rm -rf $DISTDIR
 done
+fi
 
 echo Pushing to repository
 cp dist/lyricue-cvs*deb dist/*.dsc dist/*.gz  /var/www/debian
