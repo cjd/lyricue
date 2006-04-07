@@ -1124,6 +1124,7 @@ sub process_input {
         } ## end elsif (/^display$/)
     } ## end if ($_)
     debug("The status message sent is: " . $status);
+    update_tracker();
     return $status;
 } ## end sub process_input
     #***
@@ -2712,3 +2713,12 @@ sub get_playlist {
     return $data;
 }
 
+sub update_tracker {
+    debug("Updating tracker");
+    my $query = "UPDATE playlists SET ref = ".$current_item." WHERE id=-1";
+    debug($query);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+}

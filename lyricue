@@ -165,6 +165,7 @@ $globals->{'preview_pid'}        = FALSE;
 $globals->{'xvfb_pid'}           = FALSE;
 $globals->{'hovering_over_link'} = FALSE;
 $globals->{'mini'}               = FALSE;
+$globals->{'db_adminuser'}       = "";
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -341,14 +342,15 @@ if ($ARGV[0]) {
 }
 
 # Open lyricDB, bibleDB and mediaDb
-my $lyricDbh =
-  DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}",
-    "lyric", "")
+db_check_app();
+my $sqldb = DBI->connect("DBI:".$globals->{'db_type'}.":mysql:".$globals->{'host'}, "lyric", "") || db_install_user();
+$sqldb->disconnect();
+db_check_databases();
+my $lyricDbh = DBI->connect("DBI:".$globals->{'db_type'}.":$globals->{'lyricdb'}:$globals->{'host'}", "lyric", "")
   || display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
 my ($bibleDbh);
 my $mediaDbh =
-  DBI->connect("DBI:mysql:$globals->{'mediadb'}:$globals->{'host'}",
-    "lyric", "")
+  DBI->connect("DBI:".$globals->{'db_type'}.":$globals->{'mediadb'}:$globals->{'host'}", "lyric", "")
   || display_fatal($errorcodes->{'mediadbopen'}, $DBI::errstr);
 
 # Some global stuff
@@ -430,6 +432,7 @@ choose_playlist();
 
 # Don't let them cancel out of the playlist dialog yet
 $widgets->{'choose'}->get_widget('buttonCancel')->hide;
+$globals->{'tracker_timer'} = Glib::Timeout->add(500, \&check_tracker, \@data);
 
 Gtk2->main();
 
@@ -3476,8 +3479,7 @@ sub set_default_backdrop {
 sub print_songs {
     debug("Print html formatted song list");
     my $lyricDbh =
-      DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}",
-        "lyric", "")
+      DBI->connect("DBI:$globals->{'db_type'}:$globals->{'lyricdb'}:$globals->{'host'}", "lyric", "")
       || display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
     my $query = "SELECT COUNT(id) FROM lyricMain WHERE id > 0;";
     my $sth   = $lyricDbh->prepare($query)
@@ -3917,7 +3919,7 @@ sub do_change_bible {
     if ($type eq "db") {
         $globals->{'usesword'} = FALSE;
         $bibleDbh =
-          DBI->connect("DBI:mysql:$globals->{'bibledb'}:$globals->{'host'}",
+          DBI->connect("DBI:$globals->{'db_type'}:$globals->{'bibledb'}:$globals->{'host'}",
             "lyric", "")
           || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
             $DBI::errstr);
@@ -4604,7 +4606,7 @@ sub update_cplayclist {
     }
 
     my $query =
-"SELECT title FROM playlists LEFT JOIN playlist ON BINARY playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' WHERE data IS NULL ORDER BY id";
+"SELECT title FROM playlists LEFT JOIN playlist ON BINARY playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -6838,7 +6840,7 @@ sub get_bibles {
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     while (my @row = $sth->fetchrow_array()) {
         my $db =
-          DBI->connect("DBI:mysql:$row[0]:$globals->{'host'}", "lyric", "");
+          DBI->connect("DBI:$globals->{'db_type'}:$row[0]:$globals->{'host'}", "lyric", "");
         my $q2 = "SHOW TABLES";
         qdebug($q2);
         my $sth2 = $db->prepare($q2)
@@ -7270,4 +7272,165 @@ sub import_song_opw {
         print "Verse\n" . $_ . "\n";
     }
     print "$book $songnum - $title by $artist\nkeywords: $keywords\n";
+}
+
+####
+# Install database functions
+####
+sub db_check_app {
+    debug ("Checking for database servers");
+    my @ary = DBI->available_drivers(1);
+    my $mysql = FALSE;
+    my $sqlite = FALSE;
+    foreach ( @ary ) {
+            if ($_ eq "mysql") {
+                $mysql = TRUE;
+            } elsif ($_ eq "SQLite") {
+                $sqlite = TRUE;
+            }
+        }
+    if ($mysql ) {
+        $globals->{'db_type'} = "mysql";
+    } elsif ($sqlite) {
+        $globals->{'db_type'} = "sqlite";
+    } else {
+        die ("No supported DB found");
+    }
+}
+
+sub db_get_admin {
+    debug("Get the db admin login information");
+    my $adminxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogAdminLogin','lyricue');
+    $adminxml->signal_autoconnect_from_package('');
+    my $confirm = $adminxml->get_widget('dialogAdminLogin')->run();
+    $globals->{'db_adminuser'} = $adminxml->get_widget('entryAdminLogin')->get_text();
+    $globals->{'db_adminpassword'} = $adminxml->get_widget('entryAdminPass')->get_text();
+    close_dialog($adminxml->get_widget('dialogAdminLogin'));
+}
+
+sub db_install_user {
+    debug("Install lyric database user");
+    my ($dbh);
+    db_get_admin();
+    if ($globals->{'db_type'} eq "mysql") {
+        eval {$dbh = DBI->connect("DBI:".$globals->{'db_type'}.":mysql:".$globals->{'host'}, $globals->{'db_adminuser'},$globals->{'db_adminpassword'})};
+        if ($@) {
+            my $labelText = Encode::decode("utf-8", gettext("Unable to login to database as admin, maybe the database is down.\nPlease re-enter your database admin login and retry"));
+            my $loginxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogConfirm', 'lyricue');
+            $loginxml->signal_autoconnect_from_package('');
+            $loginxml->get_widget('labelDelete')->set_text($labelText);
+            my $confirm = $loginxml->get_widget('dialogConfirm')->run();
+            if ($confirm eq "ok") {
+                close_dialog($loginxml->get_widget('dialogConfirm'));
+                db_install_user();
+                return;
+            } else {
+                display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
+            }
+        }
+    }
+    my $sth = $dbh->prepare ("select * from user where User='lyric'");
+    my $rv = $sth->execute;
+    if ($sth->rows) {
+        debug( "User already setup\n");
+    } else {
+        debug( "Creating mysql user..");
+        $sth = $dbh->prepare ("insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
+        $sth->execute;
+        $sth = $dbh->prepare ("insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
+        $sth->execute;
+        debug( "Done\n");
+    }
+    db_check_databases ();
+}
+
+sub db_check_databases {
+    debug("Update/install databases");
+    my $dbh = DBI->connect("DBI:".$globals->{'db_type'}.":mysql:".$globals->{'host'}, "lyric","");
+    my $query = "SHOW DATABASES";
+    qdebug($query);
+    my $sth = $dbh->prepare($query)
+     || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    $rv = $sth->execute  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    while (@_= $sth->fetchrow_array()) {
+        $globals->{'db_available_db'}->{$_[0]} = TRUE;
+    }
+    if ($globals->{'db_available_db'}->{'lyricDb'}) {
+        db_updatedb_lyricDb();
+    } else {
+        db_installdb($globals->{'sharedir'}."mysql/MySQL_create_Table.sql");
+    }
+
+    if (! $globals->{'db_available_db'}->{'mediaDb'} ) {
+        db_installdb($globals->{'sharedir'}."mysql/MySQL_create_media.sql");
+        db_reload();
+        debug( "Importing existing backgrounds/images\n");
+        system ("import_media img ".$globals->{'sharedir'}."images");
+        system ("import_media bg ".$globals->{'sharedir'}."backgrounds");
+        debug( "Done\n");
+    }
+}
+
+sub db_reload {
+    debug("Reload db");
+    if ($globals->{'db_adminuser'} eq "") {
+        db_get_admin();
+    }
+    if ($globals->{'db_type'} eq "mysql") {
+        my $drh = DBI->install_driver('mysql');
+        my $rc = $drh->func("reload",[$globals->{'host'},$globals->{'db_adminuser'},$globals->{'adminpassword'},], 'admin');
+    }
+}
+
+sub db_installdb {
+    my ($db_file) = @_;
+    debug("Install db from ".$db_file);
+    if ($globals->{'db_adminuser'} eq "") {
+        db_get_admin();
+    }
+    if ($globals->{'db_type'} eq "mysql") {
+        system ("cat ".$db_file." | mysql -h ".$globals->{'host'}." -u ".$globals->{'db_adminuser'}." --password=".$globals->{'db_adminpassword'});
+    }
+}
+
+sub db_updatedb_lyricDb {
+    debug("Update the lyricDb table if needed");
+    my $dbh = DBI->connect("DBI:".$globals->{'db_type'}.":lyricDb:".$globals->{'host'}, "lyric","");
+    my $tables = $dbh->selectall_arrayref("show tables");
+    my $table;
+    foreach (@$tables) {
+        $table->{$_->[0]} = 1;
+    }
+    if (! defined $table->{'associations'}) {
+        debug( "Associations table not found\n");
+        debug( "Upgrading database from < 1.2 to 1.2\n");
+        db_installdb ($globals->{'sharedir'}."mysql/Update_1.2.sql");
+        debug( "Done\n");
+    }
+    my $fields = $dbh->selectall_arrayref("describe playlist");
+    my $trans;
+    foreach (@$fields) {
+        $trans->{$_->[0]} = 1;
+    }
+    if (! defined $trans->{'transition'}) {
+        debug( "Transition field not found\n");
+        debug( "Upgrading database from 1.2 to 1.9\n");
+        db_installdb ($globals->{'sharedir'}."mysql/Update_1.9.sql");
+        debug( "Done\n");
+    }
+}
+
+sub check_tracker {
+    debug("Check tracker");
+    my $query = "SELECT ref FROM playlists WHERE id=-1";
+    debug($query);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    my @row = $sth->fetchrow_array();
+    #Mark the row
+    if ($row[0] ne $current_item) {
+    }
+    return TRUE;
 }
