@@ -166,6 +166,7 @@ $globals->{'xvfb_pid'}           = FALSE;
 $globals->{'hovering_over_link'} = FALSE;
 $globals->{'mini'}               = FALSE;
 $globals->{'db_adminuser'}       = "";
+$globals->{'current_item'}       = -1;
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -432,7 +433,7 @@ choose_playlist();
 
 # Don't let them cancel out of the playlist dialog yet
 $widgets->{'choose'}->get_widget('buttonCancel')->hide;
-$globals->{'tracker_timer'} = Glib::Timeout->add(500, \&check_tracker, \@data);
+#$globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
 
 Gtk2->main();
 
@@ -7423,14 +7424,15 @@ sub db_updatedb_lyricDb {
 sub check_tracker {
     debug("Check tracker");
     my $query = "SELECT ref FROM playlists WHERE id=-1";
-    debug($query);
+    qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my @row = $sth->fetchrow_array();
     #Mark the row
-    if ($row[0] ne $current_item) {
+    if ($row[0] ne $globals->{'current_item'}) {
+        $globals->{'current_item'} = $row[0];
     }
     return TRUE;
 }

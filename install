@@ -233,11 +233,14 @@ if ($ARGV[0] eq "-u") {
 		}
 	
 		debug( "Checking for existing Databases:\n");
-		my @ary = DBI->data_sources("mysql");
+        my $query = "SHOW DATABASES";
+        my $sth = $dbh->prepare($query);
+        my $rv = $sth->execute;
 		my $lyricdb = 0;
 		my $bibledb = 0;
 		my $mediadb = 0;
-		foreach ( @ary ) {
+        while (@_= $sth->fetchrow_array()) {
+            $_ = @_[0];
 			if (/lyricDb/) {
 				debug( "Found lyricDb\n");
 				$lyricdb = 1;
