@@ -433,7 +433,7 @@ choose_playlist();
 
 # Don't let them cancel out of the playlist dialog yet
 $widgets->{'choose'}->get_widget('buttonCancel')->hide;
-#$globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
+$globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
 
 Gtk2->main();
 
@@ -523,12 +523,13 @@ sub update_playlist {
         $widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
         my $column =
           Gtk2::TreeViewColumn->new_with_attributes("",
-            Gtk2::CellRendererText->new, text => 0);
+            Gtk2::CellRendererText->new, text => 0,background=>1);
         $widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
 
         $widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
     }
     add_playlist($playlist, undef, $model, $selectedid, \$expanded);
+    $globals->{'current_item'} = 0;
 }
 
 #***
@@ -647,7 +648,7 @@ sub add_playlist {
         $model->set(
             $newiter,
             0 => $title,
-            1 => "",
+            1 => undef,
             2 => $row->{'playorder'},
             3 => $row->{'transition'}
         );
@@ -6782,7 +6783,7 @@ sub backup_db {
           . $filename;
         system $command;
         if ($? == -1) {
-            print("Failed to execute: " . $command);
+            debug("Failed to execute: " . $command);
         } else {
             debug("Backed up to " . $filename);
         }
@@ -7432,7 +7433,42 @@ sub check_tracker {
     my @row = $sth->fetchrow_array();
     #Mark the row
     if ($row[0] ne $globals->{'current_item'}) {
+        $globals->{'previous_item'} = $globals->{'current_item'};
         $globals->{'current_item'} = $row[0];
+        my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
+        if ($model) {
+            $globals->{'current_item_path'} = "";
+            $model->foreach(\&update_current);
+            if ($globals->{'current_item_path'} ne "") {
+                my $path=Gtk2::TreePath->new_from_string($globals->{'current_item_path'});
+                while ($path->up()) {
+                    if ($path->get_depth() > 0) {
+                        my $iter = $model->get_iter($path);
+                        if ($iter) {
+                            $model->set($iter,1,'yellow');
+                        }
+                    }
+                }
+            }
+        }
     }
     return TRUE;
+}
+
+sub update_current {
+    my ($store,$path,$iter) = @_;
+    my $playlistid = $store->get($iter,2);
+    if ($playlistid eq $globals->{'current_item'}) {
+        $store->set($iter,1,'yellow');
+        $globals->{'current_item_path'} = $path->to_string;
+    } else {
+        if ($globals->{'current_item_path'} ne "") {
+            if (! $path->is_ancestor(Gtk2::TreePath->new_from_string($globals->{'current_item_path'}))) {
+                $store->set($iter,1,undef);
+            }
+        } else {
+            $store->set($iter,1,undef);
+        }
+    }
+    return FALSE;
 }
