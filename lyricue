@@ -1491,7 +1491,7 @@ sub add_page {
     #
     # Construct a GtkScrolledWindow 'scrollAPage'
     $widgets->{'scrollAPage'}{$hashnum} = Gtk2::ScrolledWindow->new;
-    $widgets->{'scrollAPage'}{$hashnum}->set_policy('never', 'always');
+    $widgets->{'scrollAPage'}{$hashnum}->set_policy('always', 'always');
     $widgets->{'scrollAPage'}{$hashnum}->show;
 
     #
@@ -7333,6 +7333,7 @@ sub db_install_user {
     }
     my $sth = $dbh->prepare ("select * from user where User='lyric'");
     my $rv = $sth->execute;
+        db_reload();
     if ($sth->rows) {
         debug( "User already setup\n");
     } else {
@@ -7380,7 +7381,8 @@ sub db_reload {
     }
     if ($globals->{'db_type'} eq "mysql") {
         my $drh = DBI->install_driver('mysql');
-        my $rc = $drh->func("reload",[$globals->{'host'},$globals->{'db_adminuser'},$globals->{'adminpassword'},], 'admin');
+        my $rc = $drh->func("reload",$globals->{'host'},$globals->{'db_adminuser'},$globals->{'db_adminpassword'}, 'admin');
+        print "\$rc = \$drh->func(\"reload\",$globals->{'host'},$globals->{'db_adminuser'},$globals->{'db_adminpassword'}, 'admin')";
     }
 }
 
