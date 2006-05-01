@@ -154,6 +154,8 @@ Following is a description of each possible line.
 'Loop'     - Boolean state of looping (ie. if you press next at the last
              page should it return to the first page)
 'Xinerama' - Boolean state of xinerama
+'Preset1'  - Sets preset text
+'Preset2'  - Increase number as needed
 'BGImage'  - Filename of default background image
 'Bible'    - Description of bible + database name (ie. 'NIV;nivDb'), can
              be multiple
@@ -218,6 +220,8 @@ playlist (
 # List of playlists
 playlists (
   id int(11) NOT NULL default '0',         # Unique playlist number
+                                           # If set to -1 then 'ref' contains
+                                           # current page in server
   title varchar(50) NOT NULL default '',   # Title of playlist
   ref varchar(50) NOT NULL default '',     # If it's a song playlist then songid
   PRIMARY KEY  (id)
