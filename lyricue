@@ -6030,8 +6030,8 @@ sub init_preview {
 
         debug(
             sprintf(
-                "$^X %slyricue_server -m %d -p %d",
-                $globals->{'bindir'}, $widgets->{'preview'}->get_id,
+                "lyricue_server -m %d -p %d",
+                $widgets->{'preview'}->get_id,
                 $globals->{'preview_port'}
             )
         );
@@ -6048,8 +6048,8 @@ sub init_preview {
             }
             exec(
                 sprintf(
-                    "$^X %slyricue_server -m %d -p %d\n",
-                    $globals->{'bindir'}, $widgets->{'preview'}->get_id,
+                    "lyricue_server -m %d -p %d\n",
+                    $widgets->{'preview'}->get_id,
                     $globals->{'preview_port'}
                 )
             );
@@ -6088,8 +6088,8 @@ sub init_miniview {
           ->add($widgets->{'miniview'});
         debug(
             sprintf(
-                "$^X %slyricue_server -m %d -p %d\n",
-                $globals->{'bindir'}, $widgets->{'miniview'}->get_id,
+                "lyricue_server -m %d -p %d\n",
+                $widgets->{'miniview'}->get_id,
                 $globals->{'miniview_port'}
             )
         );
@@ -6102,8 +6102,7 @@ sub init_miniview {
         if ($globals->{'miniview_pid'} == 0) {
             exec(
                 sprintf(
-                    "$^X %slyricue_server -m %d -p %d\n",
-                    $globals->{'bindir'},
+                    "lyricue_server -m %d -p %d\n",
                     $globals->{'server_port'}
                 )
             );
