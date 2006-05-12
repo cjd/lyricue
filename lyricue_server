@@ -55,7 +55,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyricue_server Version 1.9.2
+Lyricue_server Version 1.9.3
 
 =cut
 
@@ -145,7 +145,7 @@ $globals->{'sharedir'} = "/usr/share/lyricue/";
 # You shouldn't have to change anything after this line
 #
 
-$globals->{'version'}     = "1.9.2";
+$globals->{'version'}     = "1.9.3";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
@@ -161,6 +161,7 @@ $globals->{'preview'}     = FALSE;
 $globals->{'use_port'}      = "2346";    #port used for lyric server socket
 $globals->{'server_port'}   = "2346";    #port used for lyric server socket
 $globals->{'preview_port'}  = "2347";    #port used for lyric server socket
+$globals->{'miniview_port'} = "2348";    #port used for lyric server socket
 $globals->{'server_type'}   = CANVAS;
 $globals->{'blanked_state'} = TRUE;
 $globals->{'diatheke'} = `which diatheke`;
@@ -342,9 +343,9 @@ my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
 debug("Listening on " . $globals->{'use_port'});
-$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
+#$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
 
-update_snapshot();
+#update_snapshot();
 
 # Gtk event loop
 while (1) {
@@ -416,15 +417,15 @@ sub process_input {
             $config->{'BGImage'} = $line[1];
             change_backdrop($config->{'BGImage'});
             $status = "Backdrop changed to " . $config->{'BGImage'};
-            reset_timer($globals->{'snapshot_timer'});
-            $globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
+            #reset_timer($globals->{'snapshot_timer'});
+            #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
         } elsif (/^blank$/) {
             set_header("");
             set_maintext("", NONE, FALSE);
             set_footer("");
             $status = "Screen blanked";
-            reset_timer($globals->{'snapshot_timer'});
-            $globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
+            #reset_timer($globals->{'snapshot_timer'});
+            #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
             if ($line[1] ne "") {
                 $config->{'BGImage'} = $line[1];
                 change_backdrop($config->{'BGImage'});
@@ -484,8 +485,8 @@ sub process_input {
                     set_footer(gettext("Written by ") . $extras[1]);
                 }
             }
-            reset_timer($globals->{'snapshot_timer'});
-            $globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
+            #reset_timer($globals->{'snapshot_timer'});
+            #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
         } elsif (/^loopparent$/) {
             $LOOPPARENT = $line[1];
             debug("Set loop parent to: " . $LOOPPARENT);
@@ -1117,9 +1118,9 @@ sub process_input {
                     $current_item = $preview_item;
                     $preview_item = 0;
                 }
-                reset_timer($globals->{'snapshot_timer'});
-                $globals->{'snapshot_timer'} =
-                  Glib::Idle->add(\&update_snapshot);
+                #reset_timer($globals->{'snapshot_timer'});
+                #$globals->{'snapshot_timer'} =
+                  #Glib::Idle->add(\&update_snapshot);
             }
         } ## end elsif (/^display$/)
     } ## end if ($_)
@@ -1360,7 +1361,25 @@ sub update_display {
     }
 } ## end sub update_display
 
+sub update_miniview {
+    my ($command) = @_;
+
+    if (
+        my $server = IO::Socket::INET->new(
+            Proto    => "tcp",
+            PeerAddr => "localhost",
+            PeerPort => $globals->{'miniview_port'}
+        )
+      )
+    {
+        print $server $command;
+        close($server);
+    }
+} ## end sub update_miniview
+
+
 #***
+
 
 #****f* lyricue_server/debug
 # NAME
@@ -1450,6 +1469,11 @@ sub check_socket {
         my $stat  = process_input($value);
         chomp($stat);
         print $new_sock $stat . "\n";
+
+        # Forward onto miniserver (if not the miniserver)
+        if ($globals->{'use_port'} == $globals->{'server_port'}) {
+            update_miniview($value);
+        }
     }
     close($new_sock);
 
@@ -2439,15 +2463,29 @@ sub create_window_trans {
 sub create_window_normal {
     my ($pixmap, $textcol);
 
-    $globals->{'window'} = new Gtk2::Window->new('toplevel');
+    if ($MINISERV > 0) {
+        $globals->{'window'} = Gtk2::Plug->new($MINISERV);
+    } else {
+        $globals->{'window'} = new Gtk2::Window->new('toplevel');
+    }
     $globals->{'window'}->set_title("Lyric Server");
 
     do_pending();
 
     $globals->{'window'}->show();
     if ($MINISERV >= 0) {
-        $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
+        $globals->{'window'}->show();
+        $globals->{'window'}->realize();
+        my $width  = $config->{'Width'};
+        my $height = $config->{'Height'};
+        my ($width2, $height2) = $globals->{'window'}->get_size();
+        $MINISCALE = $width / $width2;
+        $width  /= $MINISCALE;
+        $height /= $MINISCALE;
+
+        $globals->{'window'}->resize($width, $height);
         debug("Running in MINISERV (preview window) mode");
+        debug("W * H:" . $width . "*" . $height);
     } else {
         $globals->{'window'}
           ->set_default_size($config->{'Width'}, $config->{'Height'});
@@ -2519,6 +2557,7 @@ sub create_window_normal {
         $globals->{'canvas'}
           ->set_scroll_region(0, 0, $config->{'Width'}, $config->{'Height'});
         $globals->{'canvas'}->set_center_scroll_region(TRUE);
+        $globals->{'canvas'}->set_pixels_per_unit(1 / $MINISCALE);
 
         $globals->{'window'}->add($globals->{'canvas'});
         $globals->{'root'} = $globals->{'canvas'}->root;
