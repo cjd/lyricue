@@ -1492,7 +1492,7 @@ sub add_page {
     #
     # Construct a GtkScrolledWindow 'scrollAPage'
     $widgets->{'scrollAPage'}{$hashnum} = Gtk2::ScrolledWindow->new;
-    $widgets->{'scrollAPage'}{$hashnum}->set_policy('auto', 'always');
+    $widgets->{'scrollAPage'}{$hashnum}->set_policy('always', 'always');
     $widgets->{'scrollAPage'}{$hashnum}->show;
 
     #
