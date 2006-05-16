@@ -343,6 +343,7 @@ my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
 debug("Listening on " . $globals->{'use_port'});
+
 #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
 
 #update_snapshot();
@@ -417,6 +418,7 @@ sub process_input {
             $config->{'BGImage'} = $line[1];
             change_backdrop($config->{'BGImage'});
             $status = "Backdrop changed to " . $config->{'BGImage'};
+
             #reset_timer($globals->{'snapshot_timer'});
             #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
         } elsif (/^blank$/) {
@@ -424,6 +426,7 @@ sub process_input {
             set_maintext("", NONE, FALSE);
             set_footer("");
             $status = "Screen blanked";
+
             #reset_timer($globals->{'snapshot_timer'});
             #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
             if ($line[1] ne "") {
@@ -487,6 +490,7 @@ sub process_input {
                     set_footer("");
                 }
             }
+
             #reset_timer($globals->{'snapshot_timer'});
             #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
         } elsif (/^loopparent$/) {
@@ -1120,9 +1124,10 @@ sub process_input {
                     $current_item = $preview_item;
                     $preview_item = 0;
                 }
+
                 #reset_timer($globals->{'snapshot_timer'});
                 #$globals->{'snapshot_timer'} =
-                  #Glib::Idle->add(\&update_snapshot);
+                #Glib::Idle->add(\&update_snapshot);
             }
         } ## end elsif (/^display$/)
     } ## end if ($_)
@@ -1379,9 +1384,7 @@ sub update_miniview {
     }
 } ## end sub update_miniview
 
-
 #***
-
 
 #****f* lyricue_server/debug
 # NAME
@@ -2760,7 +2763,7 @@ sub update_tracker {
     if ($globals->{'blanked_state'}) {
         $item = -1;
     }
-    my $query = "UPDATE playlists SET ref = ".$item." WHERE id=-1";
+    my $query = "UPDATE playlists SET ref = " . $item . " WHERE id=-1";
     debug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);

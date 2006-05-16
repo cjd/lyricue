@@ -163,7 +163,7 @@ $globals->{'debugging'}          = FALSE;
 $globals->{'spell'}              = TRUE;
 $globals->{'trayicon'}           = TRUE;
 $globals->{'preview_pid'}        = FALSE;
-$globals->{'miniview_pid'}        = FALSE;
+$globals->{'miniview_pid'}       = FALSE;
 $globals->{'hovering_over_link'} = FALSE;
 $globals->{'mini'}               = FALSE;
 $globals->{'db_adminuser'}       = "";
@@ -345,14 +345,26 @@ if ($ARGV[0]) {
 
 # Open lyricDB, bibleDB and mediaDb
 db_check_app();
-my $sqldb = DBI->connect("DBI:".$globals->{'db_type'}.":mysql:".$globals->{'host'}, "lyric", "") || db_install_user();
+my $sqldb =
+  DBI->connect("DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
+    "lyric", "")
+  || db_install_user();
 $sqldb->disconnect();
 db_check_databases();
-my $lyricDbh = DBI->connect("DBI:".$globals->{'db_type'}.":$globals->{'lyricdb'}:$globals->{'host'}", "lyric", "")
+my $lyricDbh = DBI->connect(
+    "DBI:"
+      . $globals->{'db_type'}
+      . ":$globals->{'lyricdb'}:$globals->{'host'}",
+    "lyric", ""
+  )
   || display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
 my ($bibleDbh);
-my $mediaDbh =
-  DBI->connect("DBI:".$globals->{'db_type'}.":$globals->{'mediadb'}:$globals->{'host'}", "lyric", "")
+my $mediaDbh = DBI->connect(
+    "DBI:"
+      . $globals->{'db_type'}
+      . ":$globals->{'mediadb'}:$globals->{'host'}",
+    "lyric", ""
+  )
   || display_fatal($errorcodes->{'mediadbopen'}, $DBI::errstr);
 
 # Some global stuff
@@ -522,9 +534,12 @@ sub update_playlist {
           Gtk2::TreeStore->new('Glib::String', 'Glib::String', 'Glib::String',
             'Glib::String');
         $widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
-        my $column =
-          Gtk2::TreeViewColumn->new_with_attributes("",
-            Gtk2::CellRendererText->new, text => 0,background=>1);
+        my $column = Gtk2::TreeViewColumn->new_with_attributes(
+            "",
+            Gtk2::CellRendererText->new,
+            text       => 0,
+            background => 1
+        );
         $widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
 
         $widgets->{'main'}->get_widget('treePlaylist')->set_model($model);
@@ -1614,7 +1629,8 @@ sub remove_page {
     }
     %pageOrder = %newpageOrder;
     if ($count <= 2) {
-        $widgets->{'add'}->get_widget('buttonEditRemovePage')->set_sensitive(FALSE);
+        $widgets->{'add'}->get_widget('buttonEditRemovePage')
+          ->set_sensitive(FALSE);
         $widgets->{'add'}->get_widget('remove_page1')->set_sensitive(FALSE);
     }
 }
@@ -3482,7 +3498,9 @@ sub set_default_backdrop {
 sub print_songs {
     debug("Print html formatted song list");
     my $lyricDbh =
-      DBI->connect("DBI:$globals->{'db_type'}:$globals->{'lyricdb'}:$globals->{'host'}", "lyric", "")
+      DBI->connect(
+        "DBI:$globals->{'db_type'}:$globals->{'lyricdb'}:$globals->{'host'}",
+        "lyric", "")
       || display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
     my $query = "SELECT COUNT(id) FROM lyricMain WHERE id > 0;";
     my $sth   = $lyricDbh->prepare($query)
@@ -3921,9 +3939,11 @@ sub do_change_bible {
     }
     if ($type eq "db") {
         $globals->{'usesword'} = FALSE;
-        $bibleDbh =
-          DBI->connect("DBI:$globals->{'db_type'}:$globals->{'bibledb'}:$globals->{'host'}",
-            "lyric", "")
+        $bibleDbh = DBI->connect(
+"DBI:$globals->{'db_type'}:$globals->{'bibledb'}:$globals->{'host'}",
+            "lyric",
+            ""
+          )
           || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
             $DBI::errstr);
     } else {
@@ -4067,15 +4087,18 @@ sub do_adv_search {
             'Glib::String');
         $widgets->{'search'}->get_widget('treeSearch')->set_model($store);
         my $column =
-          Gtk2::TreeViewColumn->new_with_attributes(Encode::decode("utf-8", gettext("Title")),
+          Gtk2::TreeViewColumn->new_with_attributes(
+            Encode::decode("utf-8", gettext("Title")),
             Gtk2::CellRendererText->new, text => 0);
         $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
         $column =
-          Gtk2::TreeViewColumn->new_with_attributes(Encode::decode("utf-8", gettext("Book")),
+          Gtk2::TreeViewColumn->new_with_attributes(
+            Encode::decode("utf-8", gettext("Book")),
             Gtk2::CellRendererText->new, text => 1);
         $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
         $column =
-          Gtk2::TreeViewColumn->new_with_attributes(Encode::decode("utf-8", gettext("Song No")),
+          Gtk2::TreeViewColumn->new_with_attributes(
+            Encode::decode("utf-8", gettext("Song No")),
             Gtk2::CellRendererText->new, text => 2);
         $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
     }
@@ -6099,10 +6122,8 @@ sub init_miniview {
         }
         if ($globals->{'miniview_pid'} == 0) {
             exec(
-                sprintf(
-                    "lyricue_server -m %d -p %d\n",
-                    $globals->{'server_port'}
-                )
+                sprintf("lyricue_server -m %d -p %d\n",
+                    $globals->{'server_port'})
             );
         }
 
@@ -6806,7 +6827,8 @@ sub get_bibles {
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     while (my @row = $sth->fetchrow_array()) {
         my $db =
-          DBI->connect("DBI:$globals->{'db_type'}:$row[0]:$globals->{'host'}", "lyric", "");
+          DBI->connect("DBI:$globals->{'db_type'}:$row[0]:$globals->{'host'}",
+            "lyric", "");
         my $q2 = "SHOW TABLES";
         qdebug($q2);
         my $sth2 = $db->prepare($q2)
@@ -7244,33 +7266,36 @@ sub import_song_opw {
 # Install database functions
 ####
 sub db_check_app {
-    debug ("Checking for database servers");
-    my @ary = DBI->available_drivers(1);
-    my $mysql = FALSE;
+    debug("Checking for database servers");
+    my @ary    = DBI->available_drivers(1);
+    my $mysql  = FALSE;
     my $sqlite = FALSE;
-    foreach ( @ary ) {
-            if ($_ eq "mysql") {
-                $mysql = TRUE;
-            } elsif ($_ eq "SQLite") {
-                $sqlite = TRUE;
-            }
+    foreach (@ary) {
+        if ($_ eq "mysql") {
+            $mysql = TRUE;
+        } elsif ($_ eq "SQLite") {
+            $sqlite = TRUE;
         }
-    if ($mysql ) {
+    }
+    if ($mysql) {
         $globals->{'db_type'} = "mysql";
     } elsif ($sqlite) {
         $globals->{'db_type'} = "sqlite";
     } else {
-        die ("No supported DB found");
+        die("No supported DB found");
     }
 }
 
 sub db_get_admin {
     debug("Get the db admin login information");
-    my $adminxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogAdminLogin','lyricue');
+    my $adminxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogAdminLogin', 'lyricue');
     $adminxml->signal_autoconnect_from_package('');
     my $confirm = $adminxml->get_widget('dialogAdminLogin')->run();
-    $globals->{'db_adminuser'} = $adminxml->get_widget('entryAdminLogin')->get_text();
-    $globals->{'db_adminpassword'} = $adminxml->get_widget('entryAdminPass')->get_text();
+    $globals->{'db_adminuser'} =
+      $adminxml->get_widget('entryAdminLogin')->get_text();
+    $globals->{'db_adminpassword'} =
+      $adminxml->get_widget('entryAdminPass')->get_text();
     close_dialog($adminxml->get_widget('dialogAdminLogin'));
 }
 
@@ -7279,10 +7304,21 @@ sub db_install_user {
     my ($dbh);
     db_get_admin();
     if ($globals->{'db_type'} eq "mysql") {
-        eval {$dbh = DBI->connect("DBI:".$globals->{'db_type'}.":mysql:".$globals->{'host'}, $globals->{'db_adminuser'},$globals->{'db_adminpassword'})};
+        eval {
+            $dbh = DBI->connect(
+                "DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
+                $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
+            );
+        };
         if ($@) {
-            my $labelText = Encode::decode("utf-8", gettext("Unable to login to database as admin, maybe the database is down.\nPlease re-enter your database admin login and retry"));
-            my $loginxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogConfirm', 'lyricue');
+            my $labelText = Encode::decode(
+                "utf-8",
+                gettext(
+"Unable to login to database as admin, maybe the database is down.\nPlease re-enter your database admin login and retry"
+                )
+            );
+            my $loginxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+                'dialogConfirm', 'lyricue');
             $loginxml->signal_autoconnect_from_package('');
             $loginxml->get_widget('labelDelete')->set_text($labelText);
             my $confirm = $loginxml->get_widget('dialogConfirm')->run();
@@ -7295,46 +7331,55 @@ sub db_install_user {
             }
         }
     }
-    my $sth = $dbh->prepare ("select * from user where User='lyric'");
-    my $rv = $sth->execute;
+    my $sth = $dbh->prepare("select * from user where User='lyric'");
+    my $rv  = $sth->execute;
     db_reload();
     if ($sth->rows) {
-        debug( "User already setup\n");
+        debug("User already setup\n");
     } else {
-        debug( "Creating mysql user..");
-        $sth = $dbh->prepare ("insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
+        debug("Creating mysql user..");
+        $sth =
+          $dbh->prepare(
+"insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'"
+          );
         $sth->execute;
-        $sth = $dbh->prepare ("insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'");
+        $sth =
+          $dbh->prepare(
+"insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'"
+          );
         $sth->execute;
-        debug( "Done\n");
+        debug("Done\n");
     }
-    db_check_databases ();
+    db_check_databases();
 }
 
 sub db_check_databases {
     debug("Update/install databases");
-    my $dbh = DBI->connect("DBI:".$globals->{'db_type'}.":mysql:".$globals->{'host'}, "lyric","");
+    my $dbh =
+      DBI->connect(
+        "DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
+        "lyric", "");
     my $query = "SHOW DATABASES";
     qdebug($query);
     my $sth = $dbh->prepare($query)
-     || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    $rv = $sth->execute  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    while (@_= $sth->fetchrow_array()) {
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    while (@_ = $sth->fetchrow_array()) {
         $globals->{'db_available_db'}->{$_[0]} = TRUE;
     }
     if ($globals->{'db_available_db'}->{'lyricDb'}) {
         db_updatedb_lyricDb();
     } else {
-        db_installdb($globals->{'sharedir'}."mysql/MySQL_create_Table.sql");
+        db_installdb($globals->{'sharedir'} . "mysql/MySQL_create_Table.sql");
     }
 
-    if (! $globals->{'db_available_db'}->{'mediaDb'} ) {
-        db_installdb($globals->{'sharedir'}."mysql/MySQL_create_media.sql");
+    if (!$globals->{'db_available_db'}->{'mediaDb'}) {
+        db_installdb($globals->{'sharedir'} . "mysql/MySQL_create_media.sql");
         db_reload();
-        debug( "Importing existing backgrounds/images\n");
-        system ("import_media img ".$globals->{'sharedir'}."images");
-        system ("import_media bg ".$globals->{'sharedir'}."backgrounds");
-        debug( "Done\n");
+        debug("Importing existing backgrounds/images\n");
+        system("import_media img " . $globals->{'sharedir'} . "images");
+        system("import_media bg " . $globals->{'sharedir'} . "backgrounds");
+        debug("Done\n");
     }
 }
 
@@ -7345,72 +7390,91 @@ sub db_reload {
     }
     if ($globals->{'db_type'} eq "mysql") {
         my $drh = DBI->install_driver('mysql');
-        my $rc = $drh->func("reload",[$globals->{'host'},$globals->{'db_adminuser'},$globals->{'adminpassword'},], 'admin');
+        my $rc  = $drh->func(
+            "reload",
+            [
+                $globals->{'host'}, $globals->{'db_adminuser'},
+                $globals->{'adminpassword'},
+            ],
+            'admin'
+        );
     }
 }
 
 sub db_installdb {
     my ($db_file) = @_;
-    debug("Install db from ".$db_file);
+    debug("Install db from " . $db_file);
     if ($globals->{'db_adminuser'} eq "") {
         db_get_admin();
     }
     if ($globals->{'db_type'} eq "mysql") {
-        system ("cat ".$db_file." | mysql -h ".$globals->{'host'}." -u ".$globals->{'db_adminuser'}." --password=".$globals->{'db_adminpassword'});
+        system( "cat " . $db_file
+              . " | mysql -h "
+              . $globals->{'host'} . " -u "
+              . $globals->{'db_adminuser'}
+              . " --password="
+              . $globals->{'db_adminpassword'});
     }
 }
 
 sub db_updatedb_lyricDb {
     debug("Update the lyricDb table if needed");
-    my $dbh = DBI->connect("DBI:".$globals->{'db_type'}.":lyricDb:".$globals->{'host'}, "lyric","");
+    my $dbh =
+      DBI->connect(
+        "DBI:" . $globals->{'db_type'} . ":lyricDb:" . $globals->{'host'},
+        "lyric", "");
     my $tables = $dbh->selectall_arrayref("show tables");
     my $table;
     foreach (@$tables) {
         $table->{$_->[0]} = 1;
     }
-    if (! defined $table->{'associations'}) {
-        debug( "Associations table not found\n");
-        debug( "Upgrading database from < 1.2 to 1.2\n");
-        db_installdb ($globals->{'sharedir'}."mysql/Update_1.2.sql");
-        debug( "Done\n");
+    if (!defined $table->{'associations'}) {
+        debug("Associations table not found\n");
+        debug("Upgrading database from < 1.2 to 1.2\n");
+        db_installdb($globals->{'sharedir'} . "mysql/Update_1.2.sql");
+        debug("Done\n");
     }
     my $fields = $dbh->selectall_arrayref("describe playlist");
     my $trans;
     foreach (@$fields) {
         $trans->{$_->[0]} = 1;
     }
-    if (! defined $trans->{'transition'}) {
-        debug( "Transition field not found\n");
-        debug( "Upgrading database from 1.2 to 1.9\n");
-        db_installdb ($globals->{'sharedir'}."mysql/Update_1.9.sql");
-        debug( "Done\n");
+    if (!defined $trans->{'transition'}) {
+        debug("Transition field not found\n");
+        debug("Upgrading database from 1.2 to 1.9\n");
+        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.sql");
+        debug("Done\n");
     }
 }
 
 sub check_tracker {
     debug("Check tracker");
     my $query = "SELECT ref FROM playlists WHERE id=-1";
+
     #qdebug($query); # Commented out because it's too noisy
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my @row = $sth->fetchrow_array();
+
     #Mark the row
     if ($row[0] ne $globals->{'current_item'}) {
         $globals->{'previous_item'} = $globals->{'current_item'};
-        $globals->{'current_item'} = $row[0];
+        $globals->{'current_item'}  = $row[0];
         my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
         if ($model) {
             $globals->{'current_item_path'} = "";
             $model->foreach(\&update_current);
             if ($globals->{'current_item_path'} ne "") {
-                my $path=Gtk2::TreePath->new_from_string($globals->{'current_item_path'});
+                my $path =
+                  Gtk2::TreePath->new_from_string(
+                    $globals->{'current_item_path'});
                 while ($path->up()) {
                     if ($path->get_depth() > 0) {
                         my $iter = $model->get_iter($path);
                         if ($iter) {
-                            $model->set($iter,1,'yellow');
+                            $model->set($iter, 1, 'yellow');
                         }
                     }
                 }
@@ -7421,18 +7485,25 @@ sub check_tracker {
 }
 
 sub update_current {
-    my ($store,$path,$iter) = @_;
-    my $playlistid = $store->get($iter,2);
+    my ($store, $path, $iter) = @_;
+    my $playlistid = $store->get($iter, 2);
     if ($playlistid eq $globals->{'current_item'}) {
-        $store->set($iter,1,'yellow');
+        $store->set($iter, 1, 'yellow');
         $globals->{'current_item_path'} = $path->to_string;
     } else {
         if ($globals->{'current_item_path'} ne "") {
-            if (! $path->is_ancestor(Gtk2::TreePath->new_from_string($globals->{'current_item_path'}))) {
-                $store->set($iter,1,undef);
+            if (
+                !$path->is_ancestor(
+                    Gtk2::TreePath->new_from_string(
+                        $globals->{'current_item_path'}
+                    )
+                )
+              )
+            {
+                $store->set($iter, 1, undef);
             }
         } else {
-            $store->set($iter,1,undef);
+            $store->set($iter, 1, undef);
         }
     }
     return FALSE;
