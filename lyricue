@@ -5473,9 +5473,7 @@ sub bgdir_load {
     my $counter = 0;
     while ($row = $sth->fetchrow_hashref()) {
 
-        while (Gtk2->events_pending) {
-            Gtk2->main_iteration;
-        }
+        do_pending();
         my $scaled = create_pixbuf($row->{'id'}, 64, 48);
         if ($scaled) {
             my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
@@ -7392,7 +7390,7 @@ sub db_updatedb_lyricDb {
 sub check_tracker {
     debug("Check tracker");
     my $query = "SELECT ref FROM playlists WHERE id=-1";
-    qdebug($query);
+    #qdebug($query); # Commented out because it's too noisy
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute

@@ -174,7 +174,7 @@ if ($globals->{'diatheke'} eq "") {
 my $DEBUG           = FALSE;
 my $exec_pid        = 0;
 my $MINISERV        = -1;
-my $MINISCALE       = 4;       # Default Scaling for the preview window
+my $MINISCALE       = 1;       # Default Scaling
 my $LOOPPARENT      = -1;      #Absolute parent for looping in sublists
 my $current_list    = 1;
 my $current_item    = 1;
@@ -483,6 +483,8 @@ sub process_input {
             } else {
                 if ($extras[1]) {
                     set_footer(gettext("Written by ") . $extras[1]);
+                } else {
+                    set_footer("");
                 }
             }
             #reset_timer($globals->{'snapshot_timer'});
@@ -2089,7 +2091,7 @@ sub set_header {
 sub set_header_simple {
     my ($text) = @_;
     my $font_desc =
-      Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
+      Gtk2::Pango::FontDescription->from_string($config->{'Header'});
     $globals->{'headerText'}->modify_font($font_desc);
     my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
     $globals->{'headerText'}->modify_fg('normal', $colour);
@@ -2108,7 +2110,7 @@ sub set_header_canvas {
               $config->{'ShadowSize'}
         ) * PANGO_SCALE
     );
-    my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
+    my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Header'});
     $layout->set_font_description($desc);
     $layout->set_text($text);
     my ($w, $h) = $layout->get_pixel_size;
