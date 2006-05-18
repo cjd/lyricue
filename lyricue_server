@@ -2761,18 +2761,21 @@ sub get_playlist {
 
 sub update_tracker {
     debug("Updating tracker");
-    my $item = $current_item;
-    if ($globals->{'blanked_state'}) {
-        $item = -1;
+    # only do if this is main server
+    if ($globals->{'use_port'} == $globals->{'server_port'}) {
+        my $item = $current_item;
+        if ($globals->{'blanked_state'}) {
+            $item = -1;
+        }
+        my $query = "UPDATE playlists SET ref = " . $item . " WHERE id=-1";
+        debug($query);
+        my $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
     }
-    my $query = "UPDATE playlists SET ref = " . $item . " WHERE id=-1";
-    debug($query);
-    my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $!);
 }
-
+    
 sub check_tracker {
     debug ("Checking tracker");
     my $query = "SELECT ref FROM playlists WHERE id=-1";
