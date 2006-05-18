@@ -36,7 +36,7 @@ case "$1" in
 	    echo "$USER = spade" >> $ACCESS.tmp
 	    mv $ACCESS.tmp $ACCESS
 	fi
-	PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }'`
+	PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }' | head -1`
 	cd /usr/share/lyricue
 	/usr/lib/lyricue/install -q -d -u debian-sys-maint -p $PASS
     ;;
