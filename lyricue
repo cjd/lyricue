@@ -5385,7 +5385,7 @@ sub init_mainWindow {
               ->set_position($width / 5 * 2);
         }
     }
-    if (defined $config->{'FrameMain'}) {
+    if ((defined $config->{'FrameMain'}) && ($config->{'FrameMain'} != 0)) {
         $widgets->{'main'}->get_widget('vpanedMain')
           ->set_position($config->{'FrameMain'});
     } else {
