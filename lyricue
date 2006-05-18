@@ -7459,7 +7459,7 @@ sub check_tracker {
     my @row = $sth->fetchrow_array();
 
     #Mark the row
-    if ($row[0] ne $globals->{'current_item'}) {
+    if (@row && ($row[0] ne $globals->{'current_item'})) {
         $globals->{'previous_item'} = $globals->{'current_item'};
         $globals->{'current_item'}  = $row[0];
         my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
