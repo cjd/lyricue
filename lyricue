@@ -94,6 +94,7 @@ die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
   unless (Gtk2->init_check);
 use Gtk2::GladeXML;
 use Gtk2::Pango;
+use Gtk2::Gdk::Keysyms;
 eval { require Locale::gettext };
 
 if ($@) {
@@ -2341,9 +2342,9 @@ sub clear_playlist {
 sub display_song {
     my ($widget, $event) = @_;
 
-    #debug ("event $event"); Too many calls to this one
+    #debug ("event ".$event->key); #Too many calls to this one
     if (defined($event->type)) {
-        if ($event->type eq '2button-press') {
+        if (($event->type eq '2button-press') ||  (($event->type eq 'key-press') && ($event->keyval == $Gtk2::Gdk::Keysyms{Return}))) {
             reset_timer($globals->{'timer'});
             my $selection =
               $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
