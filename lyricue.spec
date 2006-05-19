@@ -1,5 +1,5 @@
 %define name	lyricue
-%define version	1.9.2
+%define version	1.9.3
 %define release	1mdk
 
 Name:           %{name} 
