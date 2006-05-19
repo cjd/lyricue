@@ -4888,8 +4888,10 @@ sub save_preferences {
     print CONFIG "FrameRight = "
       . $widgets->{'main'}->get_widget('hpanedMainRight')->get_position()
       . "\n";
+    my ($width, $height) =
+      $widgets->{'main'}->get_widget('windowMain')->get_size();
     print CONFIG "FrameMain = "
-      . $widgets->{'main'}->get_widget('vpanedMain')->get_position() . "\n";
+      . ($height - $widgets->{'main'}->get_widget('vpanedMain')->get_position()) . "\n";
     print CONFIG "SpecialSong = "
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialSong')->get_text()
       . "\n";
@@ -5370,14 +5372,14 @@ sub init_mainWindow {
     do_pending();
 
     # Adjust frame sizes
+    my ($width, $height) =
+      $widgets->{'main'}->get_widget('windowMain')->get_size();
     if ((defined $config->{'FrameRight'}) && ($config->{'FrameRight'} != 0)) {
         $widgets->{'main'}->get_widget('hpanedMainLeft')
           ->set_position($config->{'FrameLeft'});
         $widgets->{'main'}->get_widget('hpanedMainRight')
           ->set_position($config->{'FrameRight'});
     } else {
-        my ($width, $height) =
-          $widgets->{'main'}->get_widget('windowMain')->get_size();
         debug($width . "- width");
         if ($globals->{'access'} =~ /p/) {
             $widgets->{'main'}->get_widget('hpanedMainLeft')
@@ -5388,12 +5390,10 @@ sub init_mainWindow {
     }
     if ((defined $config->{'FrameMain'}) && ($config->{'FrameMain'} != 0)) {
         $widgets->{'main'}->get_widget('vpanedMain')
-          ->set_position($config->{'FrameMain'});
+          ->set_position($height - $config->{'FrameMain'});
     } else {
-        my ($width, $height) =
-          $widgets->{'main'}->get_widget('windowMain')->get_size();
         $widgets->{'main'}->get_widget('vpanedMain')
-          ->set_position($height - 100);
+          ->set_position($height - 125);
     }
 
     $globals->{'hand_cursor'} = Gtk2::Gdk::Cursor->new('hand2');
@@ -7450,7 +7450,7 @@ sub db_updatedb_lyricDb {
 }
 
 sub check_tracker {
-    debug("Check tracker");
+    #debug("Check tracker");
     my $query = "SELECT ref FROM playlists WHERE id=-1";
 
     #qdebug($query); # Commented out because it's too noisy
