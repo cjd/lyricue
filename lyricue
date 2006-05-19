@@ -7509,3 +7509,9 @@ sub update_current {
     }
     return FALSE;
 }
+
+sub clear_search {
+    debug("Clear search entry");
+    $widgets->{'main'}->get_widget('entrySearch')->set_text("");
+    $widgets->{'main'}->get_widget('entrySearch')->grab_focus();
+}
