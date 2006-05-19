@@ -308,6 +308,16 @@ my $mediaDbh =
     "lyric", "")
   || display_fatal($errorcodes->{'mediadbopen'}, $!);
 
+# Set current_page to a valid value
+my $query = "SELECT MIN(playorder) FROM playlist";
+debug($query);
+my $sth = $lyricDbh->prepare($query)
+  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+my $rv = $sth->execute
+  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+my @row = $sth->fetchrow_array();
+$current_item = $row[0];
+
 # Create/Update tracker field
 check_tracker();
 # Create the window
