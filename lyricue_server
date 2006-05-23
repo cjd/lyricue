@@ -245,6 +245,8 @@ if ($ARGV[0]) {
             }
         } elsif ($ARGV[$_] eq "-p") {
             $globals->{'use_port'} = $ARGV[$_ + 1];
+        } elsif ($ARGV[$_] eq "-sqlite") {
+            $globals->{'force_sqlite'} = TRUE;
         } elsif ($ARGV[$_] =~ /^\d+$/) {
         } else {
             print "\nUsage: lyricue_server <-v> <-m> <-c> <-d>\n\n";
@@ -257,6 +259,7 @@ if ($ARGV[0]) {
 } ## end if ($ARGV[0])
 
 # Read the config file
+db_check_app();
 if (!-w $globals->{'configfile'}) {
     if (!-d $globals->{'basedir'}) {
         mkdir $globals->{'basedir'}, 0777;
@@ -298,15 +301,8 @@ if ($pid) {
 }
 
 # Open lyricDB and mediaDB
-my $lyricDbh =
-  DBI->connect("DBI:mysql:$globals->{'lyricdb'}:$globals->{'host'}",
-    "lyric", "")
-  || display_fatal($errorcodes->{'lyricdbopen'}, $!);
-
-my $mediaDbh =
-  DBI->connect("DBI:mysql:$globals->{'mediadb'}:$globals->{'host'}",
-    "lyric", "")
-  || display_fatal($errorcodes->{'mediadbopen'}, $!);
+my $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
+my $mediaDbh = db_connect($globals->{'mediadb'},$errorcodes->{'mediadbopen'});
 
 # Set current_page to a valid value
 my $query = "SELECT MIN(playorder) FROM playlist";
@@ -1448,10 +1444,7 @@ sub change_to_db {
         $bibleDbh->disconnect;
     }
     if ($type eq "db") {
-        $bibleDbh =
-          DBI->connect("DBI:mysql:$db:$globals->{'host'}", "lyric", "")
-          || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
-            $!);
+        $bibleDbh = db_connect($globals->{'bibledb'},$errorcodes->{'bibledbopen'}.$globals->{'bibledb'});
         $globals->{'usesword'} = FALSE;
     } else {
         $globals->{'usesword'} = TRUE;
@@ -2797,7 +2790,7 @@ sub check_tracker {
     if ($sth->fetchrow_array()) {
         update_tracker();
     } else {
-        $query = "INSERT INTO playlists SET id=-1,ref=-1";
+        $query = "INSERT INTO playlists (id,ref) VALUES (-1,-1)";
         debug($query);
         my $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -2805,3 +2798,47 @@ sub check_tracker {
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
     }
 }
+
+sub db_check_app {
+    debug("Checking for database servers");
+    if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
+        debug ("Forcing usage of SQLite3");
+        $globals->{'db_type'} = "SQLite";
+        return;
+    }
+    my @ary    = DBI->available_drivers(1);
+    my $mysql  = FALSE;
+    my $sqlite = FALSE;
+    foreach (@ary) {
+        if ($_ eq "mysql") {
+            $mysql = TRUE;
+        } elsif ($_ eq "SQLite") {
+            $sqlite = TRUE;
+        }
+    }
+    if ($mysql) {
+        $globals->{'db_type'} = "mysql";
+    } elsif ($sqlite) {
+        $globals->{'db_type'} = "SQLite";
+    } else {
+        die("No supported DB found");
+    }
+}
+
+sub db_connect {
+    my ($dbname,$dberror) = @_;
+    my ($dbh);
+    if ($globals->{'db_type'} eq "SQLite") {
+        $dbh = DBI->connect("dbi:SQLite:".$globals->{'basedir'}.$dbname.".db","","")
+          || display_fatal($dberror, $DBI::errstr);
+    } else {
+        $dbh = DBI->connect(
+        "DBI:"
+          . $globals->{'db_type'}
+          . ":$dbname:$globals->{'host'}",
+        "lyric", "")
+          || display_fatal($dberror, $DBI::errstr);
+    }
+    return $dbh;
+}
+

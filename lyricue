@@ -320,11 +320,13 @@ if ($ARGV[0]) {
         } elsif ($ARGV[$_] eq "-l") {
             print_songs();
         } elsif ($ARGV[$_] eq "-b") {
-            $globals->{'bg_previews'} = 0;
+            $globals->{'bg_previews'} = FALSE;
         } elsif ($ARGV[$_] eq "-d") {
             $globals->{'debugging'} = 1;
         } elsif ($ARGV[$_] eq "-dq") {
             $globals->{'debugging'} = 2;
+        } elsif ($ARGV[$_] eq "-sqlite") {
+            $globals->{'force_sqlite'} = TRUE;
         } elsif ($ARGV[$_] eq "-s") {
             $globals->{'host'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
@@ -346,27 +348,21 @@ if ($ARGV[0]) {
 
 # Open lyricDB, bibleDB and mediaDb
 db_check_app();
-my $sqldb =
-  DBI->connect("DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
-    "lyric", "")
-  || db_install_user();
-$sqldb->disconnect();
+if ($globals->{'db_type'} eq "mysql") {
+    my $sqldb =
+      DBI->connect("DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
+        "lyric", "")
+      || db_install_user();
+    $sqldb->disconnect();
+}
 db_check_databases();
-my $lyricDbh = DBI->connect(
-    "DBI:"
-      . $globals->{'db_type'}
-      . ":$globals->{'lyricdb'}:$globals->{'host'}",
-    "lyric", ""
-  )
-  || display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
+my $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
+if ($globals->{'db_type'} eq "SQLite") {
+    # Define a NOW command in sqlite
+    $lyricDbh->func('NOW',0,sub {return time }, 'create_function');
+}
 my ($bibleDbh);
-my $mediaDbh = DBI->connect(
-    "DBI:"
-      . $globals->{'db_type'}
-      . ":$globals->{'mediadb'}:$globals->{'host'}",
-    "lyric", ""
-  )
-  || display_fatal($errorcodes->{'mediadbopen'}, $DBI::errstr);
+my $mediaDbh = db_connect($globals->{'mediadb'},$errorcodes->{'mediadbopen'});
 
 # Some global stuff
 my ($query, $row, $sth, $rv);
@@ -572,6 +568,7 @@ sub add_playlist {
         "SELECT * FROM playlist WHERE playlist="
       . $playlist
       . " ORDER BY playorder";
+    qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -605,6 +602,7 @@ sub add_playlist {
         } elsif ($row->{'type'} eq "song") {
             my $query2 =
               "SELECT lyrics FROM page WHERE pageid=" . $row->{'data'};
+            qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
             my $rv2 = $sth2->execute
@@ -820,6 +818,7 @@ sub update_available {
     my $query =
       "SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"%"
       . $config->{'SpecialSong'} . "%\"";
+    qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -855,7 +854,7 @@ sub update_available {
         );
     }
 
-    if ($songname ne "") {
+    if (($songname ne "") && ($globals->{'db_type'} eq "mysql")) {
         $query =
 "SELECT id,title,songnum,book,SUBSTRING_INDEX(lyrics,'\n',1) as line FROM page,lyricMain WHERE pagenum=1 AND SUBSTRING_INDEX(lyrics,'\n',1) LIKE \"%"
           . $songname
@@ -1302,16 +1301,14 @@ sub do_save_song {
                 $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
             } else {
                 $query =
-                    "INSERT INTO page SET songid=" . $songid
-                  . ", pagenum="
-                  . $pageOrder{$page}
-                  . ", lyrics="
-                  . $lyricDbh->quote(
+                    "INSERT INTO page (songid,pagenum,lyrics) VALUES (" . $songid
+                  . ", " . $pageOrder{$page}
+                  . ", " . $lyricDbh->quote(
                     Encode::encode(
                         "iso-8859-1",
                         get_buffer_text($widgets->{'textAPageB'}{$page})
-                    )
-                  );
+                    ))
+                  . ")";
                 $sth = $lyricDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
                 qdebug($query);
@@ -1438,19 +1435,19 @@ sub do_save_song {
         my $pagenum = 0;
         foreach $page (keys(%pageOrder)) {
             $query =
-                "INSERT INTO page SET songid=" . $songid
-              . ", pagenum="
+                "INSERT INTO page (songid,pagenum,lyrics) VALUES (" . $songid
+              . ", "
               . $pageOrder{$page}
-              . ", lyrics="
+              . ", "
               . $lyricDbh->quote(
                 Encode::encode(
                     "iso-8859-1",
                     get_buffer_text($widgets->{'textAPageB'}{$page})
                 )
-              );
+              ).")";
+            qdebug($query);
             $sth = $lyricDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
-            qdebug($query);
             debug("Page Add : " . $page . "|" . $pageOrder{$page});
             $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         }
@@ -1797,12 +1794,12 @@ sub insert_verse {
     my $main_playlist =
       $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
     $query =
-        "INSERT INTO playlist SET playorder="
+        "INSERT INTO playlist (playorder,playlist,type,data) VALUES ("
       . $playorder
-      . ", playlist="
+      . ", "
       . $main_playlist
-      . ", type=\"play\", data="
-      . $playlist;
+      . ", \"play\", "
+      . $playlist.")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -1812,10 +1809,10 @@ sub insert_verse {
 
     # Add entry to playlists table
     $query =
-        "INSERT INTO playlists SET id="
+        "INSERT INTO playlists (id,title) VALUES ("
       . $playlist
-      . ", title=\""
-      . Encode::encode("iso-8859-1", $verse) . "\"";
+      . ", \""
+      . Encode::encode("iso-8859-1", $verse) . "\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -1831,13 +1828,13 @@ sub insert_verse {
     while ($loop) {
         my $maxv = get_max_verse($book, $chapter, $minv, $end);
         $query =
-            "INSERT INTO playlist SET playlist="
+            "INSERT INTO playlist (playlist,playorder,type,data) VALUES ("
           . $playlist
-          . ", playorder="
+          . ", "
           . $playorder
-          . ", type=\"vers\", data=\""
+          . ", \"vers\", \""
           . $minv . "-"
-          . $maxv . "\"";
+          . $maxv . "\")";
         $playorder++;
         qdebug($query);
         my $sth2 = $lyricDbh->prepare($query)
@@ -2120,13 +2117,14 @@ sub add_single_song {
     my $playlist = $row->{'MAX(id)'} + 1;
 
     $query =
-        "INSERT INTO playlist SET playorder="
+        "INSERT INTO playlist (playorder, playlist, data,type) VALUES ("
       . $playorder
-      . ", playlist="
+      . ","
       . $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data}
-      . ", data="
+      . ","
       . $playlist
-      . ", type=\"play\"";
+      . ",\"play\")";
+    qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -2152,13 +2150,14 @@ sub add_single_song {
         $title = $row->{'title'};
         $playorder++;
         my $query2 =
-            "INSERT INTO playlist SET playorder="
+            "INSERT INTO playlist (playorder, playlist, data,type) VALUES ("
           . $playorder
-          . ", playlist="
+          . ", "
           . $playlist
-          . ", data="
+          . ","
           . $row->{'pageid'}
-          . ", type=\"song\"";
+          . ", \"song\")";
+        qdebug($query2);
         my $sth2 = $lyricDbh->prepare($query2)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         my $rv2 = $sth2->execute
@@ -2180,7 +2179,7 @@ sub add_single_song {
     debug("Audit: $config->{'Audit'}");
     if ($config->{'Audit'} && $audit) {
         $query =
-            "INSERT INTO audit (id,songid,playdate) VALUES(0,"
+            "INSERT INTO audit (songid,playdate) VALUES("
           . $availableSelection
           . ", NOW())";
         debug("Auditing with: " . $query);
@@ -3498,11 +3497,7 @@ sub set_default_backdrop {
 #
 sub print_songs {
     debug("Print html formatted song list");
-    my $lyricDbh =
-      DBI->connect(
-        "DBI:$globals->{'db_type'}:$globals->{'lyricdb'}:$globals->{'host'}",
-        "lyric", "")
-      || display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
+    my $lyricDbh = db_connect($globals->{'lyricdb'},$errorcodes->{'lyricdbopen'});
     my $query = "SELECT COUNT(id) FROM lyricMain WHERE id > 0;";
     my $sth   = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -3940,13 +3935,7 @@ sub do_change_bible {
     }
     if ($type eq "db") {
         $globals->{'usesword'} = FALSE;
-        $bibleDbh = DBI->connect(
-"DBI:$globals->{'db_type'}:$globals->{'bibledb'}:$globals->{'host'}",
-            "lyric",
-            ""
-          )
-          || display_fatal($errorcodes->{'bibledbopen'} . $globals->{'bibledb'},
-            $DBI::errstr);
+        $bibleDbh = db_connect($globals->{'bibledb'},$errorcodes->{'bibledbopen'}.$globals->{'bibledb'});
     } else {
         $globals->{'usesword'} = TRUE;
     }
@@ -4430,11 +4419,11 @@ sub new_playlist {
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my @row = $sth->fetchrow_array();
         $query =
-            "INSERT INTO playlists SET id="
+            "INSERT INTO playlists (id,title) VALUES ("
           . $row[0]
-          . ", title=\""
+          . ", \""
           . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text()
-          . "\"";
+          . "\")";
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -4633,7 +4622,7 @@ sub update_cplayclist {
     }
 
     my $query =
-"SELECT title FROM playlists LEFT JOIN playlist ON BINARY playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
+"SELECT title FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -4684,14 +4673,14 @@ sub copy_item {
             $row2[0]++;
 
             $query =
-                "INSERT INTO playlist SET playorder="
+                "INSERT INTO playlist (playorder,playlist,data,type) VALUES ("
               . $row2[0]
-              . ", playlist="
+              . ", "
               . $row->{'playlist'}
-              . ", data=\""
+              . ", \""
               . $row->{'data'}
-              . "\", type=\""
-              . $row->{'type'} . "\"";
+              . "\", \""
+              . $row->{'type'} . "\")";
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -5033,7 +5022,7 @@ sub new_sublist {
 
     #create sublist playlist
     $query =
-        "INSERT INTO playlists (id, title, ref) values("
+        "INSERT INTO playlists (id, title, ref) VALUES ("
       . $playlistsid . " ,'"
       . $sublistxml->get_widget('entryPromptE')->get_text() . "','')";
     $sth = $lyricDbh->prepare($query)
@@ -5042,13 +5031,12 @@ sub new_sublist {
 
     #link sublist to main playlist
     $query =
-        "INSERT INTO playlist SET playorder="
-      . $playorder
-      . ", playlist="
+        "INSERT INTO playlist (playorder,playlist,type,data,transition) VALUES ("
+      . $playorder . ", "
       . $parentid
-      . ", type=\"sub\", data="
+      . ", \"sub\","
       . $playlistsid
-      . " ,transition=0";
+      . " ,0";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -6821,36 +6809,28 @@ sub get_bibles {
     close SWORD;
 
     # Bible databases found
-    my $query = "SHOW DATABASES";
-    qdebug($query);
-    my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-
-    my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    while (my @row = $sth->fetchrow_array()) {
-        my $db =
-          DBI->connect("DBI:$globals->{'db_type'}:$row[0]:$globals->{'host'}",
-            "lyric", "");
-        my $q2 = "SHOW TABLES";
-        qdebug($q2);
-        my $sth2 = $db->prepare($q2)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        my $rv2 = $sth2->execute
-          || display_fatal($errorcodes->{'sqlexecute'}, $!);
-        my @row2 = $sth2->fetchrow_array();
-        if (defined $row2[0] && $row2[0] eq "verse") {
-            $q2 = "SELECT * FROM verse WHERE book=\"Bible\";";
-            qdebug($q2);
-            $sth2 = $db->prepare($q2)
-              || display_fatal($errorcodes->{'sqlprepare'}, $!);
-            $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'}, $!);
-            my $row2 = $sth2->fetchrow_hashref();
-            if (defined $row2->{'verse'}) {
-                $bibles->{$row[0]} = "db;" . $row2->{'verse'};
+    my $dbs = $globals->{'db_available_db'};
+    foreach (keys %$dbs) {
+        my $db = db_connect($_,"");
+        my @tables = $db->tables;
+        my $table;
+        foreach (@tables) {
+            $_ =~ s/^`(.*)`$/$1/g;
+            $_ =~ s/^"(.*)"$/$1/g;
+            if (/^verse$/) {
+                my $query = "SELECT * FROM verse WHERE book=\"Bible\";";
+                qdebug($query);
+                my $sth = $db->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my $row = $sth->fetchrow_hashref();
+                if (defined $row->{'verse'}) {
+                    $bibles->{$_} = "db;" . $row->{'verse'};
+                }
+                $sth->finish;
             }
         }
-        $sth2->finish;
         $db->disconnect();
     }
 
@@ -7269,6 +7249,11 @@ sub import_song_opw {
 ####
 sub db_check_app {
     debug("Checking for database servers");
+    if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
+        debug ("Forcing usage of SQLite3");
+        $globals->{'db_type'} = "SQLite";
+        return;
+    }
     my @ary    = DBI->available_drivers(1);
     my $mysql  = FALSE;
     my $sqlite = FALSE;
@@ -7282,7 +7267,7 @@ sub db_check_app {
     if ($mysql) {
         $globals->{'db_type'} = "mysql";
     } elsif ($sqlite) {
-        $globals->{'db_type'} = "sqlite";
+        $globals->{'db_type'} = "SQLite";
     } else {
         die("No supported DB found");
     }
@@ -7290,16 +7275,22 @@ sub db_check_app {
 
 sub db_get_admin {
     debug("Get the db admin login information");
-    my $adminxml = Gtk2::GladeXML->new($globals->{'gladefile'},
-        'dialogAdminLogin', 'lyricue');
-    $adminxml->signal_autoconnect_from_package('');
-    my $confirm = $adminxml->get_widget('dialogAdminLogin')->run();
-    $globals->{'db_adminuser'} =
-      $adminxml->get_widget('entryAdminLogin')->get_text();
-    $globals->{'db_adminpassword'} =
-      $adminxml->get_widget('entryAdminPass')->get_text();
-    close_dialog($adminxml->get_widget('dialogAdminLogin'));
-}
+    if ($globals->{'db_type'} eq "mysql") {
+        my $adminxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+            'dialogAdminLogin', 'lyricue');
+        $adminxml->signal_autoconnect_from_package('');
+        my $confirm = $adminxml->get_widget('dialogAdminLogin')->run();
+        $globals->{'db_adminuser'} =
+          $adminxml->get_widget('entryAdminLogin')->get_text();
+        $globals->{'db_adminpassword'} =
+          $adminxml->get_widget('entryAdminPass')->get_text();
+        close_dialog($adminxml->get_widget('dialogAdminLogin'));
+    } else {
+        $globals->{'db_adminuser'} = "lyricue";
+        $globals->{'db_adminpassword'} = "";
+
+    }
+}    
 
 sub db_install_user {
     debug("Install lyric database user");
@@ -7357,30 +7348,45 @@ sub db_install_user {
 
 sub db_check_databases {
     debug("Update/install databases");
-    my $dbh =
-      DBI->connect(
-        "DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
-        "lyric", "");
-    my $query = "SHOW DATABASES";
-    qdebug($query);
-    my $sth = $dbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    while (@_ = $sth->fetchrow_array()) {
-        $globals->{'db_available_db'}->{$_[0]} = TRUE;
+    if ($globals->{'db_type'} eq "mysql") {
+        my $dbh = 
+          DBI->connect(
+            "DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
+            "lyric", "");
+        my $query = "SHOW DATABASES";
+        qdebug($query);
+        my $sth = $dbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        while (@_ = $sth->fetchrow_array()) {
+            $globals->{'db_available_db'}{$_[0]} = TRUE;
+        }
+    } else {
+        opendir( DIR,$globals->{'basedir'});
+        while ($_ = readdir(DIR)) {
+            if (/.db$/) {
+                $_ =~ s/.db$//g;
+                $globals->{'db_available_db'}{$_} = TRUE;
+            }
+        }
     }
-    if ($globals->{'db_available_db'}->{'lyricDb'}) {
+    
+    if ($globals->{'db_available_db'}{'lyricDb'}) {
         db_updatedb_lyricDb();
     } else {
-        db_installdb($globals->{'sharedir'} . "mysql/MySQL_create_Table.sql");
+        db_installdb($globals->{'sharedir'} . "mysql/MySQL_create_Table.sql","lyricDb");
     }
 
-    if (!$globals->{'db_available_db'}->{'mediaDb'}) {
-        db_installdb($globals->{'sharedir'} . "mysql/MySQL_create_media.sql");
+    if (!$globals->{'db_available_db'}{'mediaDb'}) {
+        debug ("Creating mediaDb");
+        db_installdb($globals->{'sharedir'} . "mysql/MySQL_create_media.sql","mediaDb");
         db_reload();
         debug("Importing existing backgrounds/images\n");
-        system("import_media img " . $globals->{'sharedir'} . "images");
-        system("import_media bg " . $globals->{'sharedir'} . "backgrounds");
+        # NOTE FAILS WITH SQLITE
+        if ($globals->{'db_type'} eq "mysql") {
+            system("import_media img " . $globals->{'sharedir'} . "images");
+            system("import_media bg " . $globals->{'sharedir'} . "backgrounds");
+        }
         debug("Done\n");
     }
 }
@@ -7404,7 +7410,7 @@ sub db_reload {
 }
 
 sub db_installdb {
-    my ($db_file) = @_;
+    my ($db_file,$db_name) = @_;
     debug("Install db from " . $db_file);
     if ($globals->{'db_adminuser'} eq "") {
         db_get_admin();
@@ -7416,36 +7422,66 @@ sub db_installdb {
               . $globals->{'db_adminuser'}
               . " --password="
               . $globals->{'db_adminpassword'});
+    } else {
+        my $dbh = db_connect($db_name,"");
+        open (DB,$db_file);
+        my $query = "";
+        while (<DB>){
+            $_ =~ s/^CREATE DATABASE*;$//g;
+            $_ =~ s/^USE *;$//g;
+            if ((/^ *UNIQUE KEY/) || (/^--/) || (/^CREATE DATABASE /) || (/^USE /)) {
+                $_ = "";
+            }
+            $_ =~ s/(PRIMARY KEY .*),$/$1/g;
+            $_ =~ s/auto_increment,$/,/g;
+            $_ =~ s/TYPE=MyISAM;$/;/g;
+            $_ =~ s/unsigned NOT NULL/NOT NULL/g;
+            $_ =~ s/int(11)/INTEGER/g;
+            $_ =~ s/\\'/''/g;
+            $_ =~ s/\\n/\n/g;
+            if (! /;$/ ) {
+                $query .= $_;
+            } else {
+                $query .= $_;
+                if ($query ne "") {
+                #print $query ."\n";
+                    $dbh->do($query);
+                }
+                $query = "";
+            }
+        }
+        $dbh->disconnect();
     }
 }
 
 sub db_updatedb_lyricDb {
     debug("Update the lyricDb table if needed");
-    my $dbh =
-      DBI->connect(
-        "DBI:" . $globals->{'db_type'} . ":lyricDb:" . $globals->{'host'},
-        "lyric", "");
-    my $tables = $dbh->selectall_arrayref("show tables");
+    my $dbh = db_connect($globals->{'lyricdb'},"");
+    my @tables = $dbh->tables;
     my $table;
-    foreach (@$tables) {
-        $table->{$_->[0]} = 1;
+    foreach (@tables) {
+        $_ =~ s/^`(.*)`$/$1/g;
+        $_ =~ s/^"(.*)"$/$1/g;
+        $table->{$_} = 1;
     }
     if (!defined $table->{'associations'}) {
         debug("Associations table not found\n");
         debug("Upgrading database from < 1.2 to 1.2\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Update_1.2.sql");
+        db_installdb($globals->{'sharedir'} . "mysql/Update_1.2.sql","lyricDb");
         debug("Done\n");
     }
-    my $fields = $dbh->selectall_arrayref("describe playlist");
-    my $trans;
-    foreach (@$fields) {
-        $trans->{$_->[0]} = 1;
-    }
-    if (!defined $trans->{'transition'}) {
-        debug("Transition field not found\n");
-        debug("Upgrading database from 1.2 to 1.9\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.sql");
-        debug("Done\n");
+    if ($globals->{'db_type'} eq "mysql") {
+        my $fields = $dbh->selectall_arrayref("describe playlist");
+        my $trans;
+        foreach (@$fields) {
+            $trans->{$_->[0]} = 1;
+        }
+        if (!defined $trans->{'transition'}) {
+            debug("Transition field not found\n");
+            debug("Upgrading database from 1.2 to 1.9\n");
+            db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.sql","lyricDb");
+            debug("Done\n");
+        }
     }
 }
 
@@ -7515,4 +7551,21 @@ sub clear_search {
     debug("Clear search entry");
     $widgets->{'main'}->get_widget('entrySearch')->set_text("");
     $widgets->{'main'}->get_widget('entrySearch')->grab_focus();
+}
+
+sub db_connect {
+    my ($dbname,$dberror) = @_;
+    my ($dbh);
+    if ($globals->{'db_type'} eq "SQLite") {
+        $dbh = DBI->connect("dbi:SQLite:".$globals->{'basedir'}.$dbname.".db","","")
+          || display_fatal($dberror, $DBI::errstr);
+    } else {
+        $dbh = DBI->connect(
+        "DBI:"
+          . $globals->{'db_type'}
+          . ":$dbname:$globals->{'host'}",
+        "lyric", "")
+          || display_fatal($dberror, $DBI::errstr);
+    }
+    return $dbh;
 }

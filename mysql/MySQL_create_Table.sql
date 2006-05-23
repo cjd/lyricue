@@ -7,10 +7,10 @@ USE lyricDb;
 --
 
 CREATE TABLE associations (
-  id int(11) NOT NULL auto_increment,
-  playlist int(11) NOT NULL default '0',
+  id INTEGER auto_increment,
+  playlist INTEGER NOT NULL default '0',
   imagename varchar(255) NOT NULL default '',
-  absoluteparent int(11) NOT NULL default '0',
+  absoluteparent INTEGER NOT NULL default '0',
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
@@ -19,8 +19,8 @@ CREATE TABLE associations (
 --
 
 CREATE TABLE audit (
-  id int(24) NOT NULL auto_increment,
-  songid int(11) NOT NULL default '0',
+  id INTEGER auto_increment,
+  songid INTEGER NOT NULL default '0',
   playdate datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
@@ -30,12 +30,12 @@ CREATE TABLE audit (
 --
 
 CREATE TABLE lyricMain (
-  id int(11) NOT NULL auto_increment,
+  id INTEGER auto_increment,
   title varchar(100) NOT NULL default '',
-  songnum int(11) default '0',
+  songnum INTEGER default '0',
   book varchar(100) default '',
   artist varchar(100) default '',
-  written timestamp(14) NOT NULL,
+  written timestamp(14) NOT NULL default '00000000000000',
   keywords text,
   entered timestamp(14) NOT NULL default '00000000000000',
   copyright varchar(100) default '',
@@ -633,9 +633,9 @@ INSERT INTO lyricMain VALUES (673,'For God so loved the world',62,'Bill Graham C
 --
 
 CREATE TABLE page (
-  pageid int(11) NOT NULL auto_increment,
-  songid int(11) NOT NULL default '0',
-  pagenum int(11) NOT NULL default '0',
+  pageid INTEGER auto_increment,
+  songid INTEGER NOT NULL default '0',
+  pagenum INTEGER NOT NULL default '0',
   lyrics text,
   PRIMARY KEY  (pageid)
 ) TYPE=MyISAM;
@@ -2984,11 +2984,11 @@ INSERT INTO page VALUES (13615,642,4,'Hallelujah,\nHallelujah,\nHallelujah,\nHal
 --
 
 CREATE TABLE playlist (
-  playorder int(11) NOT NULL default '0',
-  playlist int(11) NOT NULL default '1',
+  playorder INTEGER NOT NULL default '0',
+  playlist INTEGER NOT NULL default '1',
   data varchar(50) NOT NULL default '',
   type varchar(4) default 'song',
-  transition int(11) default '0',
+  transition INTEGER default '0',
   PRIMARY KEY  (playorder)
 ) TYPE=MyISAM;
 
@@ -3002,7 +3002,7 @@ CREATE TABLE playlist (
 --
 
 CREATE TABLE playlists (
-  id int(11) NOT NULL default '1',
+  id INTEGER NOT NULL default '1',
   title varchar(50) NOT NULL default '',
   ref varchar(50) NOT NULL default '',
   PRIMARY KEY  (id)
