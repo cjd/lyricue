@@ -302,7 +302,7 @@ if ($pid) {
 
 # Open lyricDB and mediaDB
 my $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
-my $mediaDbh = db_connect($globals->{'mediadb'},$errorcodes->{'mediadbopen'});
+my $mediaDbh = db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'});
 
 # Set current_page to a valid value
 my $query = "SELECT MIN(playorder) FROM playlist";
@@ -316,6 +316,7 @@ $current_item = $row[0];
 
 # Create/Update tracker field
 check_tracker();
+
 # Create the window
 debug("Creating window");
 create_window();
@@ -1444,7 +1445,9 @@ sub change_to_db {
         $bibleDbh->disconnect;
     }
     if ($type eq "db") {
-        $bibleDbh = db_connect($globals->{'bibledb'},$errorcodes->{'bibledbopen'}.$globals->{'bibledb'});
+        $bibleDbh =
+          db_connect($globals->{'bibledb'},
+            $errorcodes->{'bibledbopen'} . $globals->{'bibledb'});
         $globals->{'usesword'} = FALSE;
     } else {
         $globals->{'usesword'} = TRUE;
@@ -2764,6 +2767,7 @@ sub get_playlist {
 
 sub update_tracker {
     debug("Updating tracker");
+
     # only do if this is main server
     if ($globals->{'use_port'} == $globals->{'server_port'}) {
         my $item = $current_item;
@@ -2778,9 +2782,9 @@ sub update_tracker {
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
     }
 }
-    
+
 sub check_tracker {
-    debug ("Checking tracker");
+    debug("Checking tracker");
     my $query = "SELECT ref FROM playlists WHERE id=-1";
     debug($query);
     my $sth = $lyricDbh->prepare($query)
@@ -2802,7 +2806,7 @@ sub check_tracker {
 sub db_check_app {
     debug("Checking for database servers");
     if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
-        debug ("Forcing usage of SQLite3");
+        debug("Forcing usage of SQLite3");
         $globals->{'db_type'} = "SQLite";
         return;
     }
@@ -2826,17 +2830,18 @@ sub db_check_app {
 }
 
 sub db_connect {
-    my ($dbname,$dberror) = @_;
+    my ($dbname, $dberror) = @_;
     my ($dbh);
     if ($globals->{'db_type'} eq "SQLite") {
-        $dbh = DBI->connect("dbi:SQLite:".$globals->{'basedir'}.$dbname.".db","","")
+        $dbh =
+          DBI->connect("dbi:SQLite:" . $globals->{'basedir'} . $dbname . ".db",
+            "", "")
           || display_fatal($dberror, $DBI::errstr);
     } else {
-        $dbh = DBI->connect(
-        "DBI:"
-          . $globals->{'db_type'}
-          . ":$dbname:$globals->{'host'}",
-        "lyric", "")
+        $dbh =
+          DBI->connect(
+            "DBI:" . $globals->{'db_type'} . ":$dbname:$globals->{'host'}",
+            "lyric", "")
           || display_fatal($dberror, $DBI::errstr);
     }
     return $dbh;
