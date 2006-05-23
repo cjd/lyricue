@@ -2307,20 +2307,26 @@ sub clear_playlist {
     my ($widget) = @_;
     debug("Clear playlist");
     reset_timer($globals->{'timer'});
+    my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogConfirm', 'lyricue');
+    $deletexml->signal_autoconnect_from_package('');
+    my $labelText = Encode::decode("utf-8", gettext("Are you sure you wish to clear the current playlist?"));
+    $deletexml->get_widget('labelDelete')->set_text($labelText);
+    my $confirm = $deletexml->get_widget('dialogConfirm')->run();
+    if ($confirm eq "ok") {
+        my $main_playlist =
+          $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
 
-    my $main_playlist =
-      $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
-
-    my $query =
-      "SELECT playorder FROM playlist WHERE playlist=" . $main_playlist;
-    $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    while (my @row = $sth->fetchrow_array()) {
-        remove_single_item($row[0]);
+        my $query =
+          "SELECT playorder FROM playlist WHERE playlist=" . $main_playlist;
+        $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        while (my @row = $sth->fetchrow_array()) {
+            remove_single_item($row[0]);
+        }
+        update_playlist();
     }
-
-    update_playlist();
+    close_dialog($deletexml->get_widget('dialogConfirm'));
 }
 
 #***
@@ -4066,48 +4072,49 @@ sub complete_export_song {
 # SOURCE
 #
 sub do_adv_search {
-    debug("Searching for "
-          . $widgets->{'search'}->get_widget('entrySearchSongs')->get_text());
-    my $store = $widgets->{'search'}->get_widget('treeSearch')->get_model();
-    if ($store) {
-        $store->clear;
-    } else {
-        $store =
-          Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Glib::String',
-            'Glib::String');
-        $widgets->{'search'}->get_widget('treeSearch')->set_model($store);
-        my $column =
-          Gtk2::TreeViewColumn->new_with_attributes(
-            Encode::decode("utf-8", gettext("Title")),
-            Gtk2::CellRendererText->new, text => 0);
-        $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
-        $column =
-          Gtk2::TreeViewColumn->new_with_attributes(
-            Encode::decode("utf-8", gettext("Book")),
-            Gtk2::CellRendererText->new, text => 1);
-        $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
-        $column =
-          Gtk2::TreeViewColumn->new_with_attributes(
-            Encode::decode("utf-8", gettext("Song No")),
-            Gtk2::CellRendererText->new, text => 2);
-        $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
-    }
-    my $query =
+    my $search_text = $widgets->{'search'}->get_widget('entrySearchSongs')->get_text();
+    if ($search_text ne "") {
+        debug("Searching for " . $search_text);
+        my $store = $widgets->{'search'}->get_widget('treeSearch')->get_model();
+        if ($store) {
+            $store->clear;
+        } else {
+            $store =
+              Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Glib::String',
+                'Glib::String');
+            $widgets->{'search'}->get_widget('treeSearch')->set_model($store);
+            my $column =
+              Gtk2::TreeViewColumn->new_with_attributes(
+                Encode::decode("utf-8", gettext("Title")),
+                Gtk2::CellRendererText->new, text => 0);
+            $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
+            $column =
+              Gtk2::TreeViewColumn->new_with_attributes(
+                Encode::decode("utf-8", gettext("Book")),
+                Gtk2::CellRendererText->new, text => 1);
+            $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
+            $column =
+              Gtk2::TreeViewColumn->new_with_attributes(
+                Encode::decode("utf-8", gettext("Song No")),
+                Gtk2::CellRendererText->new, text => 2);
+            $widgets->{'search'}->get_widget('treeSearch')->append_column($column);
+        }
+        my $query =
 "SELECT id,title,songnum,book,count(id) as count FROM lyricMain,page WHERE lyricMain.id=page.songid AND page.lyrics LIKE \"%"
-      . $widgets->{'search'}->get_widget('entrySearchSongs')->get_text()
-      . "%\" GROUP BY id ORDER BY count DESC";
-    qdebug($query);
-    $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    while ($row = $sth->fetchrow_hashref()) {
-        my $iter = $store->append;
-        $store->set(
-            $iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
-            $row->{'songnum'}, 3, $row->{'id'}
-        );
+          . $search_text
+          . "%\" GROUP BY id ORDER BY count DESC";
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        while ($row = $sth->fetchrow_hashref()) {
+            my $iter = $store->append;
+            $store->set(
+                $iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
+                $row->{'songnum'}, 3, $row->{'id'}
+            );
+        }
     }
-
 }
 
 #***
@@ -5036,7 +5043,7 @@ sub new_sublist {
       . $parentid
       . ", \"sub\","
       . $playlistsid
-      . " ,0";
+      . " ,0)";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -5572,6 +5579,9 @@ sub create_search {
       ->drag_source_set(['button1_mask'], ['copy'], @target_table);
     $widgets->{'main'}->get_widget('treePlaylist')
       ->drag_dest_set('all', ['copy'], @target_table);
+    my $search_text = $widgets->{'main'}->get_widget('entrySearch')->get_text();
+    $widgets->{'search'}->get_widget('entrySearchSongs')->set_text($search_text);
+    do_adv_search();
 }
 
 #***
