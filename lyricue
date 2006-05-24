@@ -701,16 +701,16 @@ sub add_playlist {
             );
         }
 
-        # Select what was selected
-        if (defined $selectedid && $row->{'playorder'} == $selectedid) {
-            $widgets->{'main'}->get_widget('treePlaylist')
-              ->get_selection->select_iter($newiter);
-        }
-
         # Add sublists/playlists
         if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
             add_playlist($row->{'data'}, $newiter, $model, $selectedid,
                 $expanded);
+        }
+
+        # Select what was selected
+        if (defined $selectedid && $row->{'playorder'} == $selectedid) {
+            $widgets->{'main'}->get_widget('treePlaylist')
+              ->get_selection->select_iter($newiter);
         }
 
         if ($$expanded->{$playorder}) {
@@ -4821,6 +4821,9 @@ sub load_config {
     $conf->{'BibleCount'} = $bibleCount;
     $conf->{'AppCount'}   = $appCount;
     $conf->{'Bibles'}     = get_bibles();
+    if (! defined $conf->{'HighlightColour'} ) {
+        $conf->{'HighlightColour'} = "yellow";
+    }
     return $conf;
 }
 
@@ -7550,7 +7553,7 @@ sub check_tracker {
                     if ($path->get_depth() > 0) {
                         my $iter = $model->get_iter($path);
                         if ($iter) {
-                            $model->set($iter, 1, 'yellow');
+                            $model->set($iter, 1, $config->{'HighlightColour'});
                         }
                     }
                 }
@@ -7564,7 +7567,7 @@ sub update_current {
     my ($store, $path, $iter) = @_;
     my $playlistid = $store->get($iter, 2);
     if ($playlistid eq $globals->{'current_item'}) {
-        $store->set($iter, 1, 'yellow');
+        $store->set($iter, 1, $config->{'HighlightColour'});
         $globals->{'current_item_path'} = $path->to_string;
     } else {
         if ($globals->{'current_item_path'} ne "") {
