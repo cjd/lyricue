@@ -817,19 +817,21 @@ sub update_available {
     }
     my $songname = $widgets->{'main'}->get_widget('entrySearch')->get_text();
 
-    my $query =
-      "SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"%"
-      . $config->{'SpecialSong'} . "%\"";
-    qdebug($query);
-    $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    $row = $sth->fetchrow_hashref();
-    my $iter = $store->append;
-    $store->set(
-        $iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
-        $row->{'songnum'}, 3, $row->{'id'}
-    );
+    if ($config->{'SpecialSong'} ne "") {
+        my $query =
+          "SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"%"
+          . $config->{'SpecialSong'} . "%\"";
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        $row = $sth->fetchrow_hashref();
+        my $iter = $store->append;
+        $store->set(
+            $iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
+            $row->{'songnum'}, 3, $row->{'id'}
+        );
+    }
 
     $query = "SELECT id,title,songnum,book FROM lyricMain WHERE id > 1";
 
@@ -5415,7 +5417,10 @@ sub bgdir_list {
     debug("Loading directory list");
     my $counter = 0;
     debug("Adding Main image dir button");
-    my @categories = ($config->{'SpecialBack'});
+    my @categories = ();
+    if ($config->{'SpecialBack'} ne "") {
+        push @categories, $config->{'SpecialBack'};
+    }
     my $query      =
       "SELECT DISTINCT category FROM media WHERE type=\"bg\" AND category !=\""
       . $config->{'SpecialBack'}
