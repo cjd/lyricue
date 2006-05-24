@@ -1198,7 +1198,8 @@ sub HandleKey {
     my ($widget, $data) = @_;
 
     if (   ($data->keyval == $Gtk2::Gdk::Keysyms{Left})
-        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Left}))
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Left})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{Page_Up}))
     {
         update_display("display", "prev_page", $config->{'Loop'});
     } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Up})
@@ -1206,7 +1207,8 @@ sub HandleKey {
     {
         update_display("display", "prev_song", 0);
     } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Right})
-        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Right}))
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Right})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{Page_Down}))
     {
         update_display("display", "next_page", $config->{'Loop'});
     } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Down})
@@ -1214,7 +1216,8 @@ sub HandleKey {
     {
         update_display("display", "next_song", 0);
     } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{KP_0})
-        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Insert}))
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Insert})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{b}))
     {
         update_display("blank", 0, 0);
     } elsif ($data->keyval == $Gtk2::Gdk::Keysyms{Q}) {
