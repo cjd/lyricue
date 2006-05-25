@@ -911,14 +911,14 @@ sub process_input {
                             }
 
                             # Movie file
-                            @fileexts = qw(avi mpg mov);
+                            @fileexts = qw(avi mpg mov wmv);
                             for $fileobj (@fileexts) {
                                 if ($row->{'data'} =~ /$fileobj/i) {
                                     $exec_pid = fork;
                                     if ($exec_pid > 0) {
 
                                         my $command =
-"mplayer -loop 0 -zoom -really-quiet -fs "
+"mplayer -loop 0 -zoom -really-quiet -fs -noconsolecontrols "
                                           . $row->{'data'};
                                         debug($command);
 
@@ -2618,6 +2618,9 @@ sub create_window_normal {
     debug("Window ID: " . $globals->{'windowid'});
 
     $globals->{'window'}->signal_connect("key_press_event", \&HandleKey);
+    if ($config->{'ServerMouse'} ne "") {
+        $globals->{'window'}->signal_connect("button_press_event", \&HandleMouse);
+    }
 
     # set window attributes and show it
     debug("Showing window");
@@ -2850,3 +2853,14 @@ sub db_connect {
     return $dbh;
 }
 
+sub HandleMouse {
+    my ($widget, $data) = @_;
+    debug ("Handle Mouse click");
+    if ($data->button == 1) {
+        update_display("display", "next_page", $config->{'Loop'});
+    } elsif ($data->button == 2) {
+        update_display("display", "next_song",0);
+    } elsif ($data->button == 3) {
+        update_display("display", "prev_page", $config->{'Loop'});
+    }
+}

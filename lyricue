@@ -7383,17 +7383,11 @@ sub db_install_user {
 sub db_check_databases {
     debug("Update/install databases");
     if ($globals->{'db_type'} eq "mysql") {
-        my $dbh =
-          DBI->connect(
-            "DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
-            "lyric", "");
-        my $query = "SHOW DATABASES";
-        qdebug($query);
-        my $sth = $dbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-        while (@_ = $sth->fetchrow_array()) {
-            $globals->{'db_available_db'}{$_[0]} = TRUE;
+        my @dbs = DBI->data_sources($globals->{'db_type'}, {"host" => $globals->{'host'},"user"=>"lyric"});
+
+        foreach (@dbs) {
+            $_ =~ s/^DBI:.*://g;
+            $globals->{'db_available_db'}{$_} = TRUE;
         }
     } else {
         opendir(DIR, $globals->{'basedir'});
