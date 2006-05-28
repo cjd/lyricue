@@ -346,26 +346,6 @@ if ($ARGV[0]) {
     }
 }
 
-# Open lyricDB, bibleDB and mediaDb
-db_check_app();
-if ($globals->{'db_type'} eq "mysql") {
-    my $sqldb =
-      DBI->connect(
-        "DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
-        "lyric", "")
-      || db_install_user();
-    $sqldb->disconnect();
-}
-db_check_databases();
-my $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
-if ($globals->{'db_type'} eq "SQLite") {
-
-    # Define a NOW command in sqlite
-    $lyricDbh->func('NOW', 0, sub { return time }, 'create_function');
-}
-my ($bibleDbh);
-my $mediaDbh = db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'});
-
 # Some global stuff
 my ($query, $row, $sth, $rv);
 
@@ -416,6 +396,10 @@ $config = load_config();
 my @tmpbible = split(/;/, $config->{'DefBible'}, 2);
 $globals->{'biblename'} = $tmpbible[1];
 @tmpbible = split(/:/, $tmpbible[0], 2);
+
+# Open lyricDB, bibleDB and mediaDb
+my ($lyricDbh, $mediaDbh, $bibleDbh);
+db_select();
 do_change_bible($tmpbible[1], $tmpbible[0]);
 
 # Create tray icon
@@ -581,6 +565,7 @@ sub add_playlist {
             my $query2 =
               "SELECT description FROM media WHERE id=\""
               . $row->{'data'} . "\"";
+            qdebug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
             my $rv2 = $sth2->execute
@@ -593,6 +578,7 @@ sub add_playlist {
             my $query2 =
               "SELECT description FROM media WHERE id=\""
               . $row->{'data'} . "\"";
+            qdebug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
             my $rv2 = $sth2->execute
@@ -624,7 +610,8 @@ sub add_playlist {
 
             # Leave this to later
             my $query2 = "SELECT * FROM playlists WHERE id=" . $row->{'data'};
-            my $sth2   = $lyricDbh->prepare($query2)
+            qdebug($query2);
+            my $sth2 = $lyricDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
             my $rv2 = $sth2->execute
               || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -635,6 +622,7 @@ sub add_playlist {
             if ($row2->{'ref'} && $row2->{'ref'} != 0) {
                 $query2 =
                   "SELECT songnum FROM lyricMain WHERE id=" . $row2->{'ref'};
+                qdebug($query2);
                 $sth2 = $lyricDbh->prepare($query2)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
                 $rv2 = $sth2->execute
@@ -651,6 +639,7 @@ sub add_playlist {
         # Add image name to playlist item title
         my $query3 =
           "SELECT * FROM associations WHERE playlist=" . $row->{'playorder'};
+        qdebug($query3);
         my $sth3 = $lyricDbh->prepare($query3)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         my $rv3 = $sth3->execute
@@ -674,6 +663,7 @@ sub add_playlist {
         if ($imagename) {
             my $query2 =
               "SELECT description FROM media WHERE id=\"" . $imagename . "\"";
+            qdebug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
             my $rv2 = $sth2->execute
@@ -858,7 +848,7 @@ sub update_available {
         );
     }
 
-    if (($songname ne "") && ($globals->{'db_type'} eq "mysql")) {
+    if (($songname ne "") && ($config->{'DatabaseType'} eq "mysql")) {
         $query =
 "SELECT id,title,songnum,book,SUBSTRING_INDEX(lyrics,'\n',1) as line FROM page,lyricMain WHERE pagenum=1 AND SUBSTRING_INDEX(lyrics,'\n',1) LIKE \"%"
           . $songname
@@ -1126,6 +1116,7 @@ sub delete_song {
             $query =
               "SELECT title,songnum,book,artist FROM lyricMain WHERE id="
               . $songid;
+            qdebug($query);
             $sth = $lyricDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
             $rv = $sth->execute
@@ -1179,18 +1170,21 @@ sub do_delete_song {
     debug("do delete song");
 
     $query = "DELETE FROM lyricMain WHERE id=" . $songid;
-    $sth   = $lyricDbh->prepare($query)
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
     $query = "DELETE FROM page WHERE songid=" . $songid;
-    $sth   = $lyricDbh->prepare($query)
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
     $query =
 "SELECT playorder FROM playlist,page WHERE playlist.data=page.pageid AND playlist.type=\"song\" AND page.songid="
       . $songid;
+    qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1198,7 +1192,8 @@ sub do_delete_song {
     while (my @row = $sth->fetchrow_array()) {
 
         my $query2 = "DELETE FROM playlist WHERE playorder=" . $row[0];
-        my $sth2   = $lyricDbh->prepare($query2)
+        qdebug($query2);
+        my $sth2 = $lyricDbh->prepare($query2)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         my $rv2 = $sth2->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -1241,7 +1236,8 @@ sub do_save_song {
     if ($songid != 0) {
         debug("Song number: " . $songid);
         $query = "SELECT pagenum FROM page WHERE songid=" . $songid;
-        $sth   = $lyricDbh->prepare($query)
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my (%dbpages);
@@ -1260,26 +1256,26 @@ sub do_save_song {
                     "SELECT pageid FROM page WHERE songid=" . $songid
                   . " AND pagenum="
                   . $row[0];
+                qdebug($query);
                 my $sth2 = $lyricDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                qdebug($query);
                 $sth2->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my @tmpid = $sth2->fetchrow_array();
 
                 $query = "DELETE FROM page WHERE pageid=" . $tmpid[0];
-                $sth2  = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
                 qdebug($query);
+                $sth2 = $lyricDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
                 $sth2->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
                 $query =
                   "DELETE FROM playlist WHERE type='song' AND data="
                   . $tmpid[0];
+                qdebug($query);
                 $sth2 = $lyricDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                qdebug($query);
                 $sth2->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
             }
@@ -1298,9 +1294,9 @@ sub do_save_song {
                   . $songid
                   . " AND pagenum="
                   . $pageOrder{$page};
+                qdebug($query);
                 $sth = $lyricDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                qdebug($query);
                 debug("Page Edit : " . $page . "|" . $pageOrder{$page});
                 $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
             } else {
@@ -1315,9 +1311,9 @@ sub do_save_song {
                     )
                   )
                   . ")";
+                qdebug($query);
                 $sth = $lyricDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                qdebug($query);
                 debug("Page Add : " . $page . "|" . $pageOrder{$page});
                 $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
             }
@@ -1380,7 +1376,8 @@ sub do_save_song {
 
         # Find next id
         $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
-        $sth   = $lyricDbh->prepare($query)
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my @row = $sth->fetchrow_array;
@@ -3775,6 +3772,12 @@ sub create_dialog_prefs {
       ->set_text($config->{'SpecialImage'});
     $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')
       ->set_text($config->{'SpecialBack'});
+
+    if ($config->{'DatabaseType'} eq "mysql") {
+        $widgets->{'prefs'}->get_widget('radioPrefDBMysql')->set_active(TRUE);
+    } else {
+        $widgets->{'prefs'}->get_widget('radioPrefDBSqlite')->set_active(TRUE);
+    }
     $widgets->{'prefs'}->get_widget('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
     $widgets->{'prefs'}->get_widget('entryPrefMain')
@@ -4418,6 +4421,13 @@ sub select_playlist {
     }
 }
 
+sub select_playlist_click {
+    my ($widget, $event) = @_;
+    if ($event->type eq '2button-press') {
+        select_playlist($widget);
+    }
+}
+
 #***
 
 #****m* lyricue/new_playlist
@@ -4823,9 +4833,16 @@ sub load_config {
     $conf->{'BibleCount'} = $bibleCount;
     $conf->{'AppCount'}   = $appCount;
     $conf->{'Bibles'}     = get_bibles();
-    if (! defined $conf->{'HighlightColour'} ) {
+    if (!defined $conf->{'HighlightColour'}) {
         $conf->{'HighlightColour'} = "yellow";
     }
+    if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
+        $conf->{'DatabaseType'} = "SQLite";
+    }
+    if (!defined $conf->{'DatabaseType'}) {
+        $conf->{'DatabaseType'} = "mysql";
+    }
+
     return $conf;
 }
 
@@ -4840,6 +4857,7 @@ sub save_and_close_prefs {
 
 sub save_preferences {
     debug("Saving preferences");
+    my $db_changed = FALSE;
     unlink $globals->{'configfile'} . ".bak";
     rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
     open(CONFIG, ">$globals->{'configfile'}")
@@ -4917,6 +4935,18 @@ sub save_preferences {
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text()
       . "\n";
 
+    if ($widgets->{'prefs'}->get_widget('radioPrefDBMysql')->get_active()) {
+        print CONFIG "DatabaseType = mysql\n";
+        if ($config->{'DatabaseType'} ne "mysql") {
+            $db_changed = TRUE;
+        }
+    } else {
+        if ($config->{'DatabaseType'} ne "SQLite") {
+            $db_changed = TRUE;
+        }
+        print CONFIG "DatabaseType = SQLite\n";
+    }
+
     print CONFIG "DefBible = "
       . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text() . "\n";
     debug("DefBible = "
@@ -4931,6 +4961,9 @@ sub save_preferences {
     }
     close CONFIG;
     $config = load_config();
+    if ($db_changed) {
+        db_restart();
+    }
     init_preview();
     init_miniview();
 
@@ -5421,7 +5454,7 @@ sub bgdir_list {
     if ($config->{'SpecialBack'} ne "") {
         push @categories, $config->{'SpecialBack'};
     }
-    my $query      =
+    my $query =
       "SELECT DISTINCT category FROM media WHERE type=\"bg\" AND category !=\""
       . $config->{'SpecialBack'}
       . "\" ORDER BY category";
@@ -6324,6 +6357,7 @@ sub select_category {
     my $query =
         "SELECT DISTINCT category FROM media WHERE type=\"" . $type
       . "\" ORDER BY category";
+    qdebug($query);
     my $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -6785,6 +6819,13 @@ sub backup_db {
         if ($widgets->{'backupdb'}->get_widget('checkMediadb')->get_active()) {
             $databases .= "mediaDb ";
         }
+        # This will need to be written to support sqlite
+        #foreach (split(/ /,$databases)){
+            #my $db= db_connect($_,"");
+            #my @tables=$db->tables;
+            #foreach (@tables) {
+            #}
+        #}
         my $command =
 "mysqldump --no-create-db --no-create-info --user=lyric --password='' --databases "
           . $databases
@@ -7285,7 +7326,7 @@ sub db_check_app {
     debug("Checking for database servers");
     if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
         debug("Forcing usage of SQLite3");
-        $globals->{'db_type'} = "SQLite";
+        $config->{'DatabaseType'} = "SQLite";
         return;
     }
     my @ary    = DBI->available_drivers(1);
@@ -7299,9 +7340,9 @@ sub db_check_app {
         }
     }
     if ($mysql) {
-        $globals->{'db_type'} = "mysql";
+        $config->{'DatabaseType'} = "mysql";
     } elsif ($sqlite) {
-        $globals->{'db_type'} = "SQLite";
+        $config->{'DatabaseType'} = "SQLite";
     } else {
         die("No supported DB found");
     }
@@ -7309,7 +7350,7 @@ sub db_check_app {
 
 sub db_get_admin {
     debug("Get the db admin login information");
-    if ($globals->{'db_type'} eq "mysql") {
+    if ($config->{'DatabaseType'} eq "mysql") {
         my $adminxml = Gtk2::GladeXML->new($globals->{'gladefile'},
             'dialogAdminLogin', 'lyricue');
         $adminxml->signal_autoconnect_from_package('');
@@ -7330,10 +7371,13 @@ sub db_install_user {
     debug("Install lyric database user");
     my ($dbh);
     db_get_admin();
-    if ($globals->{'db_type'} eq "mysql") {
+    if ($config->{'DatabaseType'} eq "mysql") {
         eval {
             $dbh = DBI->connect(
-                "DBI:" . $globals->{'db_type'} . ":mysql:" . $globals->{'host'},
+                "DBI:"
+                  . $config->{'DatabaseType'}
+                  . ":mysql:"
+                  . $globals->{'host'},
                 $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
             );
         };
@@ -7382,8 +7426,9 @@ sub db_install_user {
 
 sub db_check_databases {
     debug("Update/install databases");
-    if ($globals->{'db_type'} eq "mysql") {
-        my @dbs = DBI->data_sources($globals->{'db_type'}, {"host" => $globals->{'host'},"user"=>"lyric"});
+    if ($config->{'DatabaseType'} eq "mysql") {
+        my @dbs = DBI->data_sources($config->{'DatabaseType'},
+            {"host" => $globals->{'host'}, "user" => "lyric"});
 
         foreach (@dbs) {
             $_ =~ s/^DBI:.*://g;
@@ -7414,7 +7459,7 @@ sub db_check_databases {
         debug("Importing existing backgrounds/images\n");
 
         # NOTE FAILS WITH SQLITE
-        if ($globals->{'db_type'} eq "mysql") {
+        if ($config->{'DatabaseType'} eq "mysql") {
             system("import_media img " . $globals->{'sharedir'} . "images");
             system("import_media bg " . $globals->{'sharedir'} . "backgrounds");
         }
@@ -7427,7 +7472,7 @@ sub db_reload {
     if ($globals->{'db_adminuser'} eq "") {
         db_get_admin();
     }
-    if ($globals->{'db_type'} eq "mysql") {
+    if ($config->{'DatabaseType'} eq "mysql") {
         my $drh = DBI->install_driver('mysql');
         my $rc  = $drh->func(
             "reload",
@@ -7446,7 +7491,7 @@ sub db_installdb {
     if ($globals->{'db_adminuser'} eq "") {
         db_get_admin();
     }
-    if ($globals->{'db_type'} eq "mysql") {
+    if ($config->{'DatabaseType'} eq "mysql") {
         system( "cat " . $db_file
               . " | mysql -h "
               . $globals->{'host'} . " -u "
@@ -7508,7 +7553,7 @@ sub db_updatedb_lyricDb {
             "lyricDb");
         debug("Done\n");
     }
-    if ($globals->{'db_type'} eq "mysql") {
+    if ($config->{'DatabaseType'} eq "mysql") {
         my $fields = $dbh->selectall_arrayref("describe playlist");
         my $trans;
         foreach (@$fields) {
@@ -7596,17 +7641,63 @@ sub clear_search {
 sub db_connect {
     my ($dbname, $dberror) = @_;
     my ($dbh);
-    if ($globals->{'db_type'} eq "SQLite") {
+    if ($config->{'DatabaseType'} eq "SQLite") {
         $dbh =
           DBI->connect("dbi:SQLite:" . $globals->{'basedir'} . $dbname . ".db",
             "", "")
           || display_fatal($dberror, $DBI::errstr);
     } else {
-        $dbh =
-          DBI->connect(
-            "DBI:" . $globals->{'db_type'} . ":$dbname:$globals->{'host'}",
-            "lyric", "")
+        $dbh = DBI->connect(
+            "DBI:" . $config->{'DatabaseType'} . ":$dbname:$globals->{'host'}",
+            "lyric", ""
+          )
           || display_fatal($dberror, $DBI::errstr);
     }
     return $dbh;
+}
+
+sub prefs_select_mysql {
+    if ($config->{'DatabaseType'} ne "mysql") {
+        debug("Selecting MySql DB");
+        $config->{'DatabaseType'} = "mysql";
+        db_restart();
+    }
+}
+
+sub prefs_select_sqlite {
+    if ($config->{'DatabaseType'} ne "SQLite") {
+        debug("Selecting SQLite DB");
+        $config->{'DatabaseType'} = "SQLite";
+        db_restart();
+    }
+}
+
+sub db_restart {
+    debug("Reconnecting to DBs");
+    $lyricDbh->disconnect();
+    $mediaDbh->disconnect();
+    db_select();
+    do_change_bible($tmpbible[1], $tmpbible[0]);
+    choose_playlist();
+}
+
+sub db_select {
+
+    # Open lyricDB, bibleDB and mediaDb
+    if ($config->{'DatabaseType'} eq "mysql") {
+        my $sqldb = DBI->connect(
+            "DBI:" . $config->{'DatabaseType'} . ":mysql:" . $globals->{'host'},
+            "lyric", ""
+          )
+          || db_install_user();
+        $sqldb->disconnect();
+    }
+    db_check_databases();
+    $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
+    if ($config->{'DatabaseType'} eq "SQLite") {
+
+        # Define a NOW command in sqlite
+        $lyricDbh->func('NOW', 0, sub { return time }, 'create_function');
+    }
+    $mediaDbh = db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'});
 }
