@@ -5975,19 +5975,23 @@ sub load_access {
     debug("Loading access settings");
     my $access = "";
 
-    # Load the access settings
-    open(ACCESS, $globals->{'accessfile'})
-      || display_fatal($errorcodes->{'fileopenread'} . $globals->{'accessfile'},
-        $!);
-    my $username = getpwuid($<);
-    while (<ACCESS>) {
-        chomp;
-        if (/^$username/) {
-            $access = $_;
-            $access =~ s/^.*= *//g;
+    # Load the access settings (ignore if using sqlite)
+    if ($config->{'DatabaseType'} eq "SQLite") {
+        $access="spade";
+    } else {
+        open(ACCESS, $globals->{'accessfile'})
+          || display_fatal($errorcodes->{'fileopenread'} . $globals->{'accessfile'},
+            $!);
+        my $username = getpwuid($<);
+        while (<ACCESS>) {
+            chomp;
+            if (/^$username/) {
+                $access = $_;
+                $access =~ s/^.*= *//g;
+            }
         }
+        close ACCESS;
     }
-    close ACCESS;
     debug("Access set at " . $access);
 
     $_ = $access;
