@@ -18,6 +18,7 @@ pushd dist/lyricue-${VERSION}
 rm -rf dist
 rm images/desktop.png images/*.svg
 find . -name CVS -type d -exec rm -r \{} \; 2>/dev/null
+make
 
 echo Creating Debian packages
 dpkg-buildpackage -rfakeroot

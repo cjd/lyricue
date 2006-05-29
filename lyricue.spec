@@ -24,15 +24,7 @@ or for use at singing events such as church services.
 %build 
 
 %install
-rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT
-for DIR in usr/bin etc/lyricue usr/lib/lyricue usr/share/lyricue usr/share/lyricue/mysql usr/share/lyricue/images usr/share/lyricue/backgrounds usr/share/doc/lyricue usr/share/locale usr/share/locale/de usr/share/locale/en_GB usr/share/locale/en_US usr/share/application;do install -d $RPM_BUILD_ROOT/$DIR;done
-./install -f $RPM_BUILD_ROOT -a root
-install import_media $RPM_BUILD_ROOT/usr/bin
-install install $RPM_BUILD_ROOT/usr/share/lyricue
-install mysql/*.sql $RPM_BUILD_ROOT/usr/share/lyricue/mysql/
-install debian/lyricue.desktop $RPM_BUILD_ROOT/usr/share/application
-install debian/lyricue_server.desktop $RPM_BUILD_ROOT/usr/share/application
+make install DESTDIR=$RPM_BUILD_ROOT
 
 %clean 
 rm -rf $RPM_BUILD_ROOT 
@@ -47,10 +39,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/import_media
 %{_datadir}/lyricue/*
 %{_datadir}/application/*
-
-%post
-cd /usr/share/lyricue
-/usr/share/lyricue/install -d
 
 %changelog 
 * Tue Mar 15 2004 Chris Debenham <chris@adebenham.com> 1.9.2

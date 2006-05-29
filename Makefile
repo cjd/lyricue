@@ -3,6 +3,7 @@ SHARE = lyricue.glade images/lyricue.png images/lyricue-icon.png
 SQL = mysql/MySQL_create_Table.sql mysql/MySQL_create_media.sql mysql/Update_1.2.sql mysql/Update_1.9.sql
 DESKTOP = lyricue.desktop lyricue_server.desktop
 ETC = default.conf access.conf
+DOCS = docs/Development.txt docs/example_song.txt docs/AUTHORS docs/NEWS docs/README docs/song_template.txt docs/TODO
 INSTALL = /usr/bin/install -c -m 755
 INSTALLDATA = /usr/bin/install -c -m 644 -D
 POFILES = po/de.po po/en_US.po po/fr.po po/nl.po
@@ -28,6 +29,9 @@ install:
 
 	mkdir -p $(DESTDIR)/usr/share/applications
 	$(INSTALLDATA) $(DESKTOP) $(DESTDIR)/usr/share/applications
+
+	mkdir -p $(DESTDIR)/usr/share/docs/lyricue
+	$(INSTALLDATA) $(DOCS) $(DESTDIR)/usr/share/docs/lyricue
 
 	@for t in $(MOFILES); do l=`basename $$t .po.mo`; $(INSTALLDATA) $$t $(DESTDIR)/usr/share/locale/$$l/LC_MESSAGES/lyricue.mo;done
 
