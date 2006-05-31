@@ -2570,6 +2570,7 @@ sub create_window_normal {
     } else {
         debug("Using full server");
         $globals->{'canvas'} = Gnome2::Canvas->new();
+        $globals->{'canvas'}->signal_connect("button_press_event", \&HandleMouse);
         $globals->{'canvas'}
           ->set_scroll_region(0, 0, $config->{'Width'}, $config->{'Height'});
         $globals->{'canvas'}->set_center_scroll_region(TRUE);

@@ -1,53 +1,51 @@
+┌─────────┬─────────────────┬────────────────────────┬──────────────┬─────────┐
+│  Home   │    Downloads    │     Documentation      │   Changes    │  Wiki   │
+└─────────┴─────────────────┴────────────────────────┴──────────────┴─────────┘
 
-                             Lyricue - Installation
+                            Lyricue - Installation
 
-   For installation of Lyricue follow these 6 easy steps.
-   If you wish to upgrade the process is exactly the same
+For installation of Lyricue follow these 7 easy steps.
+If you wish to upgrade the process is exactly the same
 
-   0. Quick install if you are running Debian
-   If you are using debian add
+0. Quick install if you are running Debian
+If you are using debian add
 
- deb http://www.adebenham.com/debian/ ./
+deb http://www.adebenham.com/debian/ ./
 
-   to your /etc/apt/sources.list then install lyricue. You may then skip to
-   step 5
+to your /etc/apt/sources.list then install lyricue. You may then skip to step 5
 
-   1. Make sure you have mysql and perl installed
-   Lyricue is written in perl and holds all its data in two mysql databases
-   so you will require perl/mysql to be installed.
-   To download these go to http://www.perl.com and http://www.mysql.com or
-   just install them from your distributions install disks.
-   LDS also requires a few perl modules such as Gtk2 and DBI. These may
-   already be installed or you can install them from CPAN or your install
-   disks.
+1. Make sure you have mysql and perl installed
+Lyricue is written in perl and holds all its data in two mysql databases so you
+will require perl/mysql to be installed.
+To download these go to http://www.perl.com and http://www.mysql.com or just
+install them from your distributions install disks.
+Lyricue also requires a few perl modules such as Gtk2 and DBI. These may
+already be installed or you can install them from CPAN or your install disks.
 
-   2. Download the main Lyricue program
-   Lyricue is available at
-   http://www.adebenham.com/lyricue/download/lyricue-1.9.2.tar.bz2
-   If you are upgrading you can download a smaller version (which doesn't
-   have the bible database) from
-   http://www.adebenham.com/lyricue/download/lyricue-upgrade-1.9.2.tar.bz2
+2. Download the main Lyricue program
+Lyricue is available at http://www.adebenham.com/lyricue/download/
+lyricue-1.9.3.tar.bz2
 
-   3. Extract the files
-   To untar the main program run tar xvfj lyricue-1.9.2.tar.bz2
+3. Extract the files
+To untar the main program run tar xvfj lyricue-1.9.3.tar.bz2
 
-   4. Run the install script
-   Change into the directory you just untared the main code into then run the
-   install script.
-   This script will check whether you have the nessecary dependancies then
-   install the program in /usr/bin with the shared components in
-   /usr/share/lyricue and default settings in /etc/lyricue
+4. Install using make
+Change into the directory you just untared the main code into then run make
+install
+This will install the program in /usr/bin with the shared components in /usr/
+share/lyricue and default settings in /etc/lyricue
 
-   5. Run the program
-   LDS was designed to run on two screens, with one being the interface, the
-   other being the actual display.
-   Normally the display screen should be hooked up to a projector for
-   displaying the lyrics to people so you may wish to run it from the other
-   screen by using a command such as DISPLAY=:0.1 lyricue_server which will
-   run it on your second screen
-   The interface can be run by typing lyricue
-   note: You may wish to change lyricue_server to run at the correct size. By
-   default it runs at 1024 x 768, to change this edit your preferences in the
-   interface
+5. Run the program
+LDS was designed to run on two screens, with one being the interface, the other
+being the actual display.
+Normally the display screen should be hooked up to a projector for displaying
+the lyrics to people so you may wish to run it from the other screen by using a
+command such as DISPLAY=:0.1 lyricue_server which will run it on your second
+screen
+The interface can be run by typing lyricue
+note: You may wish to change lyricue_server to run at the correct size. By
+default it runs at 1024 x 768, to change this edit your preferences in the
+interface
 
-   6. Enjoy
+6. Enjoy
+
