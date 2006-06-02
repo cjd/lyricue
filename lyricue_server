@@ -243,6 +243,9 @@ if ($ARGV[0]) {
             if (!$MINISERV =~ /\d+$/) {
                 $MINISERV = 0;
             }
+        } elsif ($ARGV[$_] eq "-s") {
+            $globals->{'host'} = $ARGV[$_ + 1];
+            $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-p") {
             $globals->{'use_port'} = $ARGV[$_ + 1];
         } elsif ($ARGV[$_] eq "-sqlite") {
@@ -253,6 +256,7 @@ if ($ARGV[0]) {
             print "\t-v: Prints Lyricue version information & exits\n";
             print "\t-m: Runs in miniserv mode (acts as a preview window)\n";
             print "\t-d: Prints debugging messages\n";
+            print "\t-s: Hostname where sql server is running\n";
             exit;
         }
     } ## end foreach (0 .. (@ARGV - 1))
