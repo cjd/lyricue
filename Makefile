@@ -6,8 +6,8 @@ ETC = default.conf access.conf
 DOCS = docs/Development.txt docs/example_song.txt docs/AUTHORS docs/NEWS docs/README docs/song_template.txt docs/TODO
 INSTALL = /usr/bin/install -c -m 755
 INSTALLDATA = /usr/bin/install -c -m 644 -D
-POFILES = po/de.po po/en_US.po po/fr.po po/nl.po
-MOFILES = po/de.po.mo po/en_US.po.mo po/fr.po.mo po/nl.po.mo
+POFILES = po/de.po po/en_US.po po/fr.po po/nl.po po/sv.po
+MOFILES = po/de.po.mo po/en_US.po.mo po/fr.po.mo po/nl.po.mo po/sv.po.mo
 
 all: $(MOFILES)
 
