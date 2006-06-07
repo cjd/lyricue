@@ -3948,7 +3948,6 @@ sub do_change_bible {
     my ($type, $bibledb) = @_;
     debug("Change bible");
     $globals->{'bibledb'} = $bibledb;
-    update_display("change_to_db", $bibledb, $type);
     if (!$globals->{'usesword'}) {
         $bibleDbh->disconnect;
     }
@@ -3960,6 +3959,7 @@ sub do_change_bible {
     } else {
         $globals->{'usesword'} = TRUE;
     }
+    update_display("change_to_db", $bibledb, $type);
 }
 
 #***
@@ -6890,7 +6890,8 @@ sub get_bibles {
     # Bible databases found
     my $dbs = $globals->{'db_available_db'};
     foreach (keys %$dbs) {
-        my $db = db_connect($_, "");
+        my $dbname = $_;
+        my $db = db_connect($dbname, "");
         my @tables = $db->tables;
         my $table;
         foreach (@tables) {
@@ -6905,7 +6906,7 @@ sub get_bibles {
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $row = $sth->fetchrow_hashref();
                 if (defined $row->{'verse'}) {
-                    $bibles->{$_} = "db;" . $row->{'verse'};
+                    $bibles->{$dbname} = "db;" . $row->{'verse'};
                 }
                 $sth->finish;
             }
