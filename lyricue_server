@@ -357,10 +357,6 @@ use IO::Select;
 my $s = IO::Select->new($socket);
 debug("Listening on " . $globals->{'use_port'});
 
-#$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
-
-#update_snapshot();
-
 # Gtk event loop
 while (1) {
     my @ready = $s->can_read(1);
