@@ -7710,3 +7710,16 @@ sub db_select {
     }
     $mediaDbh = db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'});
 }
+
+sub add_to_playlist_search {
+    my ($widget) = @_;
+    my $selection =
+      $widgets->{'search'}->get_widget('treeSearch')->get_selection;
+    my ($model, $iter) = $selection->get_selected;
+    if ($iter) {
+        my $songid = $model->get($iter, 3);
+        debug("Songid \"" . $songid . "\" selected");
+        add_single_song($songid);
+        update_playlist();
+    }
+}
