@@ -829,10 +829,13 @@ sub update_available {
     #if ($keywords) {
     #	$query .= " AND keywords LIKE \"%" . $keywords . "%\"";
     #} elsif ($songname) {
-    $songname =~ s/[\s,]/%/g;
-    $songname = Encode::encode("iso-8859-1", $songname);
-    $query .= " AND title LIKE \"%" . $songname . "%\"";
-
+    if ($songname =~ /^\d+$/) {
+        $query .= " AND songnum=".$songname;
+    } else {
+        $songname =~ s/[\s,]/%/g;
+        $songname = Encode::encode("iso-8859-1", $songname);
+        $query .= " AND title LIKE \"%" . $songname . "%\"";
+    }
     #}
     $query .= " ORDER BY " . $globals->{'sortby'};
     qdebug($query);
