@@ -2570,7 +2570,8 @@ sub create_window_normal {
     } else {
         debug("Using full server");
         $globals->{'canvas'} = Gnome2::Canvas->new();
-        $globals->{'canvas'}->signal_connect("button_press_event", \&HandleMouse);
+        $globals->{'canvas'}
+          ->signal_connect("button_press_event", \&HandleMouse);
         $globals->{'canvas'}
           ->set_scroll_region(0, 0, $config->{'Width'}, $config->{'Height'});
         $globals->{'canvas'}->set_center_scroll_region(TRUE);
@@ -2620,7 +2621,8 @@ sub create_window_normal {
 
     $globals->{'window'}->signal_connect("key_press_event", \&HandleKey);
     if ($config->{'ServerMouse'} ne "") {
-        $globals->{'window'}->signal_connect("button_press_event", \&HandleMouse);
+        $globals->{'window'}
+          ->signal_connect("button_press_event", \&HandleMouse);
     }
 
     # set window attributes and show it
@@ -2856,11 +2858,11 @@ sub db_connect {
 
 sub HandleMouse {
     my ($widget, $data) = @_;
-    debug ("Handle Mouse click");
+    debug("Handle Mouse click");
     if ($data->button == 1) {
         update_display("display", "next_page", $config->{'Loop'});
     } elsif ($data->button == 2) {
-        update_display("display", "next_song",0);
+        update_display("display", "next_song", 0);
     } elsif ($data->button == 3) {
         update_display("display", "prev_page", $config->{'Loop'});
     }

@@ -487,9 +487,9 @@ sub close_main {
 sub update_playlist {
     my ($selectedid) = @_;
     debug("Updating playlist");
-    my $selection =
-      $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
     if (!defined $selectedid) {
+        my $selection =
+          $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
         if ($selection) {
             my ($m, $i) = $selection->get_selected;
             if ($m) {
@@ -510,7 +510,7 @@ sub update_playlist {
     } else {
 
         # Column 1 -> Visible text
-        # Column 2 -> Reserved for future expansion
+        # Column 2 -> Colour
         # Column 3 -> playorder
         # Column 4 -> transition
         $model =
@@ -558,7 +558,7 @@ sub add_playlist {
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    while ($row = $sth->fetchrow_hashref()) {
+    while (my $row = $sth->fetchrow_hashref()) {
 
         my $title = "";
         if ($row->{'type'} eq "back") {
@@ -608,7 +608,6 @@ sub add_playlist {
             }
         } elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
 
-            # Leave this to later
             my $query2 = "SELECT * FROM playlists WHERE id=" . $row->{'data'};
             qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
@@ -697,15 +696,18 @@ sub add_playlist {
                 $expanded);
         }
 
-        # Select what was selected
-        if (defined $selectedid && $row->{'playorder'} == $selectedid) {
-            $widgets->{'main'}->get_widget('treePlaylist')
-              ->get_selection->select_iter($newiter);
-        }
-
         if ($$expanded->{$playorder}) {
             $widgets->{'main'}->get_widget('treePlaylist')
               ->expand_to_path($model->get_path($newiter));
+        }
+
+        # Select what was selected
+        if (defined $selectedid && $row->{'playorder'} == $selectedid) {
+            debug("Selecting $selectedid");
+            $widgets->{'main'}->get_widget('treePlaylist')
+              ->expand_to_path($model->get_path($newiter));
+            $widgets->{'main'}->get_widget('treePlaylist')
+              ->get_selection->select_iter($newiter);
         }
     }
 }
@@ -830,12 +832,13 @@ sub update_available {
     #	$query .= " AND keywords LIKE \"%" . $keywords . "%\"";
     #} elsif ($songname) {
     if ($songname =~ /^\d+$/) {
-        $query .= " AND songnum=".$songname;
+        $query .= " AND songnum=" . $songname;
     } else {
         $songname =~ s/[\s,]/%/g;
         $songname = Encode::encode("iso-8859-1", $songname);
         $query .= " AND title LIKE \"%" . $songname . "%\"";
     }
+
     #}
     $query .= " ORDER BY " . $globals->{'sortby'};
     qdebug($query);
@@ -5980,11 +5983,11 @@ sub load_access {
 
     # Load the access settings (ignore if using sqlite)
     if ($config->{'DatabaseType'} eq "SQLite") {
-        $access="spade";
+        $access = "spade";
     } else {
         open(ACCESS, $globals->{'accessfile'})
-          || display_fatal($errorcodes->{'fileopenread'} . $globals->{'accessfile'},
-            $!);
+          || display_fatal(
+            $errorcodes->{'fileopenread'} . $globals->{'accessfile'}, $!);
         my $username = getpwuid($<);
         while (<ACCESS>) {
             chomp;
@@ -6108,10 +6111,11 @@ sub init_preview {
             $widgets->{'preview'} = Gtk2::Socket->new;
             $widgets->{'preview'}->show;
             $widgets->{'preview'}->set_size_request(280, 210);
-            $widgets->{'main'}->get_widget('framePreview')->set_size_request(280,210);
+            $widgets->{'main'}->get_widget('framePreview')
+              ->set_size_request(280, 210);
             $widgets->{'main'}->get_widget('framePreview')
               ->add($widgets->{'preview'});
-    
+
             debug(
                 sprintf(
                     "lyricue_server -m %d -p %d",
@@ -6119,11 +6123,12 @@ sub init_preview {
                     $globals->{'preview_port'}
                 )
             );
-    
+
             $globals->{'preview_pid'} = fork;
             if ($globals->{'preview_pid'} < 0) {
                 display_fatal(
-                    "Unable to start the lyricue server as a preview window", $!);
+                    "Unable to start the lyricue server as a preview window",
+                    $!);
             }
             if ($globals->{'preview_pid'} == 0) {
                 my $debug_cmd = "";
@@ -6163,7 +6168,7 @@ sub init_miniview {
 
     # Start/stop miniview as needed
     if ($config->{'Miniview'}) {
-        if (!defined ($widgets->{'miniview'})) {
+        if (!defined($widgets->{'miniview'})) {
             update_display("status", "previewon", "");
             $widgets->{'main'}->get_widget('frameCurrent')->show();
             $widgets->{'miniview'} = Gtk2::Socket->new;
@@ -6171,7 +6176,8 @@ sub init_miniview {
             $widgets->{'miniview'}->set_size_request(280, 210);
             $widgets->{'main'}->get_widget('frameCurrent')
               ->add($widgets->{'miniview'});
-            $widgets->{'main'}->get_widget('frameCurrent')->set_size_request(-1,-1);
+            $widgets->{'main'}->get_widget('frameCurrent')
+              ->set_size_request(-1, -1);
             debug(
                 sprintf(
                     "lyricue_server -m %d -p %d\n",
@@ -6179,11 +6185,12 @@ sub init_miniview {
                     $globals->{'miniview_port'}
                 )
             );
-    
+
             $globals->{'miniview_pid'} = fork;
             if ($globals->{'miniview_pid'} < 0) {
                 display_fatal(
-                    "Unable to start the lyricue server as a preview window", $!);
+                    "Unable to start the lyricue server as a preview window",
+                    $!);
             }
             if ($globals->{'miniview_pid'} == 0) {
                 exec(
@@ -6194,7 +6201,7 @@ sub init_miniview {
                     )
                 );
             }
-    
+
             $widgets->{'miniview'}->signal_connect(
                 'plug-removed' => sub {
                     debug("Lyricue miniview died..restarting");
@@ -6830,12 +6837,13 @@ sub backup_db {
         if ($widgets->{'backupdb'}->get_widget('checkMediadb')->get_active()) {
             $databases .= "mediaDb ";
         }
+
         # This will need to be written to support sqlite
         #foreach (split(/ /,$databases)){
-            #my $db= db_connect($_,"");
-            #my @tables=$db->tables;
-            #foreach (@tables) {
-            #}
+        #my $db= db_connect($_,"");
+        #my @tables=$db->tables;
+        #foreach (@tables) {
+        #}
         #}
         my $command =
 "mysqldump --no-create-db --no-create-info --user=lyric --password='' --databases "
@@ -6898,7 +6906,7 @@ sub get_bibles {
     my $dbs = $globals->{'db_available_db'};
     foreach (keys %$dbs) {
         my $dbname = $_;
-        my $db = db_connect($dbname, "");
+        my $db     = db_connect($dbname, "");
         my @tables = $db->tables;
         my $table;
         foreach (@tables) {
@@ -7660,7 +7668,9 @@ sub db_connect {
           || display_fatal($dberror, $DBI::errstr);
     } else {
         $dbh = DBI->connect(
-            "DBI:" . $config->{'DatabaseType'} . ":database=$dbname;host=$globals->{'host'}",
+            "DBI:"
+              . $config->{'DatabaseType'}
+              . ":database=$dbname;host=$globals->{'host'}",
             "lyric", ""
           )
           || display_fatal($dberror, $DBI::errstr);

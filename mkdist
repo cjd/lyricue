@@ -45,7 +45,7 @@ done
 fi
 
 echo Pushing to repository
-cp dist/lyricue-cvs*deb dist/*.dsc dist/*.gz  /var/www/debian
+cp dist/lyricue-cvs*deb dist/*.dsc dist/*.asc dist/*.gz  /var/www/debian
 cd /var/www/debian
 dpkg-scanpackages . /dev/null | gzip -c > Packages.gz
 dpkg-scansources . /dev/null | gzip -c > Sources.gz
