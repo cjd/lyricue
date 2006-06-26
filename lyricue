@@ -7732,6 +7732,7 @@ sub db_select {
         $lyricDbh->func('NOW', 0, sub { return time }, 'create_function');
     }
     $mediaDbh = db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'});
+    $config->{'Bibles'} = get_bibles();
 }
 
 sub add_to_playlist_search {
