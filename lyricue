@@ -7050,6 +7050,11 @@ sub navigator_update {
     }
 }
 
+sub navigator_enter {
+    navigator_update();
+    navigator_show();
+}
+    
 sub navigator_show {
     debug("Bible navigator showing on server");
     my $buffer = $widgets->{'main'}->get_widget('textNavView')->get_buffer();
