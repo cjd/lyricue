@@ -210,6 +210,7 @@ my $bibleMenu;
 my @ASSOCIATE;
 my %pageOrder;
 my %selectedimages;
+my ($lyricDbh, $mediaDbh, $bibleDbh);
 
 my ($errorcodes);
 $errorcodes->{'lyricdbopen'} = Encode::decode(
@@ -367,7 +368,6 @@ if (-e $globals->{'basedir'}) {
 $widgets->{'main'} =
   Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain', 'lyricue');
 $widgets->{'main'}->signal_autoconnect_from_package('');
-$globals->{'access'} = load_access();
 if ($globals->{'mini'}) {
     my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
     my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap(
@@ -379,28 +379,36 @@ if ($globals->{'mini'}) {
     $widgets->{'main'}->get_widget('windowMain')->window->set_cursor($cursor);
 }
 
+# Load the config file
 if (-d $globals->{'basedir'}) {
     if (!-e $globals->{'configfile'}) {
+        debug ("Creating new configuration");
         system(
             "cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
+        $config = load_config();
+        $globals->{'access'} = load_access();
+        db_select();
         create_dialog_prefs();
         $globals->{'configured'} = FALSE;
         while (!$globals->{'configured'}) {
             do_pending();
         }
+    } else {
+        debug ("Loading config and access");
+        $config = load_config();
+        $globals->{'access'} = load_access();
+
+        # Open lyricDB, bibleDB and mediaDb
+        db_select();
     }
 }
 
-# Load the config file
-$config = load_config();
-my @tmpbible = split(/;/, $config->{'DefBible'}, 2);
-$globals->{'biblename'} = $tmpbible[1];
-@tmpbible = split(/:/, $tmpbible[0], 2);
-
-# Open lyricDB, bibleDB and mediaDb
-my ($lyricDbh, $mediaDbh, $bibleDbh);
-db_select();
-do_change_bible($tmpbible[1], $tmpbible[0]);
+if (defined $config->{'DefBible'} && ($config->{'DefBible'} ne "")) {
+    my @tmpbible = split(/;/, $config->{'DefBible'}, 2);
+    $globals->{'biblename'} = $tmpbible[1];
+    @tmpbible = split(/:/, $tmpbible[0], 2);
+    do_change_bible($tmpbible[1], $tmpbible[0]);
+}
 
 # Create tray icon
 if ($globals->{'trayicon'}) {
@@ -4955,8 +4963,6 @@ sub save_preferences {
 
     print CONFIG "DefBible = "
       . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text() . "\n";
-    debug("DefBible = "
-          . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text());
     foreach (0 .. $config->{'AppCount'} - 1) {
         print CONFIG "App = " . $config->{'App'}[$_] . "\n";
     }
@@ -5379,7 +5385,7 @@ sub init_mainWindow {
         }
         $bibleMenu->{$_}
           ->signal_connect("toggled", "select_bible_db", $bible[0] . ";" . $_);
-        if ($_ eq $defbible) {
+        if (defined ($defbible) && ($_ eq $defbible)) {
             $bibleMenu->{$_}->set_active(TRUE);
         }
         $bibleMenu->{$_}->show;
@@ -5432,7 +5438,6 @@ sub init_mainWindow {
         $widgets->{'main'}->get_widget('hpanedMainRight')
           ->set_position($config->{'FrameRight'});
     } else {
-        debug($width . "- width");
         if ($globals->{'access'} =~ /p/) {
             $widgets->{'main'}->get_widget('hpanedMainLeft')
               ->set_position($width / 5 * 2);
@@ -7699,7 +7704,12 @@ sub db_restart {
     $lyricDbh->disconnect();
     $mediaDbh->disconnect();
     db_select();
-    do_change_bible($tmpbible[1], $tmpbible[0]);
+    if (defined $config->{'DefBible'} && ($config->{'DefBible'} ne "")) {
+        my @tmpbible = split(/;/, $config->{'DefBible'}, 2);
+        $globals->{'biblename'} = $tmpbible[1];
+        @tmpbible = split(/:/, $tmpbible[0], 2);
+        do_change_bible($tmpbible[1], $tmpbible[0]);
+    }
     choose_playlist();
 }
 
