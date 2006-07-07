@@ -250,7 +250,7 @@ if ($ARGV[0]) {
             $globals->{'use_port'} = $ARGV[$_ + 1];
         } elsif ($ARGV[$_] eq "-sqlite") {
             $globals->{'force_sqlite'} = TRUE;
-        } elsif ($ARGV[$_] =~ /^\d+$/) {
+        } elsif (($ARGV[$_] =~ /^\d+$/) || ($ARGV[$_] eq "")) {
         } else {
             print "\nUsage: lyricue_server <-v> <-m> <-c> <-d>\n\n";
             print "\t-v: Prints Lyricue version information & exits\n";
