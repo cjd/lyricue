@@ -461,6 +461,14 @@ exit(0);
 sub close_main {
     debug("Quitting");
     do_pending();
+    # Save current state
+    unlink $globals->{'configfile'} . ".bak";
+    rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
+    open(CONFIG, ">$globals->{'configfile'}")
+      || display_fatal($errorcodes->{'fileopenwrite'}, $!);
+    print CONFIG save_state();
+    close CONFIG;
+
     $lyricDbh->disconnect;
     if (!$globals->{'usesword'}) {
         $bibleDbh->disconnect;
@@ -4862,6 +4870,21 @@ sub load_config {
 
 #***
 
+sub save_state {
+    my $config = "";
+    $config .= "FrameLeft = "
+      . $widgets->{'main'}->get_widget('hpanedMainLeft')->get_position() . "\n";
+    $config .= "FrameRight = "
+      . $widgets->{'main'}->get_widget('hpanedMainRight')->get_position()
+      . "\n";
+    my ($width, $height) =
+      $widgets->{'main'}->get_widget('windowMain')->get_size();
+    $config .= "FrameMain = "
+      . ($height - $widgets->{'main'}->get_widget('vpanedMain')->get_position())
+      . "\n";
+    return $config;
+}
+
 sub save_and_close_prefs {
     debug("Save and close preferences");
     save_preferences();
@@ -4917,7 +4940,6 @@ sub save_preferences {
     print CONFIG "CentreX = "
       . $widgets->{'prefs'}->get_widget('checkPrefCentreX')->get_active()
       . "\n";
-
     if ($widgets->{'prefs'}->get_widget('radioPrefServerTrans')->get_active()) {
         print CONFIG "ServerType = trans\n";
     } elsif (
@@ -4929,16 +4951,6 @@ sub save_preferences {
     }
     print CONFIG "BGImage = "
       . $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} . "\n";
-    print CONFIG "FrameLeft = "
-      . $widgets->{'main'}->get_widget('hpanedMainLeft')->get_position() . "\n";
-    print CONFIG "FrameRight = "
-      . $widgets->{'main'}->get_widget('hpanedMainRight')->get_position()
-      . "\n";
-    my ($width, $height) =
-      $widgets->{'main'}->get_widget('windowMain')->get_size();
-    print CONFIG "FrameMain = "
-      . ($height - $widgets->{'main'}->get_widget('vpanedMain')->get_position())
-      . "\n";
     print CONFIG "SpecialSong = "
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialSong')->get_text()
       . "\n";
@@ -4963,6 +4975,7 @@ sub save_preferences {
 
     print CONFIG "DefBible = "
       . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text() . "\n";
+    print CONFIG save_state();
     foreach (0 .. $config->{'AppCount'} - 1) {
         print CONFIG "App = " . $config->{'App'}[$_] . "\n";
     }
