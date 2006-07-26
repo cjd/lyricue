@@ -422,11 +422,11 @@ sub process_input {
             return $status;
         } elsif (/^reconfig$/) {
             $config = load_config();
-            $status = "Configuration reloaded";
+            $status = gettext("Configuration reloaded");
         } elsif (/^backdrop$/) {
             $config->{'BGImage'} = $line[1];
             change_backdrop($config->{'BGImage'});
-            $status = "Backdrop changed to " . $config->{'BGImage'};
+            $status = gettext("Backdrop changed to "). $config->{'BGImage'};
 
             #reset_timer($globals->{'snapshot_timer'});
             #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
@@ -434,7 +434,7 @@ sub process_input {
             set_header("");
             set_maintext("", NONE, FALSE);
             set_footer("");
-            $status = "Screen blanked";
+            $status = gettext("Screen blanked");
 
             #reset_timer($globals->{'snapshot_timer'});
             #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
@@ -445,7 +445,7 @@ sub process_input {
             $globals->{'blanked_state'} = TRUE;
         } elsif (/^change_to_db$/) {
             change_to_db($line[1], $line[2]);
-            $status = "Bible changed to " . $globals->{'bibledb'};
+            $status = gettext("Bible changed to ") . $globals->{'bibledb'};
         } elsif (/^next_point$/) {
             $globals->{'blanked_state'} = FALSE;
             if ($current_point > -1 && scalar(@points) > $current_point + 1) {
@@ -1048,7 +1048,7 @@ sub process_input {
                         set_header($versetext);
                         set_footer($globals->{'biblename'});
                         $status =
-                          "Displaying " . $versetext . " verses " . $verses;
+                          gettext("Displaying ") . $versetext . gettext(" verses ") . $verses;
                     } elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub")
                     {
                         my $query =
@@ -1122,9 +1122,9 @@ sub process_input {
                             FALSE);
                         set_footer($footer);
                         $status =
-                            "Displaying "
+                            gettext("Displaying ")
                           . $row2->{'title'}
-                          . " page "
+                          . gettext(" page ")
                           . $row2->{'pagenum'};
                     } ## end else
                     refresh_screen();
