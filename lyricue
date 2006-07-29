@@ -463,9 +463,19 @@ sub close_main {
     do_pending();
     # Save current state
     unlink $globals->{'configfile'} . ".bak";
+    open (CONFIG, "$globals->{'configfile'}")
+      || display_fatal($errorcodes->{'fileopenread'}, $!);
+    my $config = "";
+    while (<CONFIG>) {
+        if (! /^Frame/ ) {
+            $config .= $_;
+        }
+    }
+    close CONFIG;
     rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
     open(CONFIG, ">$globals->{'configfile'}")
       || display_fatal($errorcodes->{'fileopenwrite'}, $!);
+    print CONFIG $config;
     print CONFIG save_state();
     close CONFIG;
 
