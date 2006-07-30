@@ -264,6 +264,7 @@ $errorcodes->{'usage'} = Encode::decode(
           . "\t-b:  Loads Lyricue without background previews\n"
           . "\t-s:  Specify the host on which the lyric server is located\n"
           . "\t-d:  Prints debugging messages\n"
+          . "\t-w:  Don't maximize on startup\n"
           . "\t-dq: Prints debugging messages + sql\n\n"
     )
 );
@@ -328,6 +329,8 @@ if ($ARGV[0]) {
             $globals->{'debugging'} = 2;
         } elsif ($ARGV[$_] eq "-sqlite") {
             $globals->{'force_sqlite'} = TRUE;
+        } elsif ($ARGV[$_] eq "-w") {
+            $globals->{'run_windowed'} = TRUE;
         } elsif ($ARGV[$_] eq "-s") {
             $globals->{'host'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
@@ -5446,7 +5449,7 @@ sub init_mainWindow {
 
     # Show the window finally
     $widgets->{'main'}->get_widget('windowMain')->show;
-    if (!$globals->{'debugging'}) {
+    if (!(defined ($globals->{'run_windowed'}) && ($globals->{'run_windowed'}))) {
         $widgets->{'main'}->get_widget('windowMain')->maximize;
     }
 

@@ -162,6 +162,7 @@ $globals->{'use_port'}      = "2346";    #port used for lyric server socket
 $globals->{'server_port'}   = "2346";    #port used for lyric server socket
 $globals->{'preview_port'}  = "2347";    #port used for lyric server socket
 $globals->{'miniview_port'} = "2348";    #port used for lyric server socket
+$globals->{'run_windowed'}  = FALSE;
 $globals->{'server_type'}   = CANVAS;
 $globals->{'blanked_state'} = TRUE;
 $globals->{'diatheke'} = `which diatheke`;
@@ -250,13 +251,19 @@ if ($ARGV[0]) {
             $globals->{'use_port'} = $ARGV[$_ + 1];
         } elsif ($ARGV[$_] eq "-sqlite") {
             $globals->{'force_sqlite'} = TRUE;
+        } elsif ($ARGV[$_] eq "-w") {
+            $globals->{'run_windowed'} = TRUE;
         } elsif (($ARGV[$_] =~ /^\d+$/) || ($ARGV[$_] eq "")) {
         } else {
             print "\nUsage: lyricue_server <-v> <-m> <-c> <-d>\n\n";
             print "\t-v: Prints Lyricue version information & exits\n";
-            print "\t-m: Runs in miniserv mode (acts as a preview window)\n";
             print "\t-d: Prints debugging messages\n";
             print "\t-s: Hostname where sql server is running\n";
+            print "\t-m: Runs in miniserv mode (acts as a preview window)\n";
+            print "\t-w: Runs in a window (rather than fullscreen\n";
+            print "\t-t: Runs with tranparent server\n";
+            print "\t-f: Runs with simple server\n";
+            print "\t-sqlite: Force usage of sqlite\n";
             exit;
         }
     } ## end foreach (0 .. (@ARGV - 1))
@@ -2393,7 +2400,9 @@ sub create_window_trans {
           ->resize($config->{'Width'}, $config->{'Height'});
         debug("Running in MINISERV (preview window) mode");
     } else {
-        $globals->{'background_window'}->fullscreen();
+        if ($globals->{'run_windowed'} == FALSE) {
+            $globals->{'background_window'}->fullscreen();
+        }
         debug("Running in SERVER (normal) mode");
     }
 
@@ -2506,7 +2515,9 @@ sub create_window_normal {
         $globals->{'window'}
           ->set_default_size($config->{'Width'}, $config->{'Height'});
         $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
-        $globals->{'window'}->fullscreen();
+        if ($globals->{'run_windowed'} == FALSE) {
+            $globals->{'window'}->fullscreen();
+        }
         debug("Running in SERVER (normal) mode");
     }
     my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
