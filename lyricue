@@ -2881,6 +2881,8 @@ sub update_imagedir {
         $store->set($iter, 0, $row->{'description'}, 1, $row->{'id'});
     }
     $widgets->{'image'}->get_widget('treeImage')->set_model($store);
+    $widgets->{'image'}->get_widget('entryImageFontColour')->set_text($config->{'Colour'});
+    $widgets->{'image'}->get_widget('entryImageShadowColour')->set_text($config->{'ShadowColour'});
 }
 
 sub change_image_category {
@@ -3484,8 +3486,26 @@ sub change_preview {
         }
 
         if ($globals->{'bg_previews'}) {
+            debug("sub change_preview: create_pixbuf");
             my $scaled = create_pixbuf($id, 480, 360);
             if ($scaled) {
+                my $query =
+                   "SELECT textcolour, shadowcolour FROM media WHERE id=\"" . $id . "\"";
+                qdebug($query);
+                my $sth = $mediaDbh->prepare($query)
+                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my $row = $sth->fetchrow_hashref();
+                if ($row->{'textcolour'}) {
+                    $widgets->{'image'}->get_widget('entryImageFontColour')->set_text($row->{'textcolour'});
+                } else {
+                    $widgets->{'image'}->get_widget('entryImageFontColour')->set_text($config->{'Colour'});
+                }
+                if ($row->{'shadowcolor'}) {
+                    $widgets->{'image'}->get_widget('entryImageShadowColour')->set_text($row->{'shadowcolor'});
+                } else {
+                    $widgets->{'image'}->get_widget('entryImageShadowColour')->set_text($config->{'ShadowColour'});
+                }
                 $widgets->{'image'}->get_widget('imageImage')
                   ->set_from_pixbuf($scaled);
                 $widgets->{'image'}->get_widget('imageImage')->{user_data} =
@@ -7511,7 +7531,9 @@ sub db_check_databases {
             "lyricDb");
     }
 
-    if (!$globals->{'db_available_db'}{'mediaDb'}) {
+    if ($globals->{'db_available_db'}{'mediaDb'}) {
+        db_updatedb_mediaDb();
+    } else {
         debug("Creating mediaDb");
         db_installdb($globals->{'sharedir'} . "mysql/MySQL_create_media.sql",
             "mediaDb");
@@ -7593,6 +7615,25 @@ sub db_installdb {
             }
         }
         $dbh->disconnect();
+    }
+}
+
+sub db_updatedb_mediaDb {
+    debug("Update the mediaDb table if needed");
+    my $dbh = db_connect($globals->{'mediadb'}, "");
+    if ($config->{'DatabaseType'} eq "mysql") {
+        my $fields = $dbh->selectall_arrayref("describe media");
+        my $trans;
+        foreach (@$fields) {
+            $trans->{$_->[0]} = 1;
+        }
+        if (!defined $trans->{'textcolour'}) {
+            debug("Text Colouring fields not found\n");
+            debug("Upgrading database from 1.9 to 1.9.4\n");
+            db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.4.sql",
+                "lyricDb");
+            debug("Done\n");
+        }
     }
 }
 
