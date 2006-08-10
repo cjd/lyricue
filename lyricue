@@ -3098,7 +3098,7 @@ sub open_dialogColour {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogColour', 'lyricue');
     $colourxml->signal_autoconnect_from_package('');
     $colourxml->get_widget('dialogColour')
-      ->set_title("Select " . $item . " Colour");
+      ->set_title(Encode::decode("utf-8", gettext("Select ")) . $item . Encode::decode("utf-8", gettext(" Colour")));
     $colourxml->get_widget('dialogColour')->{'user_data'} = $item;
     $colourxml->get_widget('buttonColourOK')
       ->signal_connect("clicked", "change_font_colour", $colourxml);
@@ -4552,7 +4552,7 @@ sub rename_playlist {
                 'dialogPromptEntry', 'lyricue');
             $renamexml->signal_autoconnect_from_package('');
             $renamexml->get_widget('dialogPromptEntry')
-              ->set_title("Renaming "
+              ->set_title(Encode::decode("utf-8", gettext("Renaming "))
                   . $widgets->{'choose'}->get_widget('entryChoosePlay')
                   ->get_text());
             $renamexml->get_widget('labelPromptE')
@@ -5736,10 +5736,18 @@ sub change_bgimage {
               ->set_label(gettext("Set as Default"));
             $widgets->{'image'}->get_widget('buttonImageOK')
               ->signal_connect('clicked', "set_default_backdrop");
+            $widgets->{'image'}->get_widget('buttonImageAdd')
+              ->hide();
+            $widgets->{'image'}->get_widget('buttonImageDelete')
+              ->hide();
+            $widgets->{'image'}->get_widget('buttonImageChange')
+              ->hide();
         } else {
             $widgets->{'image'}->get_widget('buttonImageCancel')->hide();
             $widgets->{'image'}->get_widget('buttonImageOK')
               ->signal_connect('clicked', "close_dialog");
+            $widgets->{'image'}->get_widget('hboxImageColour')
+              ->show();
         }
         $widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
         my $renderer = Gtk2::CellRendererText->new;
@@ -5773,7 +5781,7 @@ sub create_dialogSublist {
         'dialogPromptEntry', 'lyricue');
     $sublistxml->signal_autoconnect_from_package('');
     $sublistxml->get_widget('dialogPromptEntry')
-      ->set_title("Create new sublist");
+      ->set_title(Encode::decode("utf-8", gettext("Create new sublist")));
     $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
     $sublistxml->get_widget('buttonPromptEOK')
       ->signal_connect("clicked", "new_sublist", $sublistxml);
@@ -6108,7 +6116,7 @@ sub add_user {
     my $userxml = Gtk2::GladeXML->new($globals->{'gladefile'},
         'dialogPromptEntry', 'lyricue');
     $userxml->signal_autoconnect_from_package('');
-    $userxml->get_widget('dialogPromptEntry')->set_title("Add a user");
+    $userxml->get_widget('dialogPromptEntry')->set_title(Encode::decode("utf-8", gettext("Add a user")));
     $userxml->get_widget('labelPromptE')->set_text("Enter username");
     my $confirm = $userxml->get_widget('dialogPromptEntry')->run();
     if ($confirm eq "ok") {
@@ -6399,6 +6407,7 @@ sub select_category {
     my $type      = $filexml->get_widget('dialogFile')->{user_data};
     my $choosexml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
+    $choosexml->get_widget('windowChoosePlay')->set_title(Encode::decode("utf-8", gettext("Select Category")));
     $choosexml->get_widget('buttonLoad')->set_label("Select");
     $choosexml->get_widget('buttonDelete')->hide();
     $choosexml->get_widget('buttonRename')->hide();
@@ -6646,6 +6655,7 @@ sub media_move {
     if (@id) {
         my $choosexml =
           Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
+        $choosexml->get_widget('windowChoosePlay')->set_title(Encode::decode("utf-8", gettext("Select Category")));
         $choosexml->get_widget('buttonLoad')->set_label("Select");
         $choosexml->get_widget('buttonDelete')->hide();
         $choosexml->get_widget('buttonRename')->hide();
@@ -6748,6 +6758,7 @@ sub media_delete {
                 'dialogConfirm', 'lyricue');
             $deletexml->signal_autoconnect_from_package('');
             $deletexml->get_widget('labelDelete')->set_text($labelText);
+            $deletexml->get_widget('dialogConfirm')->set_title(Encode::decode("utf-8", gettext("Confirm Delete")));
             my $confirm = $deletexml->get_widget('dialogConfirm')->run();
             if ($confirm eq "ok") {
 
@@ -6809,7 +6820,7 @@ sub restore_db {
     my $fileDialog =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
     $fileDialog->get_widget('dialogFile')
-      ->set_title("Select Database Backup file");
+      ->set_title(Encode::decode("utf-8", gettext("Select Database Backup file")));
     my $response = $fileDialog->get_widget('dialogFile')->run();
     if ($response eq "ok") {
         my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
