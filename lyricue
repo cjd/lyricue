@@ -2346,6 +2346,7 @@ sub clear_playlist {
       Encode::decode("utf-8",
         gettext("Are you sure you wish to clear the current playlist?"));
     $deletexml->get_widget('labelDelete')->set_text($labelText);
+    $deletexml->get_widget('dialogConfirm')->set_title(Encode::decode("utf-8", gettext("Confirm Clear Playlist")));
     my $confirm = $deletexml->get_widget('dialogConfirm')->run();
 
     if ($confirm eq "ok") {
@@ -5718,6 +5719,7 @@ sub change_bgimage {
     $widgets->{'image'} =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImage', 'lyricue');
     $widgets->{'image'}->signal_autoconnect_from_package('');
+    $widgets->{'image'}->get_widget('dialogImage')->set_title(Encode::decode("utf-8", gettext("Choose a Background")));
     $widgets->{'image'}->get_widget('buttonImageAdd')
       ->signal_connect('clicked', 'import_background');
     $widgets->{'image'}->get_widget('hboxImageSublist')->hide;
@@ -6758,7 +6760,7 @@ sub media_delete {
                 'dialogConfirm', 'lyricue');
             $deletexml->signal_autoconnect_from_package('');
             $deletexml->get_widget('labelDelete')->set_text($labelText);
-            $deletexml->get_widget('dialogConfirm')->set_title(Encode::decode("utf-8", gettext("Confirm Delete")));
+            $deletexml->get_widget('dialogConfirm')->set_title(Encode::decode("utf-8", gettext("Confirm Delete Image")));
             my $confirm = $deletexml->get_widget('dialogConfirm')->run();
             if ($confirm eq "ok") {
 
@@ -6829,6 +6831,7 @@ sub restore_db {
         my $confirmDialog = Gtk2::GladeXML->new($globals->{'gladefile'},
             'dialogConfirm', 'lyricue');
         $confirmDialog->signal_autoconnect_from_package('');
+        $confirmDialog->get_widget('dialogConfirm')->set_title(Encode::decode("utf-8", gettext("Confirm Restore Database")));
         $confirmDialog->get_widget('labelDelete')
           ->set_text(
 "WARNING: Restoring this database will overwrite your current database"
@@ -7482,6 +7485,7 @@ sub db_install_user {
             my $loginxml = Gtk2::GladeXML->new($globals->{'gladefile'},
                 'dialogConfirm', 'lyricue');
             $loginxml->signal_autoconnect_from_package('');
+            $loginxml->get_widget('dialogConfirm')->set_title(Encode::decode("utf-8", gettext("Login Error")));
             $loginxml->get_widget('labelDelete')->set_text($labelText);
             my $confirm = $loginxml->get_widget('dialogConfirm')->run();
             if ($confirm eq "ok") {
