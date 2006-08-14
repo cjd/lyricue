@@ -21,7 +21,8 @@ find . -name CVS -type d -exec rm -r \{} \; 2>/dev/null
 make
 
 echo Creating Debian packages
-dpkg-buildpackage -rfakeroot
+exit;
+dpkg-buildpackage -rfakeroot -kB734D1F5
 popd
 rm -rf dist/lyricue-${VERSION}
 
