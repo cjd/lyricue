@@ -433,7 +433,7 @@ sub process_input {
         } elsif (/^backdrop$/) {
             $config->{'BGImage'} = $line[1];
             change_backdrop($config->{'BGImage'});
-            $status = gettext("Backdrop changed to "). $config->{'BGImage'};
+            $status = gettext("Backdrop changed to ") . $config->{'BGImage'};
 
             #reset_timer($globals->{'snapshot_timer'});
             #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
@@ -1055,7 +1055,10 @@ sub process_input {
                         set_header($versetext);
                         set_footer($globals->{'biblename'});
                         $status =
-                          gettext("Displaying ") . $versetext . gettext(" verses ") . $verses;
+                            gettext("Displaying ")
+                          . $versetext
+                          . gettext(" verses ")
+                          . $verses;
                     } elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub")
                     {
                         my $query =
@@ -1273,24 +1276,26 @@ sub change_backdrop {
     my ($id) = @_;
     debug("Setting backdrop");
     my $query =
-      "SELECT format, description, data, textcolour, shadowcolour FROM media WHERE id=\"" . $id . "\"";
+"SELECT format, description, data, textcolour, shadowcolour FROM media WHERE id=\""
+      . $id . "\"";
     debug($query);
     my $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my $row = $sth->fetchrow_hashref();
     if ($row) {
+
         if ($row->{'textcolour'} != NULL) {
-           debug("Changing text colour to " . $row->{'textcolour'});
-           $config->{'BackdropTextColour'} = $row->{'textcolour'};
+            debug("Changing text colour to " . $row->{'textcolour'});
+            $config->{'BackdropTextColour'} = $row->{'textcolour'};
         } else {
-           $config->{'BackdropTextColour'} = "";
+            $config->{'BackdropTextColour'} = "";
         }
         if ($row->{'shadowcolour'} != NULL) {
-           debug("Changing shadow colour to " . $row->{'shadowcolour'});
-           $config->{'BackdropShadowColour'} = $row->{'shadowcolour'};
+            debug("Changing shadow colour to " . $row->{'shadowcolour'});
+            $config->{'BackdropShadowColour'} = $row->{'shadowcolour'};
         } else {
-           $config->{'BackdropShadowColour'} = "";
+            $config->{'BackdropShadowColour'} = "";
         }
 
         if ($row->{'format'} eq "bg") {
@@ -1565,7 +1570,7 @@ sub set_maintext_simple {
       Gtk2::Pango::FontDescription->from_string($config->{'Main'});
     my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
     if ($config->{'BackdropTextColour'} != NULL) {
-       $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
+        $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
     }
     $globals->{'mainText'}->modify_fg('normal', $colour);
     $globals->{'mainText'}->modify_font($font_desc);
@@ -1618,13 +1623,10 @@ sub set_maintext_canvas {
     if ($config->{'BackdropTextColour'} != NULL) {
         $colour = $config->{'BackdropTextColour'};
     }
-    my $tag    = $buffer->create_tag(
-        "Main",              "font",
-        $config->{'Main'},   "foreground",
-        $colour,             "wrap-mode",
-        "word",              "editable-set",
-        TRUE,                "editable",
-        FALSE
+    my $tag = $buffer->create_tag(
+        "Main",  "font",      $config->{'Main'}, "foreground",
+        $colour, "wrap-mode", "word",            "editable-set",
+        TRUE,    "editable",  FALSE
     );
     $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
 
@@ -1815,17 +1817,17 @@ sub set_maintext_canvas {
             anchor           => 'GTK_ANCHOR_CENTER',
             'cursor-visible' => FALSE
         );
-        my $buffer2 = $globals->{'mainTextShadow'}->get_buffer();
+        my $buffer2      = $globals->{'mainTextShadow'}->get_buffer();
         my $shadowcolour = $config->{'ShadowColour'};
         if ($config->{'BackdropShadowColour'} != NULL) {
-           $shadowcolour = $config->{'BackdropShadowColour'};
+            $shadowcolour = $config->{'BackdropShadowColour'};
         }
-        my $tags    = $buffer2->create_tag(
-            "MainShadow",              "font",
-            $config->{'Main'},         "foreground",
-            $shadowcolour,             "wrap-mode",
-            "word",                    "editable-set",
-            TRUE,                      "editable",
+        my $tags = $buffer2->create_tag(
+            "MainShadow",      "font",
+            $config->{'Main'}, "foreground",
+            $shadowcolour,     "wrap-mode",
+            "word",            "editable-set",
+            TRUE,              "editable",
             FALSE
         );
         $buffer2->set_text($text);
@@ -1989,7 +1991,7 @@ sub set_footer_simple {
     $globals->{'footerText'}->modify_font($font_desc);
     my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
     if ($config->{'BackdropTextColour'} != NULL) {
-       $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
+        $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
     }
     $globals->{'footerText'}->modify_fg('normal', $colour);
     $globals->{'footerText'}->set_text($text);
@@ -2024,10 +2026,11 @@ sub set_footer_canvas {
     );
     my $buffer = $globals->{'footerText'}->get_buffer();
     my $colour = $config->{'Colour'};
+
     if ($config->{'BackdropTextColour'} != NULL) {
-       $colour = $config->{'BackdropTextColour'};
+        $colour = $config->{'BackdropTextColour'};
     }
-    my $tag3   = $buffer->create_tag(
+    my $tag3 = $buffer->create_tag(
         "Footer",            "font",
         $config->{'Footer'}, "foreground",
         $colour,             "wrap-mode",
@@ -2147,7 +2150,7 @@ sub set_header_simple {
     $globals->{'headerText'}->modify_font($font_desc);
     my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
     if ($config->{'BackdropTextColour'} != NULL) {
-       $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
+        $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
     }
     $globals->{'headerText'}->modify_fg('normal', $colour);
     $globals->{'headerText'}->set_text($text);
@@ -2184,10 +2187,11 @@ sub set_header_canvas {
     );
     my $buffer = $globals->{'headerText'}->get_buffer();
     my $colour = $config->{'Colour'};
+
     if ($config->{'BackdropTextColour'} != NULL) {
-       $colour = $config->{'BackdropTextColour'};
+        $colour = $config->{'BackdropTextColour'};
     }
-    my $tag3   = $buffer->create_tag(
+    my $tag3 = $buffer->create_tag(
         "Header",            "font",
         $config->{'Header'}, "foreground",
         $colour,             "wrap-mode",
@@ -2654,14 +2658,14 @@ sub create_window_normal {
         my $buffer = $globals->{'mainText'}->get_buffer();
         my $colour = $config->{'Colour'};
         if ($config->{'BackdropTextColour'} != NULL) {
-           $colour = $config->{'BackdropTextColour'};
+            $colour = $config->{'BackdropTextColour'};
         }
-        my $tag2   = $buffer->create_tag(
-            "Main",              "font",
-            $config->{'Main'},   "foreground",
-            $colour,             "wrap-mode",
-            "word",              "editable-set",
-            TRUE,                "editable",
+        my $tag2 = $buffer->create_tag(
+            "Main",            "font",
+            $config->{'Main'}, "foreground",
+            $colour,           "wrap-mode",
+            "word",            "editable-set",
+            TRUE,              "editable",
             FALSE
         );
         $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
