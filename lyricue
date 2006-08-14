@@ -3099,7 +3099,7 @@ sub open_dialogColour {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogColour', 'lyricue');
     $colourxml->signal_autoconnect_from_package('');
     $colourxml->get_widget('dialogColour')
-      ->set_title(Encode::decode("utf-8", gettext("Select ")) . $item . Encode::decode("utf-8", gettext(" Colour")));
+      ->set_title(Encode::decode("utf-8", gettext("Select ")). $item . Encode::decode("utf-8", gettext(" Colour")));
     $colourxml->get_widget('dialogColour')->{'user_data'} = $item;
     $colourxml->get_widget('buttonColourOK')
       ->signal_connect("clicked", "change_font_colour", $colourxml);
@@ -4552,14 +4552,13 @@ sub rename_playlist {
             my $renamexml = Gtk2::GladeXML->new($globals->{'gladefile'},
                 'dialogPromptEntry', 'lyricue');
             $renamexml->signal_autoconnect_from_package('');
+            my $labelText=(Encode::decode("utf-8", gettext("Renaming "))
+                  . $widgets->{'choose'}->get_widget('entryChoosePlay')
+                  ->get_text();
             $renamexml->get_widget('dialogPromptEntry')
-              ->set_title(Encode::decode("utf-8", gettext("Renaming "))
-                  . $widgets->{'choose'}->get_widget('entryChoosePlay')
-                  ->get_text());
+              ->set_title($labelText);
             $renamexml->get_widget('labelPromptE')
-              ->set_text("Renaming "
-                  . $widgets->{'choose'}->get_widget('entryChoosePlay')
-                  ->get_text());
+              ->set_text($labelText);
             $renamexml->get_widget('labelPromptE')->{user_data} = $row[0];
             $renamexml->get_widget('entryPromptE')
               ->set_text(
@@ -5716,10 +5715,12 @@ sub add_file {
 
 sub add_background {
     debug("add background");
-    change_bgimage();
+    my ($widget) = @_;
+    change_bgimage($widget);
 }
 
 sub change_bgimage {
+    my ($widget) = @_;
     my $bgimage = "";
     debug("Change backdrop dialog opened");
     $widgets->{'image'} =
@@ -5737,7 +5738,7 @@ sub change_bgimage {
     {
         $widgets->{'image'}->get_widget('treeImage')->{data} = ();
     } else {
-        if ($widgets->{'prefs'}) {
+        if ($widget->get_name() eq "buttonPrefBackground") {
             $bgimage =
               $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
             $widgets->{'image'}->get_widget('buttonImageOK')
