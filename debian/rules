@@ -19,7 +19,7 @@ binary-indep: checkroot
 	$(checkdir)
 	rm -rf debian/$(package)
 	install -d debian/$(package)
-	make install DESTDIR=`pwd`/debian/$(package)
+	make -B install DESTDIR=`pwd`/debian/$(package)
 	dh_testdir -i -p$(package)
 	dh_installdebconf -p$(package)
 	dh_installchangelogs -p$(package)
