@@ -11,25 +11,28 @@ build:
 
 clean:
 	$(checkdir)
-	rm -f build
 	rm -rf dist/lyricue-$(DEB_VERSION)
 	rm -f `find . -name "*~"`
-	rm -rf debian/tmp debian/files* core debian/substvars
+	rm -rf debian/$(package) debian/files* core debian/substvars
 
 binary-indep: checkroot
 	$(checkdir)
-	rm -f build
-	rm -rf debian/tmp
-	install -d debian/tmp
-	make install DESTDIR=`pwd`/debian/tmp
-	dh_installdebconf
-	dh_installchangelogs
-	dh_perl
-	debstd 
-	dpkg-gencontrol -isp -p$(package)
-	chown -R root:root debian/tmp
-	chmod -R go=rX debian/tmp
-	dpkg --build debian/tmp ..
+	rm -rf debian/$(package)
+	install -d debian/$(package)
+	make install DESTDIR=`pwd`/debian/$(package)
+	dh_testdir -i -p$(package)
+	dh_installdebconf -p$(package)
+	dh_installchangelogs -p$(package)
+	dh_perl -p$(package)
+	dh_installman -i -p$(package)
+	dh_installdocs -i -p$(package)
+	dh_installchangelogs -i ChangeLog -p$(package)
+	dh_compress -i -p$(package)
+	dh_fixperms -i -p$(package)
+	dh_installdeb -i -p$(package)
+	dh_gencontrol -i -p$(package)
+	dh_md5sums -i -p$(package)
+	dh_builddeb -i -p$(package)
 
 define checkdir
 	test -f debian/rules
