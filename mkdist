@@ -47,10 +47,10 @@ fi
 echo Pushing to repository
 cp dist/lyricue-cvs*deb dist/*.dsc dist/*.asc dist/*.gz  /var/www/debian
 cd /var/www/debian
-rm Packages.gz Sources.gz Release.gz
+rm Packages.gz Sources.gz Release Release.gpg
 apt-ftparchive packages . | gzip > Packages.gz
 apt-ftparchive sources . | gzip > Sources.gz
-apt-ftparchive release . | gzip > Release.gz
-gpg -abs -o Release.gz.gpg Release.gz
+apt-ftparchive release . > Release
+gpg -abs -o Release.gpg Release
 dpkg-scanpackages . /dev/null | gzip -c > Packages.gz
 dpkg-scansources . /dev/null | gzip -c > Sources.gz
