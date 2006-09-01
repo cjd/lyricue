@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-$ID = q$\Id$;
+my $ID = q$Id: lyricue,v 1.194 2006/09/01 02:05:29 cjdebenh Exp $;
 #****** lyricue/pod
 # NAME
 #   Pod documentation
@@ -317,7 +317,7 @@ my @admin_items = ("user_administration1");
 if ($ARGV[0]) {
     foreach (0 .. (@ARGV - 1)) {
         if ($ARGV[$_] eq "-v") {
-            print "Lyric Interface version " . $globals->{'version'} . "\n";
+            print "Lyric Interface version " . $globals->{'version'} . "CVS".$ID."\n";
             exit;
         } elsif ($ARGV[$_] eq "-l") {
             print_songs();
