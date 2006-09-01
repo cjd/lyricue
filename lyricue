@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-
+$ID = q$\Id$;
 #****** lyricue/pod
 # NAME
 #   Pod documentation
@@ -324,6 +324,7 @@ if ($ARGV[0]) {
         } elsif ($ARGV[$_] eq "-b") {
             $globals->{'bg_previews'} = FALSE;
         } elsif ($ARGV[$_] eq "-d") {
+            debug ("Lyric Interface version " . $globals->{'version'} . "CVS".$ID);
             $globals->{'debugging'} = 1;
         } elsif ($ARGV[$_] eq "-dq") {
             $globals->{'debugging'} = 2;
@@ -2391,7 +2392,7 @@ sub display_song {
         if (
             ($event->type eq '2button-press')
             || (   ($event->type eq 'key-press')
-                && ($event->keyval == $Gtk2::Gdk::Keysyms{Return}))
+                && ( ($event->keyval == $Gtk2::Gdk::Keysyms{Return}) || ($event->keyval == $Gtk2::Gdk::Keysyms{Enter}) ))
           )
         {
             reset_timer($globals->{'timer'});
@@ -2885,9 +2886,13 @@ sub update_imagedir {
     }
     $widgets->{'image'}->get_widget('treeImage')->set_model($store);
     $widgets->{'image'}->get_widget('entryImageFontColour')
-      ->set_text($config->{'Colour'});
+      ->set_text("Default");
+    $widgets->{'image'}->get_widget('colorbuttonFontColour')
+      ->set_color(Gtk2::Gdk::Color->parse($config->{'Colour'}));
     $widgets->{'image'}->get_widget('entryImageShadowColour')
-      ->set_text($config->{'ShadowColour'});
+      ->set_text("Default");
+    $widgets->{'image'}->get_widget('colorbuttonShadowColour')
+      ->set_color(Gtk2::Gdk::Color->parse($config->{'ShadowColour'}));
 }
 
 sub change_image_category {
@@ -3099,6 +3104,8 @@ sub preview_display {
 sub open_dialogColour {
     my ($widget, $event, $item) = @_;
     debug("Opening Colour dialog");
+    debug("open_dialogColour: item=" . $item);
+    debug("open_dialogColour: widget=" . $widget->get_name());
     my $colourxml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogColour', 'lyricue');
     $colourxml->signal_autoconnect_from_package('');
@@ -3106,6 +3113,20 @@ sub open_dialogColour {
       ->set_title(Encode::decode("utf-8", gettext("Select ")) . $item
           . Encode::decode("utf-8", gettext(" Colour")));
     $colourxml->get_widget('dialogColour')->{'user_data'} = $item;
+    if ($item eq "Font") {
+        $colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'prefs'}->get_widget('entryPrefColour')->get_text()));
+    }
+    if ($item eq "Shadow") {
+        $colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'prefs'}->get_widget('entryPrefShadowColour')->get_text()));
+    }
+    if ($item eq "ImageFont") {
+        #$colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'image'}->get_widget('entryImageFontColour')->get_text()));
+        $colourxml->get_widget('colourSelect')->set_current_color($widget->get_color());
+    }
+    if ($item eq "ImageShadow") {
+        #$colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'image'}->get_widget('entryImageShadowColour')->get_text()));
+        $colourxml->get_widget('colourSelect')->set_current_color($widget->get_color());
+    }
     $colourxml->get_widget('buttonColourOK')
       ->signal_connect("clicked", "change_font_colour", $colourxml);
     $colourxml->get_widget('buttonColourCancel')
@@ -3151,11 +3172,25 @@ sub change_font_colour {
       . sprintf("%2.2x", ($colour->green / 256))
       . sprintf("%2.2x", ($colour->blue / 256));
 
+    debug("change_font_colour: item=" . $item);
     if ($item eq "Shadow") {
         $widgets->{'prefs'}->get_widget('entryPrefShadowColour')
           ->set_text($color2);
-    } else {
-        $widgets->{'prefs'}->get_widget('entryPrefColour')->set_text($color2);
+        $widgets->{'prefs'}->get_widget('entryPrefShadowColour')
+          ->set_text($color2);
+    } elsif ($item eq "Font") {
+        $widgets->{'prefs'}->get_widget('entryPrefColour')
+          ->set_text($color2);
+    } elsif ($item eq "ImageShadow") {
+        $widgets->{'image'}->get_widget('entryImageShadowColour')
+          ->set_text($color2);
+    } elsif ($item eq "ImageFont") {
+        $widgets->{'image'}->get_widget('entryImageFontColour')
+          ->modify_bg('active', Gtk2::Gdk::Color->parse($color2));
+        $widgets->{'image'}->get_widget('entryImageFontColour')
+          ->set_text($color2);
+        $widgets->{'image'}->get_widget('colorbuttonFontColour')
+          ->set_color(Gtk2::Gdk::Color->parse($color2));
     }
     close_dialog($widget);
 }
@@ -3504,19 +3539,27 @@ sub change_preview {
                 my $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $row = $sth->fetchrow_hashref();
-                if ($row->{'textcolour'}) {
+                if ( $row->{'textcolour'} ne "NULL") {
                     $widgets->{'image'}->get_widget('entryImageFontColour')
                       ->set_text($row->{'textcolour'});
+                    $widgets->{'image'}->get_widget('colorbuttonFontColour')
+                      ->set_color(Gtk2::Gdk::Color->parse($row->{'textcolour'}));
                 } else {
                     $widgets->{'image'}->get_widget('entryImageFontColour')
-                      ->set_text($config->{'Colour'});
+                      ->set_text("Default");
+                    $widgets->{'image'}->get_widget('colorbuttonFontColour')
+                      ->set_color(Gtk2::Gdk::Color->parse($config->{'Colour'}));
                 }
-                if ($row->{'shadowcolor'}) {
+                if ($row->{'shadowcolour'} ne "NULL") {
                     $widgets->{'image'}->get_widget('entryImageShadowColour')
-                      ->set_text($row->{'shadowcolor'});
+                      ->set_text($row->{'shadowcolour'});
+                    $widgets->{'image'}->get_widget('colorbuttonShadowColour')
+                      ->set_color(Gtk2::Gdk::Color->parse($row->{'shadowcolour'}));
                 } else {
                     $widgets->{'image'}->get_widget('entryImageShadowColour')
-                      ->set_text($config->{'ShadowColour'});
+                      ->set_text("Default");
+                    $widgets->{'image'}->get_widget('colorbuttonShadowColour')
+                      ->set_color(Gtk2::Gdk::Color->parse($config->{'ShadowColour'}));
                 }
                 $widgets->{'image'}->get_widget('imageImage')
                   ->set_from_pixbuf($scaled);
@@ -5777,6 +5820,18 @@ sub change_bgimage {
             $widgets->{'image'}->get_widget('buttonImageOK')
               ->signal_connect('clicked', "close_dialog");
             $widgets->{'image'}->get_widget('hboxImageColour')->show();
+            $widgets->{'image'}->get_widget('entryImageFontColour')
+              ->signal_connect("button_press_event", "open_dialogColour", "ImageFont");
+            $widgets->{'image'}->get_widget('colorbuttonFontColour')
+              ->signal_connect("button_press_event", "open_dialogColour", "ImageFont");
+            $widgets->{'image'}->get_widget('entryImageFontColour')
+              ->signal_connect("changed", "change_colour_media");
+            $widgets->{'image'}->get_widget('entryImageShadowColour')
+              ->signal_connect("button_press_event", "open_dialogColour", "ImageShadow");
+            $widgets->{'image'}->get_widget('colorbuttonShadowColour')
+              ->signal_connect("button_press_event", "open_dialogColour", "ImageShadow");
+            $widgets->{'image'}->get_widget('entryImageShadowColour')
+              ->signal_connect("changed", "change_colour_media");
         }
         $widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
         my $renderer = Gtk2::CellRendererText->new;
@@ -6860,6 +6915,34 @@ sub rename_media {
     }
 }
 
+sub change_colour_media {
+    my ($widget, $id, $newcolour) = @_;
+    debug("change colour media");
+    my $oldcolour = $widget->get('text');
+    if (($newcolour) && ($oldcolour ne $newcolour)) {
+        debug("Changing text colour for media from " . $oldcolour . " to " . $newcolour);
+        my $iter =
+          $widgets->{'image'}->get_widget('treeImage')
+          ->get_model->get_iter_from_string($id);
+        $id =
+          $widgets->{'image'}->get_widget('treeImage')
+          ->get_model->get($iter, 1);
+#        my $query = "UPDATE media SET description=\"$newname\" WHERE id=$id";
+#        qdebug($query);
+#        my $sth = $mediaDbh->prepare($query)
+#          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+#        my $rv = $sth->execute
+#          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+#        update_imagedir(
+#            $widgets->{'image'}->get_widget('optionImageCategory')
+#              ->{'user_data'},
+#            $widgets->{'image'}->get_widget('optionImageCategory')
+#              ->get_menu->get_active->{user_data}
+#        );
+    }
+}
+
+
 sub restore_db {
     debug("Restoring DB");
 
@@ -7899,3 +7982,4 @@ sub add_to_playlist_search {
         update_playlist();
     }
 }
+
