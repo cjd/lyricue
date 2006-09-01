@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.194 2006/09/01 02:05:29 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.195 2006/09/01 02:09:13 cjdebenh Exp $;
 #****** lyricue/pod
 # NAME
 #   Pod documentation
@@ -317,15 +317,15 @@ my @admin_items = ("user_administration1");
 if ($ARGV[0]) {
     foreach (0 .. (@ARGV - 1)) {
         if ($ARGV[$_] eq "-v") {
-            print "Lyric Interface version " . $globals->{'version'} . "CVS".$ID."\n";
+            print "Lyric Interface version " . $globals->{'version'} . "\n";
             exit;
         } elsif ($ARGV[$_] eq "-l") {
             print_songs();
         } elsif ($ARGV[$_] eq "-b") {
             $globals->{'bg_previews'} = FALSE;
         } elsif ($ARGV[$_] eq "-d") {
-            debug ("Lyric Interface version " . $globals->{'version'} . "CVS".$ID);
             $globals->{'debugging'} = 1;
+            debug ("Lyric Interface version " . $globals->{'version'} . "\n".$ID);
         } elsif ($ARGV[$_] eq "-dq") {
             $globals->{'debugging'} = 2;
         } elsif ($ARGV[$_] eq "-sqlite") {

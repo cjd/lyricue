@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-
+my $ID = q$Id: lyricue_server,v 1.106 2006/09/01 02:09:13 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -239,6 +239,7 @@ if ($ARGV[0]) {
             $globals->{'server_type'} = SIMPLE;
         } elsif ($ARGV[$_] eq "-d") {
             $DEBUG = 1;
+            debug ("Lyric Server version " . $globals->{'version'} . "\n".$ID);
         } elsif ($ARGV[$_] eq "-m") {
             $MINISERV = $ARGV[$_ + 1];
             if (!$MINISERV =~ /\d+$/) {
