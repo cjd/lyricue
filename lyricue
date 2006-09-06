@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.195 2006/09/01 02:09:13 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.196 2006/09/06 07:23:16 cjdebenh Exp $;
 #****** lyricue/pod
 # NAME
 #   Pod documentation
@@ -3252,7 +3252,7 @@ sub create_dialogChapter {
         ($book, undef) = split(/\s\d/, $maxchap, 2);
 
         $command = sprintf(
-            "%s -b %s -k '%s' | grep '^%s'| tail -2 | head -1",
+            "%s -b %s -e UTF8 -k '%s' | grep '^%s'| tail -2 | head -1",
             $globals->{'diatheke'},
             $globals->{'bibledb'}, $book, $book
         );
@@ -3329,7 +3329,7 @@ sub create_dialogVerse {
     my $maxverse = 0;
     if ($globals->{'usesword'}) {
         my $command = sprintf(
-            "%s -b %s -k '%s' %d | grep '^%s' | tail -2 | head -1",
+            "%s -b %s -e UTF8 -k '%s' %d | grep '^%s' | tail -2 | head -1",
             $globals->{'diatheke'},
             $globals->{'bibledb'}, $book, $chapter, $book
         );
@@ -6674,7 +6674,7 @@ sub update_quickedit {
                 my @line = split(/:/, $row[0]);
                 if ($globals->{'usesword'}) {
                     my $command = sprintf(
-                        "%s -b %s -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",
+                        "%s -b %s -e UTF8 -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",
                         $globals->{'diatheke'},
                         $globals->{'bibledb'}, $line[0], $line[1], $startv,
                         $line[1], $endv, $line[0]
@@ -7378,7 +7378,7 @@ sub get_max_verse {
         my $line = "";
         if ($globals->{'usesword'}) {
             my $command = sprintf(
-                "%s -b %s -k '%s' %d:%d-%d | sed -e 's/^%s //g' | head -n -1",
+                "%s -b %s -e UTF8 -k '%s' %d:%d-%d | sed -e 's/^%s //g' | head -n -1",
                 $globals->{'diatheke'},
                 $globals->{'bibledb'}, $book, $chapter, $startverse, $versenum,
                 $book
