@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.196 2006/09/06 07:23:16 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.197 2006/09/14 06:35:27 cjdebenh Exp $;
 #****** lyricue/pod
 # NAME
 #   Pod documentation
@@ -732,11 +732,16 @@ sub add_playlist {
               ->expand_to_path($model->get_path($newiter));
         }
 
-        # Select what was selected
+        # Select what was selected and expand its parent
         if (defined $selectedid && $row->{'playorder'} == $selectedid) {
             debug("Selecting $selectedid");
-            $widgets->{'main'}->get_widget('treePlaylist')
-              ->expand_to_path($model->get_path($newiter));
+            my $path = $model->get_path($newiter);
+            my $pathstring = $path->to_string();
+            $pathstring =~ s/^(.*):(.*?)$/$1/g;
+            if (defined($2)) {
+                $widgets->{'main'}->get_widget('treePlaylist')
+                  ->expand_to_path(Gtk2::TreePath->new_from_string($pathstring));
+            }
             $widgets->{'main'}->get_widget('treePlaylist')
               ->get_selection->select_iter($newiter);
         }
@@ -4360,18 +4365,30 @@ sub move_item {
         debug("Moving item in " . $direction . " direction");
         my $query = "";
         my $item = $model->get($iter, 2);
+        my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
+        my $path = $model->get_path($iter);
+        my $pathstring = $path->to_string();
+        my $startstring = $pathstring;
+        $startstring =~ s/^(.*:)(.*?)$/$1/g;
+        my $endstring = $2;
+        if (! defined($2)) {
+            $endstring = $startstring;
+            $startstring = "";
+        }
         if ($direction > 0) {
             $query =
 "SELECT MIN(a.playorder) FROM playlist AS a, playlist AS b WHERE a.playlist=b.playlist AND a.playorder > "
               . $item
               . " AND b.playorder="
               . $item;
+            $endstring++;
         } else {
             $query =
 "SELECT MAX(a.playorder) FROM playlist AS a, playlist AS b WHERE a.playlist=b.playlist AND a.playorder < "
               . $item
               . " AND b.playorder="
               . $item;
+            $endstring--;
         }
         qdebug($query);
         my $sth = $lyricDbh->prepare($query)
@@ -4384,6 +4401,20 @@ sub move_item {
             renumber_item($item,   -1);
             renumber_item($row[0], $item);
             renumber_item(-1,      $row[0]);
+            $pathstring=$startstring.$endstring;
+            my $path2 = Gtk2::TreePath->new_from_string($pathstring);
+            my $path_state=$widgets->{'main'}->get_widget('treePlaylist')->row_expanded($path);
+            my $path2_state=$widgets->{'main'}->get_widget('treePlaylist')->row_expanded($path2);
+            if ($path_state) {
+                $widgets->{'main'}->get_widget('treePlaylist')->expand_row($path2,FALSE);
+            } else {
+                $widgets->{'main'}->get_widget('treePlaylist')->collapse_row($path2);
+            }
+            if ($path2_state) {
+                $widgets->{'main'}->get_widget('treePlaylist')->expand_row($path,FALSE);
+            } else {
+                $widgets->{'main'}->get_widget('treePlaylist')->collapse_row($path);
+            }
             update_playlist($row[0]);
         }
     }
