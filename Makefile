@@ -2,7 +2,7 @@ BINARIES = lyricue lyricue_remote lyricue_server import_media
 SHARE = lyricue.glade images/lyricue.png images/lyricue-icon.png
 SQL = mysql/MySQL_create_Table.sql mysql/MySQL_create_media.sql mysql/Update_1.2.sql mysql/Update_1.9.sql mysql/Update_1.9.4.sql
 DESKTOP = lyricue.desktop lyricue_server.desktop
-ETC = default.conf access.conf
+ETC = default.conf
 DOCS = docs/Development.txt docs/example_song.txt docs/AUTHORS docs/NEWS docs/README docs/song_template.txt docs/TODO
 INSTALL = /usr/bin/install -c -m 755
 INSTALLDATA = /usr/bin/install -c -m 644 -D
@@ -25,6 +25,9 @@ install:
 	$(INSTALLDATA) $(SQL) $(DESTDIR)/usr/share/lyricue/mysql
 
 	mkdir -p $(DESTDIR)/etc/lyricue
+	@if test ! -e access.conf; then \
+	   $(INSTALLDATA) access.conf $(DESTDIR)/etc/lyricue; \
+	fi
 	$(INSTALLDATA) $(ETC) $(DESTDIR)/etc/lyricue
 
 	mkdir -p $(DESTDIR)/usr/share/applications
