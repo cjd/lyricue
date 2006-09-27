@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.197 2006/09/14 06:35:27 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.198 2006/09/27 05:53:38 cjdebenh Exp $;
 #****** lyricue/pod
 # NAME
 #   Pod documentation
@@ -1936,13 +1936,26 @@ sub import_song {
 sub do_import_song {
     my ($widget, $filexml) = @_;
     debug("do import song");
-    my ($artist, $name, $keywords, $number, $book, $copyright) = "";
-    my $hashnum  = 0;
     my $filename = $filexml->get_widget('dialogFile')->get_filename;
 
-    open(SONG, $filename) || close_dialog($widget);
+    if ($filename =~ /txt$/) {
+        import_song_text($filename);
+    } elsif ($filename =~ /usr$/) {
+        import_song_songselect($filename);
+    } elsif ($filename =~ /opw$/) {
+        import_song_opw($filename);
+    }
+
+    close_dialog($widget);
+}
+
+sub import_song_text {
+    my ($filename) = @_;
+
+    my ($artist, $name, $keywords, $number, $book, $copyright) = "";
+    my $hashnum  = 0;
+    open(SONG, $filename) || return;
     while (<SONG>) {
-        debug($_);
         if (/^Name:/) {
             if (!$name) {
                 chomp;
@@ -2014,8 +2027,6 @@ sub do_import_song {
         }
     }
     close SONG;
-
-    close_dialog($widget);
 }
 
 #***
@@ -7556,6 +7567,46 @@ sub text_visibility_notify_event {
 sub import_song_from_file {
     my ($filename) = @_;
     import_song_opw($filename);
+}
+
+sub import_song_songselect {
+    my ($filename) = @_;
+    open(SONG, $filename) || return;
+    my $hashnum  = 0;
+
+    while (<SONG>) {
+        $_ =~ s///g;
+        chomp;
+        my @line = split(/=/,$_,2);
+        $_ = $line[0];
+        if (/Title/) {
+            $widgets->{'add'}->get_widget('entryEditName')->set_text($line[1]);
+        } elsif (/Author/) {
+            $widgets->{'add'}->get_widget('entryEditArtist')->set_text($line[1]);
+        } elsif (/Copyright/) {
+            $widgets->{'add'}->get_widget('entryEditCopyright')->set_text($line[1]);
+        } elsif (/Themes/) {
+            $line[1] =~ s/\/t/ /g;
+            $widgets->{'add'}->get_widget('entryEditKeywords')->set_text($line[1]);
+        } elsif (/Words/) {
+            my @words = split(/\/t/,$line[1]);
+            foreach (@words) {
+                if ($_ ne "") {
+                    $_ =~ s/\/n/\n/g;
+                    chomp;
+                    if ($hashnum == 0) {
+                        $widgets->{'textAPageB'}{$hashnum}->set_text($_);
+                        $hashnum++;
+                    } else {
+                        $hashnum = add_page();
+                        $widgets->{'textAPageB'}{$hashnum}->set_text($_);
+                    }
+                }
+            }
+        }
+    }
+    close SONG;
+
 }
 
 sub import_song_opw {
