@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 VERSION=`head -1 debian/changelog |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
 LC_ALL=C;export LC_ALL
@@ -45,7 +45,7 @@ done
 fi
 
 echo Pushing to repository
-cp dist/lyricue-cvs*deb dist/*.dsc dist/*.asc dist/*.gz  /var/www/debian
+cp dist/lyricue-cvs*deb dist/*.dsc dist/*.asc dist/*.gz dist/*.changes  /var/www/debian
 cd /var/www/debian
 rm Packages.gz Sources.gz Release Release.gpg
 apt-ftparchive packages . > Packages
