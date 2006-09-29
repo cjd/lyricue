@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.200 2006/09/29 02:52:35 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.201 2006/09/29 02:56:26 cjdebenh Exp $;
+
 #****** lyricue/pod
 # NAME
 #   Pod documentation
@@ -325,7 +326,9 @@ if ($ARGV[0]) {
             $globals->{'bg_previews'} = FALSE;
         } elsif ($ARGV[$_] eq "-d") {
             $globals->{'debugging'} = 1;
-            debug ("Lyric Interface version " . $globals->{'version'} . "\n".$ID);
+            debug(  "Lyric Interface version "
+                  . $globals->{'version'} . "\n"
+                  . $ID);
         } elsif ($ARGV[$_] eq "-dq") {
             $globals->{'debugging'} = 2;
         } elsif ($ARGV[$_] eq "-sqlite") {
@@ -735,12 +738,13 @@ sub add_playlist {
         # Select what was selected and expand its parent
         if (defined $selectedid && $row->{'playorder'} == $selectedid) {
             debug("Selecting $selectedid");
-            my $path = $model->get_path($newiter);
+            my $path       = $model->get_path($newiter);
             my $pathstring = $path->to_string();
             $pathstring =~ s/^(.*):(.*?)$/$1/g;
             if (defined($2)) {
                 $widgets->{'main'}->get_widget('treePlaylist')
-                  ->expand_to_path(Gtk2::TreePath->new_from_string($pathstring));
+                  ->expand_to_path(
+                    Gtk2::TreePath->new_from_string($pathstring));
             }
             $widgets->{'main'}->get_widget('treePlaylist')
               ->get_selection->select_iter($newiter);
@@ -1351,8 +1355,7 @@ sub do_save_song {
                         "iso-8859-1",
                         get_buffer_text($widgets->{'textAPageB'}{$page})
                     )
-                  )
-                  . ")";
+                  ) . ")";
                 qdebug($query);
                 $sth = $lyricDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -1435,43 +1438,37 @@ sub do_save_song {
                 "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditName')->get_text()
             )
-          )
-          . ",";
+        ) . ",";
         $query .= quote(
             Encode::encode(
                 "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditNumber')->get_text()
             )
-          )
-          . ",";
+        ) . ",";
         $query .= quote(
             Encode::encode(
                 "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditBook')->get_text()
             )
-          )
-          . ",";
+        ) . ",";
         $query .= quote(
             Encode::encode(
                 "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditArtist')->get_text()
             )
-          )
-          . ",";
+        ) . ",";
         $query .= quote(
             Encode::encode(
                 "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditKeywords')->get_text()
             )
-          )
-          . ",";
+        ) . ",";
         $query .= quote(
             Encode::encode(
                 "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
             )
-          )
-          . ")";
+        ) . ")";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -1488,8 +1485,7 @@ sub do_save_song {
                     "iso-8859-1",
                     get_buffer_text($widgets->{'textAPageB'}{$page})
                 )
-              )
-              . ")";
+              ) . ")";
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -1936,7 +1932,7 @@ sub import_song {
 sub do_import_song {
     my ($widget, $filexml) = @_;
     debug("do import song");
-    my $filename = $filexml->get_widget('dialogFile')->get_filename;
+    my $filename   = $filexml->get_widget('dialogFile')->get_filename;
     my $lcfilename = lc($filename);
 
     if ($lcfilename =~ /txt$/) {
@@ -1955,7 +1951,7 @@ sub import_song_text {
     debug("import text song");
 
     my ($artist, $name, $keywords, $number, $book, $copyright) = "";
-    my $hashnum  = 0;
+    my $hashnum = 0;
     open(SONG, $filename) || return;
     while (<SONG>) {
         if (/^Name:/) {
@@ -2409,8 +2405,11 @@ sub display_song {
     if (defined($event->type)) {
         if (
             ($event->type eq '2button-press')
-            || (   ($event->type eq 'key-press')
-                && ( ($event->keyval == $Gtk2::Gdk::Keysyms{Return}) || ($event->keyval == $Gtk2::Gdk::Keysyms{Enter}) ))
+            || (
+                ($event->type eq 'key-press')
+                && (   ($event->keyval == $Gtk2::Gdk::Keysyms{Return})
+                    || ($event->keyval == $Gtk2::Gdk::Keysyms{Enter}))
+            )
           )
         {
             reset_timer($globals->{'timer'});
@@ -3131,19 +3130,33 @@ sub open_dialogColour {
       ->set_title(Encode::decode("utf-8", gettext("Select ")) . $item
           . Encode::decode("utf-8", gettext(" Colour")));
     $colourxml->get_widget('dialogColour')->{'user_data'} = $item;
+
     if ($item eq "Font") {
-        $colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'prefs'}->get_widget('entryPrefColour')->get_text()));
+        $colourxml->get_widget('colourSelect')->set_current_color(
+            Gtk2::Gdk::Color->parse(
+                $widgets->{'prefs'}->get_widget('entryPrefColour')->get_text()
+            )
+        );
     }
     if ($item eq "Shadow") {
-        $colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'prefs'}->get_widget('entryPrefShadowColour')->get_text()));
+        $colourxml->get_widget('colourSelect')->set_current_color(
+            Gtk2::Gdk::Color->parse(
+                $widgets->{'prefs'}->get_widget('entryPrefShadowColour')
+                  ->get_text()
+            )
+        );
     }
     if ($item eq "ImageFont") {
-        #$colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'image'}->get_widget('entryImageFontColour')->get_text()));
-        $colourxml->get_widget('colourSelect')->set_current_color($widget->get_color());
+
+#$colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'image'}->get_widget('entryImageFontColour')->get_text()));
+        $colourxml->get_widget('colourSelect')
+          ->set_current_color($widget->get_color());
     }
     if ($item eq "ImageShadow") {
-        #$colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'image'}->get_widget('entryImageShadowColour')->get_text()));
-        $colourxml->get_widget('colourSelect')->set_current_color($widget->get_color());
+
+#$colourxml->get_widget('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'image'}->get_widget('entryImageShadowColour')->get_text()));
+        $colourxml->get_widget('colourSelect')
+          ->set_current_color($widget->get_color());
     }
     $colourxml->get_widget('buttonColourOK')
       ->signal_connect("clicked", "change_font_colour", $colourxml);
@@ -3197,8 +3210,7 @@ sub change_font_colour {
         $widgets->{'prefs'}->get_widget('entryPrefShadowColour')
           ->set_text($color2);
     } elsif ($item eq "Font") {
-        $widgets->{'prefs'}->get_widget('entryPrefColour')
-          ->set_text($color2);
+        $widgets->{'prefs'}->get_widget('entryPrefColour')->set_text($color2);
     } elsif ($item eq "ImageShadow") {
         $widgets->{'image'}->get_widget('entryImageShadowColour')
           ->set_text($color2);
@@ -3557,11 +3569,12 @@ sub change_preview {
                 my $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $row = $sth->fetchrow_hashref();
-                if ( $row->{'textcolour'} ne "NULL") {
+                if ($row->{'textcolour'} ne "NULL") {
                     $widgets->{'image'}->get_widget('entryImageFontColour')
                       ->set_text($row->{'textcolour'});
                     $widgets->{'image'}->get_widget('colorbuttonFontColour')
-                      ->set_color(Gtk2::Gdk::Color->parse($row->{'textcolour'}));
+                      ->set_color(
+                        Gtk2::Gdk::Color->parse($row->{'textcolour'}));
                 } else {
                     $widgets->{'image'}->get_widget('entryImageFontColour')
                       ->set_text("Default");
@@ -3572,12 +3585,14 @@ sub change_preview {
                     $widgets->{'image'}->get_widget('entryImageShadowColour')
                       ->set_text($row->{'shadowcolour'});
                     $widgets->{'image'}->get_widget('colorbuttonShadowColour')
-                      ->set_color(Gtk2::Gdk::Color->parse($row->{'shadowcolour'}));
+                      ->set_color(
+                        Gtk2::Gdk::Color->parse($row->{'shadowcolour'}));
                 } else {
                     $widgets->{'image'}->get_widget('entryImageShadowColour')
                       ->set_text("Default");
                     $widgets->{'image'}->get_widget('colorbuttonShadowColour')
-                      ->set_color(Gtk2::Gdk::Color->parse($config->{'ShadowColour'}));
+                      ->set_color(
+                        Gtk2::Gdk::Color->parse($config->{'ShadowColour'}));
                 }
                 $widgets->{'image'}->get_widget('imageImage')
                   ->set_from_pixbuf($scaled);
@@ -4377,15 +4392,16 @@ sub move_item {
     if ($iter) {
         debug("Moving item in " . $direction . " direction");
         my $query = "";
-        my $item = $model->get($iter, 2);
+        my $item  = $model->get($iter, 2);
         my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
-        my $path = $model->get_path($iter);
-        my $pathstring = $path->to_string();
+        my $path  = $model->get_path($iter);
+        my $pathstring  = $path->to_string();
         my $startstring = $pathstring;
         $startstring =~ s/^(.*:)(.*?)$/$1/g;
         my $endstring = $2;
-        if (! defined($2)) {
-            $endstring = $startstring;
+
+        if (!defined($2)) {
+            $endstring   = $startstring;
             $startstring = "";
         }
         if ($direction > 0) {
@@ -4414,19 +4430,27 @@ sub move_item {
             renumber_item($item,   -1);
             renumber_item($row[0], $item);
             renumber_item(-1,      $row[0]);
-            $pathstring=$startstring.$endstring;
-            my $path2 = Gtk2::TreePath->new_from_string($pathstring);
-            my $path_state=$widgets->{'main'}->get_widget('treePlaylist')->row_expanded($path);
-            my $path2_state=$widgets->{'main'}->get_widget('treePlaylist')->row_expanded($path2);
+            $pathstring = $startstring . $endstring;
+            my $path2      = Gtk2::TreePath->new_from_string($pathstring);
+            my $path_state =
+              $widgets->{'main'}->get_widget('treePlaylist')
+              ->row_expanded($path);
+            my $path2_state =
+              $widgets->{'main'}->get_widget('treePlaylist')
+              ->row_expanded($path2);
             if ($path_state) {
-                $widgets->{'main'}->get_widget('treePlaylist')->expand_row($path2,FALSE);
+                $widgets->{'main'}->get_widget('treePlaylist')
+                  ->expand_row($path2, FALSE);
             } else {
-                $widgets->{'main'}->get_widget('treePlaylist')->collapse_row($path2);
+                $widgets->{'main'}->get_widget('treePlaylist')
+                  ->collapse_row($path2);
             }
             if ($path2_state) {
-                $widgets->{'main'}->get_widget('treePlaylist')->expand_row($path,FALSE);
+                $widgets->{'main'}->get_widget('treePlaylist')
+                  ->expand_row($path, FALSE);
             } else {
-                $widgets->{'main'}->get_widget('treePlaylist')->collapse_row($path);
+                $widgets->{'main'}->get_widget('treePlaylist')
+                  ->collapse_row($path);
             }
             update_playlist($row[0]);
         }
@@ -5865,15 +5889,19 @@ sub change_bgimage {
               ->signal_connect('clicked', "close_dialog");
             $widgets->{'image'}->get_widget('hboxImageColour')->show();
             $widgets->{'image'}->get_widget('entryImageFontColour')
-              ->signal_connect("button_press_event", "open_dialogColour", "ImageFont");
+              ->signal_connect("button_press_event", "open_dialogColour",
+                "ImageFont");
             $widgets->{'image'}->get_widget('colorbuttonFontColour')
-              ->signal_connect("button_press_event", "open_dialogColour", "ImageFont");
+              ->signal_connect("button_press_event", "open_dialogColour",
+                "ImageFont");
             $widgets->{'image'}->get_widget('entryImageFontColour')
               ->signal_connect("changed", "change_colour_media");
             $widgets->{'image'}->get_widget('entryImageShadowColour')
-              ->signal_connect("button_press_event", "open_dialogColour", "ImageShadow");
+              ->signal_connect("button_press_event", "open_dialogColour",
+                "ImageShadow");
             $widgets->{'image'}->get_widget('colorbuttonShadowColour')
-              ->signal_connect("button_press_event", "open_dialogColour", "ImageShadow");
+              ->signal_connect("button_press_event", "open_dialogColour",
+                "ImageShadow");
             $widgets->{'image'}->get_widget('entryImageShadowColour')
               ->signal_connect("changed", "change_colour_media");
         }
@@ -6964,28 +6992,30 @@ sub change_colour_media {
     debug("change colour media");
     my $oldcolour = $widget->get('text');
     if (($newcolour) && ($oldcolour ne $newcolour)) {
-        debug("Changing text colour for media from " . $oldcolour . " to " . $newcolour);
+        debug(  "Changing text colour for media from "
+              . $oldcolour . " to "
+              . $newcolour);
         my $iter =
           $widgets->{'image'}->get_widget('treeImage')
           ->get_model->get_iter_from_string($id);
         $id =
           $widgets->{'image'}->get_widget('treeImage')
           ->get_model->get($iter, 1);
-#        my $query = "UPDATE media SET description=\"$newname\" WHERE id=$id";
-#        qdebug($query);
-#        my $sth = $mediaDbh->prepare($query)
-#          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-#        my $rv = $sth->execute
-#          || display_fatal($errorcodes->{'sqlexecute'}, $!);
-#        update_imagedir(
-#            $widgets->{'image'}->get_widget('optionImageCategory')
-#              ->{'user_data'},
-#            $widgets->{'image'}->get_widget('optionImageCategory')
-#              ->get_menu->get_active->{user_data}
-#        );
+
+  #        my $query = "UPDATE media SET description=\"$newname\" WHERE id=$id";
+  #        qdebug($query);
+  #        my $sth = $mediaDbh->prepare($query)
+  #          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+  #        my $rv = $sth->execute
+  #          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+  #        update_imagedir(
+  #            $widgets->{'image'}->get_widget('optionImageCategory')
+  #              ->{'user_data'},
+  #            $widgets->{'image'}->get_widget('optionImageCategory')
+  #              ->get_menu->get_active->{user_data}
+  #        );
     }
 }
-
 
 sub restore_db {
     debug("Restoring DB");
@@ -7422,7 +7452,7 @@ sub get_max_verse {
         my $line = "";
         if ($globals->{'usesword'}) {
             my $command = sprintf(
-                "%s -b %s -e UTF8 -k '%s' %d:%d-%d | sed -e 's/^%s //g' | head -n -1",
+"%s -b %s -e UTF8 -k '%s' %d:%d-%d | sed -e 's/^%s //g' | head -n -1",
                 $globals->{'diatheke'},
                 $globals->{'bibledb'}, $book, $chapter, $startverse, $versenum,
                 $book
@@ -7575,24 +7605,27 @@ sub import_song_songselect {
     my ($filename) = @_;
     debug("import songselect song");
     open(SONG, $filename) || return;
-    my $hashnum  = 0;
+    my $hashnum = 0;
 
     while (<SONG>) {
         $_ =~ s///g;
         chomp;
-        my @line = split(/=/,$_,2);
+        my @line = split(/=/, $_, 2);
         $_ = $line[0];
         if (/Title/) {
             $widgets->{'add'}->get_widget('entryEditName')->set_text($line[1]);
         } elsif (/Author/) {
-            $widgets->{'add'}->get_widget('entryEditArtist')->set_text($line[1]);
+            $widgets->{'add'}->get_widget('entryEditArtist')
+              ->set_text($line[1]);
         } elsif (/Copyright/) {
-            $widgets->{'add'}->get_widget('entryEditCopyright')->set_text($line[1]);
+            $widgets->{'add'}->get_widget('entryEditCopyright')
+              ->set_text($line[1]);
         } elsif (/Themes/) {
             $line[1] =~ s/\/t/ /g;
-            $widgets->{'add'}->get_widget('entryEditKeywords')->set_text($line[1]);
+            $widgets->{'add'}->get_widget('entryEditKeywords')
+              ->set_text($line[1]);
         } elsif (/Words/) {
-            my @words = split(/\/t/,$line[1]);
+            my @words = split(/\/t/, $line[1]);
             foreach (@words) {
                 if ($_ ne "") {
                     $_ =~ s/\/n/\n/g;
@@ -7615,8 +7648,8 @@ sub import_song_songselect {
 sub import_song_opw {
     my ($filename) = @_;
     debug("import opw song");
-    my $input = "";
-    my $hashnum  = 0;
+    my $input   = "";
+    my $hashnum = 0;
 
     open(OPW, $filename) || die("Unable to open $filename");
     while (<OPW>) {
@@ -8018,8 +8051,7 @@ sub db_connect {
               . $config->{'DatabaseType'}
               . ":database=$dbname;host=$globals->{'host'}",
             "lyric", ""
-          )
-          || display_fatal($dberror, $DBI::errstr);
+        ) || display_fatal($dberror, $DBI::errstr);
     }
     return $dbh;
 }
@@ -8061,8 +8093,7 @@ sub db_select {
         my $sqldb = DBI->connect(
             "DBI:" . $config->{'DatabaseType'} . ":mysql:" . $globals->{'host'},
             "lyric", ""
-          )
-          || db_install_user();
+        ) || db_install_user();
         if ($sqldb) {
             $sqldb->disconnect();
         }
