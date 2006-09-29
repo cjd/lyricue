@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.199 2006/09/27 06:20:10 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.200 2006/09/29 02:52:35 cjdebenh Exp $;
 #****** lyricue/pod
 # NAME
 #   Pod documentation
@@ -7762,6 +7762,8 @@ sub db_install_user {
 "insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'"
           );
         $sth->execute;
+        $sth = $dbh->prepare("flush privileges");
+        $sth->execute;
         debug("Done\n");
     }
     db_check_databases();
@@ -8061,7 +8063,9 @@ sub db_select {
             "lyric", ""
           )
           || db_install_user();
-        $sqldb->disconnect();
+        if ($sqldb) {
+            $sqldb->disconnect();
+        }
     }
     db_check_databases();
     $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
