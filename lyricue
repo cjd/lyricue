@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.203 2006/10/10 01:47:26 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.204 2006/10/10 02:03:59 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -795,7 +795,7 @@ sub change_sort_order {
     } elsif ($column == 3) {
         $globals->{'sortby'} = "id";
     } elsif ($column == 4) {
-        $globals->{'sortby'} = "book,songnum";
+        $globals->{'sortby'} = "book,songnum,title";
     } elsif ($column == 5) {
         $globals->{'sortby'} = "book,title";
     } else {
@@ -975,13 +975,13 @@ sub popup_avail_menu {
             ],
             [
                 Encode::decode("utf-8", gettext("/Order - Songbook -> No.")),
-                undef, 'change_sort_order', 1, '', ''
+                undef, 'change_sort_order', 4, '', ''
             ],
             [
                 Encode::decode("utf-8", gettext("/Order - Songbook -> Name.")),
                 undef,
                 'change_sort_order',
-                1,
+                5,
                 '',
                 ''
             ]
