@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.202 2006/10/10 01:43:50 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.203 2006/10/10 01:47:26 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -145,7 +145,7 @@ $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
 $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 
 $globals->{'host'}        = "localhost";
-$globals->{'mysqlhost'}      = "localhost";
+$globals->{'mysqlhost'}   = "";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
 $globals->{'biblename'}   = "";
@@ -357,6 +357,11 @@ if ($ARGV[0]) {
             exit;
         }
     }
+}
+
+# Set mysql host if not already set
+if ($globals->{'mysqlhost'} eq "") {
+    $globals->{'mysqlhost'} = $globals->{'host'};
 }
 
 # Some global stuff
