@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.107 2006/10/10 02:10:20 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.108 2006/10/10 23:29:27 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -1093,11 +1093,13 @@ sub process_input {
                                 gettext("Written by ")
                               . $row2->{'artist'}
                         }
-                        if ($row2->{'copyright'} =~ /^Preset/) {
-                            $row2->{'copyright'} =~ s/^.*([0-9]).*$/$1/g;
-                            $footer .= " - ". $preset[$row2->{'copyright'}];
-                        } elsif ($row2->{'copyright'} ne "") {
-                            $footer .= " - ". $row2->{'copyright'};
+                        if ($row2->{'copyright'} ne "") {
+                            if ($row2->{'copyright'} =~ /^Preset/) {
+                                $row2->{'copyright'} =~ s/^.*([0-9]).*$/$1/g;
+                                $footer .= " - ". $preset[$row2->{'copyright'}];
+                            } else {
+                                $footer .= " - ". $row2->{'copyright'};
+                            }
                         }
 
                         # Determine if this is a multi-point page

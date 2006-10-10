@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.204 2006/10/10 02:03:59 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.205 2006/10/10 23:29:27 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7663,7 +7663,7 @@ sub import_song_opw {
 
     open(OPW, $filename) || die("Unable to open $filename");
     while (<OPW>) {
-        $input .= $_;
+        $input .= Encode::decode("cp-1252",$_);
     }
     close OPW;
 
