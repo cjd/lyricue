@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.201 2006/09/29 02:56:26 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.202 2006/10/10 01:43:50 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -145,6 +145,7 @@ $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
 $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 
 $globals->{'host'}        = "localhost";
+$globals->{'mysqlhost'}      = "localhost";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
 $globals->{'biblename'}   = "";
@@ -264,6 +265,7 @@ $errorcodes->{'usage'} = Encode::decode(
           . "\t-l:  Outputs song list in HTML & exits\n"
           . "\t-b:  Loads Lyricue without background previews\n"
           . "\t-s:  Specify the host on which the lyric server is located\n"
+          . "\t-m:  Specify the host on which the mysql server is located\n"
           . "\t-d:  Prints debugging messages\n"
           . "\t-w:  Don't maximize on startup\n"
           . "\t-dq: Prints debugging messages + sql\n\n"
@@ -337,6 +339,9 @@ if ($ARGV[0]) {
             $globals->{'run_windowed'} = TRUE;
         } elsif ($ARGV[$_] eq "-s") {
             $globals->{'host'} = $ARGV[$_ + 1];
+            $ARGV[$_ + 1] = "";
+        } elsif ($ARGV[$_] eq "-m") {
+            $globals->{'mysqlhost'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-i") {
             import_song_from_file($ARGV[$_ + 1]);
@@ -6346,7 +6351,7 @@ sub init_preview {
             debug(
                 sprintf(
                     "lyricue_server -s %s -m %d -p %d",
-                    $globals->{'host'}, $widgets->{'preview'}->get_id,
+                    $globals->{'mysqlhost'}, $widgets->{'preview'}->get_id,
                     $globals->{'preview_port'}
                 )
             );
@@ -6365,7 +6370,7 @@ sub init_preview {
                 exec(
                     sprintf(
                         "lyricue_server -s %s -m %d -p %d\n",
-                        $globals->{'host'},
+                        $globals->{'mysqlhost'},
                         $widgets->{'preview'}->get_id,
                         $globals->{'preview_port'}
                     )
@@ -6409,7 +6414,7 @@ sub init_miniview {
             debug(
                 sprintf(
                     "lyricue_server -s %s -m %d -p %d\n",
-                    $globals->{'host'},
+                    $globals->{'mysqlhost'},
                     $widgets->{'miniview'}->get_id,
                     $globals->{'miniview_port'}
                 )
@@ -6425,7 +6430,7 @@ sub init_miniview {
                 exec(
                     sprintf(
                         "lyricue_server -s %s -m %d -p %d\n",
-                        $widgets->{'miniview'}->get_id, $globals->{'host'},
+                        $widgets->{'miniview'}->get_id, $globals->{'mysqlhost'},
                         $globals->{'miniview_port'}
                     )
                 );
@@ -7751,7 +7756,7 @@ sub db_install_user {
                 "DBI:"
                   . $config->{'DatabaseType'}
                   . ":mysql:"
-                  . $globals->{'host'},
+                  . $globals->{'mysqlhost'},
                 $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
             );
         };
@@ -7806,7 +7811,7 @@ sub db_check_databases {
     debug("Update/install databases");
     if ($config->{'DatabaseType'} eq "mysql") {
         my @dbs = DBI->data_sources($config->{'DatabaseType'},
-            {"host" => $globals->{'host'}, "user" => "lyric"});
+            {"host" => $globals->{'mysqlhost'}, "user" => "lyric"});
 
         foreach (@dbs) {
             $_ =~ s/^DBI:.*://g;
@@ -7857,7 +7862,7 @@ sub db_reload {
         my $rc  = $drh->func(
             "reload",
             [
-                $globals->{'host'}, $globals->{'db_adminuser'},
+                $globals->{'mysqlhost'}, $globals->{'db_adminuser'},
                 $globals->{'adminpassword'},
             ],
             'admin'
@@ -7874,7 +7879,7 @@ sub db_installdb {
     if ($config->{'DatabaseType'} eq "mysql") {
         system( "cat " . $db_file
               . " | mysql -h "
-              . $globals->{'host'} . " -u "
+              . $globals->{'mysqlhost'} . " -u "
               . $globals->{'db_adminuser'}
               . " --password="
               . $globals->{'db_adminpassword'});
@@ -8049,7 +8054,7 @@ sub db_connect {
         $dbh = DBI->connect(
             "DBI:"
               . $config->{'DatabaseType'}
-              . ":database=$dbname;host=$globals->{'host'}",
+              . ":database=$dbname;host=$globals->{'mysqlhost'}",
             "lyric", ""
         ) || display_fatal($dberror, $DBI::errstr);
     }
@@ -8091,7 +8096,7 @@ sub db_select {
     # Open lyricDB, bibleDB and mediaDb
     if ($config->{'DatabaseType'} eq "mysql") {
         my $sqldb = DBI->connect(
-            "DBI:" . $config->{'DatabaseType'} . ":mysql:" . $globals->{'host'},
+            "DBI:" . $config->{'DatabaseType'} . ":mysql:" . $globals->{'mysqlhost'},
             "lyric", ""
         ) || db_install_user();
         if ($sqldb) {
