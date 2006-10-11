@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.108 2006/10/10 23:29:27 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.109 2006/10/11 00:02:15 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -245,7 +245,7 @@ if ($ARGV[0]) {
             if (!$MINISERV =~ /\d+$/) {
                 $MINISERV = 0;
             }
-        } elsif ($ARGV[$_] eq "-s") {
+        } elsif ($ARGV[$_] eq "-r") {
             $globals->{'host'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-p") {
@@ -256,10 +256,10 @@ if ($ARGV[0]) {
             $globals->{'run_windowed'} = TRUE;
         } elsif (($ARGV[$_] =~ /^\d+$/) || ($ARGV[$_] eq "")) {
         } else {
-            print "\nUsage: lyricue_server <-v> <-m> <-c> <-d>\n\n";
+            print "\nUsage: lyricue_server <-v> <-m> <-c> <-d> <-r hostname> <-w>\n\n";
             print "\t-v: Prints Lyricue version information & exits\n";
             print "\t-d: Prints debugging messages\n";
-            print "\t-s: Hostname where sql server is running\n";
+            print "\t-r: Remote hostname where sql server is running\n";
             print "\t-m: Runs in miniserv mode (acts as a preview window)\n";
             print "\t-w: Runs in a window (rather than fullscreen\n";
             print "\t-t: Runs with tranparent server\n";
