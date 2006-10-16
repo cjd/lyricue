@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.109 2006/10/11 00:02:15 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.110 2006/10/16 04:10:34 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -442,13 +442,15 @@ sub process_input {
             set_header("");
             set_maintext("", NONE, FALSE);
             set_footer("");
-            $status = gettext("Screen blanked");
 
             #reset_timer($globals->{'snapshot_timer'});
             #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
             if ($line[1] ne "") {
                 $config->{'BGImage'} = $line[1];
                 change_backdrop($config->{'BGImage'});
+                $status = gettext("Screen blanked");
+            } else {
+                $status = gettext("Text cleared");
             }
             $globals->{'blanked_state'} = TRUE;
         } elsif (/^change_to_db$/) {
