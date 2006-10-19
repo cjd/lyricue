@@ -28,7 +28,7 @@ case "$1" in
     configure)
 	PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }' | head -1`
 	cd /usr/share/lyricue
-    if [ "`mysql -udebian-sys-maint -p"$PASS" -e "show databases" | grep nltDb`" == "" ]
+    if [ "`mysql -udebian-sys-maint -p"$PASS" -e "show databases" | grep nltDb`" = "" ]
         then cat mysql/MySQL_create_bible_NLT.sql | mysql -udebian-sys-maint -p"$PASS"
     fi
     ;;
