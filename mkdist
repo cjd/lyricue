@@ -29,7 +29,8 @@ echo Making Bible packages
 if [ "$1" = "-b" ]
 then echo Making bibles
 for DB in KJV MES NIV NLT
-    do DISTDIR=dist/lyricue-bible-$DB
+    do DB_LOWER=`echo $DB | tr [:upper:] [:lower:]`
+    DISTDIR=dist/lyricue-bible-$DB_LOWER
     mkdir $DISTDIR
     mkdir $DISTDIR/mysql
     mkdir $DISTDIR/debian
@@ -45,7 +46,7 @@ done
 fi
 
 echo Pushing to repository
-cp dist/lyricue-cvs*deb dist/*.dsc dist/*.asc dist/*.gz dist/*.changes  /var/www/debian
+cp dist/*deb dist/*.dsc dist/*.asc dist/*.gz dist/*.changes  /var/www/debian
 cd /var/www/debian
 rm Packages.gz Sources.gz Release Release.gpg
 apt-ftparchive packages . > Packages

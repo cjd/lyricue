@@ -25,7 +25,7 @@ case "$1" in
 	   . /usr/share/debconf/confmodule
        # Remove my changes to the db.
 	   db_purge
-       PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }'`
+       PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }' | head -1`
        echo "DROP DATABASE nltDb;" | mysql -udebian-sys-maint -p"$PASS" 
 
        fi

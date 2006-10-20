@@ -3,7 +3,7 @@
 # based on the sample debian/rules file for GNU hello by Ian Jackson.
 
 bible=NIV
-package=lyricue-bible-$(bible)
+package=lyricue-bible-niv
 
 build:
 	$(checkdir)
@@ -13,22 +13,22 @@ clean:
 	$(checkdir)
 	rm -f build
 	rm -f `find . -name "*~"`
-	rm -rf debian/tmp debian/files* core debian/substvars
+	rm -rf debian/$(package) debian/files* core debian/substvars
 
 binary-indep: checkroot
 	$(checkdir)
 	rm -f build
-	rm -rf debian/tmp
-	install -d debian/tmp
-	cd debian/tmp && install -d `cat ../dirs`
-	install --mode=644 mysql/MySQL_create_bible_$(bible).sql `pwd`/debian/tmp/usr/share/lyricue/mysql/
+	rm -rf debian/$(package)
+	install -d debian/$(package)
+	cd debian/$(package) && install -d `cat ../dirs`
+	install --mode=644 mysql/MySQL_create_bible_$(bible).sql `pwd`/debian/$(package)/usr/share/lyricue/mysql/
 	dh_installchangelogs
-	dh_perl
-	debstd 
-	dpkg-gencontrol -isp
-	chown -R root:root debian/tmp
-	chmod -R go=rX debian/tmp
-	dpkg --build debian/tmp ..
+	dh_compress -i -p$(package)
+	dh_fixperms -i -p$(package)
+	dh_installdeb -i -p$(package)
+	dh_gencontrol -i -p$(package)
+	dh_md5sums -i -p$(package)
+	dh_builddeb -i -p$(package)
 
 define checkdir
 	test -f debian/rules
