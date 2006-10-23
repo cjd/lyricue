@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.110 2006/10/16 04:10:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.111 2006/10/23 01:42:44 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -928,7 +928,7 @@ sub process_input {
                                     if ($exec_pid > 0) {
 
                                         my $command =
-"mplayer -loop 0 -zoom -really-quiet -fs -noconsolecontrols "
+$config->{'MPlayer'} . " -loop 0 -zoom -really-quiet -fs -noconsolecontrols "
                                           . $row->{'data'};
                                         debug($command);
 
@@ -1552,6 +1552,9 @@ sub load_config {
     }
     $conf->{'AppCount'} = $appCount;
     $conf->{'Bibles'}   = get_bibles();
+    if (! defined($conf->{'MPlayer'})) {
+        $conf->{'MPlayer'} = "mplayer";
+    }
     return $conf;
 }
 
