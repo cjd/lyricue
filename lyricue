@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.206 2006/10/11 00:02:15 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.207 2006/10/24 03:10:33 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6435,7 +6435,7 @@ sub init_miniview {
                 exec(
                     sprintf(
                         "lyricue_server -r %s -m %d -p %d\n",
-                        $widgets->{'miniview'}->get_id, $globals->{'mysqlhost'},
+                        $globals->{'mysqlhost'}, $widgets->{'miniview'}->get_id,
                         $globals->{'miniview_port'}
                     )
                 );
