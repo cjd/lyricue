@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.207 2006/10/24 03:10:33 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.208 2006/11/23 00:52:34 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -102,7 +102,7 @@ if ($@) {
     print "Gettext not available, english text only\n";
 
     sub gettext {
-        return $@;
+        return $_[0];
     }
 } else {
     import Locale::gettext;
@@ -126,10 +126,15 @@ binmode(STDERR, ":utf8");
 #
 my ($globals);
 
-$globals->{'etcdir'}   = "/etc/lyricue/";
-$globals->{'basedir'}  = $ENV{'HOME'} . "/.lyricue/";
-$globals->{'sharedir'} = "/usr/share/lyricue/";
-
+if ($^O eq 'MSWin32') {
+    $globals->{'etcdir'}   = "etc/lyricue/";
+    $globals->{'basedir'}  = ".lyricue/";
+    $globals->{'sharedir'} = "";
+} else {
+    $globals->{'etcdir'}   = "/etc/lyricue/";
+    $globals->{'basedir'}  = $ENV{'HOME'} . "/.lyricue/";
+    $globals->{'sharedir'} = "/usr/share/lyricue/";
+}
 #
 # You shouldn't have to change anything after this line
 #
@@ -154,8 +159,12 @@ $globals->{'usesword'}    = TRUE;
 $globals->{'mediadb'}     = "mediaDb";
 $globals->{'sortby'}      = "title";
 $globals->{'bg_previews'} = TRUE;
-$globals->{'diatheke'}    = `which diatheke`;
-chomp $globals->{'diatheke'};
+if ($^O eq 'MSWin32') {
+    $globals->{'diatheke'}    = "";
+} else {
+    $globals->{'diatheke'}    = `which diatheke`;
+    chomp $globals->{'diatheke'};
+}
 $globals->{'server_port'}        = "2346";    #port used for lyric server
 $globals->{'preview_port'}       = "2347";    #port used for preview
 $globals->{'miniview_port'}      = "2348";    #port used for miniview
@@ -836,13 +845,16 @@ sub update_available {
     } else {
         $widgets->{'main'}->get_widget('treeAvailable')->{user_data} = "load";
         my $column1 =
-          Gtk2::TreeViewColumn->new_with_attributes(gettext("Title"),
+          Gtk2::TreeViewColumn->new_with_attributes(
+          Encode::decode("utf-8", gettext("Title")),
             Gtk2::CellRendererText->new, text => 0);
         my $column2 =
-          Gtk2::TreeViewColumn->new_with_attributes(gettext("Book"),
+          Gtk2::TreeViewColumn->new_with_attributes(
+          Encode::decode("utf-8", gettext("Book")),
             Gtk2::CellRendererText->new, text => 1);
         my $column3 =
-          Gtk2::TreeViewColumn->new_with_attributes(gettext("Song Number"),
+          Gtk2::TreeViewColumn->new_with_attributes(
+          Encode::decode("utf-8", gettext("Song Number")),
             Gtk2::CellRendererText->new, text => 2);
         $column1->set_resizable(TRUE);
         $column2->set_resizable(TRUE);
@@ -953,6 +965,7 @@ sub popup_avail_menu {
         $widget->get_selection->select_path($path);
         debug($path . " path");
         my @items = ();
+    
         if ($globals->{'access'} =~ /e/) {
             push @items,
               [
@@ -6218,7 +6231,7 @@ sub load_access {
     my $access = "";
 
     # Load the access settings (ignore if using sqlite)
-    if ($config->{'DatabaseType'} eq "SQLite") {
+    if (($config->{'DatabaseType'} eq "SQLite") || ($^O eq 'MSWin32')) {
         $access = "spade";
     } else {
         open(ACCESS, $globals->{'accessfile'})
@@ -7167,6 +7180,8 @@ sub get_bibles {
     my $bibles;
     debug("Getting available bibles");
 
+  if (!$^O eq 'MSWin32') {
+
     # Bibles provided by Sword libraries
     open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
     while (<SWORD>) {
@@ -7185,7 +7200,7 @@ sub get_bibles {
         }
     }
     close SWORD;
-
+  }
     # Bible databases found
     my $dbs = $globals->{'db_available_db'};
     foreach (keys %$dbs) {
