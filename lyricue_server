@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.111 2006/10/23 01:42:44 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.112 2006/11/23 00:31:38 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -55,7 +55,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyricue_server Version 1.9.3
+Lyricue_server Version 1.9.4
 
 =cut
 
@@ -145,7 +145,7 @@ $globals->{'sharedir'} = "/usr/share/lyricue/";
 # You shouldn't have to change anything after this line
 #
 
-$globals->{'version'}     = "1.9.3";
+$globals->{'version'}     = "1.9.4";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
@@ -1289,13 +1289,13 @@ sub change_backdrop {
     my $row = $sth->fetchrow_hashref();
     if ($row) {
 
-        if ($row->{'textcolour'} != NULL) {
+        if ($row->{'textcolour'} ne "") {
             debug("Changing text colour to " . $row->{'textcolour'});
             $config->{'BackdropTextColour'} = $row->{'textcolour'};
         } else {
             $config->{'BackdropTextColour'} = "";
         }
-        if ($row->{'shadowcolour'} != NULL) {
+        if ($row->{'shadowcolour'} ne "") {
             debug("Changing shadow colour to " . $row->{'shadowcolour'});
             $config->{'BackdropShadowColour'} = $row->{'shadowcolour'};
         } else {
@@ -1555,6 +1555,13 @@ sub load_config {
     if (! defined($conf->{'MPlayer'})) {
         $conf->{'MPlayer'} = "mplayer";
     }
+    if (! defined($conf->{'BackdropTextColour'})) {
+        $conf->{'BackdropTextColour'} = "";
+    }
+    return $conf;
+    if (! defined($conf->{'BackdropShadowColour'})) {
+        $conf->{'BackdropShadowColour'} = "";
+    }
     return $conf;
 }
 
@@ -1576,7 +1583,7 @@ sub set_maintext_simple {
     my $font_desc =
       Gtk2::Pango::FontDescription->from_string($config->{'Main'});
     my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
-    if ($config->{'BackdropTextColour'} != NULL) {
+    if ($config->{'BackdropTextColour'} ne "") {
         $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
     }
     $globals->{'mainText'}->modify_fg('normal', $colour);
@@ -1627,7 +1634,7 @@ sub set_maintext_canvas {
     my $buffer = $globals->{'mainText'}->get_buffer();
     my $colour = $config->{'Colour'};
     my $tag;
-    if ($config->{'BackdropTextColour'} != NULL) {
+    if ($config->{'BackdropTextColour'} ne "") {
         $colour = $config->{'BackdropTextColour'};
     }
     my $tag = $buffer->create_tag(
@@ -1826,7 +1833,7 @@ sub set_maintext_canvas {
         );
         my $buffer2      = $globals->{'mainTextShadow'}->get_buffer();
         my $shadowcolour = $config->{'ShadowColour'};
-        if ($config->{'BackdropShadowColour'} != NULL) {
+        if ($config->{'BackdropShadowColour'} ne "") {
             $shadowcolour = $config->{'BackdropShadowColour'};
         }
         my $tags = $buffer2->create_tag(
@@ -1997,7 +2004,7 @@ sub set_footer_simple {
       Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
     $globals->{'footerText'}->modify_font($font_desc);
     my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
-    if ($config->{'BackdropTextColour'} != NULL) {
+    if ($config->{'BackdropTextColour'} ne "") {
         $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
     }
     $globals->{'footerText'}->modify_fg('normal', $colour);
@@ -2034,7 +2041,7 @@ sub set_footer_canvas {
     my $buffer = $globals->{'footerText'}->get_buffer();
     my $colour = $config->{'Colour'};
 
-    if ($config->{'BackdropTextColour'} != NULL) {
+    if ($config->{'BackdropTextColour'} ne "") {
         $colour = $config->{'BackdropTextColour'};
     }
     my $tag3 = $buffer->create_tag(
@@ -2156,7 +2163,7 @@ sub set_header_simple {
       Gtk2::Pango::FontDescription->from_string($config->{'Header'});
     $globals->{'headerText'}->modify_font($font_desc);
     my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
-    if ($config->{'BackdropTextColour'} != NULL) {
+    if ($config->{'BackdropTextColour'} ne "") {
         $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
     }
     $globals->{'headerText'}->modify_fg('normal', $colour);
@@ -2195,7 +2202,7 @@ sub set_header_canvas {
     my $buffer = $globals->{'headerText'}->get_buffer();
     my $colour = $config->{'Colour'};
 
-    if ($config->{'BackdropTextColour'} != NULL) {
+    if ($config->{'BackdropTextColour'} ne "") {
         $colour = $config->{'BackdropTextColour'};
     }
     my $tag3 = $buffer->create_tag(
@@ -2664,7 +2671,7 @@ sub create_window_normal {
         );
         my $buffer = $globals->{'mainText'}->get_buffer();
         my $colour = $config->{'Colour'};
-        if ($config->{'BackdropTextColour'} != NULL) {
+        if ($config->{'BackdropTextColour'} ne "") {
             $colour = $config->{'BackdropTextColour'};
         }
         my $tag2 = $buffer->create_tag(
