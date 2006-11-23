@@ -48,11 +48,11 @@ fi
 echo Pushing to repository
 cp dist/*deb dist/*.dsc dist/*.asc dist/*.gz dist/*.changes  /var/www/debian
 cd /var/www/debian
-rm Packages.gz Sources.gz Release Release.gpg
+rm Packages.bz2 Sources.bz2 Release Release.gpg
 apt-ftparchive packages . > Packages
 apt-ftparchive sources . > Sources
 apt-ftparchive release . > /tmp/a
-gzip Packages
-gzip Sources
+bzip2 Packages
+bzip2 Sources
 mv /tmp/a Release
 gpg -abs -o Release.gpg Release
