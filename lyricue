@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.208 2006/11/23 00:52:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.209 2006/11/23 01:04:09 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6520,7 +6520,7 @@ sub quick_show {
     my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
     $songtext =~ s/\n/#BREAK#/g;
     $songtext =~ s/:/#SEMI#/g;
-    update_display("preview", "", $songtext);
+    update_display("preview", "ignore", $songtext);
 }
 
 # Called when the preview windows are resized

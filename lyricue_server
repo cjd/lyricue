@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.113 2006/11/23 00:48:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.114 2006/11/23 01:04:09 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -487,28 +487,30 @@ sub process_input {
                 debug("Can not advance one point - no points waiting");
             }
         } elsif (/^preview$/) {
-            $line[1] =~ s/#SEMI#/:/g;
-            my @extras = split(/#BREAK#/, $line[1]);
-            set_header($extras[0]);
+            my $wrap = FALSE;
+            if ($line[1] ne "ignore") {
+                $line[1] =~ s/#SEMI#/:/g;
+                my @extras = split(/#BREAK#/, $line[1]);
+                if ((defined $extras[3]) && ($extras[3] eq "wrap")) {
+                    $wrap = TRUE;
+                }
+                set_header($extras[0]);
+
+                if ($extras[2] && ($extras[2] ne "")) {
+                    set_footer(
+                        gettext("Written by ") . $extras[1] . " - " . $extras[2]);
+                } else {
+                    if ($extras[1]) {
+                        set_footer(gettext("Written by ") . $extras[1]);
+                    } else {
+                        set_footer("");
+                    }
+                }
+            }
             $line[2] =~ s/#BREAK#/\n/g;
             $line[2] =~ s/#SEMI#/:/g;
             $line[2] =~ s/<.*?>//g;
-            my $wrap = FALSE;
-            if ((defined $extras[3]) && ($extras[3] eq "wrap")) {
-                $wrap = TRUE;
-            }
             set_maintext(Encode::decode("utf-8", $line[2]), NONE, $wrap);
-
-            if ($extras[2] && ($extras[2] ne "")) {
-                set_footer(
-                    gettext("Written by ") . $extras[1] . " - " . $extras[2]);
-            } else {
-                if ($extras[1]) {
-                    set_footer(gettext("Written by ") . $extras[1]);
-                } else {
-                    set_footer("");
-                }
-            }
 
             #reset_timer($globals->{'snapshot_timer'});
             #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
