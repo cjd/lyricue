@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.209 2006/11/23 01:04:09 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.210 2006/12/04 01:34:11 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -67,7 +67,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyric_interface Version 1.9.3
+Lyric_interface Version 1.9.4
 
 =cut
 
@@ -143,7 +143,7 @@ if ($^O eq 'MSWin32') {
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}     = "1.9.3";
+$globals->{'version'}     = "1.9.4";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
@@ -7147,6 +7147,7 @@ sub backup_db {
           . $databases
           . " | gzip -c > "
           . $filename;
+        debug ($command);
         system $command;
         if ($? == -1) {
             debug("Failed to execute: " . $command);
@@ -7812,12 +7813,12 @@ sub db_install_user {
         debug("Creating mysql user..");
         $sth =
           $dbh->prepare(
-"insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'"
+"insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'"
           );
         $sth->execute;
         $sth =
           $dbh->prepare(
-"insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y'"
+"insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'"
           );
         $sth->execute;
         $sth = $dbh->prepare("flush privileges");
