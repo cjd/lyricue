@@ -15,6 +15,9 @@ CREATE TABLE media (
   insertedby varchar(100) NOT NULL default '',
   insertdate datetime NOT NULL default '0000-00-00 00:00:00',
   description varchar(100) default '',
+  textcolour varchar(10) DEFAULT 'NULL';
+  shadowcolour varchar(10) DEFAULT 'NULL';
+
   data mediumblob,
   PRIMARY KEY  (id),
   UNIQUE KEY data (data(100),description,category,subcategory,type,format)

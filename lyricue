@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.210 2006/12/04 01:34:11 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.211 2007/02/05 23:53:53 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -3592,7 +3592,7 @@ sub change_preview {
                 my $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $row = $sth->fetchrow_hashref();
-                if ($row->{'textcolour'} ne "NULL") {
+                if (($row->{'textcolour'} ne "NULL") && ($row->{'textcolour'} ne "Default")) {
                     $widgets->{'image'}->get_widget('entryImageFontColour')
                       ->set_text($row->{'textcolour'});
                     $widgets->{'image'}->get_widget('colorbuttonFontColour')
@@ -3604,7 +3604,7 @@ sub change_preview {
                     $widgets->{'image'}->get_widget('colorbuttonFontColour')
                       ->set_color(Gtk2::Gdk::Color->parse($config->{'Colour'}));
                 }
-                if ($row->{'shadowcolour'} ne "NULL") {
+                if (($row->{'shadowcolour'} ne "NULL") && ($row->{'shadowcolour'} ne "Default")) {
                     $widgets->{'image'}->get_widget('entryImageShadowColour')
                       ->set_text($row->{'shadowcolour'});
                     $widgets->{'image'}->get_widget('colorbuttonShadowColour')
@@ -6729,6 +6729,7 @@ sub update_quickedit {
             $rv = $sth->execute
               || display_fatal($errorcodes->{'sqlexecute'}, $!);
             my @row = $sth->fetchrow_array();
+            if (defined($row[0])) {
             if ($row[0] eq "song") {
                 $query =
 "SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder="
@@ -6816,6 +6817,9 @@ sub update_quickedit {
             } elsif ($row[0] eq "back") {
                 $quicktext = "Background";
                 $loop      = 1;
+            } else {
+                $loop = 1;
+            }
             } else {
                 $loop = 1;
             }
@@ -7011,32 +7015,25 @@ sub rename_media {
 }
 
 sub change_colour_media {
-    my ($widget, $id, $newcolour) = @_;
+    my ($widget) = @_;
     debug("change colour media");
-    my $oldcolour = $widget->get('text');
-    if (($newcolour) && ($oldcolour ne $newcolour)) {
-        debug(  "Changing text colour for media from "
-              . $oldcolour . " to "
-              . $newcolour);
-        my $iter =
-          $widgets->{'image'}->get_widget('treeImage')
-          ->get_model->get_iter_from_string($id);
-        $id =
-          $widgets->{'image'}->get_widget('treeImage')
-          ->get_model->get($iter, 1);
-
-  #        my $query = "UPDATE media SET description=\"$newname\" WHERE id=$id";
-  #        qdebug($query);
-  #        my $sth = $mediaDbh->prepare($query)
-  #          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-  #        my $rv = $sth->execute
-  #          || display_fatal($errorcodes->{'sqlexecute'}, $!);
-  #        update_imagedir(
-  #            $widgets->{'image'}->get_widget('optionImageCategory')
-  #              ->{'user_data'},
-  #            $widgets->{'image'}->get_widget('optionImageCategory')
-  #              ->get_menu->get_active->{user_data}
-  #        );
+    my $fontcolour = $widgets->{'image'}->get_widget('entryImageFontColour')->get('text');
+    my $shadowcolour = $widgets->{'image'}->get_widget('entryImageShadowColour')->get('text');
+    my $id=$widgets->{'image'}->get_widget('imageImage')->{user_data};
+    if (defined ($id) ) {
+      debug("change_colour_media: $fontcolour, $shadowcolour, $id");
+      my $query = "UPDATE media SET textcolour=\"$fontcolour\", shadowcolour=\"$shadowcolour\" WHERE id=$id";
+      qdebug($query);
+      my $sth = $mediaDbh->prepare($query)
+        || display_fatal($errorcodes->{'sqlprepare'}, $!);
+      my $rv = $sth->execute
+        || display_fatal($errorcodes->{'sqlexecute'}, $!);
+  update_imagedir(
+              $widgets->{'image'}->get_widget('optionImageCategory')
+                ->{'user_data'},
+              $widgets->{'image'}->get_widget('optionImageCategory')
+                ->get_menu->get_active->{user_data}
+          );
     }
 }
 
@@ -7181,7 +7178,7 @@ sub get_bibles {
     my $bibles;
     debug("Getting available bibles");
 
-  if (!$^O eq 'MSWin32') {
+  if ($^O ne 'MSWin32') {
 
     # Bibles provided by Sword libraries
     open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
