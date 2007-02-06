@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.211 2007/02/05 23:53:53 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.212 2007/02/06 00:12:31 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6387,10 +6387,11 @@ sub init_preview {
                 }
                 exec(
                     sprintf(
-                        "lyricue_server -r %s -m %d -p %d\n",
+                        "lyricue_server -r %s -m %d -p %d %s\n",
                         $globals->{'mysqlhost'},
                         $widgets->{'preview'}->get_id,
-                        $globals->{'preview_port'}
+                        $globals->{'preview_port'},
+                        $debug_cmd
                     )
                 );
             }
