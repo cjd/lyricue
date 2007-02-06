@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.212 2007/02/06 00:12:31 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.213 2007/02/06 00:39:08 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -3237,13 +3237,15 @@ sub change_font_colour {
     } elsif ($item eq "ImageShadow") {
         $widgets->{'image'}->get_widget('entryImageShadowColour')
           ->set_text($color2);
+        $widgets->{'image'}->get_widget('colorbuttonShadowColour')
+          ->set_color(Gtk2::Gdk::Color->parse($color2));
+        change_colour_media();
     } elsif ($item eq "ImageFont") {
-        $widgets->{'image'}->get_widget('entryImageFontColour')
-          ->modify_bg('active', Gtk2::Gdk::Color->parse($color2));
         $widgets->{'image'}->get_widget('entryImageFontColour')
           ->set_text($color2);
         $widgets->{'image'}->get_widget('colorbuttonFontColour')
           ->set_color(Gtk2::Gdk::Color->parse($color2));
+        change_colour_media();
     }
     close_dialog($widget);
 }
@@ -5911,22 +5913,16 @@ sub change_bgimage {
             $widgets->{'image'}->get_widget('buttonImageOK')
               ->signal_connect('clicked', "close_dialog");
             $widgets->{'image'}->get_widget('hboxImageColour')->show();
-            $widgets->{'image'}->get_widget('entryImageFontColour')
-              ->signal_connect("button_press_event", "open_dialogColour",
-                "ImageFont");
             $widgets->{'image'}->get_widget('colorbuttonFontColour')
               ->signal_connect("button_press_event", "open_dialogColour",
                 "ImageFont");
-            $widgets->{'image'}->get_widget('entryImageFontColour')
-              ->signal_connect("changed", "change_colour_media");
-            $widgets->{'image'}->get_widget('entryImageShadowColour')
-              ->signal_connect("button_press_event", "open_dialogColour",
-                "ImageShadow");
+            #$widgets->{'image'}->get_widget('entryImageFontColour')
+              #->signal_connect("changed", "change_colour_media");
             $widgets->{'image'}->get_widget('colorbuttonShadowColour')
               ->signal_connect("button_press_event", "open_dialogColour",
                 "ImageShadow");
-            $widgets->{'image'}->get_widget('entryImageShadowColour')
-              ->signal_connect("changed", "change_colour_media");
+            #$widgets->{'image'}->get_widget('entryImageShadowColour')
+              #->signal_connect("changed", "change_colour_media");
         }
         $widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
         my $renderer = Gtk2::CellRendererText->new;
@@ -7029,12 +7025,12 @@ sub change_colour_media {
         || display_fatal($errorcodes->{'sqlprepare'}, $!);
       my $rv = $sth->execute
         || display_fatal($errorcodes->{'sqlexecute'}, $!);
-  update_imagedir(
-              $widgets->{'image'}->get_widget('optionImageCategory')
-                ->{'user_data'},
-              $widgets->{'image'}->get_widget('optionImageCategory')
-                ->get_menu->get_active->{user_data}
-          );
+  #update_imagedir(
+              #$widgets->{'image'}->get_widget('optionImageCategory')
+                #->{'user_data'},
+              #$widgets->{'image'}->get_widget('optionImageCategory')
+                #->get_menu->get_active->{user_data}
+          #);
     }
 }
 
