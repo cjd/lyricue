@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.118 2007/02/06 03:05:15 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.119 2007/04/02 05:49:17 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -1618,9 +1618,13 @@ sub set_maintext_canvas {
     # Copy the old mainText to oldText
     $oldText = $globals->{'mainText'};
 
-    my $top_y = ($config->{'Height'} - $config->{'ShadowSize'}) / 2;
-    if (defined $config->{'CenterY'} && $config->{'CentreY'} eq "") {
+    my $top_y = 0;
+    if (($config->{'CentreY'} == "1") || ($config->{'CentreY'} == "Top" )) {
         $top_y = $headerHeight;
+    } elsif ($config->{'CentreY'} == "Bottom") {
+        $top_y = $config->{'Height'};
+    } else {
+        $top_y = ($config->{'Height'} - $config->{'ShadowSize'}) / 2;
     }
 
     # Create a new mainText;
@@ -1676,8 +1680,14 @@ sub set_maintext_canvas {
     my $centreX = $config->{'Width'} / 2;
     my $centreY = $config->{'Height'} / 2;
 
-    if (defined $config->{'CentreY'} && $config->{'CentreY'} == 0) {
+    if ($config->{'CentreY'} == "Bottom") {
+        $centreY = ($config->{'Height'} - ($h / 2)) - $headerHeight;
+debug("bottom:".$centreY);
+    } elsif (($config->{'CentreY'} == 1) || ($config->{'CentreY'} == "Top" )) {
         $centreY = ($h / 2) + $headerHeight;
+debug("top:".$centreY);
+    } else {
+debug("loc:".$centreY);
     }
 
     my @items = ();
@@ -2631,7 +2641,11 @@ sub create_window_normal {
         $globals->{'footerText'}->set_justify('center');
         $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
 
-        if ($config->{'CentreY'}) {
+        if ($config->{'CentreY'} == "Bottom") {
+            my $fill = Gtk2::Label->new();
+            $vbox->pack_start($fill, TRUE, TRUE, 0);
+            $vbox->pack_start($globals->{'mainText'}, FALSE, TRUE, 0);
+        } elsif (($config->{'CentreY'} == "1") || ($config->{'CentreY'} == "Top" )) {
             $vbox->pack_start($globals->{'mainText'}, TRUE, TRUE, 0);
         } else {
             $vbox->pack_start($globals->{'mainText'}, FALSE, TRUE, 0);
