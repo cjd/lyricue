@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.121 2007/04/16 03:11:11 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.122 2007/04/16 03:12:58 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -2640,15 +2640,17 @@ sub create_window_normal {
           ->set_size_request($config->{'Width'} - ($config->{'OverscanH'} * 2),
             -1);
         $globals->{'footerText'}->set_justify('center');
-        $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
 
         if ($config->{'CentreY'} == BOTTOM) {
             my $fill = Gtk2::Label->new();
             $vbox->pack_start($fill, TRUE, TRUE, 0);
+            $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
             $vbox->pack_start($globals->{'mainText'}, FALSE, TRUE, 0);
         } elsif ($config->{'CentreY'} == CENTRE) {
+            $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
             $vbox->pack_start($globals->{'mainText'}, TRUE, TRUE, 0);
         } else {
+            $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
             $vbox->pack_start($globals->{'mainText'}, FALSE, TRUE, 0);
             my $fill = Gtk2::Label->new();
             $vbox->pack_start($fill, TRUE, TRUE, 0);
