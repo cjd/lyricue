@@ -9004,7 +9004,7 @@ http://www.adebenham.com/lyricue</property>
 		  <child>
 		    <widget class="GtkLabel" id="label101">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Centre Text Vertically</property>
+		      <property name="label" translatable="yes">Vertical Text Location</property>
 		      <property name="use_underline">False</property>
 		      <property name="use_markup">False</property>
 		      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -9022,28 +9022,6 @@ http://www.adebenham.com/lyricue</property>
 		    <packing>
 		      <property name="left_attach">0</property>
 		      <property name="right_attach">1</property>
-		      <property name="top_attach">5</property>
-		      <property name="bottom_attach">6</property>
-		      <property name="x_options">fill</property>
-		      <property name="y_options"></property>
-		    </packing>
-		  </child>
-
-		  <child>
-		    <widget class="GtkCheckButton" id="checkPrefCentreY">
-		      <property name="visible">True</property>
-		      <property name="can_focus">True</property>
-		      <property name="label" translatable="yes"></property>
-		      <property name="use_underline">True</property>
-		      <property name="relief">GTK_RELIEF_NORMAL</property>
-		      <property name="focus_on_click">True</property>
-		      <property name="active">True</property>
-		      <property name="inconsistent">False</property>
-		      <property name="draw_indicator">True</property>
-		    </widget>
-		    <packing>
-		      <property name="left_attach">1</property>
-		      <property name="right_attach">2</property>
 		      <property name="top_attach">5</property>
 		      <property name="bottom_attach">6</property>
 		      <property name="x_options">fill</property>
@@ -9157,7 +9135,7 @@ http://www.adebenham.com/lyricue</property>
 		  <child>
 		    <widget class="GtkLabel" id="label121">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">Centre Text Across</property>
+		      <property name="label" translatable="yes">Text Justification</property>
 		      <property name="use_underline">False</property>
 		      <property name="use_markup">False</property>
 		      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -9183,16 +9161,31 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkCheckButton" id="checkPrefCentreX">
+		    <widget class="GtkComboBox" id="comboPrefVertical">
 		      <property name="visible">True</property>
-		      <property name="can_focus">True</property>
-		      <property name="label" translatable="yes"></property>
-		      <property name="use_underline">True</property>
-		      <property name="relief">GTK_RELIEF_NORMAL</property>
+		      <property name="items" translatable="yes">Top
+Centre
+Bottom</property>
+		      <property name="add_tearoffs">False</property>
 		      <property name="focus_on_click">True</property>
-		      <property name="active">False</property>
-		      <property name="inconsistent">False</property>
-		      <property name="draw_indicator">True</property>
+		    </widget>
+		    <packing>
+		      <property name="left_attach">1</property>
+		      <property name="right_attach">2</property>
+		      <property name="top_attach">5</property>
+		      <property name="bottom_attach">6</property>
+		      <property name="x_options">fill</property>
+		      <property name="y_options">fill</property>
+		    </packing>
+		  </child>
+
+		  <child>
+		    <widget class="GtkComboBox" id="comboPrefHorizontal">
+		      <property name="visible">True</property>
+		      <property name="items" translatable="yes">Left
+Center</property>
+		      <property name="add_tearoffs">False</property>
+		      <property name="focus_on_click">True</property>
 		    </widget>
 		    <packing>
 		      <property name="left_attach">1</property>
@@ -9200,7 +9193,7 @@ http://www.adebenham.com/lyricue</property>
 		      <property name="top_attach">6</property>
 		      <property name="bottom_attach">7</property>
 		      <property name="x_options">fill</property>
-		      <property name="y_options"></property>
+		      <property name="y_options">fill</property>
 		    </packing>
 		  </child>
 		</widget>

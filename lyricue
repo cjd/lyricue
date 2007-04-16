@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.214 2007/04/02 05:49:16 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.215 2007/04/16 03:03:28 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -3869,9 +3869,9 @@ sub create_dialog_prefs {
       ->set_value($config->{'OverscanH'});
     $widgets->{'prefs'}->get_widget('checkPrefXinerama')
       ->set_active($config->{'Xinerama'});
-    $widgets->{'prefs'}->get_widget('checkPrefCentreY')
+    $widgets->{'prefs'}->get_widget('comboPrefVertical')
       ->set_active($config->{'CentreY'});
-    $widgets->{'prefs'}->get_widget('checkPrefCentreX')
+    $widgets->{'prefs'}->get_widget('comboPrefHorizontal')
       ->set_active($config->{'CentreX'});
 
     if (defined($config->{'ServerType'})) {
@@ -5126,10 +5126,10 @@ sub save_preferences {
       . $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
       . "\n";
     print CONFIG "CentreY = "
-      . $widgets->{'prefs'}->get_widget('checkPrefCentreY')->get_active()
+      . $widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active()
       . "\n";
     print CONFIG "CentreX = "
-      . $widgets->{'prefs'}->get_widget('checkPrefCentreX')->get_active()
+      . $widgets->{'prefs'}->get_widget('comboPrefHorizontal')->get_active()
       . "\n";
 
     if ($widgets->{'prefs'}->get_widget('radioPrefServerTrans')->get_active()) {
