@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.216 2007/04/16 03:11:11 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.217 2007/04/21 07:41:46 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -1491,7 +1491,7 @@ sub do_save_song {
                 "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
             )
-        ) . "NOW(), NOW() )";
+        ) . ", NOW(), NOW() )";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
