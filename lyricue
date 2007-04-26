@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.218 2007/04/26 02:05:04 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.219 2007/04/26 06:55:44 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -1964,6 +1964,8 @@ sub do_import_song {
         import_song_songselect($filename);
     } elsif ($lcfilename =~ /opw$/) {
         import_song_opw($filename);
+    } elsif ($lcfilename =~ /html$/) {
+        import_song_html($filename);
     }
 
     close_dialog($widget);
@@ -7712,6 +7714,53 @@ sub import_song_opw {
         }
     }
 }
+
+sub import_song_html {
+    my ($filename) = @_;
+    debug("import HTML/Opensong song");
+    my ($name, $author) = "";
+    my $input   = "";
+    my $page    = "";
+    my $hashnum = 0;
+
+    open(HTML, $filename) || die("Unable to open $filename");
+    while (<HTML>) {
+        chomp;
+        if (/div id="title"/) {
+            $name = $_;
+            $name =~ s/^.*id=\"title\">(.*)<\/div>.*$/$1/g;
+            $widgets->{'add'}->get_widget('entryEditName')->set_text($name);
+        } elsif (/div id="author"/) {
+            $author = $_;
+            $author =~ s/^.*id="author">(.*)<\/div>.*/$1/g;
+            $widgets->{'add'}->get_widget('entryEditArtist')->set_text($author);
+        } elsif (/div class="heading"/) {
+            # new page
+            debug("add page");
+            if ($page ne "") {
+                my $iter = $widgets->{'textAPageB'}{$hashnum}->get_end_iter();
+                $widgets->{'textAPageB'}{$hashnum}->insert($iter, $page);
+                $page = "";
+                $hashnum = add_page();
+            }
+        } elsif (/td class="lyrics"/) {
+            my $line = $_;
+            $line =~ s/^.*class="lyrics">(.*)<\/td>.*/$1/g;
+            $line =~ s/&nbsp;/ /g;
+            $page .= $line;
+        } elsif (/<\/table>/) {
+            debug("add line");
+            $page .= "";
+        }
+    }
+    close HTML;
+    if ($page ne "") {
+        my $iter = $widgets->{'textAPageB'}{$hashnum}->get_end_iter();
+        $widgets->{'textAPageB'}{$hashnum}->insert($iter, $page);
+        $page = "";
+    }
+}
+
 
 ####
 # Install database functions
