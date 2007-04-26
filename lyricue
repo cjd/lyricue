@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.217 2007/04/21 07:41:46 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.218 2007/04/26 02:05:04 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -67,7 +67,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyric_interface Version 1.9.5
+Lyric_interface Version 1.9.6
 
 =cut
 
@@ -143,7 +143,7 @@ if ($^O eq 'MSWin32') {
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}     = "1.9.5";
+$globals->{'version'}     = "1.9.6";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
@@ -1642,7 +1642,7 @@ sub renumber_pages {
         }
         debug("$i:$pageOrder{$i}");
         $widgets->{'labelAPage'}{$i}
-          ->set_text(gettext("Page ") . $pageOrder{$i});
+          ->set_text(Encode::decode("utf-8",gettext("Page ")) . $pageOrder{$i});
         $widgets->{'labelAPage'}{$i}->show();
     }
 }
@@ -1676,7 +1676,7 @@ sub remove_page {
         if ($pageOrder{$i} < $pagenum) {
             $newpageOrder{$i} = $pageOrder{$i};
             $widgets->{'labelAPage'}{$i}
-              ->set_text(gettext("Page ") . $newpageOrder{$i});
+              ->set_text(Encode::decode("utf-8",gettext("Page ")) . $newpageOrder{$i});
             debug("$newpageOrder{$i}");
         } elsif ($pageOrder{$i} == $pagenum) {
             $widgets->{'add'}->get_widget('notebookEditPages')
@@ -1686,7 +1686,7 @@ sub remove_page {
             $newpageOrder{$i} = $pageOrder{$i} - 1;
             debug("$newpageOrder{$i}");
             $widgets->{'labelAPage'}{$i}
-              ->set_text(gettext("Page ") . $newpageOrder{$i});
+              ->set_text(Encode::decode("utf-8",gettext("Page ")) . $newpageOrder{$i});
         }
     }
     %pageOrder = %newpageOrder;
@@ -2717,7 +2717,7 @@ sub preview_page {
     debug($current_page . " page ");
     my $label = $widgets->{'labelAPage'};
     foreach (keys %$label) {
-        if (  $widgets->{'labelAPage'}{$_}->get_text() eq gettext("Page ")
+        if (  $widgets->{'labelAPage'}{$_}->get_text() eq Encode::decode("utf-8",gettext("Page ")) 
             . $current_page)
         {
             $current_hash = $_;
@@ -3005,11 +3005,11 @@ sub update_display {
             chomp($status);
             if ($status =~ /^pl:/) {
                 my @line = split(/:/, $status);
-                $status = gettext("Displaying ");
+                $status = Encode::decode("utf-8", gettext("Displaying "));
                 if ($line[1] eq "v") {
-                    $status = gettext(" verses ");
+                    $status = Encode::decode("utf-8",gettext(" verses "));
                 } else {
-                    $status = gettext(" page ") . $line[3];
+                    $status = Encode::decode("utf-8",gettext(" page ")) . $line[3];
                     $widgets->{'main'}->get_widget('treePlaylist')
                       ->select_item($line[2]);
                 }
@@ -3112,11 +3112,11 @@ sub preview_display {
                     chomp($status);
                     if ($status =~ /^pl:/) {
                         my @line = split(/:/, $status);
-                        $status = gettext("Previewed ");
+                        $status = Encode::decode("utf-8",gettext("Previewed "));
                         if ($line[1] eq "v") {
-                            $status .= gettext(" verses ");
+                            $status .= Encode::decode("utf-8",gettext(" verses "));
                         } else {
-                            $status .= gettext(" page ") . $line[3];
+                            $status .= Encode::decode("utf-8",gettext(" page ")) . $line[3];
                             $widgets->{'main'}->get_widget('treePlaylist')
                               ->select_item($line[2]);
                         }
@@ -5902,7 +5902,7 @@ sub change_bgimage {
             $bgimage =
               $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
             $widgets->{'image'}->get_widget('buttonImageOK')
-              ->set_label(gettext("Set as Default"));
+              ->set_label(Encode::decode("utf-8",gettext("Set as Default")));
             $widgets->{'image'}->get_widget('buttonImageOK')
               ->signal_connect('clicked', "set_default_backdrop");
             $widgets->{'image'}->get_widget('buttonImageAdd')->hide();
