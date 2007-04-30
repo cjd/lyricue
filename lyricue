@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.219 2007/04/26 06:55:44 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.220 2007/04/30 07:19:07 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -96,6 +96,8 @@ die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
 use Gtk2::GladeXML;
 use Gtk2::Pango;
 use Gtk2::Gdk::Keysyms;
+use URI::file;
+
 eval { require Locale::gettext };
 
 if ($@) {
@@ -154,6 +156,7 @@ $globals->{'mysqlhost'}   = "";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
 $globals->{'biblename'}   = "";
+$globals->{'category'}   = "";
 $globals->{'access'}      = "";
 $globals->{'usesword'}    = TRUE;
 $globals->{'mediadb'}     = "mediaDb";
@@ -5023,8 +5026,12 @@ sub load_config {
     while (<CONFIG>) {
         chomp;
         my @line = split(/=/);
-        $line[0] =~ s/ *$//g;
-        $line[1] =~ s/ *$//g;
+	if ($line[0]) {
+		$line[0] =~ s/ *$//g;
+	}
+	if ($line[1]) {
+		$line[1] =~ s/ *$//g;
+	}
         if (!$line[1]) {
             $line[1] = "";
         }
@@ -5198,7 +5205,16 @@ sub save_preferences {
 sub file_ok_sel {
     my ($widget, $filexml) = @_;
     debug("Add filename to playlist");
-    my $file = $filexml->get_widget('dialogFile')->get_filename;
+    do_add_file($filexml->get_widget('dialogFile')->get_filename);
+    close_dialog($widget);
+}
+
+#***
+
+#  Add the filename to the playlist
+sub do_add_file {
+    my ($file)  = @_;
+    debug("do_add_file: file=" . $file);
     if (($file ne "") && (-r $file)) {
         my $playorder = 1;
         my $query     = "SELECT MAX(playorder) FROM playlist";
@@ -5227,7 +5243,6 @@ sub file_ok_sel {
         $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
         update_playlist();
-        close_dialog($widget);
     }
 }
 
@@ -5617,13 +5632,17 @@ sub init_mainWindow {
         $menutop2->append($appMenu[$_]);
     }
     $widgets->{'main'}->get_widget('applications1')->set_submenu($menutop2);
-
-    my @target_table =
-      ({'target' => "STRING", 'flags' => 'same-app', 'info' => 0},);
+     
+    # DRAG and DROP
     $widgets->{'main'}->get_widget('treeAvailable')
-      ->drag_source_set(['button1_mask'], ['copy'], @target_table);
+      ->drag_source_set(['button1_mask'], ['copy', 'move'],
+      {'target' => "STRING", 'flags' => [], 'info' => 0});
     $widgets->{'main'}->get_widget('treePlaylist')
-      ->drag_dest_set('all', ['copy'], @target_table);
+      ->drag_dest_set('all', ['copy', 'move'],
+      {'target' => "STRING", 'flags' => [], 'info' => 0});
+    $widgets->{'main'}->get_widget('hboxBackImage')
+      ->drag_dest_set('all', ['copy', 'move'],
+      {'target' => "STRING", 'flags' => [], 'info' => 0});
 
     # BORKED
     #$widgets->{'main'}->get_widget('treePlaylist')->set_reorderable(TRUE);
@@ -5720,6 +5739,7 @@ sub bgdir_change {
     debug(  "Changing background source category to "
           . $category
           . "\nDestroying old images");
+    $globals->{'category'} = $category;
     my $count = 0;
     if ($widgets->{'buttons'}) {
         while (defined $widgets->{'buttons'}[$count]
@@ -5993,11 +6013,22 @@ sub on_treeSearch_drag_data_get {
 
 sub on_treePlaylist_drag_data_received {
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
+    my ($u1, $file);
     debug("Dropped on playlist");
 
     if (($data->length >= 0) && ($data->format == 8)) {
-        debug("Recieved " . $data->data);
-        add_single_song($data->data);
+        debug("Recieved: " . $data->data);
+	if ($data->data  =~ /file/i) {
+		for my $uri (split(/\n/, $data->data)) {
+			$u1 = URI->new($uri);
+			debug("received URI: " . $uri);
+			$file = $u1->file;
+			debug("Recieved file: " . $file);
+			do_add_file($file);
+		}
+	} else {
+		add_single_song($data->data);
+	}
         update_playlist();
         $context->finish(1, 0, $time);
         return;
@@ -8192,14 +8223,52 @@ sub add_to_playlist_search {
 }
 
 sub on_hboxBackImage_drag_data_received {
-    my ($widget, $context, $x, $y, $data, $info, $time) = @_;
     debug("Dropped on backgrounds");
-
-    if (($data->length >= 0) && ($data->format == 8)) {
+    my ($widget, $context, $x, $y, $data, $info, $time) = @_;
+    my $category = $globals->{'category'};
+    
+    if (($category ne "") && ($data->length >= 0) && ($data->format == 8)) {
         debug("Recieved " . $data->data);
-        add_single_song($data->data);
-        update_playlist();
+	if ($data->data) {
+		my @uris = split(/\n/, $data->data);
+		my ($filename, $format, $description);		
+		my $owner = getpwuid($<);
+		my @date  = localtime(time);
+		my $time  = sprintf(
+			"%04d-%02d-%02d %02d:%02d:%02d",
+			$date[5] + 1900,
+			$date[4], $date[3], $date[2], $date[1], $date[0]
+		);
+		for my $uri (@uris) {
+			$filename = URI->new($uri);
+			debug("Category: $category, Filename: " . $filename->file);
+			
+			$format = $filename->file;
+			$format =~ s/^.*\.//g;
+			$description = $filename->file;
+			$description =~ s/^.*\///g;
+			$description =~ s/\..*?$//g;
+	    
+			open(MEDIA, $filename->file);
+			my $filedata = "";
+
+			while (<MEDIA>) {
+				$filedata .= $_;
+			}
+			close MEDIA;
+			debug("Length: " . length($filedata));
+			my $sth =
+			$mediaDbh->prepare(
+q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)}
+			);
+			my $rv =	$sth->execute($category, "", "bg", $format, $owner, $time, $description, $filedata);	
+		}
+		bgdir_change($widget, $category);
+	}
+	
         $context->finish(1, 0, $time);
         return;
-    }
+	} else {
+		debug("global category=$category");
+	}
 }
