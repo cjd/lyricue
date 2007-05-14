@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.123 2007/04/26 02:05:05 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.124 2007/05/14 02:27:09 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -135,6 +135,7 @@ use constant TRANS  => 2;
 use constant TOP => 0;
 use constant CENTRE => 1;
 use constant BOTTOM => 2;
+
 #
 # Site Configuration.  You should only have to
 # edit this section.
@@ -1274,7 +1275,7 @@ sub HandleKey {
 # NAME
 #   change_backdrop
 # SYNOPSIS
-#   change_backdrop ( $type, $backdrop )
+#   change_backdrop ( $id )
 # FUNCTION
 #   Loads an image and sets it as the screens background
 # INPUTS

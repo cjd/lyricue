@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.220 2007/04/30 07:19:07 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.221 2007/05/14 02:27:08 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -137,6 +137,7 @@ if ($^O eq 'MSWin32') {
     $globals->{'basedir'}  = $ENV{'HOME'} . "/.lyricue/";
     $globals->{'sharedir'} = "/usr/share/lyricue/";
 }
+
 #
 # You shouldn't have to change anything after this line
 #
@@ -156,16 +157,16 @@ $globals->{'mysqlhost'}   = "";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
 $globals->{'biblename'}   = "";
-$globals->{'category'}   = "";
+$globals->{'category'}    = "";
 $globals->{'access'}      = "";
 $globals->{'usesword'}    = TRUE;
 $globals->{'mediadb'}     = "mediaDb";
 $globals->{'sortby'}      = "title";
 $globals->{'bg_previews'} = TRUE;
 if ($^O eq 'MSWin32') {
-    $globals->{'diatheke'}    = "";
+    $globals->{'diatheke'} = "";
 } else {
-    $globals->{'diatheke'}    = `which diatheke`;
+    $globals->{'diatheke'} = `which diatheke`;
     chomp $globals->{'diatheke'};
 }
 $globals->{'server_port'}        = "2346";    #port used for lyric server
@@ -849,15 +850,15 @@ sub update_available {
         $widgets->{'main'}->get_widget('treeAvailable')->{user_data} = "load";
         my $column1 =
           Gtk2::TreeViewColumn->new_with_attributes(
-          Encode::decode("utf-8", gettext("Title")),
+            Encode::decode("utf-8", gettext("Title")),
             Gtk2::CellRendererText->new, text => 0);
         my $column2 =
           Gtk2::TreeViewColumn->new_with_attributes(
-          Encode::decode("utf-8", gettext("Book")),
+            Encode::decode("utf-8", gettext("Book")),
             Gtk2::CellRendererText->new, text => 1);
         my $column3 =
           Gtk2::TreeViewColumn->new_with_attributes(
-          Encode::decode("utf-8", gettext("Song Number")),
+            Encode::decode("utf-8", gettext("Song Number")),
             Gtk2::CellRendererText->new, text => 2);
         $column1->set_resizable(TRUE);
         $column2->set_resizable(TRUE);
@@ -968,7 +969,7 @@ sub popup_avail_menu {
         $widget->get_selection->select_path($path);
         debug($path . " path");
         my @items = ();
-    
+
         if ($globals->{'access'} =~ /e/) {
             push @items,
               [
@@ -1644,8 +1645,8 @@ sub renumber_pages {
             $pageOrder{$i}++;
         }
         debug("$i:$pageOrder{$i}");
-        $widgets->{'labelAPage'}{$i}
-          ->set_text(Encode::decode("utf-8",gettext("Page ")) . $pageOrder{$i});
+        $widgets->{'labelAPage'}{$i}->set_text(
+            Encode::decode("utf-8", gettext("Page ")) . $pageOrder{$i});
         $widgets->{'labelAPage'}{$i}->show();
     }
 }
@@ -1678,8 +1679,8 @@ sub remove_page {
         debug("-$pagenum:$i:$pageOrder{$i}:");
         if ($pageOrder{$i} < $pagenum) {
             $newpageOrder{$i} = $pageOrder{$i};
-            $widgets->{'labelAPage'}{$i}
-              ->set_text(Encode::decode("utf-8",gettext("Page ")) . $newpageOrder{$i});
+            $widgets->{'labelAPage'}{$i}->set_text(
+                Encode::decode("utf-8", gettext("Page ")) . $newpageOrder{$i});
             debug("$newpageOrder{$i}");
         } elsif ($pageOrder{$i} == $pagenum) {
             $widgets->{'add'}->get_widget('notebookEditPages')
@@ -1688,8 +1689,8 @@ sub remove_page {
         } elsif ($pageOrder{$i} > $pagenum) {
             $newpageOrder{$i} = $pageOrder{$i} - 1;
             debug("$newpageOrder{$i}");
-            $widgets->{'labelAPage'}{$i}
-              ->set_text(Encode::decode("utf-8",gettext("Page ")) . $newpageOrder{$i});
+            $widgets->{'labelAPage'}{$i}->set_text(
+                Encode::decode("utf-8", gettext("Page ")) . $newpageOrder{$i});
         }
     }
     %pageOrder = %newpageOrder;
@@ -2324,7 +2325,7 @@ sub remove_single_item {
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    my $rv  = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my @row = $sth->fetchrow_array;
 
     if ($row[0] eq "play" | $row[0] eq "sub") {
@@ -2436,7 +2437,7 @@ sub display_song {
             || (
                 ($event->type eq 'key-press')
                 && (   ($event->keyval == $Gtk2::Gdk::Keysyms{Return})
-                    || ($event->keyval == $Gtk2::Gdk::Keysyms{Enter}))
+                    || ($event->keyval == $Gtk2::Gdk::Keysyms{KP_Enter}))
             )
           )
         {
@@ -2722,8 +2723,8 @@ sub preview_page {
     debug($current_page . " page ");
     my $label = $widgets->{'labelAPage'};
     foreach (keys %$label) {
-        if (  $widgets->{'labelAPage'}{$_}->get_text() eq Encode::decode("utf-8",gettext("Page ")) 
-            . $current_page)
+        if ($widgets->{'labelAPage'}{$_}->get_text() eq
+            Encode::decode("utf-8", gettext("Page ")) . $current_page)
         {
             $current_hash = $_;
         }
@@ -3012,9 +3013,10 @@ sub update_display {
                 my @line = split(/:/, $status);
                 $status = Encode::decode("utf-8", gettext("Displaying "));
                 if ($line[1] eq "v") {
-                    $status = Encode::decode("utf-8",gettext(" verses "));
+                    $status = Encode::decode("utf-8", gettext(" verses "));
                 } else {
-                    $status = Encode::decode("utf-8",gettext(" page ")) . $line[3];
+                    $status =
+                      Encode::decode("utf-8", gettext(" page ")) . $line[3];
                     $widgets->{'main'}->get_widget('treePlaylist')
                       ->select_item($line[2]);
                 }
@@ -3117,11 +3119,15 @@ sub preview_display {
                     chomp($status);
                     if ($status =~ /^pl:/) {
                         my @line = split(/:/, $status);
-                        $status = Encode::decode("utf-8",gettext("Previewed "));
+                        $status =
+                          Encode::decode("utf-8", gettext("Previewed "));
                         if ($line[1] eq "v") {
-                            $status .= Encode::decode("utf-8",gettext(" verses "));
+                            $status .=
+                              Encode::decode("utf-8", gettext(" verses "));
                         } else {
-                            $status .= Encode::decode("utf-8",gettext(" page ")) . $line[3];
+                            $status .=
+                              Encode::decode("utf-8", gettext(" page "))
+                              . $line[3];
                             $widgets->{'main'}->get_widget('treePlaylist')
                               ->select_item($line[2]);
                         }
@@ -3557,7 +3563,7 @@ sub change_preview {
 
         # Find what has changed
         my $newsel = $selecteditems[0];
-        my $iter   =
+        my $iter =
           $widgets->{'image'}->get_widget('treeImage')
           ->get_model->get_iter($newsel);
         my $id =
@@ -3599,7 +3605,9 @@ sub change_preview {
                 my $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $row = $sth->fetchrow_hashref();
-                if (($row->{'textcolour'} ne "NULL") && ($row->{'textcolour'} ne "Default")) {
+                if (   ($row->{'textcolour'} ne "NULL")
+                    && ($row->{'textcolour'} ne "Default"))
+                {
                     $widgets->{'image'}->get_widget('entryImageFontColour')
                       ->set_text($row->{'textcolour'});
                     $widgets->{'image'}->get_widget('colorbuttonFontColour')
@@ -3611,7 +3619,9 @@ sub change_preview {
                     $widgets->{'image'}->get_widget('colorbuttonFontColour')
                       ->set_color(Gtk2::Gdk::Color->parse($config->{'Colour'}));
                 }
-                if (($row->{'shadowcolour'} ne "NULL") && ($row->{'shadowcolour'} ne "Default")) {
+                if (   ($row->{'shadowcolour'} ne "NULL")
+                    && ($row->{'shadowcolour'} ne "Default"))
+                {
                     $widgets->{'image'}->get_widget('entryImageShadowColour')
                       ->set_text($row->{'shadowcolour'});
                     $widgets->{'image'}->get_widget('colorbuttonShadowColour')
@@ -3745,7 +3755,7 @@ sub backdrop_clicked {
         debug("Changing backdrop to " . $widget->{user_data});
         if ($globals->{'bg_previews'}) {
             my $prevFile = $widget->{user_data};
-            my $scaled   =
+            my $scaled =
               create_pixbuf($widgets->{'buttonCurr'}->{user_data}, 72, 54);
 
             if ($scaled) {
@@ -3786,7 +3796,7 @@ sub do_add_image {
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
     my @list      = $selection->get_selected_rows();
     my $model     = $widgets->{'image'}->get_widget('treeImage')->get_model();
-    my $playlist  =
+    my $playlist =
       $widgets->{'image'}->get_widget('optionImageSublist')
       ->get_menu->get_active->{'user_data'};
 
@@ -4202,10 +4212,10 @@ sub complete_export_song {
     my $export = $filexml->get_widget('dialogFile')->get_filename;
     close_dialog($widget);
 
-    my $name     = $widgets->{'add'}->get_widget('entryEditName')->get_text();
-    my $number   = $widgets->{'add'}->get_widget('entryEditNumber')->get_text();
-    my $book     = $widgets->{'add'}->get_widget('entryEditBook')->get_text();
-    my $artist   = $widgets->{'add'}->get_widget('entryEditArtist')->get_text();
+    my $name   = $widgets->{'add'}->get_widget('entryEditName')->get_text();
+    my $number = $widgets->{'add'}->get_widget('entryEditNumber')->get_text();
+    my $book   = $widgets->{'add'}->get_widget('entryEditBook')->get_text();
+    my $artist = $widgets->{'add'}->get_widget('entryEditArtist')->get_text();
     my $keywords =
       $widgets->{'add'}->get_widget('entryEditKeywords')->get_text();
     my $copyright =
@@ -4461,7 +4471,7 @@ sub move_item {
             renumber_item($row[0], $item);
             renumber_item(-1,      $row[0]);
             $pathstring = $startstring . $endstring;
-            my $path2      = Gtk2::TreePath->new_from_string($pathstring);
+            my $path2 = Gtk2::TreePath->new_from_string($pathstring);
             my $path_state =
               $widgets->{'main'}->get_widget('treePlaylist')
               ->row_expanded($path);
@@ -4518,7 +4528,7 @@ sub renumber_item {
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    $rv  = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     $row = $sth->fetchrow_hashref();
 
     $query =
@@ -4851,7 +4861,7 @@ sub update_cplayclist {
     } else {
         $store = Gtk2::ListStore->new('Glib::String');
         $widgets->{'choose'}->get_widget('treeChoosePlay')->set_model($store);
-        $renderer  = Gtk2::CellRendererText->new;
+        $renderer = Gtk2::CellRendererText->new;
         $selection =
           $widgets->{'choose'}->get_widget('treeChoosePlay')->get_selection;
         $selection->signal_connect(changed => \&update_cplay);
@@ -5026,12 +5036,12 @@ sub load_config {
     while (<CONFIG>) {
         chomp;
         my @line = split(/=/);
-	if ($line[0]) {
-		$line[0] =~ s/ *$//g;
-	}
-	if ($line[1]) {
-		$line[1] =~ s/ *$//g;
-	}
+        if ($line[0]) {
+            $line[0] =~ s/ *$//g;
+        }
+        if ($line[1]) {
+            $line[1] =~ s/ *$//g;
+        }
         if (!$line[1]) {
             $line[1] = "";
         }
@@ -5213,35 +5223,60 @@ sub file_ok_sel {
 
 #  Add the filename to the playlist
 sub do_add_file {
-    my ($file)  = @_;
+    my ($file) = @_;
     debug("do_add_file: file=" . $file);
     if (($file ne "") && (-r $file)) {
+
+        # Find next playorder
         my $playorder = 1;
         my $query     = "SELECT MAX(playorder) FROM playlist";
         qdebug($query);
-        $sth = $lyricDbh->prepare($query)
+        my $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        $rv = $sth->execute
+        my $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
-        if ($row = $sth->fetchrow_hashref()) {
-            if ($row->{'MAX(playorder)'}) {
-                $playorder = $row->{'MAX(playorder)'} + 1;
+        my @row;
+        if (@row = $sth->fetchrow_array()) {
+
+            if ($row[0]) {
+                $playorder = $row[0] + 1;
             }
         }
 
-        my $main_playlist =
-          $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
-        $query =
-            "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
-          . $playorder . ", "
-          . $main_playlist
-          . ", \"file\", \""
-          . $file . "\")";
+        # Find next media
+        my $mediaid = 1;
+        $query = "SELECT MAX(id) FROM media";
         qdebug($query);
-        $sth = $lyricDbh->prepare($query)
+        $sth = mediaDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        if (@row = $sth->fetchrow_array()) {
+            if ($row[0]) {
+                $mediaid = $row[0] + 1;
+            }
+        }
+
+        # Import item into mediaDb (if requested)
+        if (TRUE) {
+        } else {
+
+            # Add item to playlist
+            my $main_playlist =
+              $widgets->{'main'}->get_widget('labelCurrentPlaylist')
+              ->{user_data};
+            $query =
+              "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
+              . $playorder . ", "
+              . $main_playlist
+              . ", \"file\", \""
+              . $file . "\")";
+            qdebug($query);
+            $sth = $lyricDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            $rv = $sth->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        }
         update_playlist();
     }
 }
@@ -5632,17 +5667,23 @@ sub init_mainWindow {
         $menutop2->append($appMenu[$_]);
     }
     $widgets->{'main'}->get_widget('applications1')->set_submenu($menutop2);
-     
+
     # DRAG and DROP
-    $widgets->{'main'}->get_widget('treeAvailable')
-      ->drag_source_set(['button1_mask'], ['copy', 'move'],
-      {'target' => "STRING", 'flags' => [], 'info' => 0});
-    $widgets->{'main'}->get_widget('treePlaylist')
-      ->drag_dest_set('all', ['copy', 'move'],
-      {'target' => "STRING", 'flags' => [], 'info' => 0});
-    $widgets->{'main'}->get_widget('hboxBackImage')
-      ->drag_dest_set('all', ['copy', 'move'],
-      {'target' => "STRING", 'flags' => [], 'info' => 0});
+    $widgets->{'main'}->get_widget('treeAvailable')->drag_source_set(
+        ['button1_mask'],
+        ['copy', 'move'],
+        {'target' => "STRING", 'flags' => [], 'info' => 0}
+    );
+    $widgets->{'main'}->get_widget('treePlaylist')->drag_dest_set(
+        'all',
+        ['copy', 'move'],
+        {'target' => "STRING", 'flags' => [], 'info' => 0}
+    );
+    $widgets->{'main'}->get_widget('hboxBackImage')->drag_dest_set(
+        'all',
+        ['copy', 'move'],
+        {'target' => "STRING", 'flags' => [], 'info' => 0}
+    );
 
     # BORKED
     #$widgets->{'main'}->get_widget('treePlaylist')->set_reorderable(TRUE);
@@ -5924,7 +5965,7 @@ sub change_bgimage {
             $bgimage =
               $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
             $widgets->{'image'}->get_widget('buttonImageOK')
-              ->set_label(Encode::decode("utf-8",gettext("Set as Default")));
+              ->set_label(Encode::decode("utf-8", gettext("Set as Default")));
             $widgets->{'image'}->get_widget('buttonImageOK')
               ->signal_connect('clicked', "set_default_backdrop");
             $widgets->{'image'}->get_widget('buttonImageAdd')->hide();
@@ -5938,13 +5979,15 @@ sub change_bgimage {
             $widgets->{'image'}->get_widget('colorbuttonFontColour')
               ->signal_connect("button_press_event", "open_dialogColour",
                 "ImageFont");
+
             #$widgets->{'image'}->get_widget('entryImageFontColour')
-              #->signal_connect("changed", "change_colour_media");
+            #->signal_connect("changed", "change_colour_media");
             $widgets->{'image'}->get_widget('colorbuttonShadowColour')
               ->signal_connect("button_press_event", "open_dialogColour",
                 "ImageShadow");
+
             #$widgets->{'image'}->get_widget('entryImageShadowColour')
-              #->signal_connect("changed", "change_colour_media");
+            #->signal_connect("changed", "change_colour_media");
         }
         $widgets->{'image'}->get_widget('treeImage')->{user_data} = "load";
         my $renderer = Gtk2::CellRendererText->new;
@@ -6018,17 +6061,17 @@ sub on_treePlaylist_drag_data_received {
 
     if (($data->length >= 0) && ($data->format == 8)) {
         debug("Recieved: " . $data->data);
-	if ($data->data  =~ /file/i) {
-		for my $uri (split(/\n/, $data->data)) {
-			$u1 = URI->new($uri);
-			debug("received URI: " . $uri);
-			$file = $u1->file;
-			debug("Recieved file: " . $file);
-			do_add_file($file);
-		}
-	} else {
-		add_single_song($data->data);
-	}
+        if ($data->data =~ /file/i) {
+            for my $uri (split(/\n/, $data->data)) {
+                $u1 = URI->new($uri);
+                debug("received URI: " . $uri);
+                $file = Encode::decode("UTF-8",$u1->file);
+                debug("Recieved file: " . $file);
+                do_add_file($file);
+            }
+        } else {
+            add_single_song($data->data);
+        }
         update_playlist();
         $context->finish(1, 0, $time);
         return;
@@ -6478,7 +6521,8 @@ sub init_miniview {
                 exec(
                     sprintf(
                         "lyricue_server -r %s -m %d -p %d\n",
-                        $globals->{'mysqlhost'}, $widgets->{'miniview'}->get_id,
+                        $globals->{'mysqlhost'},
+                        $widgets->{'miniview'}->get_id,
                         $globals->{'miniview_port'}
                     )
                 );
@@ -6625,7 +6669,7 @@ sub select_category {
     my $hashnum   = 0;
     my @filenames = $filexml->get_widget('dialogFile')->get_selections;
     debug(@filenames);
-    my $type      = $filexml->get_widget('dialogFile')->{user_data};
+    my $type = $filexml->get_widget('dialogFile')->{user_data};
     my $choosexml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
     $choosexml->get_widget('windowChoosePlay')
@@ -6681,8 +6725,8 @@ sub do_import_media {
     my ($widget, $choosexml) = @_;
     debug("Importing media");
     if ($choosexml->get_widget('entryChoosePlay')->get_text() ne "") {
-        my $type      = $choosexml->get_widget('treeChoosePlay')->{'user_data'};
-        my $category  = $choosexml->get_widget('entryChoosePlay')->get_text();
+        my $type     = $choosexml->get_widget('treeChoosePlay')->{'user_data'};
+        my $category = $choosexml->get_widget('entryChoosePlay')->get_text();
         my $filenames =
           $choosexml->get_widget('windowChoosePlay')->{'user_data'};
         my $filename = "";
@@ -6693,12 +6737,6 @@ sub do_import_media {
             $description =~ s/^.*\///g;
             $description =~ s/\..*?$//g;
             my $owner = getpwuid($<);
-            my @date  = localtime(time);
-            my $time  = sprintf(
-                "%04d-%02d-%02d %02d:%02d:%02d",
-                $date[5] + 1900,
-                $date[4], $date[3], $date[2], $date[1], $date[0]
-            );
             debug("Category: $category\nFilename: $filename");
             open(MEDIA, $filename);
             my $data = "";
@@ -6710,11 +6748,11 @@ sub do_import_media {
             debug("Length: " . length($data));
             my $sth =
               $mediaDbh->prepare(
-q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)}
+q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,NOW(),?,?)}
               );
             my $rv =
-              $sth->execute($category, "", $type, $format, $owner, $time,
-                $description, $data);
+              $sth->execute($category, "", $type, $format, $owner, $description,
+                $data);
         }
     }
     close_dialog($widget);
@@ -6746,7 +6784,7 @@ sub update_quickedit {
         my $quicktext = "";
 
         my $plnumber = $model->get($iter, 2);
-        my $loop     = 0;
+        my $loop = 0;
 
         # Find the items lyrics for Quick Editing
         while ($loop == 0) {
@@ -6760,96 +6798,97 @@ sub update_quickedit {
               || display_fatal($errorcodes->{'sqlexecute'}, $!);
             my @row = $sth->fetchrow_array();
             if (defined($row[0])) {
-            if ($row[0] eq "song") {
-                $query =
-"SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder="
-                  . $plnumber;
-                qdebug($query);
-                $sth = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                $rv = $sth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                my @row2 = $sth->fetchrow_array();
-                if (!defined $row2[0]) { $row2[0] = ""; }
-                $quicktext = $row2[0];
-                $loop      = 1;
-                $widgets->{'main'}->get_widget('textQuick')
-                  ->set_wrap_mode('none');
-            } elsif ($row[0] eq "play") {
-                $query =
-                    "SELECT playorder FROM playlist WHERE playlist="
-                  . $row[1]
-                  . " ORDER BY playorder";
-                qdebug($query);
-                $sth = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                $rv = $sth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                my @row = $sth->fetchrow_array();
-                $plnumber = $row[0];
-                $loop     = 0;
-            } elsif ($row[0] eq "vers") {
-                my ($startv, $endv) = split(/-/, $row[1], 2);
-                $query = "SELECT title FROM playlists WHERE id=" . $row[2];
-                qdebug($query);
-                $sth = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                $rv = $sth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                my @row = $sth->fetchrow_array();
-                my @line = split(/:/, $row[0]);
-                if ($globals->{'usesword'}) {
-                    my $command = sprintf(
-                        "%s -b %s -e UTF8 -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",
-                        $globals->{'diatheke'},
-                        $globals->{'bibledb'}, $line[0], $line[1], $startv,
-                        $line[1], $endv, $line[0]
-                    );
-                    debug($command);
-                    my $command_out = Encode::decode("utf-8", `$command`);
-                    ($line[0], undef) = split(/\s\d/, $command_out, 2);
-                    my @command_lines = split(/$line[0] /, $command_out);
-                    foreach (@command_lines) {
-                        chomp;
-                        my $line2 = $_;
-                        $line2 =~ s/^$line[0] //g;
-                        if ($line2 ne "") {
-                            $quicktext .= $line2 . "\n";
-                        }
-                    }
-                } else {
+                if ($row[0] eq "song") {
                     $query =
-"SELECT chapternum,versenum,verse FROM verse WHERE book=\""
-                      . $line[0]
-                      . "\" AND chapternum="
-                      . $line[1]
-                      . " AND versenum>="
-                      . $startv
-                      . " AND versenum <= "
-                      . $endv;
+"SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder="
+                      . $plnumber;
                     qdebug($query);
-                    $sth = $bibleDbh->prepare($query)
+                    $sth = $lyricDbh->prepare($query)
                       || display_fatal($errorcodes->{'sqlprepare'}, $!);
                     $rv = $sth->execute
                       || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                    my @row2 = $sth->fetchrow_array();
+                    if (!defined $row2[0]) { $row2[0] = ""; }
+                    $quicktext = $row2[0];
+                    $loop      = 1;
+                    $widgets->{'main'}->get_widget('textQuick')
+                      ->set_wrap_mode('none');
+                } elsif ($row[0] eq "play") {
+                    $query =
+                        "SELECT playorder FROM playlist WHERE playlist="
+                      . $row[1]
+                      . " ORDER BY playorder";
+                    qdebug($query);
+                    $sth = $lyricDbh->prepare($query)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    $rv = $sth->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                    my @row = $sth->fetchrow_array();
+                    $plnumber = $row[0];
+                    $loop     = 0;
+                } elsif ($row[0] eq "vers") {
+                    my ($startv, $endv) = split(/-/, $row[1], 2);
+                    $query = "SELECT title FROM playlists WHERE id=" . $row[2];
+                    qdebug($query);
+                    $sth = $lyricDbh->prepare($query)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    $rv = $sth->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                    my @row = $sth->fetchrow_array();
+                    my @line = split(/:/, $row[0]);
+                    if ($globals->{'usesword'}) {
+                        my $command = sprintf(
+"%s -b %s -e UTF8 -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",
+                            $globals->{'diatheke'}, $globals->{'bibledb'},
+                            $line[0],               $line[1],
+                            $startv,                $line[1],
+                            $endv,                  $line[0]
+                        );
+                        debug($command);
+                        my $command_out = Encode::decode("utf-8", `$command`);
+                        ($line[0], undef) = split(/\s\d/, $command_out, 2);
+                        my @command_lines = split(/$line[0] /, $command_out);
+                        foreach (@command_lines) {
+                            chomp;
+                            my $line2 = $_;
+                            $line2 =~ s/^$line[0] //g;
+                            if ($line2 ne "") {
+                                $quicktext .= $line2 . "\n";
+                            }
+                        }
+                    } else {
+                        $query =
+"SELECT chapternum,versenum,verse FROM verse WHERE book=\""
+                          . $line[0]
+                          . "\" AND chapternum="
+                          . $line[1]
+                          . " AND versenum>="
+                          . $startv
+                          . " AND versenum <= "
+                          . $endv;
+                        qdebug($query);
+                        $sth = $bibleDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-                    while (@row = $sth->fetchrow_array()) {
-                        $quicktext .=
-                          $row[0] . ":" . $row[1] . "   " . $row[2] . "\n";
+                        while (@row = $sth->fetchrow_array()) {
+                            $quicktext .=
+                              $row[0] . ":" . $row[1] . "   " . $row[2] . "\n";
+                        }
                     }
+                    $loop = 1;
+                    $widgets->{'main'}->get_widget('textQuick')
+                      ->set_wrap_mode('word');
+                } elsif ($row[0] eq "imag") {
+                    $quicktext = "Image";
+                    $loop      = 1;
+                } elsif ($row[0] eq "back") {
+                    $quicktext = "Background";
+                    $loop      = 1;
+                } else {
+                    $loop = 1;
                 }
-                $loop = 1;
-                $widgets->{'main'}->get_widget('textQuick')
-                  ->set_wrap_mode('word');
-            } elsif ($row[0] eq "imag") {
-                $quicktext = "Image";
-                $loop      = 1;
-            } elsif ($row[0] eq "back") {
-                $quicktext = "Background";
-                $loop      = 1;
-            } else {
-                $loop = 1;
-            }
             } else {
                 $loop = 1;
             }
@@ -6868,7 +6907,7 @@ sub media_move {
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
     my @selecteditems = $selection->get_selected_rows();
     my @id            = ();
-    my $type          =
+    my $type =
       $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'};
     if ($selecteditems[0]) {
         foreach (@selecteditems) {
@@ -6903,7 +6942,7 @@ sub media_move {
         } else {
             $store = Gtk2::ListStore->new('Glib::String');
             $choosexml->get_widget('treeChoosePlay')->set_model($store);
-            my $renderer  = Gtk2::CellRendererText->new;
+            my $renderer = Gtk2::CellRendererText->new;
             my $selection =
               $choosexml->get_widget('treeChoosePlay')->get_selection;
             $selection->signal_connect("changed", "update_category",
@@ -7047,23 +7086,27 @@ sub rename_media {
 sub change_colour_media {
     my ($widget) = @_;
     debug("change colour media");
-    my $fontcolour = $widgets->{'image'}->get_widget('entryImageFontColour')->get('text');
-    my $shadowcolour = $widgets->{'image'}->get_widget('entryImageShadowColour')->get('text');
-    my $id=$widgets->{'image'}->get_widget('imageImage')->{user_data};
-    if (defined ($id) ) {
-      debug("change_colour_media: $fontcolour, $shadowcolour, $id");
-      my $query = "UPDATE media SET textcolour=\"$fontcolour\", shadowcolour=\"$shadowcolour\" WHERE id=$id";
-      qdebug($query);
-      my $sth = $mediaDbh->prepare($query)
-        || display_fatal($errorcodes->{'sqlprepare'}, $!);
-      my $rv = $sth->execute
-        || display_fatal($errorcodes->{'sqlexecute'}, $!);
-  #update_imagedir(
-              #$widgets->{'image'}->get_widget('optionImageCategory')
-                #->{'user_data'},
-              #$widgets->{'image'}->get_widget('optionImageCategory')
-                #->get_menu->get_active->{user_data}
-          #);
+    my $fontcolour =
+      $widgets->{'image'}->get_widget('entryImageFontColour')->get('text');
+    my $shadowcolour =
+      $widgets->{'image'}->get_widget('entryImageShadowColour')->get('text');
+    my $id = $widgets->{'image'}->get_widget('imageImage')->{user_data};
+    if (defined($id)) {
+        debug("change_colour_media: $fontcolour, $shadowcolour, $id");
+        my $query =
+"UPDATE media SET textcolour=\"$fontcolour\", shadowcolour=\"$shadowcolour\" WHERE id=$id";
+        qdebug($query);
+        my $sth = $mediaDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+        #update_imagedir(
+        #$widgets->{'image'}->get_widget('optionImageCategory')
+        #->{'user_data'},
+        #$widgets->{'image'}->get_widget('optionImageCategory')
+        #->get_menu->get_active->{user_data}
+        #);
     }
 }
 
@@ -7174,7 +7217,7 @@ sub backup_db {
           . $databases
           . " | gzip -c > "
           . $filename;
-        debug ($command);
+        debug($command);
         system $command;
         if ($? == -1) {
             debug("Failed to execute: " . $command);
@@ -7208,27 +7251,28 @@ sub get_bibles {
     my $bibles;
     debug("Getting available bibles");
 
-  if ($^O ne 'MSWin32') {
+    if ($^O ne 'MSWin32') {
 
-    # Bibles provided by Sword libraries
-    open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
-    while (<SWORD>) {
-        if (/^Biblical Texts:/) {
-            while (<SWORD>) {
-                if (/^Commentaries:/) {
-                    while (<SWORD>) { }
-                } else {
-                    chomp;
-                    my @bible = split(/:/, $_, 2);
-                    $bible[0] =~ s/\s+$//;
-                    $bible[1] =~ s/^\s+//;
-                    $bibles->{$bible[0]} = "sword;" . $bible[1];
+        # Bibles provided by Sword libraries
+        open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
+        while (<SWORD>) {
+            if (/^Biblical Texts:/) {
+                while (<SWORD>) {
+                    if (/^Commentaries:/) {
+                        while (<SWORD>) { }
+                    } else {
+                        chomp;
+                        my @bible = split(/:/, $_, 2);
+                        $bible[0] =~ s/\s+$//;
+                        $bible[1] =~ s/^\s+//;
+                        $bibles->{$bible[0]} = "sword;" . $bible[1];
+                    }
                 }
             }
         }
+        close SWORD;
     }
-    close SWORD;
-  }
+
     # Bible databases found
     my $dbs = $globals->{'db_available_db'};
     foreach (keys %$dbs) {
@@ -7335,7 +7379,7 @@ sub navigator_update {
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my @bookrow = $sth->fetchrow_array();
         if ((defined $bookrow[0]) && ($book ne "")) {
-            $book  = $bookrow[0];
+            $book = $bookrow[0];
             $query =
 "SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \""
               . $book
@@ -7577,7 +7621,7 @@ sub follow_if_link {
         my $buffer    = $text_view->get_buffer();
         my $mark      = $buffer->get_mark($tag->{markname});
         my $startiter = $buffer->get_iter_at_mark($mark);
-        my $enditer   =
+        my $enditer =
           $buffer->get_iter_at_mark($buffer->get_mark($tag->{markname} + 1));
         my $quicktext = $buffer->get_text($startiter, $enditer, FALSE);
         if ($verse ne "") {
@@ -7631,7 +7675,7 @@ sub text_set_cursor_if_appropriate {
 #
 sub text_motion_notify_event {
     my ($text_view, $event) = @_;
-    my ($x,         $y)     =
+    my ($x, $y) =
       $text_view->window_to_buffer_coords('widget', $event->x, $event->y);
     text_set_cursor_if_appropriate($text_view, $x, $y);
     $text_view->window->get_pointer;
@@ -7706,7 +7750,7 @@ sub import_song_opw {
 
     open(OPW, $filename) || die("Unable to open $filename");
     while (<OPW>) {
-        $input .= Encode::decode("cp-1252",$_);
+        $input .= Encode::decode("cp-1252", $_);
     }
     close OPW;
 
@@ -7766,12 +7810,13 @@ sub import_song_html {
             $author =~ s/^.*id="author">(.*)<\/div>.*/$1/g;
             $widgets->{'add'}->get_widget('entryEditArtist')->set_text($author);
         } elsif (/div class="heading"/) {
+
             # new page
             debug("add page");
             if ($page ne "") {
                 my $iter = $widgets->{'textAPageB'}{$hashnum}->get_end_iter();
                 $widgets->{'textAPageB'}{$hashnum}->insert($iter, $page);
-                $page = "";
+                $page    = "";
                 $hashnum = add_page();
             }
         } elsif (/td class="lyrics"/) {
@@ -7791,7 +7836,6 @@ sub import_song_html {
         $page = "";
     }
 }
-
 
 ####
 # Install database functions
@@ -8191,7 +8235,10 @@ sub db_select {
     # Open lyricDB, bibleDB and mediaDb
     if ($config->{'DatabaseType'} eq "mysql") {
         my $sqldb = DBI->connect(
-            "DBI:" . $config->{'DatabaseType'} . ":mysql:" . $globals->{'mysqlhost'},
+            "DBI:"
+              . $config->{'DatabaseType'}
+              . ":mysql:"
+              . $globals->{'mysqlhost'},
             "lyric", ""
         ) || db_install_user();
         if ($sqldb) {
@@ -8226,49 +8273,51 @@ sub on_hboxBackImage_drag_data_received {
     debug("Dropped on backgrounds");
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
     my $category = $globals->{'category'};
-    
+
     if (($category ne "") && ($data->length >= 0) && ($data->format == 8)) {
         debug("Recieved " . $data->data);
-	if ($data->data) {
-		my @uris = split(/\n/, $data->data);
-		my ($filename, $format, $description);		
-		my $owner = getpwuid($<);
-		my @date  = localtime(time);
-		my $time  = sprintf(
-			"%04d-%02d-%02d %02d:%02d:%02d",
-			$date[5] + 1900,
-			$date[4], $date[3], $date[2], $date[1], $date[0]
-		);
-		for my $uri (@uris) {
-			$filename = URI->new($uri);
-			debug("Category: $category, Filename: " . $filename->file);
-			
-			$format = $filename->file;
-			$format =~ s/^.*\.//g;
-			$description = $filename->file;
-			$description =~ s/^.*\///g;
-			$description =~ s/\..*?$//g;
-	    
-			open(MEDIA, $filename->file);
-			my $filedata = "";
+        if ($data->data) {
+            my @uris = split(/\n/, $data->data);
+            my ($filename, $format, $description);
+            my $owner = getpwuid($<);
+            my @date  = localtime(time);
+            my $time  = sprintf(
+                "%04d-%02d-%02d %02d:%02d:%02d",
+                $date[5] + 1900,
+                $date[4], $date[3], $date[2], $date[1], $date[0]
+            );
+            for my $uri (@uris) {
+                $filename = URI->new($uri);
+                debug("Category: $category, Filename: " . $filename->file);
 
-			while (<MEDIA>) {
-				$filedata .= $_;
-			}
-			close MEDIA;
-			debug("Length: " . length($filedata));
-			my $sth =
-			$mediaDbh->prepare(
+                $format = $filename->file;
+                $format =~ s/^.*\.//g;
+                $description = $filename->file;
+                $description =~ s/^.*\///g;
+                $description =~ s/\..*?$//g;
+
+                open(MEDIA, $filename->file);
+                my $filedata = "";
+
+                while (<MEDIA>) {
+                    $filedata .= $_;
+                }
+                close MEDIA;
+                debug("Length: " . length($filedata));
+                my $sth =
+                  $mediaDbh->prepare(
 q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)}
-			);
-			my $rv =	$sth->execute($category, "", "bg", $format, $owner, $time, $description, $filedata);	
-		}
-		bgdir_change($widget, $category);
-	}
-	
+                  );
+                my $rv =
+                  $sth->execute($category, "", "bg", $format, $owner, $time,
+                    $description, $filedata);
+            }
+            bgdir_change($widget, $category);
+        }
+
         $context->finish(1, 0, $time);
         return;
-	} else {
-		debug("global category=$category");
-	}
+    } else {
+        debug("global category=$category");
+    }
 }
