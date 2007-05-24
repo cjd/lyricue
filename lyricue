@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.221 2007/05/14 02:27:08 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.222 2007/05/24 22:24:14 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5247,7 +5247,7 @@ sub do_add_file {
         my $mediaid = 1;
         $query = "SELECT MAX(id) FROM media";
         qdebug($query);
-        $sth = mediaDbh->prepare($query)
+        $sth = $mediaDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);

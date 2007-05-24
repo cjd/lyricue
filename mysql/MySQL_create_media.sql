@@ -26,12 +26,12 @@ CREATE TABLE media (
 -- Dumping data for table `media`
 --
 
-INSERT INTO media VALUES (1,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','black','');
-INSERT INTO media VALUES (2,'Main','','img','bg','cjd','2004-08-01 17:02:25','black','');
-INSERT INTO media VALUES (5,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','orange','');
-INSERT INTO media VALUES (6,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','gray','');
-INSERT INTO media VALUES (7,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','red','');
-INSERT INTO media VALUES (8,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','green','');
-INSERT INTO media VALUES (9,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','blue','');
-INSERT INTO media VALUES (10,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','yellow','');
-INSERT INTO media VALUES (11,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','white','');
+INSERT INTO media VALUES (1,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','black','','','');
+INSERT INTO media VALUES (2,'Main','','img','bg','cjd','2004-08-01 17:02:25','black','','','');
+INSERT INTO media VALUES (5,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','orange','','','');
+INSERT INTO media VALUES (6,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','gray','','','');
+INSERT INTO media VALUES (7,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','red','','','');
+INSERT INTO media VALUES (8,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','green','','','');
+INSERT INTO media VALUES (9,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','blue','','','');
+INSERT INTO media VALUES (10,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','yellow','','','');
+INSERT INTO media VALUES (11,'Solid','','bg','bg','cjd','2004-08-01 17:03:47','white','','','');
