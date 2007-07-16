@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.224 2007/07/16 04:25:54 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.225 2007/07/16 04:51:17 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6848,12 +6848,15 @@ sub update_quickedit {
                         my $command_out = Encode::decode("utf-8", `$command`);
                         ($line[0], undef) = split(/\s\d/, $command_out, 2);
                         my @command_lines = split(/$line[0] /, $command_out);
-                        foreach (@command_lines) {
-                            chomp;
-                            my $line2 = $_;
-                            $line2 =~ s/^$line[0] //g;
+                        my $lineno = 0;
+                        foreach $lineno (1..@command_lines) {
+                            my $line2 = $command_lines[$lineno-1];
+                            chomp($line2);
                             if ($line2 ne "") {
-                                $quicktext .= $line2 . "\n";
+                                if ($lineno != @command_lines) {
+                                    $line2 .= "\n";
+                                }
+                                $quicktext .= $line2;
                             }
                         }
                     } else {
