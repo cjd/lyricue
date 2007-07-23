@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.225 2007/07/16 04:51:17 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.226 2007/07/23 01:55:16 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7284,7 +7284,7 @@ sub get_bibles {
         my @tables = $db->tables;
         my $table;
         foreach (@tables) {
-            $_ =~ s/^`(.*)`$/$1/g;
+            $_ =~ s/^.*`(.*)`$/$1/g;
             $_ =~ s/^"(.*)"$/$1/g;
             if (/^verse$/) {
                 my $query = "SELECT * FROM verse WHERE book=\"Bible\";";
@@ -8092,7 +8092,7 @@ sub db_updatedb_lyricDb {
     my @tables = $dbh->tables;
     my $table;
     foreach (@tables) {
-        $_ =~ s/^`(.*)`$/$1/g;
+        $_ =~ s/^.*`(.*)`$/$1/g;
         $_ =~ s/^"(.*)"$/$1/g;
         $table->{$_} = 1;
     }
