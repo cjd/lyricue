@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.124 2007/05/14 02:27:09 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.125 2007/08/22 03:25:02 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -2910,6 +2910,10 @@ sub db_check_app {
     debug("Checking for database servers");
     if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
         debug("Forcing usage of SQLite3");
+        $globals->{'db_type'} = "SQLite";
+        return;
+    }
+    if ($config->{'DatabaseType'} eq "SQLite") {
         $globals->{'db_type'} = "SQLite";
         return;
     }
