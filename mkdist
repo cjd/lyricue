@@ -28,7 +28,7 @@ rm -rf dist/lyricue-${VERSION}
 echo Making Bible packages
 if [ "$1" = "-b" ]
 then echo Making bibles
-for DB in KJV MES NIV NLT
+for DB in KJV MES NIV NLT NIRV
     do DB_LOWER=`echo $DB | tr [:upper:] [:lower:]`
     DISTDIR=dist/lyricue-bible-$DB_LOWER
     mkdir $DISTDIR
