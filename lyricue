@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.226 2007/07/23 01:55:16 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.227 2007/09/12 22:48:17 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5933,6 +5933,10 @@ sub add_file {
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "file_ok_sel", $filexml);
+}
+
+sub add_directory {
+    debug("Add a directory to the playlist");
 }
 
 sub add_background {

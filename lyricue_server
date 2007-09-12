@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.127 2007/09/10 04:27:45 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.128 2007/09/12 22:48:17 cjdebenh Exp $;
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -1289,83 +1289,112 @@ sub HandleKey {
 sub change_backdrop {
     my ($id) = @_;
     debug("Setting backdrop");
-    my $query =
-"SELECT format, description, data, textcolour, shadowcolour FROM media WHERE id=\""
-      . $id . "\"";
-    debug($query);
-    my $sth = $mediaDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    my $row = $sth->fetchrow_hashref();
-    if ($row) {
-
-        if (($row->{'textcolour'} ne "") && ($row->{'textcolour'} ne NULL) && ($row->{'textcolour'} ne "Default") && ($row->{'textcolour'} ne "NULL")) {
-            debug("Changing text colour to " . $row->{'textcolour'});
-            $config->{'BackdropTextColour'} = $row->{'textcolour'};
+    if ($id =~ /\./) {
+        debug("Changing backdrop image to " . $id);
+        if (   ($globals->{'server_type'} == TRANS)
+            || ($globals->{'server_type'} == SIMPLE))
+        {
+            $globals->{'bg_file'} = $id;
         } else {
-            $config->{'BackdropTextColour'} = $config->{'DefaultBackdropTextColour'};
-        }
-        if (($row->{'shadowcolour'} ne "") && ($row->{'shadowcolour'} ne NULL) && ($row->{'shadowcolour'} ne "Default") && ($row->{'shadowcolour'} ne "NULL")) {
-            debug("Changing shadow colour to " . $row->{'shadowcolour'});
-            $config->{'BackdropShadowColour'} = $row->{'shadowcolour'};
-        } else {
-            $config->{'BackdropShadowColour'} = $config->{'DefaultBackdropShadowColour'};
-        }
-
-        if ($row->{'format'} eq "bg") {
-            debug("Changing backdrop colour to " . $row->{'description'});
-            if (   ($globals->{'server_type'} == TRANS)
-                || ($globals->{'server_type'} == SIMPLE))
-            {
-                open(BGIMG, ">" . $globals->{'bg_file'});
-                print BGIMG
-                  sprintf(
-'/* XPM */\nstatic char *b[] = { "1 1 1 1", "  c %s", " " };\n',
-                    $row->{'description'});
-                close BGIMG;
+            my ($pixbuf);
+            eval {$pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_size($id,$config->{'Width'}, $config->{'Height'})};
+            if ($@) {
+                debug("Unable to load background: $id");
             } else {
                 if (defined $background) {
                     $background->destroy;
                 }
-
                 $background = Gnome2::Canvas::Item->new(
-                    $globals->{'root'}, 'Gnome2::Canvas::Rect',
-                    x1          => 0,
-                    y1          => 0,
-                    x2          => $config->{'Width'},
-                    y2          => $config->{'Height'},
-                    fill_color  => $row->{'description'},
-                    width_units => 0
+                    $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
+                    pixbuf     => $pixbuf,
+                    x          => 1,
+                    y          => 1,
+                    width      => $config->{'Width'},
+                    height     => $config->{'Height'},
+                    width_set  => TRUE,
+                    height_set => TRUE,
                 );
             }
-        } else {
-            debug("Changing backdrop image to " . $row->{'description'});
-            my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
-            $pixbuf_loader->set_size($config->{'Width'}, $config->{'Height'});
-            eval { $pixbuf_loader->write($row->{'data'}); };
-            eval { $pixbuf_loader->close() };
-            if ($@) {
-                debug("Unable to load background: $row->{'description'}");
+        }
+    } else { 
+        my $query =
+    "SELECT format, description, data, textcolour, shadowcolour FROM media WHERE id=\""
+          . $id . "\"";
+        debug($query);
+        my $sth = $mediaDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my $row = $sth->fetchrow_hashref();
+        if ($row) {
+    
+            if (($row->{'textcolour'} ne "") && ($row->{'textcolour'} ne NULL) && ($row->{'textcolour'} ne "Default") && ($row->{'textcolour'} ne "NULL")) {
+                debug("Changing text colour to " . $row->{'textcolour'});
+                $config->{'BackdropTextColour'} = $row->{'textcolour'};
             } else {
-                my $pixbuf = $pixbuf_loader->get_pixbuf();
+                $config->{'BackdropTextColour'} = $config->{'DefaultBackdropTextColour'};
+            }
+            if (($row->{'shadowcolour'} ne "") && ($row->{'shadowcolour'} ne NULL) && ($row->{'shadowcolour'} ne "Default") && ($row->{'shadowcolour'} ne "NULL")) {
+                debug("Changing shadow colour to " . $row->{'shadowcolour'});
+                $config->{'BackdropShadowColour'} = $row->{'shadowcolour'};
+            } else {
+                $config->{'BackdropShadowColour'} = $config->{'DefaultBackdropShadowColour'};
+            }
+    
+            if ($row->{'format'} eq "bg") {
+                debug("Changing backdrop colour to " . $row->{'description'});
                 if (   ($globals->{'server_type'} == TRANS)
                     || ($globals->{'server_type'} == SIMPLE))
                 {
-                    $pixbuf->save($globals->{'bg_file'}, 'png');
+                    open(BGIMG, ">" . $globals->{'bg_file'});
+                    print BGIMG
+                      sprintf(
+    '/* XPM */\nstatic char *b[] = { "1 1 1 1", "  c %s", " " };\n',
+                        $row->{'description'});
+                    close BGIMG;
                 } else {
                     if (defined $background) {
                         $background->destroy;
                     }
+    
                     $background = Gnome2::Canvas::Item->new(
-                        $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
-                        pixbuf     => $pixbuf,
-                        x          => 1,
-                        y          => 1,
-                        width      => $config->{'Width'},
-                        height     => $config->{'Height'},
-                        width_set  => TRUE,
-                        height_set => TRUE,
+                        $globals->{'root'}, 'Gnome2::Canvas::Rect',
+                        x1          => 0,
+                        y1          => 0,
+                        x2          => $config->{'Width'},
+                        y2          => $config->{'Height'},
+                        fill_color  => $row->{'description'},
+                        width_units => 0
                     );
+                }
+            } else {
+                debug("Changing backdrop image to " . $row->{'description'});
+                my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+                $pixbuf_loader->set_size($config->{'Width'}, $config->{'Height'});
+                eval { $pixbuf_loader->write($row->{'data'}); };
+                eval { $pixbuf_loader->close() };
+                if ($@) {
+                    debug("Unable to load background: $row->{'description'}");
+                } else {
+                    my $pixbuf = $pixbuf_loader->get_pixbuf();
+                    if (   ($globals->{'server_type'} == TRANS)
+                        || ($globals->{'server_type'} == SIMPLE))
+                    {
+                        $pixbuf->save($globals->{'bg_file'}, 'png');
+                    } else {
+                        if (defined $background) {
+                            $background->destroy;
+                        }
+                        $background = Gnome2::Canvas::Item->new(
+                            $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
+                            pixbuf     => $pixbuf,
+                            x          => 1,
+                            y          => 1,
+                            width      => $config->{'Width'},
+                            height     => $config->{'Height'},
+                            width_set  => TRUE,
+                            height_set => TRUE,
+                        );
+                    }
                 }
             }
         }
