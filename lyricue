@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.227 2007/09/12 22:48:17 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.228 2007/09/13 23:14:03 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -101,7 +101,7 @@ use URI::file;
 eval { require Locale::gettext };
 
 if ($@) {
-    print "Gettext not available, english text only\n";
+    print STDERR "Gettext not available, english text only\n";
 
     sub gettext {
         return $_[0];
@@ -188,14 +188,14 @@ $globals->{'current_item'}       = -1;
 # Optional modules
 eval { require Gtk2::Spell };
 if ($@) {
-    print "Gtk-Spell not available, spell checking turned off\n";
+    print STDERR "Gtk-Spell not available, spell checking turned off\n";
     $globals->{'spell'} = FALSE;
 } else {
     import Gtk2::Spell;
 }
 eval { require Gtk2::TrayIcon };
 if ($@) {
-    print "Gtk-Trayicon not available, Tray icon turned off\n";
+    print STDERR "Gtk-Trayicon not available, Tray icon turned off\n";
     $globals->{'trayicon'} = FALSE;
 } else {
     import Gtk2::TrayIcon;
@@ -386,7 +386,7 @@ umask 0002;
 # Check if user .lyricue directory exists, otherwire create
 if (-e $globals->{'basedir'}) {
     if (!-d $globals->{'basedir'}) {
-        print
+        print STDERR 
 "Old ~/.lyricue existed but was not a directory, moving to ~/.lyricue.orig\n";
         rename $globals->{'basedir'}, $globals->{'basedir'} . ".orig";
         mkdir $globals->{'basedir'}, 0777;
@@ -630,7 +630,12 @@ sub add_playlist {
             my $row2 = $sth2->fetchrow_hashref();
             $title = "Background : " . $row2->{'description'};
         } elsif ($row->{'type'} eq "file") {
-            $title = "File: " . $row->{'data'};
+            $_ = $row->{'data'};
+            if (/^(.*)\/(.*)$/ ) {
+                $title = "File: " . $2." in ".$1;
+            } else {
+                $title = "File: " . $row->{'data'};
+            }
         } elsif ($row->{'type'} eq "imag") {
             my $query2 =
               "SELECT description FROM media WHERE id=\""
@@ -5215,7 +5220,9 @@ sub save_preferences {
 sub file_ok_sel {
     my ($widget, $filexml) = @_;
     debug("Add filename to playlist");
-    do_add_file($filexml->get_widget('dialogFile')->get_filename);
+    my $main_playlist =
+      $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+    do_add_file($filexml->get_widget('dialogFile')->get_filename,$main_playlist);
     close_dialog($widget);
 }
 
@@ -5223,7 +5230,7 @@ sub file_ok_sel {
 
 #  Add the filename to the playlist
 sub do_add_file {
-    my ($file) = @_;
+    my ($file,$playlist) = @_;
     debug("do_add_file: file=" . $file);
     if (($file ne "") && (-r $file)) {
 
@@ -5268,7 +5275,7 @@ sub do_add_file {
             $query =
               "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
               . $playorder . ", "
-              . $main_playlist
+              . $playlist
               . ", \"file\", \""
               . $file . "\")";
             qdebug($query);
@@ -5303,6 +5310,11 @@ sub create_sublist {
 
 #***
 
+sub new_sublist_from_xml {
+    my ($widget, $sublistxml) = @_;
+    new_sublist($sublistxml->get_widget('entryPromptE')->get_text());
+}
+
 #****m* lyricue/new_sublist
 # NAME
 #   new_sublist --
@@ -5315,10 +5327,11 @@ sub create_sublist {
 #   Closes sublist dialog
 #   Adds sublist to current playlist
 #   Calls update_playlist to refresh playlist
+#   Returns sublist id
 # SOURCE
 #
 sub new_sublist {
-    my ($widget, $sublistxml) = @_;
+    my ($sublist) = @_;
     debug("new sublist");
     my ($row, $sth, $rv, $parentid);
 
@@ -5354,7 +5367,7 @@ sub new_sublist {
     $query =
         "INSERT INTO playlists (id, title, ref) VALUES ("
       . $playlistsid . " ,'"
-      . $sublistxml->get_widget('entryPromptE')->get_text() . "','')";
+      . $sublist . "','')";
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
@@ -5371,8 +5384,8 @@ sub new_sublist {
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-    close_dialog($widget);
     update_playlist();
+    return $playlistsid;
 }
 
 #***
@@ -5937,6 +5950,52 @@ sub add_file {
 
 sub add_directory {
     debug("Add a directory to the playlist");
+    my $d = Gtk2::FileChooserDialog->new(
+        'Choose a Directory',
+         $widgets->{'main'}->get_widget('windowMain'), 'select-folder',
+        "Cancel" => "cancel",
+        "OK"     => "accept",
+    );
+
+    my $response = $d->run();
+    my $dirname = $d->get_filename();
+    if ( "accept" eq $response ) {
+        debug("Choosing" . $dirname);
+    }
+    $d->destroy;
+
+    my (@files, $file);
+    opendir DIR, $dirname || return 0;
+    my @fileexts = qw(jpg gif png jpeg);
+    foreach $file ( sort readdir(DIR) ) {
+        foreach my $fileobj (@fileexts) {
+            if ( $file =~ /$fileobj$/i ) {
+                print $file."\n";
+                push @files, $dirname."/".$file;
+            }
+        }
+    }
+    closedir DIR;
+    if (@files) {
+        my $sublistxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+            'dialogPromptEntry', 'lyricue');
+        $sublistxml->signal_autoconnect_from_package('');
+        $sublistxml->get_widget('dialogPromptEntry')
+        ->set_title(Encode::decode("utf-8", gettext("Create new sublist")));
+        $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
+
+        my $response = $sublistxml->get_widget('dialogPromptEntry')->run();
+        if ($response eq "ok") {
+            my $sublist = $sublistxml->get_widget('entryPromptE')->get_text();
+            debug("Sublist name: ".$sublist);
+            my $playlist = new_sublist($sublist);
+
+            foreach $file (@files) {
+                do_add_file($file,$playlist);
+            }
+        }
+        close_dialog($sublistxml->get_widget('dialogPromptEntry'));
+    }
 }
 
 sub add_background {
@@ -6028,7 +6087,7 @@ sub create_dialogSublist {
       ->set_title(Encode::decode("utf-8", gettext("Create new sublist")));
     $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
     $sublistxml->get_widget('buttonPromptEOK')
-      ->signal_connect("clicked", "new_sublist", $sublistxml);
+      ->signal_connect("clicked", "new_sublist_from_xml", $sublistxml);
 }
 
 #***
@@ -6071,7 +6130,8 @@ sub on_treePlaylist_drag_data_received {
                 debug("received URI: " . $uri);
                 $file = Encode::decode("UTF-8",$u1->file);
                 debug("Recieved file: " . $file);
-                do_add_file($file);
+                my $main_playlist = $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+                do_add_file($file,$main_playlist);
             }
         } else {
             add_single_song($data->data);
