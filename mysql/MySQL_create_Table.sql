@@ -2986,7 +2986,7 @@ INSERT INTO page VALUES (13615,642,4,'Hallelujah,\nHallelujah,\nHallelujah,\nHal
 CREATE TABLE playlist (
   playorder INTEGER NOT NULL default '0',
   playlist INTEGER NOT NULL default '1',
-  data varchar(50) NOT NULL default '',
+  data varchar(256) NOT NULL default '',
   type varchar(4) default 'song',
   transition INTEGER default '0',
   PRIMARY KEY  (playorder)

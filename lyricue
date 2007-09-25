@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.228 2007/09/13 23:14:03 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.229 2007/09/25 06:57:55 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5967,10 +5967,9 @@ sub add_directory {
     my (@files, $file);
     opendir DIR, $dirname || return 0;
     my @fileexts = qw(jpg gif png jpeg);
-    foreach $file ( sort readdir(DIR) ) {
+    foreach $file ( readdir(DIR) ) {
         foreach my $fileobj (@fileexts) {
             if ( $file =~ /$fileobj$/i ) {
-                print $file."\n";
                 push @files, $dirname."/".$file;
             }
         }
@@ -5989,6 +5988,8 @@ sub add_directory {
             my $sublist = $sublistxml->get_widget('entryPromptE')->get_text();
             debug("Sublist name: ".$sublist);
             my $playlist = new_sublist($sublist);
+
+            @files = sort alphanum @files;   
 
             foreach $file (@files) {
                 do_add_file($file,$playlist);
@@ -8391,4 +8392,45 @@ q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate,
     } else {
         debug("global category=$category");
     }
+}
+
+sub alphanum {
+    # $a and $b are automagically passed to alphanum.
+    # A copy of them has to be made, or else we will edit the global $a and $b
+    my $a_copy=$a;
+    my $b_copy=$b;
+    my $n=0;
+    while ($n==0) {
+        # Get next "chunk"
+        # (A chunk is either a group of letters or a group of numbers)
+    
+        my ($a_chunk) = $a_copy =~ /([\D]+|[\d]+)/;
+        $a_copy = substr($a_copy,length($a_chunk),length($a_copy)-length($a_chunk));
+   
+        my ($b_chunk) = $b_copy =~ /([\D]+|[\d]+)/;
+        $b_copy = substr($b_copy,length($b_chunk),length($b_copy)-length($b_chunk));
+          
+        # Compare the chunks
+    
+        # Case 1: They both contain letters
+        if (($a_chunk =~ /\D+/) && ($b_chunk =~ /\D+/)) {
+            $n = $a_chunk cmp $b_chunk;
+        }
+
+        # Case 2: They both contain numbers
+        else {
+            if (($a_chunk =~ /\d+/) && ($b_chunk =~ /\d+/)) {
+                $n = $a_chunk <=> $b_chunk;
+            }
+
+            # Case 3: One has letters, one has numbers; or one is empty
+            else {
+                $n = $a_chunk cmp $b_chunk;
+                # If these are equal, make one (which one is arbitrary) come before
+                # the other   (or else we'll be stuck in this "while $n==0" loop)
+                if ($n==0) { $n=1 }
+            }
+        }
+    }
+    return $n;
 }
