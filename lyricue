@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.230 2007/09/26 01:31:56 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.231 2007/09/26 06:29:34 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -386,7 +386,7 @@ umask 0002;
 # Check if user .lyricue directory exists, otherwire create
 if (-e $globals->{'basedir'}) {
     if (!-d $globals->{'basedir'}) {
-        print STDERR 
+        print STDERR
 "Old ~/.lyricue existed but was not a directory, moving to ~/.lyricue.orig\n";
         rename $globals->{'basedir'}, $globals->{'basedir'} . ".orig";
         mkdir $globals->{'basedir'}, 0777;
@@ -631,8 +631,8 @@ sub add_playlist {
             $title = "Background : " . $row2->{'description'};
         } elsif ($row->{'type'} eq "file") {
             $_ = $row->{'data'};
-            if (/^(.*)\/(.*)$/ ) {
-                $title = "File: " . $2." in ".$1;
+            if (/^(.*)\/(.*)$/) {
+                $title = "File: " . $2 . " in " . $1;
             } else {
                 $title = "File: " . $row->{'data'};
             }
@@ -1191,8 +1191,7 @@ sub delete_song {
     if ($iter) {
         my $songid = $model->get($iter, 3);
         if (!($model->get($iter, 1) eq $config->{'SpecialSong'})) {
-            $query =
-              "SELECT title,songnum,book,artist FROM lyricMain WHERE id="
+            $query = "SELECT title,songnum,book,artist FROM lyricMain WHERE id="
               . $songid;
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
@@ -1331,7 +1330,8 @@ sub do_save_song {
             if (!$found) {
                 debug("Page Delete : " . $row[0] . "|" . $pageOrder{$row[0]});
                 $query =
-                    "SELECT pageid FROM page WHERE songid=" . $songid
+                    "SELECT pageid FROM page WHERE songid=" 
+                  . $songid
                   . " AND pagenum="
                   . $row[0];
                 qdebug($query);
@@ -1348,8 +1348,7 @@ sub do_save_song {
                 $sth2->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-                $query =
-                  "DELETE FROM playlist WHERE type='song' AND data="
+                $query = "DELETE FROM playlist WHERE type='song' AND data="
                   . $tmpid[0];
                 qdebug($query);
                 $sth2 = $lyricDbh->prepare($query)
@@ -1379,8 +1378,8 @@ sub do_save_song {
                 $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
             } else {
                 $query =
-                  "INSERT INTO page (songid,pagenum,lyrics) VALUES (" . $songid
-                  . ", "
+                    "INSERT INTO page (songid,pagenum,lyrics) VALUES (" 
+                  . $songid . ", "
                   . $pageOrder{$page} . ", "
                   . $lyricDbh->quote(
                     Encode::encode(
@@ -1509,8 +1508,8 @@ sub do_save_song {
         my $pagenum = 0;
         foreach $page (keys(%pageOrder)) {
             $query =
-                "INSERT INTO page (songid,pagenum,lyrics) VALUES (" . $songid
-              . ", "
+                "INSERT INTO page (songid,pagenum,lyrics) VALUES (" 
+              . $songid . ", "
               . $pageOrder{$page} . ", "
               . $lyricDbh->quote(
                 Encode::encode(
@@ -2084,7 +2083,8 @@ sub update_songinfo {
     if ($songid) {
         $widgets->{'add'}->get_widget('windowEditSong')->{user_data} = $songid;
         $query =
-            "SELECT lyrics FROM page WHERE songid=\"" . $songid
+            "SELECT lyrics FROM page WHERE songid=\"" 
+          . $songid
           . "\" ORDER BY pagenum";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
@@ -2899,7 +2899,8 @@ sub update_imagedir {
     $menu->append($item);
 
     $query =
-        "SELECT DISTINCT category FROM media WHERE type=\"" . $type
+        "SELECT DISTINCT category FROM media WHERE type=\"" 
+      . $type
       . "\" AND category != \""
       . $main
       . "\" ORDER BY category";
@@ -3114,7 +3115,8 @@ sub preview_display {
                 )
               )
             {
-                print $server $command . ":" . $primary . ":"
+                print $server $command . ":" 
+                  . $primary . ":"
                   . $secondary . "\n";
                 close($server);
                 if (FALSE) {
@@ -3166,7 +3168,8 @@ sub open_dialogColour {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogColour', 'lyricue');
     $colourxml->signal_autoconnect_from_package('');
     $colourxml->get_widget('dialogColour')
-      ->set_title(Encode::decode("utf-8", gettext("Select ")) . $item
+      ->set_title(Encode::decode("utf-8", gettext("Select ")) 
+          . $item
           . Encode::decode("utf-8", gettext(" Colour")));
     $colourxml->get_widget('dialogColour')->{'user_data'} = $item;
 
@@ -3602,8 +3605,8 @@ sub change_preview {
             my $scaled = create_pixbuf($id, 480, 360);
             if ($scaled) {
                 my $query =
-                  "SELECT textcolour, shadowcolour FROM media WHERE id=\"" . $id
-                  . "\"";
+                  "SELECT textcolour, shadowcolour FROM media WHERE id=\"" 
+                  . $id . "\"";
                 qdebug($query);
                 my $sth = $mediaDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -4047,7 +4050,8 @@ sub honourise_song_lyrics {
 
     foreach $page (keys(%pageOrder)) {
         $tmppage = get_buffer_text($widgets->{'textAPageB'}{$page});
-        debug(  "Page contents of page " . $page
+        debug(  "Page contents of page " 
+              . $page
               . " before honourisation:\n"
               . $tmppage);
 
@@ -4097,7 +4101,8 @@ sub honourise_song_lyrics {
             $tmppage =~ s/([ \n])$key$/$1$hash{$key}/g;
             $tmppage =~ s/([ \n])$key([ \n])/$1$hash{$key}$2/g;
         }
-        debug(  "Page contents of page " . $page
+        debug(  "Page contents of page " 
+              . $page
               . " after honourisation:\n"
               . $tmppage);
         $widgets->{'textAPageB'}{$page}->set_text($tmppage);
@@ -4350,7 +4355,8 @@ sub update_adv_search {
         my $songid = $model->get($iter, 3);
         debug("Songid \"" . $songid . "\" selected");
         my $query =
-            "SELECT lyrics FROM page WHERE songid=" . $songid
+            "SELECT lyrics FROM page WHERE songid=" 
+          . $songid
           . " ORDER BY pagenum";
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -4543,7 +4549,8 @@ sub renumber_item {
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
     $query =
-        "UPDATE associations SET playlist=" . $after
+        "UPDATE associations SET playlist=" 
+      . $after
       . " WHERE playlist="
       . $before;
     $sth = $lyricDbh->prepare($query)
@@ -4997,8 +5004,7 @@ sub establish_timer {
     }
 
 #Find the id of the list we will be looping (could be a playlist, sublist or song)
-    my $query =
-      "SELECT data FROM playlist WHERE playorder ="
+    my $query = "SELECT data FROM playlist WHERE playorder ="
       . $loopxml->get_widget('dialogLoop')->{user_data};
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
@@ -5222,7 +5228,8 @@ sub file_ok_sel {
     debug("Add filename to playlist");
     my $main_playlist =
       $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
-    do_add_file($filexml->get_widget('dialogFile')->get_filename,$main_playlist);
+    do_add_file($filexml->get_widget('dialogFile')->get_filename,
+        $main_playlist);
     close_dialog($widget);
 }
 
@@ -5230,7 +5237,7 @@ sub file_ok_sel {
 
 #  Add the filename to the playlist
 sub do_add_file {
-    my ($file,$playlist) = @_;
+    my ($file, $playlist) = @_;
     debug("do_add_file: file=" . $file);
     if (($file ne "") && (-r $file)) {
 
@@ -5952,14 +5959,14 @@ sub add_directory {
     debug("Add a directory to the playlist");
     my $d = Gtk2::FileChooserDialog->new(
         'Choose a Directory',
-         $widgets->{'main'}->get_widget('windowMain'), 'select-folder',
+        $widgets->{'main'}->get_widget('windowMain'), 'select-folder',
         "Cancel" => "cancel",
         "OK"     => "accept",
     );
 
     my $response = $d->run();
-    my $dirname = $d->get_filename();
-    if ( "accept" eq $response ) {
+    my $dirname  = $d->get_filename();
+    if ("accept" eq $response) {
         debug("Choosing" . $dirname);
     }
     $d->destroy;
@@ -5967,10 +5974,10 @@ sub add_directory {
     my (@files, $file);
     opendir DIR, $dirname || return 0;
     my @fileexts = qw(jpg gif png jpeg);
-    foreach $file ( readdir(DIR) ) {
+    foreach $file (readdir(DIR)) {
         foreach my $fileobj (@fileexts) {
-            if ( $file =~ /$fileobj$/i ) {
-                push @files, $dirname."/".$file;
+            if ($file =~ /$fileobj$/i) {
+                push @files, $dirname . "/" . $file;
             }
         }
     }
@@ -5980,19 +5987,19 @@ sub add_directory {
             'dialogPromptEntry', 'lyricue');
         $sublistxml->signal_autoconnect_from_package('');
         $sublistxml->get_widget('dialogPromptEntry')
-        ->set_title(Encode::decode("utf-8", gettext("Create new sublist")));
+          ->set_title(Encode::decode("utf-8", gettext("Create new sublist")));
         $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
 
         my $response = $sublistxml->get_widget('dialogPromptEntry')->run();
         if ($response eq "ok") {
             my $sublist = $sublistxml->get_widget('entryPromptE')->get_text();
-            debug("Sublist name: ".$sublist);
+            debug("Sublist name: " . $sublist);
             my $playlist = new_sublist($sublist);
 
-            @files = sort alphanum @files;   
+            @files = sort alphanum @files;
 
             foreach $file (@files) {
-                do_add_file($file,$playlist);
+                do_add_file($file, $playlist);
             }
         }
         close_dialog($sublistxml->get_widget('dialogPromptEntry'));
@@ -6129,10 +6136,12 @@ sub on_treePlaylist_drag_data_received {
             for my $uri (split(/\n/, $data->data)) {
                 $u1 = URI->new($uri);
                 debug("received URI: " . $uri);
-                $file = Encode::decode("UTF-8",$u1->file);
+                $file = Encode::decode("UTF-8", $u1->file);
                 debug("Recieved file: " . $file);
-                my $main_playlist = $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
-                do_add_file($file,$main_playlist);
+                my $main_playlist =
+                  $widgets->{'main'}->get_widget('labelCurrentPlaylist')
+                  ->{user_data};
+                do_add_file($file, $main_playlist);
             }
         } else {
             add_single_song($data->data);
@@ -6228,8 +6237,7 @@ sub apply_transition {
             $trans_type = $trans_type + WAIT;
         }
 
-        my $query =
-          "SELECT type,data FROM playlist WHERE playorder="
+        my $query = "SELECT type,data FROM playlist WHERE playorder="
           . $model->get($iter, 2);
         qdebug($query);
         my $sth = $lyricDbh->prepare($query)
@@ -6768,7 +6776,8 @@ sub select_category {
     }
 
     my $query =
-        "SELECT DISTINCT category FROM media WHERE type=\"" . $type
+        "SELECT DISTINCT category FROM media WHERE type=\"" 
+      . $type
       . "\" ORDER BY category";
     qdebug($query);
     my $sth = $mediaDbh->prepare($query)
@@ -6914,8 +6923,8 @@ sub update_quickedit {
                         ($line[0], undef) = split(/\s\d/, $command_out, 2);
                         my @command_lines = split(/$line[0] /, $command_out);
                         my $lineno = 0;
-                        foreach $lineno (1..@command_lines) {
-                            my $line2 = $command_lines[$lineno-1];
+                        foreach $lineno (1 .. @command_lines) {
+                            my $line2 = $command_lines[$lineno - 1];
                             chomp($line2);
                             if ($line2 ne "") {
                                 if ($lineno != @command_lines) {
@@ -7022,7 +7031,8 @@ sub media_move {
         }
 
         my $query =
-            "SELECT DISTINCT category FROM media WHERE type=\"" . $type
+            "SELECT DISTINCT category FROM media WHERE type=\"" 
+          . $type
           . "\" ORDER BY category";
         my $sth = $mediaDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -7406,7 +7416,8 @@ sub navigator_update {
     {
         $endverse = $startverse;
     }
-    debug(  "Book " . $book
+    debug(  "Book " 
+          . $book
           . " chapter "
           . $chapter
           . " verses "
@@ -7424,10 +7435,11 @@ sub navigator_update {
         my $command_out = Encode::decode("utf-8", `$command`);
         ($book, undef) = split(/\s\d/, $command_out, 2);
         my @command_lines = split(/$book /, $command_out);
-        my $mark = 0;
-        my $lineno = 0;
-        foreach $lineno (1..@command_lines) {
-            my $line2 = $command_lines[$lineno-1];
+        my $mark          = 0;
+        my $lineno        = 0;
+
+        foreach $lineno (1 .. @command_lines) {
+            my $line2 = $command_lines[$lineno - 1];
             chomp($line2);
             if ($line2 ne "") {
                 if ($lineno != @command_lines) {
@@ -7480,8 +7492,7 @@ sub navigator_update {
 
     $widgets->{'main'}->get_widget('entryNavVerse')->{user_data} =
       $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
-    my $oldtext =
-      get_buffer_text(
+    my $oldtext = get_buffer_text(
         $widgets->{'main'}->get_widget('textNavView')->get_buffer());
     my $quicktext = get_buffer_text($buffer);
     if ($oldtext ne $quicktext) {
@@ -7599,7 +7610,8 @@ sub get_max_verse {
 
     if (!$globals->{'usesword'}) {
         $query =
-            "SELECT * FROM  verse WHERE book=\"" . $book
+            "SELECT * FROM  verse WHERE book=\"" 
+          . $book
           . "\" AND chapternum="
           . $chapter
           . " AND versenum>="
@@ -8088,7 +8100,8 @@ sub db_installdb {
         db_get_admin();
     }
     if ($config->{'DatabaseType'} eq "mysql") {
-        system( "cat " . $db_file
+        system( "cat " 
+              . $db_file
               . " | mysql -h "
               . $globals->{'mysqlhost'} . " -u "
               . $globals->{'db_adminuser'}
@@ -8182,8 +8195,16 @@ sub db_updatedb_lyricDb {
             debug("Done\n");
         }
     }
+
     # Increase data size - does nothing if already done
-    db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql", "lyricDb);
+    my $fields = $dbh->selectall_arrayref("describe playlist");
+    my $pl;
+    foreach (@$fields) {
+            $pl->{$_->[0]} = $_->[1];
+    }
+    if ($pl->{'data'} ne "varchar(256)") {
+        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql", "lyricDb");
+    }
 }
 
 sub check_tracker {
@@ -8207,8 +8228,7 @@ sub check_tracker {
             $globals->{'current_item_path'} = "";
             $model->foreach(\&update_current);
             if ($globals->{'current_item_path'} ne "") {
-                my $path =
-                  Gtk2::TreePath->new_from_string(
+                my $path = Gtk2::TreePath->new_from_string(
                     $globals->{'current_item_path'});
                 while ($path->up()) {
                     if ($path->get_depth() > 0) {
@@ -8397,23 +8417,27 @@ q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate,
 }
 
 sub alphanum {
+
     # $a and $b are automagically passed to alphanum.
     # A copy of them has to be made, or else we will edit the global $a and $b
-    my $a_copy=$a;
-    my $b_copy=$b;
-    my $n=0;
-    while ($n==0) {
+    my $a_copy = $a;
+    my $b_copy = $b;
+    my $n      = 0;
+    while ($n == 0) {
+
         # Get next "chunk"
         # (A chunk is either a group of letters or a group of numbers)
-    
+
         my ($a_chunk) = $a_copy =~ /([\D]+|[\d]+)/;
-        $a_copy = substr($a_copy,length($a_chunk),length($a_copy)-length($a_chunk));
-   
+        $a_copy =
+          substr($a_copy, length($a_chunk), length($a_copy) - length($a_chunk));
+
         my ($b_chunk) = $b_copy =~ /([\D]+|[\d]+)/;
-        $b_copy = substr($b_copy,length($b_chunk),length($b_copy)-length($b_chunk));
-          
+        $b_copy =
+          substr($b_copy, length($b_chunk), length($b_copy) - length($b_chunk));
+
         # Compare the chunks
-    
+
         # Case 1: They both contain letters
         if (($a_chunk =~ /\D+/) && ($b_chunk =~ /\D+/)) {
             $n = $a_chunk cmp $b_chunk;
@@ -8428,9 +8452,10 @@ sub alphanum {
             # Case 3: One has letters, one has numbers; or one is empty
             else {
                 $n = $a_chunk cmp $b_chunk;
-                # If these are equal, make one (which one is arbitrary) come before
-                # the other   (or else we'll be stuck in this "while $n==0" loop)
-                if ($n==0) { $n=1 }
+
+             # If these are equal, make one (which one is arbitrary) come before
+             # the other   (or else we'll be stuck in this "while $n==0" loop)
+                if ($n == 0) { $n = 1 }
             }
         }
     }

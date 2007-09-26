@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.128 2007/09/12 22:48:17 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.129 2007/09/26 06:29:35 cjdebenh Exp $;
+
 #****** lyricue_server/pod
 # NAME
 #   Pod documentation
@@ -132,7 +133,7 @@ use constant SIMPLE => 1;
 use constant TRANS  => 2;
 
 # Centreing
-use constant TOP => 0;
+use constant TOP    => 0;
 use constant CENTRE => 1;
 use constant BOTTOM => 2;
 
@@ -244,7 +245,7 @@ if ($ARGV[0]) {
             $globals->{'server_type'} = SIMPLE;
         } elsif ($ARGV[$_] eq "-d") {
             $DEBUG = 1;
-            debug ("Lyric Server version " . $globals->{'version'} . "\n".$ID);
+            debug("Lyric Server version " . $globals->{'version'} . "\n" . $ID);
         } elsif ($ARGV[$_] eq "-m") {
             $MINISERV = $ARGV[$_ + 1];
             if (!$MINISERV =~ /\d+$/) {
@@ -261,7 +262,8 @@ if ($ARGV[0]) {
             $globals->{'run_windowed'} = TRUE;
         } elsif (($ARGV[$_] =~ /^\d+$/) || ($ARGV[$_] eq "")) {
         } else {
-            print "\nUsage: lyricue_server <-v> <-m> <-c> <-d> <-r hostname> <-w>\n\n";
+            print
+"\nUsage: lyricue_server <-v> <-m> <-c> <-d> <-r hostname> <-w>\n\n";
             print "\t-v: Prints Lyricue version information & exits\n";
             print "\t-d: Prints debugging messages\n";
             print "\t-r: Remote hostname where sql server is running\n";
@@ -410,7 +412,8 @@ sub process_input {
         $_ = lc($line[0]);
 
         if (/^status$/) {
-            $status = "Status,W:"
+            $status =
+                "Status,W:"
               . $config->{'Width'} . ",H:"
               . $config->{'Height'} . ",F:"
               . $config->{'Main'} . ",B:"
@@ -502,8 +505,9 @@ sub process_input {
                 set_header($extras[0]);
 
                 if ($extras[2] && ($extras[2] ne "")) {
-                    set_footer(
-                        gettext("Written by ") . $extras[1] . " - " . $extras[2]);
+                    set_footer(gettext("Written by ")
+                          . $extras[1] . " - "
+                          . $extras[2]);
                 } else {
                     if ($extras[1]) {
                         set_footer(gettext("Written by ") . $extras[1]);
@@ -528,7 +532,8 @@ sub process_input {
             } elsif ($line[1] eq "playlists") {
                 $status = get_playlists();
             } elsif ($line[1] eq "status") {
-                $status = $current_list.":".$current_item.":".$current_point;
+                $status =
+                  $current_list . ":" . $current_item . ":" . $current_point;
             }
         } elsif (/^display$/ && $line[1] ne "") {
 
@@ -557,8 +562,7 @@ sub process_input {
 
                     # ignore and just display same page
                 } elsif ($line[1] eq "next_page") {
-                    my $query =
-                      "SELECT playlist FROM playlist WHERE playorder="
+                    my $query = "SELECT playlist FROM playlist WHERE playorder="
                       . $current_item;
                     debug($query);
                     my $sth = $lyricDbh->prepare($query)
@@ -730,8 +734,7 @@ sub process_input {
                         }
                     }
                 } elsif ($line[1] eq "prev_page") {
-                    my $query =
-                      "SELECT playlist FROM playlist WHERE playorder="
+                    my $query = "SELECT playlist FROM playlist WHERE playorder="
                       . $current_item;
                     debug($query);
                     my $sth = $lyricDbh->prepare($query)
@@ -832,8 +835,7 @@ sub process_input {
                         $current_item = $row[0];
                     }
                 } elsif ($line[1] eq "page") {
-                    my $query =
-                      "SELECT playlist FROM playlist WHERE playorder="
+                    my $query = "SELECT playlist FROM playlist WHERE playorder="
                       . $current_item;
                     debug($query);
                     my $sth = $lyricDbh->prepare($query)
@@ -938,7 +940,7 @@ sub process_input {
                                     if ($exec_pid > 0) {
 
                                         my $command =
-$config->{'MPlayer'} . " "
+                                            $config->{'MPlayer'} . " "
                                           . $row->{'data'};
                                         debug($command);
 
@@ -1102,15 +1104,15 @@ $config->{'MPlayer'} . " "
                         my $footer = "";
                         if ($row2->{'artist'} ne "") {
                             $footer =
-                                gettext("Written by ")
-                              . $row2->{'artist'}
+                              gettext("Written by ") . $row2->{'artist'};
                         }
                         if ($row2->{'copyright'} ne "") {
                             if ($row2->{'copyright'} =~ /^Preset/) {
                                 $row2->{'copyright'} =~ s/^.*([0-9]).*$/$1/g;
-                                $footer .= " - ". $preset[$row2->{'copyright'}];
+                                $footer .=
+                                  " - " . $preset[$row2->{'copyright'}];
                             } else {
-                                $footer .= " - ". $row2->{'copyright'};
+                                $footer .= " - " . $row2->{'copyright'};
                             }
                         }
 
@@ -1297,7 +1299,11 @@ sub change_backdrop {
             $globals->{'bg_file'} = $id;
         } else {
             my ($pixbuf);
-            eval {$pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_size($id,$config->{'Width'}, $config->{'Height'})};
+            eval {
+                $pixbuf =
+                  Gtk2::Gdk::Pixbuf->new_from_file_at_size($id,
+                    $config->{'Width'}, $config->{'Height'});
+            };
             if ($@) {
                 debug("Unable to load background: $id");
             } else {
@@ -1316,30 +1322,41 @@ sub change_backdrop {
                 );
             }
         }
-    } else { 
+    } else {
         my $query =
-    "SELECT format, description, data, textcolour, shadowcolour FROM media WHERE id=\""
+"SELECT format, description, data, textcolour, shadowcolour FROM media WHERE id=\""
           . $id . "\"";
         debug($query);
         my $sth = $mediaDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
         my $row = $sth->fetchrow_hashref();
         if ($row) {
-    
-            if (($row->{'textcolour'} ne "") && ($row->{'textcolour'} ne NULL) && ($row->{'textcolour'} ne "Default") && ($row->{'textcolour'} ne "NULL")) {
+
+            if (   ($row->{'textcolour'} ne "")
+                && ($row->{'textcolour'} ne NULL)
+                && ($row->{'textcolour'} ne "Default")
+                && ($row->{'textcolour'} ne "NULL"))
+            {
                 debug("Changing text colour to " . $row->{'textcolour'});
                 $config->{'BackdropTextColour'} = $row->{'textcolour'};
             } else {
-                $config->{'BackdropTextColour'} = $config->{'DefaultBackdropTextColour'};
+                $config->{'BackdropTextColour'} =
+                  $config->{'DefaultBackdropTextColour'};
             }
-            if (($row->{'shadowcolour'} ne "") && ($row->{'shadowcolour'} ne NULL) && ($row->{'shadowcolour'} ne "Default") && ($row->{'shadowcolour'} ne "NULL")) {
+            if (   ($row->{'shadowcolour'} ne "")
+                && ($row->{'shadowcolour'} ne NULL)
+                && ($row->{'shadowcolour'} ne "Default")
+                && ($row->{'shadowcolour'} ne "NULL"))
+            {
                 debug("Changing shadow colour to " . $row->{'shadowcolour'});
                 $config->{'BackdropShadowColour'} = $row->{'shadowcolour'};
             } else {
-                $config->{'BackdropShadowColour'} = $config->{'DefaultBackdropShadowColour'};
+                $config->{'BackdropShadowColour'} =
+                  $config->{'DefaultBackdropShadowColour'};
             }
-    
+
             if ($row->{'format'} eq "bg") {
                 debug("Changing backdrop colour to " . $row->{'description'});
                 if (   ($globals->{'server_type'} == TRANS)
@@ -1348,14 +1365,14 @@ sub change_backdrop {
                     open(BGIMG, ">" . $globals->{'bg_file'});
                     print BGIMG
                       sprintf(
-    '/* XPM */\nstatic char *b[] = { "1 1 1 1", "  c %s", " " };\n',
+'/* XPM */\nstatic char *b[] = { "1 1 1 1", "  c %s", " " };\n',
                         $row->{'description'});
                     close BGIMG;
                 } else {
                     if (defined $background) {
                         $background->destroy;
                     }
-    
+
                     $background = Gnome2::Canvas::Item->new(
                         $globals->{'root'}, 'Gnome2::Canvas::Rect',
                         x1          => 0,
@@ -1369,7 +1386,8 @@ sub change_backdrop {
             } else {
                 debug("Changing backdrop image to " . $row->{'description'});
                 my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
-                $pixbuf_loader->set_size($config->{'Width'}, $config->{'Height'});
+                $pixbuf_loader->set_size($config->{'Width'},
+                    $config->{'Height'});
                 eval { $pixbuf_loader->write($row->{'data'}); };
                 eval { $pixbuf_loader->close() };
                 if ($@) {
@@ -1591,17 +1609,18 @@ sub load_config {
     }
     $conf->{'AppCount'} = $appCount;
     $conf->{'Bibles'}   = get_bibles();
-    if (! defined($conf->{'MPlayer'})) {
-        $conf->{'MPlayer'} = "mplayer -zoom -really-quiet -fs -noconsolecontrols";
+    if (!defined($conf->{'MPlayer'})) {
+        $conf->{'MPlayer'} =
+          "mplayer -zoom -really-quiet -fs -noconsolecontrols";
     }
-    if (! defined($conf->{'BackdropTextColour'})) {
+    if (!defined($conf->{'BackdropTextColour'})) {
         $conf->{'BackdropTextColour'} = "";
     }
     return $conf;
-    if (! defined($conf->{'BackdropShadowColour'})) {
+    if (!defined($conf->{'BackdropShadowColour'})) {
         $conf->{'BackdropShadowColour'} = "";
     }
-    $conf->{'DefaultBackdropTextColour'} = $conf->{'BackdropTextColour'};
+    $conf->{'DefaultBackdropTextColour'}   = $conf->{'BackdropTextColour'};
     $conf->{'DefaultBackdropShadowColour'} = $conf->{'BackdropShadowColour'};
     return $conf;
 }
@@ -1649,7 +1668,7 @@ sub set_maintext_canvas {
     my $old_direction = mod($transition, 32);
     $transition = $transition >> 5;
     my $new_direction = mod($transition, 32);
-    my $effect        = $transition >> 5;
+    my $effect = $transition >> 5;
 
     # Copy the old mainText to oldText
     $oldText = $globals->{'mainText'};
@@ -1669,10 +1688,13 @@ sub set_maintext_canvas {
         x      => ($config->{'Width'} - $config->{'ShadowSize'}) / 2,
         y      => $top_y,
         anchor => 'GTK_ANCHOR_CENTER',
-        width  => $config->{'Width'} - ($config->{'OverscanH'} * 2) -
+        width  => $config->{'Width'} -
+          ($config->{'OverscanH'} * 2) -
           $config->{'ShadowSize'},
-        height => $config->{'Height'} - $globals->{'headhigh'} -
-          ($config->{'OverscanV'} * 2) - $config->{'ShadowSize'},
+        height => $config->{'Height'} -
+          $globals->{'headhigh'} -
+          ($config->{'OverscanV'} * 2) -
+          $config->{'ShadowSize'},
         'cursor-visible' => FALSE
     );
     $globals->{'mainText'}->show();
@@ -1696,7 +1718,8 @@ sub set_maintext_canvas {
     $layout->set_wrap('word');
     $layout->set_width(
         (
-            $config->{'Width'} - ($config->{'OverscanH'} * 2) -
+            $config->{'Width'} -
+              ($config->{'OverscanH'} * 2) -
               $config->{'ShadowSize'}
         ) * PANGO_SCALE
     );
@@ -2066,7 +2089,8 @@ sub set_footer_canvas {
     $layout->set_wrap('word');
     $layout->set_width(
         (
-            $config->{'Width'} - ($config->{'OverscanH'} * 2) -
+            $config->{'Width'} -
+              ($config->{'OverscanH'} * 2) -
               $config->{'ShadowSize'}
         ) * PANGO_SCALE
     );
@@ -2226,7 +2250,8 @@ sub set_header_canvas {
     $layout->set_wrap('word');
     $layout->set_width(
         (
-            $config->{'Width'} - ($config->{'OverscanH'} * 2) -
+            $config->{'Width'} -
+              ($config->{'OverscanH'} * 2) -
               $config->{'ShadowSize'}
         ) * PANGO_SCALE
     );
@@ -2441,7 +2466,7 @@ sub create_window_trans {
     $globals->{'mainShadow_window'}   = Gtk2::Window->new('popup');
     $globals->{'footer_window'}       = Gtk2::Window->new('popup');
     $globals->{'footerShadow_window'} = Gtk2::Window->new('popup');
-    $globals->{'screen_width'}        =
+    $globals->{'screen_width'} =
       $globals->{'main_window'}->get_screen->get_width;
 
     #standard packing widget my $dwHeader_vbox = Gtk2::VBox->new(FALSE,0);
@@ -2675,15 +2700,15 @@ sub create_window_normal {
 
         if ($config->{'CentreY'} == BOTTOM) {
             my $fill = Gtk2::Label->new();
-            $vbox->pack_start($fill, TRUE, TRUE, 0);
+            $vbox->pack_start($fill,                    TRUE,  TRUE,  0);
             $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
-            $vbox->pack_start($globals->{'mainText'}, FALSE, TRUE, 0);
+            $vbox->pack_start($globals->{'mainText'},   FALSE, TRUE,  0);
         } elsif ($config->{'CentreY'} == CENTRE) {
             $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
-            $vbox->pack_start($globals->{'mainText'}, TRUE, TRUE, 0);
+            $vbox->pack_start($globals->{'mainText'},   TRUE,  TRUE,  0);
         } else {
             $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
-            $vbox->pack_start($globals->{'mainText'}, FALSE, TRUE, 0);
+            $vbox->pack_start($globals->{'mainText'},   FALSE, TRUE,  0);
             my $fill = Gtk2::Label->new();
             $vbox->pack_start($fill, TRUE, TRUE, 0);
         }
@@ -2703,7 +2728,7 @@ sub create_window_normal {
         $globals->{'canvas'}->show();
 
         # Find font sizes
-        my $layout  = $globals->{'window'}->create_pango_layout("lj");
+        my $layout = $globals->{'window'}->create_pango_layout("lj");
         my $tmpdesc =
           Gtk2::Pango::FontDescription->from_string($config->{'Header'});
         $layout->set_font_description($tmpdesc);
@@ -2781,7 +2806,7 @@ sub do_pending {
 }
 
 sub get_playlists {
-    my $data  = "";
+    my $data = "";
     my $query =
 "SELECT title FROM playlists LEFT JOIN playlist ON BINARY playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' WHERE data IS NULL ORDER BY id";
     debug($query);
