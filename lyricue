@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.229 2007/09/25 06:57:55 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.230 2007/09/26 01:31:56 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -8182,6 +8182,8 @@ sub db_updatedb_lyricDb {
             debug("Done\n");
         }
     }
+    # Increase data size - does nothing if already done
+    db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql", "lyricDb);
 }
 
 sub check_tracker {
