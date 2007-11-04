@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.231 2007/09/26 06:29:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.232 2007/11/04 08:13:28 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -67,7 +67,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyric_interface Version 1.9.6
+Lyric_interface Version 1.9.7
 
 =cut
 
@@ -146,7 +146,7 @@ if ($^O eq 'MSWin32') {
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}     = "1.9.6";
+$globals->{'version'}     = "1.9.7";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
@@ -880,7 +880,8 @@ sub update_available {
     }
     my $songname = $widgets->{'main'}->get_widget('entrySearch')->get_text();
 
-    if ($config->{'SpecialSong'} ne "") {
+    my $special_id = 0;
+    if (($config->{'SpecialSong'}) ne "" && ($songname eq "")) {
         my $query =
           "SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"%"
           . $config->{'SpecialSong'} . "%\"";
@@ -894,9 +895,14 @@ sub update_available {
             $iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
             $row->{'songnum'}, 3, $row->{'id'}
         );
+        $special_id = $row->{'id'};
     }
 
-    $query = "SELECT id,title,songnum,book FROM lyricMain WHERE id > 1";
+    $query = "SELECT id,title,songnum,book FROM lyricMain WHERE id > 0";
+
+    if ($special_id > 0) {
+        $query .= " AND id != ".$special_id;
+    }
 
     # Add search term if applicable
     #if ($keywords) {
@@ -2260,8 +2266,18 @@ sub add_single_song {
     # currently always runs due to problem with passing in widgets
     debug("Audit: $config->{'Audit'}");
     if ($config->{'Audit'} && $audit) {
+        $query = "SELECT MAX(id)+1 FROM audit";
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my @row = $sth->fetchrow_array;
+        if (!defined $row[0]) {
+            $row[0] = "1";
+        }
         $query =
-            "INSERT INTO audit (songid,playdate) VALUES("
+            "INSERT INTO audit (id,songid,playdate) VALUES("
+          . $row[0] . ", "
           . $availableSelection
           . ", NOW())";
         debug("Auditing with: " . $query);
@@ -8053,7 +8069,7 @@ sub db_check_databases {
     if ($globals->{'db_available_db'}{'lyricDb'}) {
         db_updatedb_lyricDb();
     } else {
-        db_installdb($globals->{'sharedir'} . "mysql/MySQL_create_Table.sql",
+        db_installdb($globals->{'sharedir'} . "mysql/Create_lyricDb.sql",
             "lyricDb");
     }
 
@@ -8061,7 +8077,7 @@ sub db_check_databases {
         db_updatedb_mediaDb();
     } else {
         debug("Creating mediaDb");
-        db_installdb($globals->{'sharedir'} . "mysql/MySQL_create_media.sql",
+        db_installdb($globals->{'sharedir'} . "mysql/Create_mediaDb.sql",
             "mediaDb");
         db_reload();
         debug("Importing existing backgrounds/images\n");

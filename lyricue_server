@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.129 2007/09/26 06:29:35 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.130 2007/11/04 08:13:28 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -56,7 +56,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyricue_server Version 1.9.6
+Lyricue_server Version 1.9.7
 
 =cut
 
@@ -151,7 +151,7 @@ $globals->{'sharedir'} = "/usr/share/lyricue/";
 # You shouldn't have to change anything after this line
 #
 
-$globals->{'version'}     = "1.9.6";
+$globals->{'version'}     = "1.9.7";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
@@ -894,15 +894,18 @@ sub process_input {
                 $imgsth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
-                #Reset background if an image was shown
-                if ($bgimage_changed) {
-                    $bgimage_changed = FALSE;
-                    change_backdrop($config->{'BGImage'});
-                }
-
                 if (my $imgrow = $imgsth->fetchrow_hashref()) {
                     change_backdrop($imgrow->{'imagename'});
+                } else if ($bgimage_changed) {
+                    #Reset background if an image was shown
+                    change_backdrop($config->{'BGImage'});
+                } else {
+                    # If the song has changed then then check parent and set
+                    # background if one is associated with it
+                    my $parentquery = "SELECT p.playorder FROM playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist AND q.playorder=".$current_item;
+                    #FIXME
                 }
+                $bgimage_changed = FALSE;
 
                 if ($exec_pid > 0) {
                     debug("Killing " . $exec_pid);
