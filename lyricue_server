@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.131 2007/11/12 02:56:51 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.132 2007/11/12 03:23:33 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -901,9 +901,15 @@ sub process_input {
                 } else {
                     # If the song has changed then then check parent and set
                     # background if one is associated with it
-                    my $parentquery = "SELECT p.playorder FROM playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist AND q.playorder=".$current_item;
-                    #FIXME
-                    if (!$parent_image) {
+                    my $parentquery = "SELECT a.imagename FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder=".$current_item;
+                    debug($parentquery);
+                    my $imgsth = $lyricDbh->prepare($parentquery)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    $imgsth->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                    if (my $imgrow = $imgsth->fetchrow_hashref()) {
+                        change_backdrop($imgrow->{'imagename'});
+                    } else {
                         if ($bgimage_changed) {
                             #Reset background if an image was shown
                             change_backdrop($config->{'BGImage'});
