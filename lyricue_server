@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.130 2007/11/04 08:13:28 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.131 2007/11/12 02:56:51 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -371,6 +371,8 @@ my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
 debug("Listening on " . $globals->{'use_port'});
+# Disable screensaver
+system('xset s off -dpms');
 
 # Gtk event loop
 while (1) {
@@ -896,14 +898,17 @@ sub process_input {
 
                 if (my $imgrow = $imgsth->fetchrow_hashref()) {
                     change_backdrop($imgrow->{'imagename'});
-                } else if ($bgimage_changed) {
-                    #Reset background if an image was shown
-                    change_backdrop($config->{'BGImage'});
                 } else {
                     # If the song has changed then then check parent and set
                     # background if one is associated with it
                     my $parentquery = "SELECT p.playorder FROM playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist AND q.playorder=".$current_item;
                     #FIXME
+                    if (!$parent_image) {
+                        if ($bgimage_changed) {
+                            #Reset background if an image was shown
+                            change_backdrop($config->{'BGImage'});
+                        }
+                    }
                 }
                 $bgimage_changed = FALSE;
 
@@ -1203,6 +1208,9 @@ sub CloseAppWindow {
     } else {
         $globals->{'window'}->destroy;
     }
+    # Re-enable screensaver
+    system('xset s on +dpms');
+
     exit;
     return FALSE;
 }
