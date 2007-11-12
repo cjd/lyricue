@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.235 2007/11/12 03:31:06 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.236 2007/11/12 03:58:42 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5089,6 +5089,12 @@ sub load_config {
     if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
         $conf->{'DatabaseType'} = "SQLite";
     }
+    if (!defined $conf->{'TrayIcons'}) {
+        $conf->{'TrayIcons'} = "1";
+    }
+    if ($conf->{'TrayIcons'} ne "1") {
+        $globals->{'trayicon'} = FALSE;
+    }
     if (!defined $conf->{'DatabaseType'}) {
         $conf->{'DatabaseType'} = "mysql";
     }
@@ -5198,6 +5204,7 @@ sub save_preferences {
     print CONFIG "SpecialBack = "
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text()
       . "\n";
+    print CONFIG "TrayIcons = " . $config->{'TrayIcons'}."\n";
 
     if ($widgets->{'prefs'}->get_widget('radioPrefDBMysql')->get_active()) {
         print CONFIG "DatabaseType = mysql\n";
