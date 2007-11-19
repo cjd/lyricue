@@ -33,8 +33,8 @@ install:
 	mkdir -p $(DESTDIR)/usr/share/applications
 	$(INSTALLDATA) $(DESKTOP) $(DESTDIR)/usr/share/applications
 
-	mkdir -p $(DESTDIR)/usr/share/docs/lyricue
-	$(INSTALLDATA) $(DOCS) $(DESTDIR)/usr/share/docs/lyricue
+	mkdir -p $(DESTDIR)/usr/share/doc/lyricue
+	$(INSTALLDATA) $(DOCS) $(DESTDIR)/usr/share/doc/lyricue
 
 	@for t in $(MOFILES); do l=`basename $$t .po.mo`; $(INSTALLDATA) $$t $(DESTDIR)/usr/share/locale/$$l/LC_MESSAGES/lyricue.mo;done
 
