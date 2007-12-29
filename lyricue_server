@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.132 2007/11/12 03:23:33 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.133 2007/12/29 22:12:41 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1330,8 +1330,8 @@ sub change_backdrop {
                 $background = Gnome2::Canvas::Item->new(
                     $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
                     pixbuf     => $pixbuf,
-                    x          => 1,
-                    y          => 1,
+                    x          => 0,
+                    y          => 0,
                     width      => $config->{'Width'},
                     height     => $config->{'Height'},
                     width_set  => TRUE,
@@ -1422,8 +1422,8 @@ sub change_backdrop {
                         $background = Gnome2::Canvas::Item->new(
                             $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
                             pixbuf     => $pixbuf,
-                            x          => 1,
-                            y          => 1,
+                            x          => 0,
+                            y          => 0,
                             width      => $config->{'Width'},
                             height     => $config->{'Height'},
                             width_set  => TRUE,
