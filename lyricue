@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.236 2007/11/12 03:58:42 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.237 2008/01/23 23:44:10 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -284,6 +284,11 @@ $errorcodes->{'usage'} = Encode::decode(
           . "\t-dq: Prints debugging messages + sql\n\n"
     )
 );
+
+$errorcodes->{'nobible'} = Encode::decode(
+    "utf-8",
+    gettext("No bible has been selected\n"
+          . "Please select one from the menu"));
 
 # Widgets affected by access controls
 # access 'e'
@@ -2788,10 +2793,14 @@ sub preview_page {
 sub add_verse {
     debug("Add verse clicked");
 
-    my $bookxml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowBook', 'lyricue');
-    $bookxml->signal_autoconnect_from_package('');
-    $bookxml->get_widget('windowBook')->show;
+    if ((!defined $globals->{'bibledb'}) || ($globals->{'bibledb'} eq "")){
+        display_message($errorcodes->{'nobible'});
+    } else {
+        my $bookxml =
+          Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowBook', 'lyricue');
+        $bookxml->signal_autoconnect_from_package('');
+        $bookxml->get_widget('windowBook')->show;
+    }
 }
 
 #***
@@ -6176,6 +6185,17 @@ sub on_treePlaylist_drag_data_received {
     $context->finish(0, 0, $time);
 }
 
+sub display_message {
+    my ($message) = @_;
+    debug($message);
+    my $errorxml =
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
+    $errorxml->signal_autoconnect_from_package('');
+    $errorxml->get_widget('labelError')->set_text($message);
+    my $confirm = $errorxml->get_widget('dialogError')->run();
+    close_dialog($errorxml->get_widget('dialogError'));
+}
+
 sub display_fatal {
     my ($message, $error) = @_;
     print STDERR "\n\n-------------\n";
@@ -7426,6 +7446,10 @@ sub navigator_changed {
 sub navigator_update {
     debug("Updating navigator");
     reset_timer($globals->{'nav_update_timer'});
+    if ((!defined $globals->{'bibledb'}) || ($globals->{'bibledb'} eq "")){
+        display_message($errorcodes->{'nobible'});
+        return;
+    }
     my $buffer = Gtk2::TextBuffer->new();
     $buffer->set_text("");
     my $iter  = $buffer->get_iter_at_offset(0);
