@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.237 2008/01/23 23:44:10 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.238 2008/02/25 03:54:32 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -110,14 +110,7 @@ if ($@) {
     import Locale::gettext;
     textdomain('lyricue');
 
-    # Hack to get this working under mandrake
-    use lib qw(/usr/lib/libDrakX);
-    eval { require c::stuff };
-    if ($@) {
-        bind_textdomain_codeset('lyricue', "UTF-8");
-    } else {
-        c::stuff::bind_textdomain_codeset('lyricue', "UTF-8");
-    }
+    bind_textdomain_codeset('lyricue', "UTF-8");
 }
 binmode(STDOUT, ":utf8");
 binmode(STDERR, ":utf8");
