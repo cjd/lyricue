@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.238 2008/02/25 03:54:32 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.239 2008/09/03 03:58:02 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -3328,6 +3328,7 @@ sub apply_font {
 sub create_dialogChapter {
     my ($widget) = @_;
     my $book = $widget->get_label;
+    my $untranslated_book = $book; # NEED TO FIND A WAY TO UNTRANSLATE A MESSAGE
     debug("Selected " . $book);
     my $cont    = FALSE;
     my $maxchap = 0;
@@ -3335,9 +3336,9 @@ sub create_dialogChapter {
 
         # Find proper book name
         my $command = sprintf(
-            "%s -b %s -e UTF8 -k '%s' 1:1",
+            "%s -b %s -e UTF8 -k '%s' 1:1 '%s' 1:1",
             $globals->{'diatheke'},
-            $globals->{'bibledb'}, $book
+            $globals->{'bibledb'}, $book, $untranslated_book
         );
         qdebug($command);
         $maxchap = Encode::decode("utf-8", `$command`);
@@ -3357,7 +3358,8 @@ sub create_dialogChapter {
     } else {
         my $query =
           "SELECT MAX(chapternum) FROM verse WHERE book like \""
-          . Encode::encode("iso-8859-1", $book) . "%\"";
+          . Encode::encode("iso-8859-1", $book) . "%\" or book like \""
+          . Encode::encode("iso-8859-1", $untranslated_book) . "%\"";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -4903,7 +4905,7 @@ sub update_cplayclist {
     }
 
     my $query =
-"SELECT title FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
+"SELECT title FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND type='play' WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -7717,6 +7719,9 @@ sub get_max_verse {
         } else {
             $page = $page . "\n" . $line;
         }
+    }
+    if ($versenum > $endverse) {
+        $versenum = $endverse;
     }
     return $versenum;
 }

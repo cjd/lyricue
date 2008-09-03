@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.133 2007/12/29 22:12:41 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.134 2008/09/03 03:58:02 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1403,14 +1403,27 @@ sub change_backdrop {
             } else {
                 debug("Changing backdrop image to " . $row->{'description'});
                 my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
-                $pixbuf_loader->set_size($config->{'Width'},
-                    $config->{'Height'});
                 eval { $pixbuf_loader->write($row->{'data'}); };
                 eval { $pixbuf_loader->close() };
                 if ($@) {
                     debug("Unable to load background: $row->{'description'}");
                 } else {
-                    my $pixbuf = $pixbuf_loader->get_pixbuf();
+                    my $tmp_pixbuf = $pixbuf_loader->get_pixbuf();
+                    my $tmp_width = $tmp_pixbuf->get_width;
+                    my $tmp_height = $tmp_pixbuf->get_height;
+                    my $scale=1;
+                    my $offset_x=0;
+                    my $offset_y=0;
+                    my $aspect=$config->{'Width'}/$config->{'Height'};
+                    if (($tmp_width/$tmp_height) > $aspect) {
+                        $scale=$config->{'Width'}/$tmp_width;
+                        $offset_y=($config->{'Height'}-($tmp_height*$scale))/2;
+                    } else {
+                        $scale=$config->{'Height'}/$tmp_height;
+                        $offset_x=($config->{'Width'}-($tmp_width*$scale))/2;
+                    }
+                    my $pixbuf = Gtk2::Gdk::Pixbuf->new('rgb',FALSE,8,$config->{'Width'},$config->{'Height'});
+                    $tmp_pixbuf->composite_color($pixbuf,0,0,$config->{'Width'},$config->{'Height'},$offset_x,$offset_y,$scale,$scale,'bilinear',255,0,0,256,0,0);
                     if (   ($globals->{'server_type'} == TRANS)
                         || ($globals->{'server_type'} == SIMPLE))
                     {
