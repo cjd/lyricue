@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.134 2008/09/03 03:58:02 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.135 2008/09/03 05:23:08 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -190,7 +190,7 @@ my $current_point   = -1;
 my $steps           = 20;
 my $bgimage_changed = FALSE;
 my $headerHeight    = 0;
-my ($background);
+my ($background,$background_black);
 my @points;
 
 my ($errorcodes);
@@ -1408,9 +1408,9 @@ sub change_backdrop {
                 if ($@) {
                     debug("Unable to load background: $row->{'description'}");
                 } else {
-                    my $tmp_pixbuf = $pixbuf_loader->get_pixbuf();
-                    my $tmp_width = $tmp_pixbuf->get_width;
-                    my $tmp_height = $tmp_pixbuf->get_height;
+                    my $pixbuf = $pixbuf_loader->get_pixbuf();
+                    my $tmp_width = $pixbuf->get_width;
+                    my $tmp_height = $pixbuf->get_height;
                     my $scale=1;
                     my $offset_x=0;
                     my $offset_y=0;
@@ -1422,8 +1422,6 @@ sub change_backdrop {
                         $scale=$config->{'Height'}/$tmp_height;
                         $offset_x=($config->{'Width'}-($tmp_width*$scale))/2;
                     }
-                    my $pixbuf = Gtk2::Gdk::Pixbuf->new('rgb',FALSE,8,$config->{'Width'},$config->{'Height'});
-                    $tmp_pixbuf->composite_color($pixbuf,0,0,$config->{'Width'},$config->{'Height'},$offset_x,$offset_y,$scale,$scale,'bilinear',255,0,0,256,0,0);
                     if (   ($globals->{'server_type'} == TRANS)
                         || ($globals->{'server_type'} == SIMPLE))
                     {
@@ -1435,10 +1433,10 @@ sub change_backdrop {
                         $background = Gnome2::Canvas::Item->new(
                             $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
                             pixbuf     => $pixbuf,
-                            x          => 0,
-                            y          => 0,
-                            width      => $config->{'Width'},
-                            height     => $config->{'Height'},
+                            x          => $offset_x,
+                            y          => $offset_y,
+                            width      => $tmp_width*$scale,
+                            height     => $tmp_height*$scale,
                             width_set  => TRUE,
                             height_set => TRUE,
                         );
@@ -1457,6 +1455,7 @@ sub change_backdrop {
             $globals->{'window'}->modify_style($rc_style);
         } else {
             $background->lower_to_bottom;
+            $background_black->lower_to_bottom;
         }
     }
 } ## end sub change_backdrop
@@ -2709,6 +2708,7 @@ sub create_window_normal {
         $globals->{'window'}->add($vbox);
         debug("Creating text areas");
 
+
         # Create the area for lyrics and set styles
         my $mainStyle   = new Gtk2::Style;
         my $headerStyle = new Gtk2::Style;
@@ -2756,6 +2756,13 @@ sub create_window_normal {
         $globals->{'window'}->add($globals->{'canvas'});
         $globals->{'root'} = $globals->{'canvas'}->root;
         $globals->{'canvas'}->show();
+
+        $background_black = Gnome2::Canvas::Item->new ($globals->{'root'},
+            'Gnome2::Canvas::Rect',
+            x1 => 0, y1 => 0,
+            x2 => $config->{'Width'}, y2 => $config->{'Height'},
+            fill_color => 'black',
+            outline_color => 'black');
 
         # Find font sizes
         my $layout = $globals->{'window'}->create_pango_layout("lj");
