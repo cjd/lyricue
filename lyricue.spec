@@ -1,7 +1,7 @@
-# $Revision: 1.6 $, $Date: 2007/11/12 03:40:57 $
+# $Revision: 1.7 $, $Date: 2008/10/03 02:18:22 $
 Summary:	The GNU Lyric Display System
 Name:		lyricue
-Version:	1.9.7
+Version:	1.9.8
 Release:	0.9
 License:	GPL
 Group:		X11/Applications/Graphics
@@ -65,6 +65,9 @@ rm -rf $RPM_BUILD_ROOT
 All persons listed below can be reached at lds-devel@lists.sourceforge.net
 
 $Log: lyricue.spec,v $
+Revision 1.7  2008/10/03 02:18:22  cjdebenh
+Update for 1.9.8 release
+
 Revision 1.6  2007/11/12 03:40:57  cjdebenh
 Import spec file from Caleb Maclennan
 
