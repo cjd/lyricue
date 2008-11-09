@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.137 2008/11/09 21:42:45 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.138 2008/11/09 21:56:59 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -190,7 +190,7 @@ my $current_point   = -1;
 my $steps           = 20;
 my $bgimage_changed = FALSE;
 my $headerHeight    = 0;
-my ($background,$background_black);
+my ($background, $background_black);
 my @points;
 
 my ($errorcodes);
@@ -263,7 +263,7 @@ if ($ARGV[0]) {
         } elsif ($ARGV[$_] eq "-w") {
             $globals->{'run_windowed'} = TRUE;
         } elsif ($ARGV[$_] eq "-geometry") {
-            $globals->{'window_offset'} = $ARGV[$_ +1];
+            $globals->{'window_offset'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
         } elsif (($ARGV[$_] =~ /^\d+$/) || ($ARGV[$_] eq "")) {
         } else {
@@ -309,8 +309,8 @@ foreach (keys %$config) {
         $num =~ s/^Preset//g;
         $preset[$num] = $config->{$_};
     } elsif (/^DefBible/) {
-        my @tmp = split(/;/, $config->{$_}, 2);
-        my @tmp2 = split(/:/, $tmp[0], 2);
+        my @tmp  = split(/;/, $config->{$_}, 2);
+        my @tmp2 = split(/:/, $tmp[0],       2);
         $globals->{'bibledb'} = $tmp2[0];
         change_to_db($globals->{'bibledb'}, $tmp2[1]);
     }
@@ -376,6 +376,7 @@ my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
 debug("Listening on " . $globals->{'use_port'});
+
 # Disable screensaver
 system('xset s off -dpms');
 
@@ -904,9 +905,12 @@ sub process_input {
                 if (my $imgrow = $imgsth->fetchrow_hashref()) {
                     change_backdrop($imgrow->{'imagename'});
                 } else {
+
                     # If the song has changed then then check parent and set
                     # background if one is associated with it
-                    my $parentquery = "SELECT a.imagename FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder=".$current_item;
+                    my $parentquery =
+"SELECT a.imagename FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder="
+                      . $current_item;
                     debug($parentquery);
                     my $imgsth = $lyricDbh->prepare($parentquery)
                       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -916,6 +920,7 @@ sub process_input {
                         change_backdrop($imgrow->{'imagename'});
                     } else {
                         if ($bgimage_changed) {
+
                             #Reset background if an image was shown
                             change_backdrop($config->{'BGImage'});
                         }
@@ -1008,8 +1013,7 @@ sub process_input {
                             $line[4] = $line[2];
                         }
                         if (!$globals->{'usesword'}) {
-                            $query =
-                              "SELECT book FROM verse WHERE book LIKE \""
+                            $query = "SELECT book FROM verse WHERE book LIKE \""
                               . $line[0] . "%\"";
                             $sth = $bibleDbh->prepare($query)
                               || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -1219,6 +1223,7 @@ sub CloseAppWindow {
     } else {
         $globals->{'window'}->destroy;
     }
+
     # Re-enable screensaver
     system('xset s on +dpms');
 
@@ -1413,19 +1418,21 @@ sub change_backdrop {
                 if ($@) {
                     debug("Unable to load background: $row->{'description'}");
                 } else {
-                    my $pixbuf = $pixbuf_loader->get_pixbuf();
-                    my $tmp_width = $pixbuf->get_width;
+                    my $pixbuf     = $pixbuf_loader->get_pixbuf();
+                    my $tmp_width  = $pixbuf->get_width;
                     my $tmp_height = $pixbuf->get_height;
-                    my $scale=1;
-                    my $offset_x=0;
-                    my $offset_y=0;
-                    my $aspect=$config->{'Width'}/$config->{'Height'};
-                    if (($tmp_width/$tmp_height) > $aspect) {
-                        $scale=$config->{'Width'}/$tmp_width;
-                        $offset_y=($config->{'Height'}-($tmp_height*$scale))/2;
+                    my $scale      = 1;
+                    my $offset_x   = 0;
+                    my $offset_y   = 0;
+                    my $aspect     = $config->{'Width'} / $config->{'Height'};
+                    if (($tmp_width / $tmp_height) > $aspect) {
+                        $scale = $config->{'Width'} / $tmp_width;
+                        $offset_y =
+                          ($config->{'Height'} - ($tmp_height * $scale)) / 2;
                     } else {
-                        $scale=$config->{'Height'}/$tmp_height;
-                        $offset_x=($config->{'Width'}-($tmp_width*$scale))/2;
+                        $scale = $config->{'Height'} / $tmp_height;
+                        $offset_x =
+                          ($config->{'Width'} - ($tmp_width * $scale)) / 2;
                     }
                     if (   ($globals->{'server_type'} == TRANS)
                         || ($globals->{'server_type'} == SIMPLE))
@@ -1440,8 +1447,8 @@ sub change_backdrop {
                             pixbuf     => $pixbuf,
                             x          => $offset_x,
                             y          => $offset_y,
-                            width      => $tmp_width*$scale,
-                            height     => $tmp_height*$scale,
+                            width      => $tmp_width * $scale,
+                            height     => $tmp_height * $scale,
                             width_set  => TRUE,
                             height_set => TRUE,
                         );
@@ -1825,8 +1832,8 @@ sub set_maintext_canvas {
         my $oy = $centreY;
         $buffer->set_text($text);
         $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-        $globals->{'mainText'}->set(width => $w, height => $h);
-        $globals->{'mainText'}->set(x => $nx, y => $ny);
+        $globals->{'mainText'}->set(width => $w,  height => $h);
+        $globals->{'mainText'}->set(x     => $nx, y      => $ny);
         $globals->{'mainText'}->set_buffer($buffer);
 
         if (!(($old_direction & WAIT) && ($new_direction & WAIT))) {
@@ -2023,14 +2030,14 @@ sub set_maintext_trans {
     my ($dwMain_pm, $dwMain_m) = $dwMain_pixbuf->render_pixmap_and_mask(1);
 
     #replace the old $img with the new pixmap and mask
-    $globals->{'main_img'}->set_from_pixmap($dwMain_blank,             undef);
+    $globals->{'main_img'}->set_from_pixmap($dwMain_blank, undef);
     $globals->{'mainShadow_img'}->set_from_pixmap($dwMainShadow_blank, undef);
 
     $globals->{'mainShadow_window'}->hide();
     $globals->{'main_window'}->hide();
 
     #shape our window accordingly
-    $globals->{'main_window'}->shape_combine_mask($dwMain_m,       0, 0);
+    $globals->{'main_window'}->shape_combine_mask($dwMain_m, 0, 0);
     $globals->{'mainShadow_window'}->shape_combine_mask($dwMain_m, 0, 0);
     $globals->{'main_window'}->set_position('center-always');
     do_pending();
@@ -2235,7 +2242,7 @@ sub set_footer_trans {
       ->set_from_pixmap($dwFooterShadow_blank, undef);
 
     #shape our window accordingly
-    $globals->{'footer_window'}->shape_combine_mask($dwFooter_m,       0, 0);
+    $globals->{'footer_window'}->shape_combine_mask($dwFooter_m, 0, 0);
     $globals->{'footerShadow_window'}->shape_combine_mask($dwFooter_m, 0, 0);
 
     my $position = ($config->{'Width'} - $dwFooter_w) / 2;
@@ -2396,7 +2403,7 @@ sub set_header_trans {
       ->set_from_pixmap($dwHeaderShadow_blank, undef);
 
     #shape our window accordingly
-    $globals->{'header_window'}->shape_combine_mask($dwHeader_m,       0, 0);
+    $globals->{'header_window'}->shape_combine_mask($dwHeader_m, 0, 0);
     $globals->{'headerShadow_window'}->shape_combine_mask($dwHeader_m, 0, 0);
 
     my $position = ($config->{'Width'} - $dwHeader_w) / 2;
@@ -2675,7 +2682,7 @@ sub create_window_normal {
         debug("Running in MINISERV (preview window) mode");
         debug("W * H:" . $width . "*" . $height);
     } else {
-        if ($globals->{'window_offset'} ) {}
+        if ($globals->{'window_offset'}) { }
         $globals->{'window'}
           ->set_default_size($config->{'Width'}, $config->{'Height'});
         $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
@@ -2713,7 +2720,6 @@ sub create_window_normal {
         my $vbox = Gtk2::VBox->new(FALSE, 0);
         $globals->{'window'}->add($vbox);
         debug("Creating text areas");
-
 
         # Create the area for lyrics and set styles
         my $mainStyle   = new Gtk2::Style;
@@ -2763,12 +2769,16 @@ sub create_window_normal {
         $globals->{'root'} = $globals->{'canvas'}->root;
         $globals->{'canvas'}->show();
 
-        $background_black = Gnome2::Canvas::Item->new ($globals->{'root'},
+        $background_black = Gnome2::Canvas::Item->new(
+            $globals->{'root'},
             'Gnome2::Canvas::Rect',
-            x1 => 0, y1 => 0,
-            x2 => $config->{'Width'}, y2 => $config->{'Height'},
-            fill_color => 'black',
-            outline_color => 'black');
+            x1            => 0,
+            y1            => 0,
+            x2            => $config->{'Width'},
+            y2            => $config->{'Height'},
+            fill_color    => 'black',
+            outline_color => 'black'
+        );
 
         # Find font sizes
         my $layout = $globals->{'window'}->create_pango_layout("lj");
@@ -2887,8 +2897,7 @@ sub get_playlist {
     while (my $row = $sth->fetchrow_hashref()) {
         my $title = "";
         if ($row->{'type'} eq "back") {
-            my $query2 =
-              "SELECT description FROM media WHERE id=\""
+            my $query2 = "SELECT description FROM media WHERE id=\""
               . $row->{'data'} . "\"";
             debug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
@@ -2900,8 +2909,7 @@ sub get_playlist {
         } elsif ($row->{'type'} eq "file") {
             $title = "File: " . $row->{'data'};
         } elsif ($row->{'type'} eq "imag") {
-            my $query2 =
-              "SELECT description FROM media WHERE id=\""
+            my $query2 = "SELECT description FROM media WHERE id=\""
               . $row->{'data'} . "\"";
             my $sth2 = $mediaDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -3044,8 +3052,7 @@ sub db_connect {
             "", "")
           || display_fatal($dberror, $DBI::errstr);
     } else {
-        $dbh =
-          DBI->connect(
+        $dbh = DBI->connect(
             "DBI:" . $globals->{'db_type'} . ":$dbname:$globals->{'host'}",
             "lyric", "")
           || display_fatal($dberror, $DBI::errstr);
