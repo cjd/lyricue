@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.138 2008/11/09 21:56:59 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.139 2008/11/09 22:52:22 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -85,6 +85,7 @@ use Gtk2::Pango;
 use Gtk2::GladeXML;
 use Gtk2::Gdk::Keysyms;
 use Glib;
+
 eval { require Locale::gettext };
 
 if ($@) {
@@ -128,9 +129,9 @@ use constant LEFT  => 8;
 use constant WAIT  => 16;
 
 # Server types
-use constant CANVAS => 0;
-use constant SIMPLE => 1;
-use constant TRANS  => 2;
+use constant CANVAS  => 0;
+use constant SIMPLE  => 1;
+use constant CLUTTER => 2;
 
 # Centreing
 use constant TOP    => 0;
@@ -239,10 +240,10 @@ if ($ARGV[0]) {
         if ($ARGV[$_] eq "-v") {
             print "Lyricue Server version " . $globals->{'version'} . "\n";
             exit;
-        } elsif ($ARGV[$_] eq "-t") {
-            $globals->{'server_type'} = TRANS;
         } elsif ($ARGV[$_] eq "-f") {
             $globals->{'server_type'} = SIMPLE;
+        } elsif ($ARGV[$_] eq "-c") {
+            $globals->{'server_type'} = CLUTTER;
         } elsif ($ARGV[$_] eq "-d") {
             $DEBUG = 1;
             debug("Lyric Server version " . $globals->{'version'} . "\n" . $ID);
@@ -274,7 +275,7 @@ if ($ARGV[0]) {
             print "\t-r: Remote hostname where sql server is running\n";
             print "\t-m: Runs in miniserv mode (acts as a preview window)\n";
             print "\t-w: Runs in a window (rather than fullscreen\n";
-            print "\t-t: Runs with tranparent server\n";
+            print "\t-c: Runs with clutter server\n";
             print "\t-f: Runs with simple server\n";
             print "\t-sqlite: Force usage of sqlite\n";
             exit;
@@ -291,10 +292,10 @@ if (!-w $globals->{'configfile'}) {
 }
 my $config = load_config();
 db_check_app();
-if ($config->{'ServerType'} eq "trans") {
-    $globals->{'server_type'} = TRANS;
-} elsif ($config->{'ServerType'} eq "simple") {
+if ($config->{'ServerType'} eq "simple") {
     $globals->{'server_type'} = SIMPLE;
+} elsif ($config->{'ServerType'} eq "clutter") {
+    $globals->{'server_type'} = CLUTTER;
 }
 
 my ($contents, @preset);
@@ -375,18 +376,26 @@ $0 = "Lyricue Server on port " . $globals->{'use_port'};
 my $h;
 use IO::Select;
 my $s = IO::Select->new($socket);
+
 debug("Listening on " . $globals->{'use_port'});
 
 # Disable screensaver
 system('xset s off -dpms');
 
-# Gtk event loop
-while (1) {
-    my @ready = $s->can_read(1);
+if ($globals->{'server_type'} == CLUTTER) {
+    Clutter::Threads->add_timeout(200, \&check_net);
+    Clutter->main();
+} else {
+    Glib::Timeout->add(200, \&check_net);
+    Gtk2->main();
+}
+
+sub check_net {
+    my @ready = $s->can_read(0);
     foreach $h (@ready) {
         check_socket($socket);
     }
-    do_pending();
+    return TRUE;
 }
 
 # Should never get here
@@ -960,15 +969,49 @@ sub process_input {
                             @fileexts = qw(avi mpg mov wmv);
                             for $fileobj (@fileexts) {
                                 if ($row->{'data'} =~ /$fileobj/i) {
-                                    $exec_pid = fork;
-                                    if ($exec_pid > 0) {
+                                    if ($globals->{'server_type'} == CLUTTER) {
+                                        debug("Clutter Video");
+                                        if (defined $globals->{'background'}) {
+                                            $globals->{'stage'}->remove(
+                                                $globals->{'background'});
+                                            undef $globals->{'background'};
+                                        }
+                                        $globals->{'background'} =
+                                          Clutter::Gst::VideoTexture->new();
+                                        $globals->{'background'}
+                                          ->set_filename($row->{'data'});
+                                        $globals->{'background'}->set(
+                                            keep_aspect_ratio => 1,
+                                            request_mode => 'height-for-width',
+                                        );
+                                        $globals->{'background'}->set_width(
+                                            $globals->{'stage'}->get_width());
+                                        $globals->{'background'}
+                                          ->set_anchor_point(
+                                            $globals->{'background'}
+                                              ->get_width / 2,
+                                            $globals->{'background'}
+                                              ->get_height / 2
+                                          );
+                                        $globals->{'background'}->set_position(
+                                            $globals->{'stage'}->get_width / 2,
+                                            0
+                                        );
+                                        $globals->{'stage'}
+                                          ->add($globals->{'background'});
+                                        $globals->{'background'}
+                                          ->set_playing(TRUE);
+                                    } else {
+                                        $exec_pid = fork;
+                                        if ($exec_pid > 0) {
 
-                                        my $command =
-                                            $config->{'MPlayer'} . " "
-                                          . $row->{'data'};
-                                        debug($command);
+                                            my $command =
+                                                $config->{'MPlayer'} . " "
+                                              . $row->{'data'};
+                                            debug($command);
 
-                                        system($command);
+                                            system($command);
+                                        }
                                     }
                                 }
                             }
@@ -1213,13 +1256,7 @@ sub CloseAppWindow {
     if ($globals->{'server_type'} == SIMPLE) {
         unlink $globals->{'bg_file'};
         $globals->{'window'}->destroy;
-    } elsif ($globals->{'server_type'} == TRANS) {
-        $globals->{'header_window'}->destroy;
-        $globals->{'headerShadow_window'}->destroy;
-        $globals->{'main_window'}->destroy;
-        $globals->{'mainShadow_window'}->destroy;
-        $globals->{'footer_window'}->destroy;
-        $globals->{'footerShadow_window'}->destroy;
+    } elsif ($globals->{'server_type'} == CLUTTER) {
     } else {
         $globals->{'window'}->destroy;
     }
@@ -1319,11 +1356,31 @@ sub change_backdrop {
     my ($id) = @_;
     debug("Setting backdrop");
     if ($id =~ /\./) {
-        debug("Changing backdrop image to " . $id);
-        if (   ($globals->{'server_type'} == TRANS)
-            || ($globals->{'server_type'} == SIMPLE))
+        debug("Changing backdrop image to file:" . $id);
+        if (($globals->{'server_type'} == SIMPLE))
         {
             $globals->{'bg_file'} = $id;
+        } elsif ($globals->{'server_type'} == CLUTTER) {
+            if (defined $globals->{'background'}) {
+                $globals->{'stage'}->remove($globals->{'background'});
+                undef $globals->{'background'};
+            }
+            $globals->{'background'} = Clutter::Texture->new($id);
+            $globals->{'background'}->set(
+                keep_aspect_ratio => 1,
+                request_mode      => 'width-for-height',
+            );
+            $globals->{'background'}
+              ->set_height($globals->{'stage'}->get_height());
+            $globals->{'background'}->set_anchor_point(
+                $globals->{'background'}->get_width / 2,
+                $globals->{'background'}->get_height / 2
+            );
+            $globals->{'background'}->set_position(
+                $globals->{'stage'}->get_width / 2,
+                $globals->{'stage'}->get_height / 2
+            );
+            $globals->{'stage'}->add($globals->{'background'});
         } else {
             my ($pixbuf);
             eval {
@@ -1386,8 +1443,7 @@ sub change_backdrop {
 
             if ($row->{'format'} eq "bg") {
                 debug("Changing backdrop colour to " . $row->{'description'});
-                if (   ($globals->{'server_type'} == TRANS)
-                    || ($globals->{'server_type'} == SIMPLE))
+                if ( $globals->{'server_type'} == SIMPLE)
                 {
                     open(BGIMG, ">" . $globals->{'bg_file'});
                     print BGIMG
@@ -1395,6 +1451,22 @@ sub change_backdrop {
 '/* XPM */\nstatic char *b[] = { "1 1 1 1", "  c %s", " " };\n',
                         $row->{'description'});
                     close BGIMG;
+                } elsif ($globals->{'server_type'} == CLUTTER) {
+                    if (defined $globals->{'background'}) {
+                        $globals->{'stage'}->remove($globals->{'background'});
+                        undef $globals->{'background'};
+                    }
+                    $globals->{'background'} = Clutter::Rectangle->new();
+                    $globals->{'background'}->set_size(
+                        $globals->{'stage'}->get_width(),
+                        $globals->{'stage'}->get_height()
+                    );
+                    $globals->{'background'}->set_position(0, 0);
+                    $globals->{'background'}
+                      ->set_color(Clutter::Color->parse($row->{'description'}));
+                    $globals->{'stage'}->add($globals->{'background'});
+                    $globals->{'background'}->lower_bottom();
+                    return;
                 } else {
                     if (defined $background) {
                         $background->destroy;
@@ -1434,10 +1506,33 @@ sub change_backdrop {
                         $offset_x =
                           ($config->{'Width'} - ($tmp_width * $scale)) / 2;
                     }
-                    if (   ($globals->{'server_type'} == TRANS)
-                        || ($globals->{'server_type'} == SIMPLE))
+                    if ($globals->{'server_type'} == SIMPLE)
                     {
                         $pixbuf->save($globals->{'bg_file'}, 'png');
+                    } elsif ($globals->{'server_type'} == CLUTTER) {
+                        $pixbuf->save($globals->{'bg_file'}, 'png');
+                        if (defined $globals->{'background'}) {
+                            $globals->{'stage'}
+                              ->remove($globals->{'background'});
+                            undef $globals->{'background'};
+                        }
+                        $globals->{'background'} =
+                          Clutter::Texture->new($globals->{'bg_file'});
+                        $globals->{'background'}->set(
+                            keep_aspect_ratio => 1,
+                            request_mode      => 'width-for-height',
+                        );
+                        $globals->{'background'}
+                          ->set_height($globals->{'stage'}->get_height());
+                        $globals->{'background'}->set_anchor_point(
+                            $globals->{'background'}->get_width / 2,
+                            $globals->{'background'}->get_height / 2
+                        );
+                        $globals->{'background'}->set_position(
+                            $globals->{'stage'}->get_width / 2,
+                            $globals->{'stage'}->get_height / 2
+                        );
+                        $globals->{'stage'}->add($globals->{'background'});
                     } else {
                         if (defined $background) {
                             $background->destroy;
@@ -1456,19 +1551,16 @@ sub change_backdrop {
                 }
             }
         }
-        if ($globals->{'server_type'} == TRANS) {
-            my $rc_style = Gtk2::RcStyle->new;
-            $rc_style->bg_pixmap_name('normal', $globals->{'bg_file'});
-            $globals->{'background_window'}->modify_style($rc_style);
-            $globals->{'background_window'}->show_all();
-        } elsif ($globals->{'server_type'} == SIMPLE) {
-            my $rc_style = Gtk2::RcStyle->new;
-            $rc_style->bg_pixmap_name('normal', $globals->{'bg_file'});
-            $globals->{'window'}->modify_style($rc_style);
-        } else {
-            $background->lower_to_bottom;
-            $background_black->lower_to_bottom;
-        }
+    }
+    if ($globals->{'server_type'} == SIMPLE) {
+        my $rc_style = Gtk2::RcStyle->new;
+        $rc_style->bg_pixmap_name('normal', $globals->{'bg_file'});
+        $globals->{'window'}->modify_style($rc_style);
+    } elsif ($globals->{'server_type'} == CLUTTER) {
+        $globals->{'background'}->lower_bottom();
+    } else {
+        $background->lower_to_bottom;
+        $background_black->lower_to_bottom;
     }
 } ## end sub change_backdrop
 
@@ -1669,13 +1761,78 @@ sub load_config {
 sub set_maintext {
     my ($text, $transition, $wrap) = @_;
     if (!defined $text) { $text = " "; }
-    if ($globals->{'server_type'} == TRANS) {
-        set_maintext_trans($text, $transition, $wrap);
-    } elsif ($globals->{'server_type'} == SIMPLE) {
+    if ($globals->{'server_type'} == SIMPLE) {
         set_maintext_simple($text, $transition, $wrap);
+    } elsif ($globals->{'server_type'} == CLUTTER) {
+        set_maintext_clutter($text, $transition, $wrap);
     } else {
         set_maintext_canvas($text, $transition, $wrap);
     }
+}
+
+sub set_maintext_clutter {
+    my ($text, $transition, $wrap) = @_;
+    debug("Setting maintext -clutter");
+    if (defined $globals->{'maintext_old'}) {
+        $globals->{'stage'}->remove($globals->{'maintext_old'});
+        undef $globals->{'maintext_old'};
+    }
+    $globals->{'maintext_old'} = $globals->{'maintext'};
+    undef $globals->{'maintext'};
+    $globals->{'maintext'} =
+      Clutter::Label->new($config->{'Main'}, $text,
+        Clutter::Color->new(0xff, 0xff, 0xff, 0xff));
+    $globals->{'maintext'}->set_alignment('left');
+    $globals->{'maintext'}->set_use_markup(1);
+    if ($globals->{'maintext'}->get_width() > $globals->{'stage'}->get_width())
+    {
+        $globals->{'maintext'}->set_line_wrap(1);
+        $globals->{'maintext'}->set_size($globals->{'stage'}->get_width(), -1);
+    }
+    $globals->{'maintext'}->set_anchor_point(
+        $globals->{'maintext'}->get_width() / 2,
+        $globals->{'maintext'}->get_height() / 2
+    );
+    $globals->{'maintext'}->set_position(
+        $globals->{'stage'}->get_width() / 2,
+        $globals->{'stage'}->get_height() / 2
+    );
+
+    $globals->{'timeline'} = Clutter::Timeline->new_for_duration(200);
+    $globals->{'timeline'}->set_speed(15);
+    $globals->{'timeline'}->set_loop(0);
+    my $alpha =
+      Clutter::Alpha->new($globals->{'timeline'}, \&Clutter::Alpha::ramp_inc);
+
+    $globals->{'timeline'}->signal_connect(
+        'started' => sub {
+            $globals->{'maintext'}->set_rotation('y-axis', 90, 0, 0, 0);
+            $globals->{'stage'}->add($globals->{'maintext'});
+        }
+    );
+    $globals->{'timeline'}->signal_connect(
+        'new-frame' => sub {
+            my ($self, $alpha_value) = @_;
+            my $rotation = $self->get_progress * 90;
+            if (defined $globals->{'maintext_old'}) {
+                $globals->{'maintext_old'}
+                  ->set_rotation('y-axis', $rotation, 0, 0);
+            }
+            $globals->{'maintext'}
+              ->set_rotation('y-axis', $rotation - 90, 0, 0, 0);
+        }
+    );
+    $globals->{'timeline'}->signal_connect(
+        'completed' => sub {
+            if (defined $globals->{'maintext_old'}) {
+                $globals->{'stage'}->remove($globals->{'maintext_old'});
+                undef $globals->{'maintext_old'};
+            }
+            $globals->{'maintext'}->set_rotation('y-axis', 0, 0, 0, 0);
+            undef $globals->{'timeline'};
+        }
+    );
+    $globals->{'timeline'}->start();
 }
 
 sub set_maintext_simple {
@@ -1964,92 +2121,6 @@ sub set_maintext_canvas {
     }
 }
 
-sub set_maintext_trans {
-    my ($text, $transition, $wrap) = @_;
-    debug("Set maintext trans");
-    if ($text eq "") {
-        $text = " ";
-    }
-
-    $globals->{'main_layout'}->set_width(1400 * Gtk2::Pango->scale);
-    $globals->{'main_layout'}->set_wrap('word_char');
-
-    #Set our pango layout, to reflect the text and format that we want.
-    #NOTE We delebritely set the background to a certain color to convert
-    #that color to a alpha channel, that will give us the "clear" background.
-    $globals->{'main_layout'}->set_markup(
-"<span background = '#000000' foreground= '#FFFFFF' size='60000' weight = 'ultralight'>$text</span>"
-    );
-
-    #Get the size of this layout after the text was set.
-    my ($dwMain_w, $dwMain_h) = $globals->{'main_layout'}->get_pixel_size;
-
-    # If string was empty then hide windows
-    if ($dwMain_w == 0) {
-        $globals->{'mainShadow_window'}->hide();
-        $globals->{'main_window'}->hide();
-        return;
-    }
-
-    #Now we have the size, we can create a pixmap that will be the
-    #'Gtk2::Gdk::Drawable' that we will draw upon
-    my $dwMain_pixmap = Gtk2::Gdk::Pixmap->new($globals->{'main_text'}->window,
-        $dwMain_w, $dwMain_h, -1);
-    my $dwMain_blank = Gtk2::Gdk::Pixmap->new($globals->{'main_text'}->window,
-        $dwMain_w, $dwMain_h, -1);
-    my $dwMainShadow_blank =
-      Gtk2::Gdk::Pixmap->new($globals->{'mainShadow_text'}->window,
-        $dwMain_w, $dwMain_h, -1);
-    $dwMain_blank->draw_rectangle($globals->{'main_text'}->style->white_gc,
-        TRUE, 0, 0, $dwMain_w, $dwMain_h);
-    $dwMainShadow_blank->draw_rectangle(
-        $globals->{'main_text'}->style->black_gc,
-        TRUE, 0, 0, $dwMain_w, $dwMain_h);
-
-    #draw the pango layout on the drawable.
-    $dwMain_pixmap->draw_rectangle($globals->{'main_text'}->style->black_gc,
-        TRUE, 0, 0, 6000, 6000);
-    $dwMain_pixmap->draw_layout($globals->{'main_text'}->style->black_gc,
-        0, 0, $globals->{'main_layout'});
-
-    #create a Gtk2::Gdk::Pixbuf that we will use to grab the pango text from the
-    #drawable (Gtk2::Gdk::Pixmap which is a Gtk2::Gdk::Drawable)
-    my $dwMain_pixbuf =
-      Gtk2::Gdk::Pixbuf->new('rgb', TRUE, 8, $dwMain_w, $dwMain_h);
-
-    #here we get create a pixbuff from the drawable, this is where
-    #we need the colormap
-    $dwMain_pixbuf->get_from_drawable($dwMain_pixmap, $globals->{'colourmap'},
-        0, 0, 0, 0, $dwMain_w, $dwMain_h);
-
-    #Remove the background (we use a the color we specified as the pango text's
-    #background
-    $dwMain_pixbuf = $dwMain_pixbuf->add_alpha(TRUE, 0, 0, 0);
-
-    #create a pixmap and mask from the Gtk2::Gdk::Pixbuf
-    my ($dwMain_pm, $dwMain_m) = $dwMain_pixbuf->render_pixmap_and_mask(1);
-
-    #replace the old $img with the new pixmap and mask
-    $globals->{'main_img'}->set_from_pixmap($dwMain_blank, undef);
-    $globals->{'mainShadow_img'}->set_from_pixmap($dwMainShadow_blank, undef);
-
-    $globals->{'mainShadow_window'}->hide();
-    $globals->{'main_window'}->hide();
-
-    #shape our window accordingly
-    $globals->{'main_window'}->shape_combine_mask($dwMain_m, 0, 0);
-    $globals->{'mainShadow_window'}->shape_combine_mask($dwMain_m, 0, 0);
-    $globals->{'main_window'}->set_position('center-always');
-    do_pending();
-    my ($dwMain_x, $dwMain_y) = $globals->{'main_window'}->get_position();
-    my ($dwMain_width, $dwMain_height) = $globals->{'main_window'}->get_size();
-    $globals->{'mainShadow_window'}->move($dwMain_x + 2, $dwMain_y + 2);
-    $globals->{'mainShadow_window'}->resize($dwMain_width, $dwMain_height);
-    $globals->{'mainShadow_window'}->show();
-    $globals->{'main_window'}->show();
-    return 1;
-}
-
 sub Configure_event {
 
 #my ($width, $height) = $globals->{'window'}->get_size();
@@ -2101,13 +2172,42 @@ sub mod {
 sub set_footer {
     my ($text) = @_;
     if (!defined $text) { $text = " "; }
-    if ($globals->{'server_type'} == TRANS) {
-        set_footer_trans($text);
-    } elsif ($globals->{'server_type'} == SIMPLE) {
+    if ($globals->{'server_type'} == SIMPLE) {
         set_footer_simple($text);
+    } elsif ($globals->{'server_type'} == CLUTTER) {
+        set_footer_clutter($text);
     } else {
         set_footer_canvas($text);
     }
+}
+
+sub set_footer_clutter {
+    my ($text) = @_;
+    if ($text eq "") {
+        if (defined $globals->{'footer'}) {
+            $globals->{'stage'}->remove($globals->{'footer'});
+            undef $globals->{'footer'};
+        }
+        return;
+    }
+    if (!defined $globals->{'footer'}) {
+        $globals->{'footer'} =
+          Clutter::Label->new($config->{'Footer'}, $text,
+            Clutter::Color->new(0xff, 0xff, 0xff, 0xff));
+        $globals->{'stage'}->add($globals->{'footer'});
+    }
+    $globals->{'footer'}->set_alignment('left');
+    $globals->{'footer'}->set_use_markup(1);
+    if ($globals->{'footer'}->get_width() > $globals->{'stage'}->get_width()) {
+        $globals->{'footer'}->set_line_wrap(1);
+        $globals->{'footer'}->set_size($globals->{'stage'}->get_width(), -1);
+    }
+    $globals->{'footer'}->set_anchor_point(
+        $globals->{'footer'}->get_width() / 2,
+        $globals->{'footer'}->get_height() / 2
+    );
+    $globals->{'footer'}->set_position($globals->{'stage'}->get_width() / 2,
+        $globals->{'stage'} - ($globals->{'footer'}->get_height() / 2));
 }
 
 sub set_footer_simple {
@@ -2169,105 +2269,49 @@ sub set_footer_canvas {
     $buffer->apply_tag_by_name("Footer", $buffer->get_bounds);
 }
 
-sub set_footer_trans {
-    my ($text) = @_;
-    debug("Setting Footer text");
-
-    #Set our pango layout, to reflect the text and format that we want.
-    #NOTE We delebritely set the background to a certain color to convert
-    #that color to a alpha channel, that will give us the "clear" background.
-    $globals->{'footer_layout'}->set_markup(
-"<span background = '#000000' foreground= '#FFFFFF' size='20000' weight = 'ultralight'><i><u>$text</u></i></span>"
-    );
-
-    #Get the size of this layout after the text was set.
-    my ($dwFooter_w, $dwFooter_h) = $globals->{'footer_layout'}->get_pixel_size;
-
-    # If string was empty then hide windows
-    if ($dwFooter_w == 0) {
-        $globals->{'footerShadow_window'}->hide();
-        $globals->{'footer_window'}->hide();
-        return;
-    }
-
-    #Now we have the size, we can create a pixmap that will be the
-    #'Gtk2::Gdk::Drawable' that we will draw upon
-    my $dwFooter_pixmap =
-      Gtk2::Gdk::Pixmap->new($globals->{'footer_text'}->window,
-        $dwFooter_w, $dwFooter_h, -1);
-
-    #
-    my $dwFooter_blank =
-      Gtk2::Gdk::Pixmap->new($globals->{'footer_text'}->window,
-        $dwFooter_w, $dwFooter_h, -1);
-    my $dwFooterShadow_blank =
-      Gtk2::Gdk::Pixmap->new($globals->{'footer_text'}->window,
-        $dwFooter_w, $dwFooter_h, -1);
-    $dwFooter_blank->draw_rectangle($globals->{'footer_text'}->style->white_gc,
-        TRUE, 0, 0, $dwFooter_w, $dwFooter_h);
-    $dwFooterShadow_blank->draw_rectangle(
-        $globals->{'footer_text'}->style->black_gc,
-        TRUE, 0, 0, $dwFooter_w, $dwFooter_h);
-
-    #draw the pango layout on the drawable.
-    $dwFooter_pixmap->draw_rectangle($globals->{'footer_text'}->style->black_gc,
-        TRUE, 0, 0, 6000, 6000);
-    $dwFooter_pixmap->draw_layout($globals->{'footer_text'}->style->black_gc,
-        0, 0, $globals->{'footer_layout'});
-
-    #create a Gtk2::Gdk::Pixbuf that we will use to grab the pango text from the
-    #drawable (Gtk2::Gdk::Pixmap which is a Gtk2::Gdk::Drawable)
-    my $dwFooter_pixbuf =
-      Gtk2::Gdk::Pixbuf->new('rgb', TRUE, 8, $dwFooter_w, $dwFooter_h);
-
-#here we get create a pixbuff from the drawable, this is where we need the colormap
-    $dwFooter_pixbuf->get_from_drawable($dwFooter_pixmap,
-        $globals->{'colourmap'},
-        0, 0, 0, 0, $dwFooter_w, $dwFooter_h);
-
-    #Remove the background (we use a the color we specified as the pango text's
-    #background
-    $dwFooter_pixbuf = $dwFooter_pixbuf->add_alpha(TRUE, 0, 0, 0);
-
-    #create a pixmap and mask from the Gtk2::Gdk::Pixbuf
-    my ($dwFooter_pm, $dwFooter_m) =
-      $dwFooter_pixbuf->render_pixmap_and_mask(1);
-
-    $globals->{'footerShadow_window'}->hide();
-    $globals->{'footer_window'}->hide();
-
-    #replace the old $img with the new pixmap and mask
-    $globals->{'footer_img'}->set_from_pixmap($dwFooter_blank, undef);
-    $globals->{'footerShadow_img'}
-      ->set_from_pixmap($dwFooterShadow_blank, undef);
-
-    #shape our window accordingly
-    $globals->{'footer_window'}->shape_combine_mask($dwFooter_m, 0, 0);
-    $globals->{'footerShadow_window'}->shape_combine_mask($dwFooter_m, 0, 0);
-
-    my $position = ($config->{'Width'} - $dwFooter_w) / 2;
-    $globals->{'footer_window'}->move($position,
-        $config->{'Height'} - $dwFooter_h - $config->{'ShadowSize'});
-    $globals->{'footerShadow_window'}->move(
-        $position + $config->{'ShadowSize'},
-        $config->{'Height'} - $dwFooter_h
-    );
-    $globals->{'footerShadow_window'}->show();
-    $globals->{'footer_window'}->show();
-
-    return 1;
-}
-
 sub set_header {
     my ($text) = @_;
     if (!defined $text) { $text = " "; }
-    if ($globals->{'server_type'} == TRANS) {
-        set_header_trans($text);
-    } elsif ($globals->{'server_type'} == SIMPLE) {
+    if ($globals->{'server_type'} == SIMPLE) {
         set_header_simple($text);
+    } elsif ($globals->{'server_type'} == CLUTTER) {
+        set_header_clutter($text);
     } else {
         set_header_canvas($text);
     }
+}
+
+sub set_header_clutter {
+    my ($text) = @_;
+    debug("Setting header");
+    if ($text eq "") {
+        if (defined $globals->{'header'}) {
+            $globals->{'stage'}->remove($globals->{'header'});
+            undef $globals->{'header'};
+        }
+        return;
+    }
+
+    if (!defined $globals->{'header'}) {
+        $globals->{'header'} =
+          Clutter::Label->new($config->{'Header'}, $text,
+            Clutter::Color->new(0xff, 0xff, 0xff, 0xff));
+        $globals->{'stage'}->add($globals->{'header'});
+    }
+    $globals->{'header'}->set_alignment('left');
+    $globals->{'header'}->set_use_markup(1);
+    if ($globals->{'header'}->get_width() > $globals->{'stage'}->get_width()) {
+        $globals->{'header'}->set_line_wrap(1);
+        $globals->{'header'}->set_size($globals->{'stage'}->get_width(), -1);
+    }
+    $globals->{'header'}->set_anchor_point(
+        $globals->{'header'}->get_width() / 2,
+        $globals->{'header'}->get_height() / 2
+    );
+    $globals->{'header'}->set_position(
+        $globals->{'stage'}->get_width() / 2,
+        $globals->{'header'}->get_height() / 2
+    );
 }
 
 sub set_header_simple {
@@ -2329,91 +2373,6 @@ sub set_header_canvas {
     );
     $buffer->set_text($text);
     $buffer->apply_tag_by_name("Header", $buffer->get_bounds);
-}
-
-sub set_header_trans {
-    my ($text) = @_;
-    debug("Setting Header text");
-
-    #Set our pango layout, to reflect the text and format that we want.
-    #NOTE We delebritely set the background to a certain color to convert
-    #that color to a alpha channel, that will give us the "clear" background.
-    $globals->{'header_layout'}->set_markup(
-"<span background = '#000000' foreground= '#FFFFFF' size='20000' weight = 'ultralight'><i><u>$text</u></i></span>"
-    );
-
-    #Get the size of this layout after the text was set.
-    my ($dwHeader_w, $dwHeader_h) = $globals->{'header_layout'}->get_pixel_size;
-
-    # If string was empty then hide windows
-    if ($dwHeader_w == 0) {
-        $globals->{'headerShadow_window'}->hide();
-        $globals->{'header_window'}->hide();
-        return;
-    }
-
-    #Now we have the size, we can create a pixmap that will be the
-    #'Gtk2::Gdk::Drawable' that we will draw upon
-    my $dwHeader_pixmap =
-      Gtk2::Gdk::Pixmap->new($globals->{'header_text'}->window,
-        $dwHeader_w, $dwHeader_h, -1);
-    my $dwHeader_blank =
-      Gtk2::Gdk::Pixmap->new($globals->{'header_text'}->window,
-        $dwHeader_w, $dwHeader_h, -1);
-    my $dwHeaderShadow_blank =
-      Gtk2::Gdk::Pixmap->new($globals->{'headerShadow_text'}->window,
-        $dwHeader_w, $dwHeader_h, -1);
-    $dwHeader_blank->draw_rectangle($globals->{'header_text'}->style->white_gc,
-        TRUE, 0, 0, $dwHeader_w, $dwHeader_h);
-    $dwHeaderShadow_blank->draw_rectangle(
-        $globals->{'header_text'}->style->black_gc,
-        TRUE, 0, 0, $dwHeader_w, $dwHeader_h);
-
-    #draw the pango layout on the drawable.
-    $dwHeader_pixmap->draw_rectangle(
-        $globals->{'headerShadow_text'}->style->black_gc,
-        TRUE, 0, 0, 6000, 6000);
-    $dwHeader_pixmap->draw_layout($globals->{'header_text'}->style->black_gc,
-        0, 0, $globals->{'header_layout'});
-
-    #create a Gtk2::Gdk::Pixbuf that we will use to grab the pango text from the
-    #drawable (Gtk2::Gdk::Pixmap which is a Gtk2::Gdk::Drawable)
-    my $dwHeader_pixbuf =
-      Gtk2::Gdk::Pixbuf->new('rgb', TRUE, 8, $dwHeader_w, $dwHeader_h);
-
-#here we get create a pixbuff from the drawable, this is where we need the colormap
-    $dwHeader_pixbuf->get_from_drawable($dwHeader_pixmap,
-        $globals->{'colourmap'},
-        0, 0, 0, 0, $dwHeader_w, $dwHeader_h);
-
-    #Remove the background (we use a the color we specified as the pango text's
-    #    #background
-    $dwHeader_pixbuf = $dwHeader_pixbuf->add_alpha(TRUE, 0, 0, 0);
-
-    #create a pixmap and mask from the Gtk2::Gdk::Pixbuf
-    my ($dwHeader_pm, $dwHeader_m) =
-      $dwHeader_pixbuf->render_pixmap_and_mask(1);
-
-    $globals->{'headerShadow_window'}->hide();
-    $globals->{'header_window'}->hide();
-
-    #replace the old $img with the new pixmap and mask
-    $globals->{'header_img'}->set_from_pixmap($dwHeader_blank, undef);
-    $globals->{'headerShadow_img'}
-      ->set_from_pixmap($dwHeaderShadow_blank, undef);
-
-    #shape our window accordingly
-    $globals->{'header_window'}->shape_combine_mask($dwHeader_m, 0, 0);
-    $globals->{'headerShadow_window'}->shape_combine_mask($dwHeader_m, 0, 0);
-
-    my $position = ($config->{'Width'} - $dwHeader_w) / 2;
-    $globals->{'header_window'}->move($position, 0);
-    $globals->{'headerShadow_window'}
-      ->move($position + $config->{'ShadowSize'}, $config->{'ShadowSize'});
-    $globals->{'headerShadow_window'}->show();
-    $globals->{'header_window'}->show();
-
-    return 1;
 }
 
 sub get_bibles {
@@ -2489,170 +2448,35 @@ sub reset_timer {
 }
 
 sub create_window {
-    if ($globals->{'server_type'} == TRANS) {
-        create_window_trans();
+    if ($globals->{'server_type'} != CLUTTER) {
+    }
+    if ($globals->{'server_type'} == CLUTTER) {
+        use Clutter qw( :init );
+        use Clutter::Keysyms;
+        Clutter::Threads->init();
+        Clutter->init();
+        Clutter::Gst->init;
+        create_window_clutter();
     } else {
         create_window_normal();
     }
 }
 
-sub create_window_trans {
-    debug("Using transparent server");
+sub create_window_clutter {
+    debug("Using clutter server");
+    my $black_colour = Clutter::Color->new(0, 0, 0, 0xff);
+    $globals->{'stage'} = Clutter::Stage->get_default();
+    $globals->{'stage'}->set_color($black_colour);
+    $globals->{'stage'}->hide_cursor();
+    $globals->{'stage'}->set_title("Lyricue Server");
 
-    #create a popup window -> this allow us to modify its size to
-    #that of a Gtk::Gdk::Pixmap class.
-    $globals->{'header_window'}       = Gtk2::Window->new('popup');
-    $globals->{'headerShadow_window'} = Gtk2::Window->new('popup');
-    $globals->{'main_window'}         = Gtk2::Window->new('popup');
-    $globals->{'mainShadow_window'}   = Gtk2::Window->new('popup');
-    $globals->{'footer_window'}       = Gtk2::Window->new('popup');
-    $globals->{'footerShadow_window'} = Gtk2::Window->new('popup');
-    $globals->{'screen_width'} =
-      $globals->{'main_window'}->get_screen->get_width;
-
-    #standard packing widget my $dwHeader_vbox = Gtk2::VBox->new(FALSE,0);
-    my $dwHeader_vbox       = Gtk2::VBox->new(FALSE, 0);
-    my $dwHeaderShadow_vbox = Gtk2::VBox->new(FALSE, 0);
-    my $dwMain_vbox         = Gtk2::VBox->new(FALSE, 0);
-    my $dwMainShadow_vbox   = Gtk2::VBox->new(FALSE, 0);
-    my $dwFooter_vbox       = Gtk2::VBox->new(FALSE, 0);
-    my $dwFooterShadow_vbox = Gtk2::VBox->new(FALSE, 0);
-
-    #create a image containing nothing
-    $globals->{'header_img'}       = Gtk2::Image->new_from_pixmap(undef, undef);
-    $globals->{'headerShadow_img'} = Gtk2::Image->new_from_pixmap(undef, undef);
-    $globals->{'main_img'}         = Gtk2::Image->new_from_pixmap(undef, undef);
-    $globals->{'mainShadow_img'}   = Gtk2::Image->new_from_pixmap(undef, undef);
-    $globals->{'footer_img'}       = Gtk2::Image->new_from_pixmap(undef, undef);
-    $globals->{'footerShadow_img'} = Gtk2::Image->new_from_pixmap(undef, undef);
-
-    $dwHeader_vbox->pack_start($globals->{'header_img'}, FALSE, FALSE, 0);
-    $dwHeaderShadow_vbox->pack_start($globals->{'headerShadow_img'},
-        FALSE, FALSE, 0);
-    $dwMain_vbox->pack_start($globals->{'main_img'}, FALSE, FALSE, 0);
-    $dwMainShadow_vbox->pack_start($globals->{'mainShadow_img'},
-        FALSE, FALSE, 0);
-    $dwFooter_vbox->pack_start($globals->{'footer_img'}, FALSE, FALSE, 0);
-    $dwFooterShadow_vbox->pack_start($globals->{'footerShadow_img'},
-        FALSE, FALSE, 0);
-
-    $globals->{'header_window'}->add($dwHeader_vbox);
-    $globals->{'headerShadow_window'}->add($dwHeaderShadow_vbox);
-    $globals->{'main_window'}->add($dwMain_vbox);
-    $globals->{'mainShadow_window'}->add($dwMainShadow_vbox);
-    $globals->{'footer_window'}->add($dwFooter_vbox);
-    $globals->{'footerShadow_window'}->add($dwFooterShadow_vbox);
-
-    #show all BEFORE we add $drawing_area - we do not want to show the drawing
-    #area, we only use it as a working surface.
-    $globals->{'headerShadow_window'}->show_all();
-    $globals->{'header_window'}->show_all();
-    $globals->{'mainShadow_window'}->show_all();
-    $globals->{'main_window'}->show_all();
-    $globals->{'footerShadow_window'}->show_all();
-    $globals->{'footer_window'}->show_all();
-
-    # Now hide the windows
-    $globals->{'headerShadow_window'}->hide();
-    $globals->{'header_window'}->hide();
-    $globals->{'mainShadow_window'}->hide();
-    $globals->{'main_window'}->hide();
-    $globals->{'footerShadow_window'}->hide();
-    $globals->{'footer_window'}->hide();
-
-    # Setup background window
-    $globals->{'background_window'} = Gtk2::Window->new('toplevel');
-    $globals->{'background_window'}->set_title("Lyricue Server");
-    do_pending();
-    $globals->{'background_window'}->show();
-    if ($MINISERV >= 0) {
-        $globals->{'background_window'}
-          ->resize($config->{'Width'}, $config->{'Height'});
-        debug("Running in MINISERV (preview window) mode");
+    if ($globals->{'run_windowed'} == FALSE) {
+        $globals->{'stage'}->fullscreen();
     } else {
-        if ($globals->{'run_windowed'} == FALSE) {
-            $globals->{'background_window'}->fullscreen();
-        }
-        debug("Running in SERVER (normal) mode");
+        $globals->{'stage'}->set_size($config->{'Width'}, $config->{'Height'});
     }
-
-    my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
-    my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap(
-        $bitmap, $bitmap,
-        Gtk2::Gdk::Color->new(0, 0, 0),
-        Gtk2::Gdk::Color->new(0, 0, 0),
-        0, 0
-    );
-    $globals->{'background_window'}->window->set_cursor($cursor);
-    do_pending();
-    my $aspect = $config->{'Width'} / $config->{'Height'};
-    my $geom   = Gtk2::Gdk::Geometry->new;
-    $geom->min_aspect($aspect);
-    $globals->{'background_window'}
-      ->set_geometry_hints($globals->{'background_window'},
-        $geom, 'GDK_HINT_ASPECT');
-
-    #Create a drawing area, and set is big enough to hold the maximum size our
-    ##text will ever be.
-    $globals->{'header_text'} = Gtk2::DrawingArea->new;
-    $globals->{'header_text'}->set_size_request(1600, 1600);
-    $dwHeader_vbox->pack_start($globals->{'header_text'}, FALSE, FALSE, 0);
-    $globals->{'headerShadow_text'} = Gtk2::DrawingArea->new;
-    $globals->{'headerShadow_text'}->set_size_request(1600, 1600);
-    $dwHeaderShadow_vbox->pack_start($globals->{'headerShadow_text'},
-        FALSE, FALSE, 0);
-
-    $globals->{'mainShadow_text'} = Gtk2::DrawingArea->new;
-    $globals->{'mainShadow_text'}->set_size_request(1600, 1600);
-    $dwMainShadow_vbox->pack_start($globals->{'mainShadow_text'},
-        FALSE, FALSE, 0);
-    $globals->{'main_text'} = Gtk2::DrawingArea->new;
-    $globals->{'main_text'}->set_size_request(1600, 1600);
-    $dwMain_vbox->pack_start($globals->{'main_text'}, FALSE, FALSE, 0);
-
-    $globals->{'footer_text'} = Gtk2::DrawingArea->new;
-    $globals->{'footer_text'}->set_size_request(1600, 1600);
-    $dwFooter_vbox->pack_start($globals->{'footer_text'}, FALSE, FALSE, 0);
-    $globals->{'footerShadow_text'} = Gtk2::DrawingArea->new;
-    $globals->{'footerShadow_text'}->set_size_request(1600, 1600);
-    $dwFooterShadow_vbox->pack_start($globals->{'footerShadow_text'},
-        FALSE, FALSE, 0);
-
-    #realize it, since it will not be displayed, but we need to
-    #get hold of the Gdk classes that needs it to be shown, or realized
-    $globals->{'headerShadow_text'}->realize;
-    $globals->{'header_text'}->realize;
-    $globals->{'mainShadow_text'}->realize;
-    $globals->{'main_text'}->realize;
-    $globals->{'footerShadow_text'}->realize;
-    $globals->{'footer_text'}->realize;
-
-    #create a new pango layout for this drawing area
-    $globals->{'header_layout'} =
-      $globals->{'header_text'}->create_pango_layout("");
-    $globals->{'main_layout'} =
-      $globals->{'main_text'}->create_pango_layout("");
-    $globals->{'footer_layout'} =
-      $globals->{'footer_text'}->create_pango_layout("");
-
-    #set appropriate alignment
-    $globals->{'header_layout'}->set_alignment('center');
-    $globals->{'main_layout'}->set_alignment('left');
-    $globals->{'footer_layout'}->set_alignment('center');
-
-    #set wrap size/type
-    $globals->{'header_layout'}
-      ->set_width($globals->{'screen_width'} * PANGO_SCALE);
-    $globals->{'main_layout'}
-      ->set_width($globals->{'screen_width'} * PANGO_SCALE);
-    $globals->{'footer_layout'}
-      ->set_width($globals->{'screen_width'} * PANGO_SCALE);
-    $globals->{'header_layout'}->set_wrap('word_char');
-    $globals->{'main_layout'}->set_wrap('word_char');
-    $globals->{'footer_layout'}->set_wrap('word_char');
-
-    #get the defalt colormap (will be needed later on)
-    $globals->{'colourmap'} = Gtk2::Gdk::Colormap->get_system;
+    $globals->{'stage'}->signal_connect('key-press-event', \&HandleKey);
+    $globals->{'stage'}->show();
 }
 
 sub create_window_normal {
@@ -2661,7 +2485,7 @@ sub create_window_normal {
     if ($MINISERV > 0) {
         $globals->{'window'} = Gtk2::Plug->new($MINISERV);
     } else {
-        $globals->{'window'} = new Gtk2::Window->new('toplevel');
+        $globals->{'window'} = Gtk2::Window->new('toplevel');
     }
     $globals->{'window'}->set_title("Lyric Server");
 
@@ -2842,7 +2666,7 @@ sub create_window_normal {
 }
 
 sub refresh_screen {
-    if ($globals->{'server_type'} == TRANS) {
+    if ($globals->{'server_type'} == CLUTTER) {
 
         # Not needed
     } elsif ($globals->{'server_type'} == SIMPLE) {
@@ -2853,8 +2677,12 @@ sub refresh_screen {
 }
 
 sub do_pending {
-    while (Gtk2->events_pending) {
-        Gtk2->main_iteration;
+    if ($globals->{'server_type'} == CLUTTER) {
+        return;
+    } else {
+        while (Gtk2->events_pending) {
+            Gtk2->main_iteration;
+        }
     }
 }
 
