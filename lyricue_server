@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.136 2008/10/03 02:18:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.137 2008/11/09 21:42:45 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -251,15 +251,20 @@ if ($ARGV[0]) {
             if (!$MINISERV =~ /\d+$/) {
                 $MINISERV = 0;
             }
+            $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-r") {
             $globals->{'host'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-p") {
             $globals->{'use_port'} = $ARGV[$_ + 1];
+            $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-sqlite") {
             $globals->{'force_sqlite'} = TRUE;
         } elsif ($ARGV[$_] eq "-w") {
             $globals->{'run_windowed'} = TRUE;
+        } elsif ($ARGV[$_] eq "-geometry") {
+            $globals->{'window_offset'} = $ARGV[$_ +1];
+            $ARGV[$_ + 1] = "";
         } elsif (($ARGV[$_] =~ /^\d+$/) || ($ARGV[$_] eq "")) {
         } else {
             print
@@ -2670,6 +2675,7 @@ sub create_window_normal {
         debug("Running in MINISERV (preview window) mode");
         debug("W * H:" . $width . "*" . $height);
     } else {
+        if ($globals->{'window_offset'} ) {}
         $globals->{'window'}
           ->set_default_size($config->{'Width'}, $config->{'Height'});
         $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});

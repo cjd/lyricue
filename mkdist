@@ -23,6 +23,11 @@ make
 echo Creating Debian packages
 dpkg-buildpackage -rfakeroot -kB734D1F5
 popd
+rm -rf dist/lyricue-${VERSION}/debian
+pushd dist
+tar cvfz lyricue*_${VERSION}.tar.gz lyricue-${VERSION}
+popd
+
 rm -rf dist/lyricue-${VERSION}
 
 echo Making Bible packages
