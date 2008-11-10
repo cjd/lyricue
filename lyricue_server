@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.139 2008/11/09 22:52:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.140 2008/11/10 00:30:28 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -382,13 +382,8 @@ debug("Listening on " . $globals->{'use_port'});
 # Disable screensaver
 system('xset s off -dpms');
 
-if ($globals->{'server_type'} == CLUTTER) {
-    Clutter::Threads->add_timeout(200, \&check_net);
-    Clutter->main();
-} else {
-    Glib::Timeout->add(200, \&check_net);
-    Gtk2->main();
-}
+Glib::Timeout->add(200, \&check_net);
+Gtk2->main();
 
 sub check_net {
     my @ready = $s->can_read(0);
@@ -1001,6 +996,7 @@ sub process_input {
                                           ->add($globals->{'background'});
                                         $globals->{'background'}
                                           ->set_playing(TRUE);
+                                        $globals->{'video_playing'} = TRUE;
                                     } else {
                                         $exec_pid = fork;
                                         if ($exec_pid > 0) {
@@ -1362,6 +1358,10 @@ sub change_backdrop {
             $globals->{'bg_file'} = $id;
         } elsif ($globals->{'server_type'} == CLUTTER) {
             if (defined $globals->{'background'}) {
+                if (defined $globals->{'video_playing'}) {
+                    $globals->{'background'}->set_playing(FALSE);
+                    undef $globals->{'video_playing'};
+                }
                 $globals->{'stage'}->remove($globals->{'background'});
                 undef $globals->{'background'};
             }
@@ -1453,6 +1453,10 @@ sub change_backdrop {
                     close BGIMG;
                 } elsif ($globals->{'server_type'} == CLUTTER) {
                     if (defined $globals->{'background'}) {
+                        if (defined $globals->{'video_playing'}) {
+                            $globals->{'background'}->set_playing(FALSE);
+                            undef $globals->{'video_playing'};
+                        }
                         $globals->{'stage'}->remove($globals->{'background'});
                         undef $globals->{'background'};
                     }
@@ -1512,6 +1516,10 @@ sub change_backdrop {
                     } elsif ($globals->{'server_type'} == CLUTTER) {
                         $pixbuf->save($globals->{'bg_file'}, 'png');
                         if (defined $globals->{'background'}) {
+                            if (defined $globals->{'video_playing'}) {
+                                $globals->{'background'}->set_playing(FALSE);
+                                undef $globals->{'video_playing'};
+                            }
                             $globals->{'stage'}
                               ->remove($globals->{'background'});
                             undef $globals->{'background'};
@@ -1784,15 +1792,16 @@ sub set_maintext_clutter {
         Clutter::Color->new(0xff, 0xff, 0xff, 0xff));
     $globals->{'maintext'}->set_alignment('left');
     $globals->{'maintext'}->set_use_markup(1);
-    if ($globals->{'maintext'}->get_width() > $globals->{'stage'}->get_width())
+    if ($globals->{'maintext'}->get_width() > $config->{'Width'})
     {
         $globals->{'maintext'}->set_line_wrap(1);
-        $globals->{'maintext'}->set_size($globals->{'stage'}->get_width(), -1);
+        $globals->{'maintext'}->set_size($config->{'Width'}, -1);
     }
     $globals->{'maintext'}->set_anchor_point(
         $globals->{'maintext'}->get_width() / 2,
         $globals->{'maintext'}->get_height() / 2
     );
+    $globals->{'maintext'}->set_scale(1/$MINISCALE,1/$MINISCALE);
     $globals->{'maintext'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
@@ -2206,6 +2215,7 @@ sub set_footer_clutter {
         $globals->{'footer'}->get_width() / 2,
         $globals->{'footer'}->get_height() / 2
     );
+    $globals->{'footer'}->set_scale(1/$MINISCALE,1/$MINISCALE);
     $globals->{'footer'}->set_position($globals->{'stage'}->get_width() / 2,
         $globals->{'stage'} - ($globals->{'footer'}->get_height() / 2));
 }
@@ -2300,14 +2310,15 @@ sub set_header_clutter {
     }
     $globals->{'header'}->set_alignment('left');
     $globals->{'header'}->set_use_markup(1);
-    if ($globals->{'header'}->get_width() > $globals->{'stage'}->get_width()) {
+    if ($globals->{'header'}->get_width() > $config->{'Width'}) {
         $globals->{'header'}->set_line_wrap(1);
-        $globals->{'header'}->set_size($globals->{'stage'}->get_width(), -1);
+        $globals->{'header'}->set_size($config->{'Width'}, -1);
     }
     $globals->{'header'}->set_anchor_point(
         $globals->{'header'}->get_width() / 2,
         $globals->{'header'}->get_height() / 2
     );
+    $globals->{'header'}->set_scale(1/$MINISCALE,1/$MINISCALE);
     $globals->{'header'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'header'}->get_height() / 2
@@ -2448,38 +2459,6 @@ sub reset_timer {
 }
 
 sub create_window {
-    if ($globals->{'server_type'} != CLUTTER) {
-    }
-    if ($globals->{'server_type'} == CLUTTER) {
-        use Clutter qw( :init );
-        use Clutter::Keysyms;
-        Clutter::Threads->init();
-        Clutter->init();
-        Clutter::Gst->init;
-        create_window_clutter();
-    } else {
-        create_window_normal();
-    }
-}
-
-sub create_window_clutter {
-    debug("Using clutter server");
-    my $black_colour = Clutter::Color->new(0, 0, 0, 0xff);
-    $globals->{'stage'} = Clutter::Stage->get_default();
-    $globals->{'stage'}->set_color($black_colour);
-    $globals->{'stage'}->hide_cursor();
-    $globals->{'stage'}->set_title("Lyricue Server");
-
-    if ($globals->{'run_windowed'} == FALSE) {
-        $globals->{'stage'}->fullscreen();
-    } else {
-        $globals->{'stage'}->set_size($config->{'Width'}, $config->{'Height'});
-    }
-    $globals->{'stage'}->signal_connect('key-press-event', \&HandleKey);
-    $globals->{'stage'}->show();
-}
-
-sub create_window_normal {
     my ($pixmap, $textcol);
 
     if ($MINISERV > 0) {
@@ -2579,6 +2558,19 @@ sub create_window_normal {
             $vbox->pack_start($fill, TRUE, TRUE, 0);
         }
         $vbox->pack_start($globals->{'footerText'}, FALSE, FALSE, 0);
+    } elsif ($globals->{'server_type'} == CLUTTER ) {
+        debug("Using clutter server");
+        use Clutter qw( :gtk-init );
+        use Clutter::Keysyms;
+        Clutter::Threads->init();
+        Clutter->init();
+        Clutter::Gst->init;
+        my $black_colour = Clutter::Color->new(0, 0, 0, 0xff);
+        my $embed = Gtk2::ClutterEmbed->new();
+        $globals->{'window'}->add($embed);
+        $globals->{'stage'} = $embed->get_stage();
+        $globals->{'stage'}->set_color($black_colour);
+        $globals->{'stage'}->hide_cursor();
     } else {
         debug("Using full server");
         $globals->{'canvas'} = Gnome2::Canvas->new();
@@ -2666,23 +2658,14 @@ sub create_window_normal {
 }
 
 sub refresh_screen {
-    if ($globals->{'server_type'} == CLUTTER) {
-
-        # Not needed
-    } elsif ($globals->{'server_type'} == SIMPLE) {
-        $globals->{'window'}->show_all();
-    } else {
+    if ($globals->{'server_type'} != CLUTTER) {
         $globals->{'window'}->show_all();
     }
 }
 
 sub do_pending {
-    if ($globals->{'server_type'} == CLUTTER) {
-        return;
-    } else {
-        while (Gtk2->events_pending) {
-            Gtk2->main_iteration;
-        }
+    while (Gtk2->events_pending) {
+        Gtk2->main_iteration;
     }
 }
 
