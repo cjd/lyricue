@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.240 2008/10/03 02:18:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.241 2009/03/27 01:25:04 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -144,6 +144,7 @@ $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
 $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
+$globals->{'background_path'} = $globals->{'basedir'} . "backgrounds/";
 
 $globals->{'host'}        = "localhost";
 $globals->{'mysqlhost'}   = "";
@@ -198,18 +199,23 @@ if ($globals->{'diatheke'} eq "") {
 }
 
 # Transitions
-use constant NORMAL     => 0;
-use constant SLIDE_TEXT => 1;
-use constant WIPE       => 2;
-use constant CLIP       => 3;
+use constant NORMAL      => 0;
+use constant SLIDE_TEXT  => 1;
+use constant WIPE        => 2;
+use constant CLIP        => 3;
+use constant ROTATE_TEXT => 3;
 
 # Transition directions
-use constant NONE  => 0;
-use constant UP    => 1;
-use constant DOWN  => 2;
-use constant RIGHT => 4;
-use constant LEFT  => 8;
-use constant WAIT  => 16;
+use constant NONE      => 2**0;
+use constant WAIT      => 2**1;
+use constant UP        => 2**2;
+use constant DOWN      => 2**3;
+use constant RIGHT     => 2**4;
+use constant LEFT      => 2**5;
+use constant X_AXIS    => 2**6;
+use constant Y_AXIS    => 2**7;
+use constant Z_AXIS    => 2**8;
+use constant NUM_TRANS => 8;
 
 # Quick globals
 my $config;
@@ -2490,14 +2496,14 @@ sub display_song {
                         my $transition = $model->get($iter, 3);
 
                         # Set the transition values
-                        my $old_direction = mod($transition, 32);
-                        $transition = $transition >> 5;
-                        my $new_direction = mod($transition, 32);
-                        my $effect = $transition >> 5;
+                        my $old_direction = mod($transition, 2**NUM_TRANS);
+                        $transition = $transition >> NUM_TRANS;
+                        my $new_direction = mod($transition, 2**NUM_TRANS);
+                        my $effect = $transition >> NUM_TRANS;
                         if ($effect == NONE) {
                             $widgets->{'transitions'}
                               ->get_widget('radioTransNone')->set_active(TRUE);
-                        }
+                        } 
                         if ($effect == WIPE) {
                             $widgets->{'transitions'}
                               ->get_widget('radioTransWipe')->set_active(TRUE);
@@ -2505,6 +2511,10 @@ sub display_song {
                         if ($effect == SLIDE_TEXT) {
                             $widgets->{'transitions'}
                               ->get_widget('radioTransSlide')->set_active(TRUE);
+                        }
+                        if ($effect == ROTATE_TEXT) {
+                            $widgets->{'transitions'}
+                              ->get_widget('radioTransRotate')->set_active(TRUE);
                         }
                         if ($old_direction & WAIT) {
                             $widgets->{'transitions'}
@@ -2522,9 +2532,8 @@ sub display_song {
                             "Right",        "Up + Right",
                             "Down + Right", "",
                             "Left",         "Up + Left",
-                            "Down + Left",  "",
-                            "",             "",
-                            "",             ""
+                            "Down + Left",  "X-Axis",
+                            "Y-Axis",             "Z-Axis"
                         );
                         $widgets->{'transitions'}->get_widget('entryTransOld')
                           ->set_text($directions[$old_direction]);
@@ -3692,7 +3701,7 @@ sub set_default_backdrop {
     debug("Set default backdrop");
     my $image = $widgets->{'image'}->get_widget('imageImage')->{user_data};
     if ($image) {
-        my $scaled = create_pixbuf($image, 100, 75);
+        my $scaled = create_pixbuf("db;".$image, 100, 75);
         if ($scaled) {
             $widgets->{'prefs'}->get_widget('imagePrefBG')
               ->set_from_pixbuf($scaled);
@@ -3921,8 +3930,8 @@ sub create_dialog_prefs {
         if ($config->{'ServerType'} eq "simple") {
             $widgets->{'prefs'}->get_widget('radioPrefServerFast')
               ->set_active(TRUE);
-        } elsif ($config->{'ServerType'} eq "trans") {
-            $widgets->{'prefs'}->get_widget('radioPrefServerTrans')
+        } elsif ($config->{'ServerType'} eq "clutter") {
+            $widgets->{'prefs'}->get_widget('radioPrefServerClutter')
               ->set_active(TRUE);
         } else {
             $widgets->{'prefs'}->get_widget('radioPrefServerCanvas')
@@ -4914,7 +4923,7 @@ sub update_cplayclist {
     my @row;
     while (@row = $sth->fetchrow_array()) {
         my $iter = $store->append;
-        $store->set($iter, 0, $row[0]);
+        $store->set($iter, 0, Encode::decode("utf-8",$row[0]));
     }
 }
 
@@ -5108,6 +5117,9 @@ sub load_config {
             $conf->{'LoopText'} = "loop";
         }
     }
+    if (!($conf->{'BGImage'} =~ /;/)) {
+        $conf->{'BGImage'} = "db;".$conf->{'BGImage'};
+    }
 
     return $conf;
 }
@@ -5170,26 +5182,26 @@ sub save_preferences {
       . $widgets->{'prefs'}->get_widget('spinPrefOverscanV')->get_value()
       . "\n";
     print CONFIG "Loop = "
-      . $widgets->{'prefs'}->get_widget('checkPrefLoop')->get_active() . "\n";
+      , $widgets->{'prefs'}->get_widget('checkPrefLoop')->get_active()?1:0 , "\n";
     print CONFIG "Audit = "
-      . $widgets->{'prefs'}->get_widget('checkPrefAudit')->get_active() . "\n";
+      , $widgets->{'prefs'}->get_widget('checkPrefAudit')->get_active()?1:0 , "\n";
     print CONFIG "DynamicPreview = "
-      . $widgets->{'prefs'}->get_widget('checkPrefView')->get_active() . "\n";
+      , $widgets->{'prefs'}->get_widget('checkPrefView')->get_active()?1:0 , "\n";
     print CONFIG "Miniview = "
-      . $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active()
-      . "\n";
+      , $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active()?1:0
+      , "\n";
     print CONFIG "Xinerama = "
-      . $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
-      . "\n";
+      , $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()?1:0
+      , "\n";
     print CONFIG "CentreY = "
-      . $widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active()
-      . "\n";
+      , $widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active()?1:0
+      , "\n";
     print CONFIG "CentreX = "
-      . $widgets->{'prefs'}->get_widget('comboPrefHorizontal')->get_active()
-      . "\n";
+      , $widgets->{'prefs'}->get_widget('comboPrefHorizontal')->get_active()?1:0
+      , "\n";
 
-    if ($widgets->{'prefs'}->get_widget('radioPrefServerTrans')->get_active()) {
-        print CONFIG "ServerType = trans\n";
+    if ($widgets->{'prefs'}->get_widget('radioPrefServerClutter')->get_active()) {
+        print CONFIG "ServerType = clutter\n";
     } elsif (
         $widgets->{'prefs'}->get_widget('radioPrefServerFast')->get_active())
     {
@@ -5778,11 +5790,14 @@ sub init_mainWindow {
 sub bgdir_list {
     debug("Loading directory list");
     my $counter = 0;
+    my $cat = "";
     debug("Adding Main image dir button");
     my @categories = ();
     if ($config->{'SpecialBack'} ne "") {
         push @categories, $config->{'SpecialBack'};
     }
+
+    # Add categories from mediaDb
     my $query =
       "SELECT DISTINCT category FROM media WHERE type=\"bg\" AND category !=\""
       . $config->{'SpecialBack'}
@@ -5795,14 +5810,38 @@ sub bgdir_list {
         push @categories, $row->{'category'};
     }
 
-    my $cat = "";
     foreach $cat (@categories) {
-        debug("Adding image dir button for " . $cat);
+        debug("Adding image dir button for db-" . $cat);
         $widgets->{'dirbuttons'}[$counter] = new Gtk2::Button($cat);
         $widgets->{'main'}->get_widget('vboxBackDir')
           ->add($widgets->{'dirbuttons'}[$counter]);
         $widgets->{'dirbuttons'}[$counter]
-          ->signal_connect("clicked", \&bgdir_change, $cat);
+          ->signal_connect("clicked", \&bgdir_change, "db;".$cat);
+        $widgets->{'dirbuttons'}[$counter]->show;
+        $counter++;
+    }
+
+    @categories = ();
+    # Add categories from directories
+    my $dirname = $globals->{'background_path'};
+    my (@files, $file);
+    my $ret = opendir DIR, $dirname;
+    if ($ret) {
+        foreach $file (readdir(DIR)) {
+            if (!($file =~ /^\./))  {
+                push @categories, $file;
+            }
+        }
+        closedir DIR;
+    }
+
+    foreach $cat (@categories) {
+        debug("Adding image dir button for dir-" . $cat);
+        $widgets->{'dirbuttons'}[$counter] = new Gtk2::Button($cat);
+        $widgets->{'main'}->get_widget('vboxBackDir')
+          ->add($widgets->{'dirbuttons'}[$counter]);
+        $widgets->{'dirbuttons'}[$counter]
+          ->signal_connect("clicked", \&bgdir_change, "dir;".$cat);
         $widgets->{'dirbuttons'}[$counter]->show;
         $counter++;
     }
@@ -5818,14 +5857,17 @@ sub bgdir_list {
 #   Calls bgdir_load to create new buttons
 # INPUTS
 #   $category - background image category to load images from
+#   $type - 'dir' or 'db'
 # OUTPUT
 #   Updated background preview buttons
 # SOURCE
 #
 sub bgdir_change {
-    my ($widget, $category) = @_;
+    my ($widget, $data) = @_;
+    my ($type, $category)  = split /;/,$data;
     debug(  "Changing background source category to "
-          . $category
+          . $category . " of type "
+          . $type
           . "\nDestroying old images");
     $globals->{'category'} = $category;
     my $count = 0;
@@ -5838,7 +5880,7 @@ sub bgdir_change {
             $count++;
         }
     }
-    bgdir_load($category);
+    bgdir_load($category, $type);
     debug("Background category change complete");
 }
 
@@ -5858,46 +5900,79 @@ sub bgdir_change {
 # SOURCE
 #
 sub bgdir_load {
-    my ($category) = @_;
+    my ($category, $type) = @_;
+    my $counter = 0;
 
     # update list of available backdrops
-    debug("Loading new preview images from: " . $category);
+    debug("Loading new preview images from: " .$type. "-" . $category);
 
     # Disable dir buttons
     $widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(FALSE);
     $widgets->{'main'}->get_widget('hboxBackImage')->hide();
 
-    my $query =
-        "SELECT id FROM media WHERE category=\""
-      . $category
-      . "\" AND type=\"bg\" ORDER BY description";
-    my $sth = $mediaDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    my $counter = 0;
-    while ($row = $sth->fetchrow_hashref()) {
-
-        do_pending();
-        my $scaled = create_pixbuf($row->{'id'}, 64, 48);
-        if ($scaled) {
-            my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
-
-            $widgets->{'pixmaps'}[$counter] = $pixmap;
-            $widgets->{'buttons'}[$counter] = new Gtk2::Button();
-            $widgets->{'buttons'}[$counter]
-              ->add($widgets->{'pixmaps'}[$counter]);
-            $widgets->{'buttons'}[$counter]->{user_data} = ($row->{'id'});
-            $widgets->{'pixmaps'}[$counter]->show();
-            $widgets->{'buttons'}[$counter]->show();
-            $widgets->{'buttons'}[$counter]
-              ->signal_connect("clicked", "backdrop_clicked", \$widgets);
-            $widgets->{'main'}->get_widget('hboxBackImage')
-              ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE, 0);
-
-            $counter++;
+    if ($type eq "db") {
+        my $query =
+            "SELECT id FROM media WHERE category=\""
+          . $category
+          . "\" AND type=\"bg\" ORDER BY description";
+        my $sth = $mediaDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        while ($row = $sth->fetchrow_hashref()) {
+    
+            do_pending();
+            my $scaled = create_pixbuf($type.";".$row->{'id'}, 64, 48);
+            if ($scaled) {
+                my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
+    
+                $widgets->{'pixmaps'}[$counter] = $pixmap;
+                $widgets->{'buttons'}[$counter] = new Gtk2::Button();
+                $widgets->{'buttons'}[$counter]
+                  ->add($widgets->{'pixmaps'}[$counter]);
+                $widgets->{'buttons'}[$counter]->{user_data} = ($type.";".$row->{'id'});
+                $widgets->{'pixmaps'}[$counter]->show();
+                $widgets->{'buttons'}[$counter]->show();
+                $widgets->{'buttons'}[$counter]
+                  ->signal_connect("clicked", "backdrop_clicked", \$widgets);
+                $widgets->{'main'}->get_widget('hboxBackImage')
+                  ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE, 0);
+    
+                $counter++;
+            }
+        }
+    } else {
+        my $dirname = $globals->{'background_path'}.$category;
+        my (@files, $file);
+        my $ret = opendir DIR, $dirname;
+        if ($ret) {
+            foreach $file (readdir(DIR)) {
+                if (!($file =~ /^\./))  {
+                    do_pending();
+                    my $scaled = create_pixbuf($type.";".$dirname."/".$file, 64, 48);
+                    if ($scaled) {
+                        my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
+                        if ($pixmap) {
+                            $widgets->{'pixmaps'}[$counter] = $pixmap;
+                            $widgets->{'buttons'}[$counter] = new Gtk2::Button();
+                            $widgets->{'buttons'}[$counter]
+                            ->add($widgets->{'pixmaps'}[$counter]);
+                            $widgets->{'buttons'}[$counter]->{user_data} = ($type.";".$dirname."/".$file);
+                            $widgets->{'pixmaps'}[$counter]->show();
+                            $widgets->{'buttons'}[$counter]->show();
+                            $widgets->{'buttons'}[$counter]
+                            ->signal_connect("clicked", "backdrop_clicked", \$widgets);
+                            $widgets->{'main'}->get_widget('hboxBackImage')
+                            ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE, 0);
+                            $counter++;
+                        }
+                    }
+                }
+            }
+        closedir DIR;
         }
     }
+
     $widgets->{'main'}->get_widget('hboxBackImage')->show();
 
     # Enable dir buttons
@@ -6225,18 +6300,16 @@ sub apply_transition {
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
         my $trans_type = NORMAL;
-        if ($widgets->{'transitions'}->get_widget('radioTransWipe')
-            ->get_active())
-        {
+        if ($widgets->{'transitions'}->get_widget('radioTransWipe')->get_active()) {
             $trans_type = WIPE;
-        } elsif ($widgets->{'transitions'}->get_widget('radioTransSlide')
-            ->get_active())
-        {
+        } elsif ($widgets->{'transitions'}->get_widget('radioTransSlide')->get_active()) {
             $trans_type = SLIDE_TEXT;
+        } elsif ($widgets->{'transitions'}->get_widget('radioTransRotate')->get_active()) {
+            $trans_type = ROTATE_TEXT;
         }
 
         # Set new direction
-        $trans_type = $trans_type << 5;
+        $trans_type = $trans_type << 8;
         $_ = $widgets->{'transitions'}->get_widget('entryTransNew')->get_text();
         if (/Up/) {
             $trans_type = $trans_type + UP;
@@ -6255,8 +6328,12 @@ sub apply_transition {
             $trans_type = $trans_type + WAIT;
         }
 
+        if (/X/) { $trans_type = $trans_type + X_AXIS; }
+        if (/Y/) { $trans_type = $trans_type + Y_AXIS; }
+        if (/Z/) { $trans_type = $trans_type + Z_AXIS; }
+
         # Set old direction
-        $trans_type = $trans_type << 5;
+        $trans_type = $trans_type << 8;
         $_ = $widgets->{'transitions'}->get_widget('entryTransOld')->get_text();
         if (/Up/) {
             $trans_type = $trans_type + UP;
@@ -6274,6 +6351,10 @@ sub apply_transition {
         {
             $trans_type = $trans_type + WAIT;
         }
+
+        if (/X/) { $trans_type = $trans_type + X_AXIS; }
+        if (/Y/) { $trans_type = $trans_type + Y_AXIS; }
+        if (/Z/) { $trans_type = $trans_type + Z_AXIS; }
 
         my $query = "SELECT type,data FROM playlist WHERE playorder="
           . $model->get($iter, 2);
@@ -6734,38 +6815,48 @@ sub resize_preview {
 
 # Return a Gdk::Pixbuf of the given media at the given res
 sub create_pixbuf {
-    my ($id, $width, $height) = @_;
+    my ($data, $width, $height) = @_;
     my ($pixbuf);
-    my $query =
-      "SELECT format, description, data FROM media WHERE id=\"" . $id . "\"";
-    qdebug($query);
-    my $sth = $mediaDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    my $row = $sth->fetchrow_hashref();
-    if ($row->{'format'} eq "bg") {
-        my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
-        $pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
-    } else {
-        my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
-        eval { $pixbuf_loader->write($row->{'data'}); };
-        eval { $pixbuf_loader->close() };
+    my ($type,$id) = split /;/, $data;
+    if ($type eq "dir") {
+        eval { $pixbuf= Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width, $height); };
         if ($@) {
+            return undef;
+        } else {
+            return $pixbuf;
+        }
+    } else {
+        my $query =
+          "SELECT format, description, data FROM media WHERE id=\"" . $id . "\"";
+        qdebug($query);
+        my $sth = $mediaDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my $row = $sth->fetchrow_hashref();
+        if ($row->{'format'} eq "bg") {
             my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
             $pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
         } else {
-            $pixbuf = $pixbuf_loader->get_pixbuf();
+            my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+            eval { $pixbuf_loader->write($row->{'data'}); };
+            eval { $pixbuf_loader->close() };
+            if ($@) {
+                my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
+                $pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
+            } else {
+                $pixbuf = $pixbuf_loader->get_pixbuf();
+            }
+        }
+    
+        if ($width == 0) {
+            return $pixbuf;
+        } else {
+            return $pixbuf->scale_simple($width, $height, 'nearest');
         }
     }
-
-    if ($width == 0) {
-        return $pixbuf;
-    } else {
-        return $pixbuf->scale_simple($width, $height, 'nearest');
-    }
 }
-
+    
 sub import_image {
     import_media("img");
 }
