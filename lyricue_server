@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.141 2008/11/10 01:27:09 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.142 2009/03/27 01:49:10 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -119,14 +119,19 @@ use constant NORMAL     => 0;
 use constant SLIDE_TEXT => 1;
 use constant WIPE       => 2;
 use constant CLIP       => 3;
+use constant ROTATE     => 4;
 
 # Transition directions
-use constant NONE  => 0;
-use constant UP    => 1;
-use constant DOWN  => 2;
-use constant RIGHT => 4;
-use constant LEFT  => 8;
-use constant WAIT  => 16;
+use constant NONE      => 2**0;
+use constant WAIT      => 2**1;
+use constant UP        => 2**2;
+use constant DOWN      => 2**3;
+use constant RIGHT     => 2**4;
+use constant LEFT      => 2**5;
+use constant X_AXIS    => 2**6;
+use constant Y_AXIS    => 2**7;
+use constant Z_AXIS    => 2**8;
+use constant NUM_TRANS => 8;
 
 # Server types
 use constant CANVAS  => 0;
@@ -347,6 +352,10 @@ debug("Creating window");
 create_window();
 
 debug("Loading background");
+if (!($config->{'BGImage'} =~ /;/)) {
+    $config->{'BGImage'} = "db;".$config->{'BGImage'};
+}
+
 change_backdrop($config->{'BGImage'});
 
 # init the TCP mode
@@ -961,8 +970,7 @@ sub process_input {
                                     if ($globals->{'server_type'} == CLUTTER) {
                                         debug("Clutter Video");
                                         if (defined $globals->{'background'}) {
-                                            $globals->{'stage'}->remove(
-                                                $globals->{'background'});
+                                            $globals->{'background'}->destroy();
                                             undef $globals->{'background'};
                                         }
                                         $globals->{'background'} =
@@ -1345,19 +1353,16 @@ sub HandleKey {
 sub change_backdrop {
     my ($id) = @_;
     debug("Setting backdrop");
-    if ($id =~ /\./) {
-        debug("Changing backdrop image to file:" . $id);
+    my ($type,$data) = split /;/, $id;
+    if ($type eq "dir") {
+        debug("Changing backdrop image to file:" . $data);
         if (($globals->{'server_type'} == SIMPLE))
         {
-            $globals->{'bg_file'} = $id;
+            $globals->{'bg_file'} = $data;
         } elsif ($globals->{'server_type'} == CLUTTER) {
             if (defined $globals->{'background'}) {
-                if (defined $globals->{'video_playing'}) {
-                    $globals->{'background'}->set_playing(FALSE);
-                    undef $globals->{'video_playing'};
-                }
                 if (defined $globals->{'background_old'}) {
-                    $globals->{'stage'}->remove($globals->{'background_old'});
+                    $globals->{'background_old'}->destroy();
                     undef $globals->{'background_old'};
                 }
                 $globals->{'background_old'} = $globals->{'background'};
@@ -1367,17 +1372,16 @@ sub change_backdrop {
                 $globals->{'timeline_bg'}->signal_connect(
                     'new-frame' => sub {
                         my ($self, $alpha_value) = @_;
-                        print "next-frame\n";
                         if (defined $globals->{'background_old'}) {
                             $globals->{'background_old'}
                             ->set_opacity((1 - $self->get_progress)*255);
                         }
                     }
                 );
-                $globals->{'timeline'}->signal_connect(
+                $globals->{'timeline_bg'}->signal_connect(
                     'completed' => sub {
                         if (defined $globals->{'background_old'}) {
-                            $globals->{'stage'}->remove($globals->{'background_old'});
+                            $globals->{'background_old'}->destroy();
                             undef $globals->{'background_old'};
                         }
                         undef $globals->{'timeline_bg'};
@@ -1385,10 +1389,7 @@ sub change_backdrop {
                 );
                 $globals->{'timeline_bg'}->start();
             }
-            $globals->{'background'} = Clutter::Texture->new($id);
-            if (defined $globals->{'background_old'}) {
-                $globals->{'background_old'}->raise($globals->{'background'});
-            }
+            $globals->{'background'} = Clutter::Texture->new($data);
             $globals->{'background'}->set(
                 keep_aspect_ratio => 1,
                 request_mode      => 'width-for-height',
@@ -1408,11 +1409,11 @@ sub change_backdrop {
             my ($pixbuf);
             eval {
                 $pixbuf =
-                  Gtk2::Gdk::Pixbuf->new_from_file_at_size($id,
+                  Gtk2::Gdk::Pixbuf->new_from_file_at_size($data,
                     $config->{'Width'}, $config->{'Height'});
             };
             if ($@) {
-                debug("Unable to load background: $id");
+                debug("Unable to load background: $data");
             } else {
                 if (defined $background) {
                     $background->destroy;
@@ -1432,7 +1433,7 @@ sub change_backdrop {
     } else {
         my $query =
 "SELECT format, description, data, textcolour, shadowcolour FROM media WHERE id=\""
-          . $id . "\"";
+          . $data . "\"";
         debug($query);
         my $sth = $mediaDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -1476,11 +1477,7 @@ sub change_backdrop {
                     close BGIMG;
                 } elsif ($globals->{'server_type'} == CLUTTER) {
                     if (defined $globals->{'background'}) {
-                        if (defined $globals->{'video_playing'}) {
-                            $globals->{'background'}->set_playing(FALSE);
-                            undef $globals->{'video_playing'};
-                        }
-                        $globals->{'stage'}->remove($globals->{'background'});
+                        $globals->{'background'}->destroy();
                         undef $globals->{'background'};
                     }
                     $globals->{'background'} = Clutter::Rectangle->new();
@@ -1539,12 +1536,7 @@ sub change_backdrop {
                     } elsif ($globals->{'server_type'} == CLUTTER) {
                         $pixbuf->save($globals->{'bg_file'}, 'png');
                         if (defined $globals->{'background'}) {
-                            if (defined $globals->{'video_playing'}) {
-                                $globals->{'background'}->set_playing(FALSE);
-                                undef $globals->{'video_playing'};
-                            }
-                            $globals->{'stage'}
-                              ->remove($globals->{'background'});
+                            $globals->{'background'}->destroy();
                             undef $globals->{'background'};
                         }
                         $globals->{'background'} =
@@ -1792,6 +1784,7 @@ sub load_config {
 sub set_maintext {
     my ($text, $transition, $wrap) = @_;
     if (!defined $text) { $text = " "; }
+
     if ($globals->{'server_type'} == SIMPLE) {
         set_maintext_simple($text, $transition, $wrap);
     } elsif ($globals->{'server_type'} == CLUTTER) {
@@ -1805,9 +1798,17 @@ sub set_maintext_clutter {
     my ($text, $transition, $wrap) = @_;
     debug("Setting maintext -clutter");
     if (defined $globals->{'maintext_old'}) {
-        $globals->{'stage'}->remove($globals->{'maintext_old'});
+        $globals->{'maintext_old'}->destroy();
         undef $globals->{'maintext_old'};
     }
+    if (!defined $transition) { $transition = 0; }
+
+    # Set the transition values
+    my $old_direction = mod($transition, 2**NUM_TRANS);
+    $transition = $transition >> NUM_TRANS;
+    my $new_direction = mod($transition, 2**NUM_TRANS);
+    my $effect = $transition >> NUM_TRANS;
+
     $globals->{'maintext_old'} = $globals->{'maintext'};
     undef $globals->{'maintext'};
     $globals->{'maintext'} =
@@ -1836,31 +1837,126 @@ sub set_maintext_clutter {
     my $alpha =
       Clutter::Alpha->new($globals->{'timeline'}, \&Clutter::Alpha::ramp_inc);
 
+    # Set start position
     $globals->{'timeline'}->signal_connect(
         'started' => sub {
-            $globals->{'maintext'}->set_rotation('y-axis', 90, 0, 0, 0);
+            if ($effect == ROTATE) {
+                if ($new_direction & X_AXIS) {
+                    $globals->{'maintext'}->set_rotation('x-axis', 90, 0, 0, 0);
+                }
+                if ($new_direction & Y_AXIS) {
+                    $globals->{'maintext'}->set_rotation('y-axis', 90, 0, 0, 0);
+                }
+                if ($new_direction & Z_AXIS) {
+                    $globals->{'maintext'}->set_rotation('z-axis', 180, 0, 0, 0);
+                }
+            }
+            if ($effect == SLIDE_TEXT) {
+                my $x=$globals->{'stage'}->get_width() / 2;
+                my $y=$globals->{'stage'}->get_height() / 2;
+                if ($new_direction & UP) {
+                    $y = $globals->{'stage'}->get_height();
+                } elsif ($new_direction & DOWN) {
+                    $y = 0;
+                }
+                if ($new_direction & LEFT) {
+                    $x = $globals->{'stage'}->get_width();
+                } elsif ($new_direction & RIGHT) {
+                    $x = 0;
+                }
+                    
+                $globals->{'maintext'}->set_position($x,$y);
+            }
             $globals->{'stage'}->add($globals->{'maintext'});
         }
     );
+
+    # Animation
     $globals->{'timeline'}->signal_connect(
         'new-frame' => sub {
             my ($self, $alpha_value) = @_;
-            my $rotation = $self->get_progress * 90;
-            if (defined $globals->{'maintext_old'}) {
-                $globals->{'maintext_old'}
-                  ->set_rotation('y-axis', $rotation, 0, 0);
+            if ($effect == ROTATE) {
+                my $rotation = 90 - ($self->get_progress * 90);
+                # New item
+                if ($new_direction & X_AXIS) {
+                    $globals->{'maintext'}->set_rotation('x-axis', $rotation, 0, 0, 0);
+                }
+                if ($new_direction & Y_AXIS) {
+                    $globals->{'maintext'}->set_rotation('y-axis', $rotation, 0, 0, 0);
+                }
+                if ($new_direction & Z_AXIS) {
+                    $globals->{'maintext'}->set_rotation('z-axis', $rotation * 2, 0, 0, 0);
+                }
+                if (defined $globals->{'maintext_old'}) {
+                    # Old item
+                    $rotation = 90 - $rotation;
+                    if ($new_direction & X_AXIS) {
+                        $globals->{'maintext_old'}->set_rotation('x-axis', $rotation, 0, 0, 0);
+                    }
+                    if ($new_direction & Y_AXIS) {
+                        $globals->{'maintext_old'}->set_rotation('y-axis', $rotation, 0, 0, 0);
+                    }
+                    if ($new_direction & Z_AXIS) {
+                        $globals->{'maintext_old'}->set_rotation('z-axis', $rotation * 2, 0, 0, 0);
+                    }
+                }
             }
-            $globals->{'maintext'}
-              ->set_rotation('y-axis', $rotation - 90, 0, 0, 0);
+            if ($effect == SLIDE_TEXT) {
+                # New item
+                my $x_start=$globals->{'stage'}->get_width() / 2;
+                my $y_start=$globals->{'stage'}->get_height() / 2;
+                my $x_end=$x_start;
+                my $y_end=$y_start;
+                if ($new_direction & UP) {
+                    $y_start = $globals->{'stage'}->get_height();
+                } elsif ($new_direction & DOWN) {
+                    $y_start = 0;
+                }
+                if ($new_direction & LEFT) {
+                    $x_start = $globals->{'stage'}->get_width();
+                } elsif ($new_direction & RIGHT) {
+                    $x_start = 0;
+                }
+                my $step = 1 - $self->get_progress;
+                my $x_now = (($x_start - $x_end) * $step) + $x_end;
+                my $y_now = (($y_start - $y_end) * $step) + $y_end;
+                $globals->{'maintext'}->set_position($x_now,$y_now);
+
+                # New item
+                $x_start=$globals->{'stage'}->get_width() / 2;
+                $y_start=$globals->{'stage'}->get_height() / 2;
+                $x_end=$x_start;
+                $y_end=$y_start;
+                if ($old_direction & UP) {
+                    $y_end = $globals->{'stage'}->get_height();
+                } elsif ($old_direction & DOWN) {
+                    $y_end = 0;
+                }
+                if ($old_direction & LEFT) {
+                    $x_end = $globals->{'stage'}->get_width();
+                } elsif ($old_direction & RIGHT) {
+                    $x_end = 0;
+                }
+                my $step = 1 - $self->get_progress;
+                my $x_now = (($x_start - $x_end) * $step) + $x_end;
+                my $y_now = (($y_start - $y_end) * $step) + $y_end;
+                $globals->{'maintext_old'}->set_position($x_now,$y_now);
+            }
         }
     );
+
+    # Ensure that text is in final position
     $globals->{'timeline'}->signal_connect(
         'completed' => sub {
             if (defined $globals->{'maintext_old'}) {
-                $globals->{'stage'}->remove($globals->{'maintext_old'});
+                $globals->{'maintext_old'}->destroy();
                 undef $globals->{'maintext_old'};
             }
             $globals->{'maintext'}->set_rotation('y-axis', 0, 0, 0, 0);
+            $globals->{'maintext'}->set_position(
+                $globals->{'stage'}->get_width() / 2,
+                $globals->{'stage'}->get_height() / 2
+            );
             undef $globals->{'timeline'};
         }
     );
@@ -1895,10 +1991,10 @@ sub set_maintext_canvas {
     if (!defined $transition) { $transition = 0; }
 
     # Set the transition values
-    my $old_direction = mod($transition, 32);
-    $transition = $transition >> 5;
-    my $new_direction = mod($transition, 32);
-    my $effect = $transition >> 5;
+    my $old_direction = mod($transition, 2**NUM_TRANS);
+    $transition = $transition >> NUM_TRANS;
+    my $new_direction = mod($transition, 2**NUM_TRANS);
+    my $effect = $transition >> NUM_TRANS;
 
     # Copy the old mainText to oldText
     $oldText = $globals->{'mainText'};
@@ -2217,7 +2313,7 @@ sub set_footer_clutter {
     my ($text) = @_;
     if ($text eq "") {
         if (defined $globals->{'footer'}) {
-            $globals->{'stage'}->remove($globals->{'footer'});
+            $globals->{'footer'}->destroy();
             undef $globals->{'footer'};
         }
         return;
@@ -2319,7 +2415,7 @@ sub set_header_clutter {
     debug("Setting header");
     if ($text eq "") {
         if (defined $globals->{'header'}) {
-            $globals->{'stage'}->remove($globals->{'header'});
+            $globals->{'header'}->destroy();
             undef $globals->{'header'};
         }
         return;

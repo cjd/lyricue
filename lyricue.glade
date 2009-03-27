@@ -7854,6 +7854,26 @@ http://www.adebenham.com/lyricue</property>
 	      <property name="fill">False</property>
 	    </packing>
 	  </child>
+
+	  <child>
+	    <widget class="GtkRadioButton" id="radioTransRotate">
+	      <property name="visible">True</property>
+	      <property name="can_focus">True</property>
+	      <property name="label" translatable="yes">Rotate Text</property>
+	      <property name="use_underline">True</property>
+	      <property name="relief">GTK_RELIEF_NORMAL</property>
+	      <property name="focus_on_click">True</property>
+	      <property name="active">False</property>
+	      <property name="inconsistent">False</property>
+	      <property name="draw_indicator">True</property>
+	      <property name="group">radioTransNone</property>
+	    </widget>
+	    <packing>
+	      <property name="padding">0</property>
+	      <property name="expand">False</property>
+	      <property name="fill">False</property>
+	    </packing>
+	  </child>
 	</widget>
 	<packing>
 	  <property name="padding">0</property>
@@ -7920,7 +7940,7 @@ http://www.adebenham.com/lyricue</property>
 		  <property name="editable">False</property>
 		  <property name="visibility">True</property>
 		  <property name="max_length">0</property>
-		  <property name="text" translatable="yes"></property>
+		  <property name="text" translatable="yes">None</property>
 		  <property name="has_frame">True</property>
 		  <property name="invisible_char">*</property>
 		  <property name="activates_default">False</property>
@@ -7933,7 +7953,7 @@ http://www.adebenham.com/lyricue</property>
 		  <property name="selection_mode">GTK_SELECTION_BROWSE</property>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem384">
+		    <widget class="GtkListItem" id="listitem627">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">None</property>
@@ -7941,7 +7961,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem385">
+		    <widget class="GtkListItem" id="listitem628">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Up</property>
@@ -7949,7 +7969,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem386">
+		    <widget class="GtkListItem" id="listitem629">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Down</property>
@@ -7957,7 +7977,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem387">
+		    <widget class="GtkListItem" id="listitem630">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Left</property>
@@ -7965,7 +7985,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem388">
+		    <widget class="GtkListItem" id="listitem631">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Right</property>
@@ -7973,7 +7993,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem389">
+		    <widget class="GtkListItem" id="listitem632">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Up + Left</property>
@@ -7981,7 +8001,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem390">
+		    <widget class="GtkListItem" id="listitem633">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Up + Right</property>
@@ -7989,7 +8009,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem391">
+		    <widget class="GtkListItem" id="listitem634">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Down + Left</property>
@@ -7997,10 +8017,34 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem392">
+		    <widget class="GtkListItem" id="listitem635">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Down + Right</property>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkListItem" id="listitem636">
+		      <property name="visible">True</property>
+		      <property name="can_focus">True</property>
+		      <property name="label" translatable="yes">X-Axis</property>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkListItem" id="listitem637">
+		      <property name="visible">True</property>
+		      <property name="can_focus">True</property>
+		      <property name="label" translatable="yes">Y-Axis</property>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkListItem" id="listitem638">
+		      <property name="visible">True</property>
+		      <property name="can_focus">True</property>
+		      <property name="label" translatable="yes">Z-Axis</property>
 		    </widget>
 		  </child>
 		</widget>
@@ -8097,7 +8141,7 @@ http://www.adebenham.com/lyricue</property>
 		  <property name="editable">False</property>
 		  <property name="visibility">True</property>
 		  <property name="max_length">0</property>
-		  <property name="text" translatable="yes"></property>
+		  <property name="text" translatable="yes">None</property>
 		  <property name="has_frame">True</property>
 		  <property name="invisible_char">*</property>
 		  <property name="activates_default">False</property>
@@ -8110,7 +8154,7 @@ http://www.adebenham.com/lyricue</property>
 		  <property name="selection_mode">GTK_SELECTION_BROWSE</property>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem401">
+		    <widget class="GtkListItem" id="listitem849">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">None</property>
@@ -8118,7 +8162,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem402">
+		    <widget class="GtkListItem" id="listitem850">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Up</property>
@@ -8126,7 +8170,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem403">
+		    <widget class="GtkListItem" id="listitem851">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Down</property>
@@ -8134,7 +8178,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem404">
+		    <widget class="GtkListItem" id="listitem852">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Left</property>
@@ -8142,7 +8186,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem405">
+		    <widget class="GtkListItem" id="listitem853">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Right</property>
@@ -8150,7 +8194,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem406">
+		    <widget class="GtkListItem" id="listitem854">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Up + Left</property>
@@ -8158,7 +8202,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem407">
+		    <widget class="GtkListItem" id="listitem855">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Up + Right</property>
@@ -8166,7 +8210,7 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem408">
+		    <widget class="GtkListItem" id="listitem856">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Down + Left</property>
@@ -8174,10 +8218,34 @@ http://www.adebenham.com/lyricue</property>
 		  </child>
 
 		  <child>
-		    <widget class="GtkListItem" id="listitem409">
+		    <widget class="GtkListItem" id="listitem857">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="label" translatable="yes">Down + Right</property>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkListItem" id="listitem858">
+		      <property name="visible">True</property>
+		      <property name="can_focus">True</property>
+		      <property name="label" translatable="yes">X-Axis</property>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkListItem" id="listitem859">
+		      <property name="visible">True</property>
+		      <property name="can_focus">True</property>
+		      <property name="label" translatable="yes">Y-Axis</property>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkListItem" id="listitem860">
+		      <property name="visible">True</property>
+		      <property name="can_focus">True</property>
+		      <property name="label" translatable="yes">Z-Axis</property>
 		    </widget>
 		  </child>
 		</widget>
@@ -9076,10 +9144,10 @@ http://www.adebenham.com/lyricue</property>
 		      </child>
 
 		      <child>
-			<widget class="GtkRadioButton" id="radioPrefServerTrans">
+			<widget class="GtkRadioButton" id="radioPrefServerClutter">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
-			  <property name="label" translatable="yes">Transparent (experimental)</property>
+			  <property name="label" translatable="yes">OpenGL</property>
 			  <property name="use_underline">True</property>
 			  <property name="relief">GTK_RELIEF_NORMAL</property>
 			  <property name="focus_on_click">True</property>
