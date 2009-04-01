@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.142 2009/03/27 01:49:10 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.143 2009/04/01 03:50:24 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2624,6 +2624,15 @@ sub create_window {
 
     do_pending();
 
+    eval { require Clutter };
+    if ($@) {
+        print "Optional module Clutter not available. Using canvas server\n";
+        $globals->{'server_type'} = CANVAS;
+    } else {
+        import Clutter;
+        import Clutter qw( :gtk-init );
+        import Clutter::Keysyms;
+    }
     my $aspect = $config->{'Width'} / $config->{'Height'};
     my $geom   = Gtk2::Gdk::Geometry->new;
     $geom->min_aspect($aspect);
@@ -2679,8 +2688,6 @@ sub create_window {
         $vbox->pack_start($globals->{'footerText'}, FALSE, FALSE, 0);
     } elsif ($globals->{'server_type'} == CLUTTER ) {
         debug("Using clutter server");
-        use Clutter qw( :gtk-init );
-        use Clutter::Keysyms;
         Clutter::Threads->init();
         Clutter->init();
         Clutter::Gst->init;
