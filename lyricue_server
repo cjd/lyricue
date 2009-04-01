@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.143 2009/04/01 03:50:24 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.144 2009/04/01 04:06:21 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -959,7 +959,7 @@ sub process_input {
                                     set_footer("");
                                     set_maintext("", NONE, FALSE);
                                     set_header("");
-                                    change_backdrop($row->{'data'});
+                                    change_backdrop("dir;".$row->{'data'});
                                 }
                             }
 
@@ -1352,8 +1352,11 @@ sub HandleKey {
 #
 sub change_backdrop {
     my ($id) = @_;
-    debug("Setting backdrop");
+    debug("Setting backdrop to $id");
     my ($type,$data) = split /;/, $id;
+    if ($data eq "") {
+        $data = $type;
+    }
     if ($type eq "dir") {
         debug("Changing backdrop image to file:" . $data);
         if (($globals->{'server_type'} == SIMPLE))
