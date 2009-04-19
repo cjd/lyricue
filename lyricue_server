@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.144 2009/04/01 04:06:21 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.145 2009/04/19 22:20:09 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1701,6 +1701,7 @@ sub change_to_db {
         $bibleDbh = "";
     }
     $globals->{'biblename'} = $config->{'Bibles'}->{$globals->{'bibledb'}};
+print $globals->{'biblename'}."\n";
     $globals->{'biblename'} =~ s/^.*?://g;
     $globals->{'biblename'} =~ s/^.*?;//g;
     $globals->{'biblename'} =~ s/_//g;
@@ -2510,37 +2511,71 @@ sub set_header_canvas {
 
 sub get_bibles {
     my $bibles;
-    open(CONFIG, $globals->{'configfile'})
-      || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
-        $!);
-    while (<CONFIG>) {
-        chomp;
-        my @line = split(/=/);
-        $line[0] =~ s/ *$//g;
-        $line[1] =~ s/ *$//g;
-        $line[1] =~ s/^ *//g;
-        my @line2 = split(/;/, $line[1], 2);
-        if ($line[0] eq "Bible") {
-            $bibles->{$line2[1]} = "db;" . $line2[0];
+    debug("Getting available bibles");
+    
+    # Bible databases found
+    my $dbs = $globals->{'db_available_db'};
+    foreach (keys %$dbs) {
+        my $dbname = $_;
+        my $db     = db_connect($dbname, "");
+        my @tables = $db->tables;
+        my $table;
+        foreach (@tables) {
+            $_ =~ s/^.*`(.*)`$/$1/g;
+            $_ =~ s/^"(.*)"$/$1/g;
+            if (/^verse$/) {
+                my $query = "SELECT * FROM verse WHERE book=\"Bible\";";
+                qdebug($query);
+                my $sth = $db->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my $row = $sth->fetchrow_hashref();
+                if (defined $row->{'verse'}) {
+                    $bibles->{$dbname} = "db;" . $row->{'verse'};
+                }
+                $sth->finish;
+            }
         }
+        $db->disconnect();
     }
-    open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
-    while (<SWORD>) {
-        if (/^Biblical Texts:/) {
-            while (<SWORD>) {
-                if (/^Commentaries:/) {
-                    while (<SWORD>) { }
-                } else {
-                    chomp;
-                    my @bible = split(/:/, $_, 2);
-                    $bible[0] =~ s/\s+$//;
-                    $bible[1] =~ s/^\s+//;
-                    $bibles->{$bible[0]} = "sword;" . $bible[1];
+
+#    open(CONFIG, $globals->{'configfile'})
+#      || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
+#        $!);
+#    while (<CONFIG>) {
+#        chomp;
+#        my @line = split(/=/);
+#        $line[0] =~ s/ *$//g;
+#        $line[1] =~ s/ *$//g;
+#        $line[1] =~ s/^ *//g;
+#        my @line2 = split(/;/, $line[1], 2);
+#        if ($line[0] eq "Bible") {
+#            $bibles->{$line2[1]} = "db;" . $line2[0];
+#print $line2[0]."---".$line2[1]."\n";
+#        }
+#    }
+
+    # Bibles provided by Sword libraries
+    if ($^O ne 'MSWin32') {
+        open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
+        while (<SWORD>) {
+            if (/^Biblical Texts:/) {
+                while (<SWORD>) {
+                    if (/^Commentaries:/) {
+                        while (<SWORD>) { }
+                    } else {
+                        chomp;
+                        my @bible = split(/:/, $_, 2);
+                        $bible[0] =~ s/\s+$//;
+                        $bible[1] =~ s/^\s+//;
+                        $bibles->{$bible[0]} = "sword;" . $bible[1];
+                    }
                 }
             }
         }
+        close SWORD;
     }
-    close SWORD;
     return $bibles;
 }
 
