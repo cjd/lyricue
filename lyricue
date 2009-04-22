@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.241 2009/03/27 01:25:04 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.242 2009/04/22 04:21:38 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -1978,6 +1978,8 @@ sub do_import_song {
 
     if ($lcfilename =~ /txt$/) {
         import_song_text($filename);
+    } elsif ($lcfilename =~ /sng$/) {
+        import_song_songbeamer($filename);
     } elsif ($lcfilename =~ /usr$/) {
         import_song_songselect($filename);
     } elsif ($lcfilename =~ /opw$/) {
@@ -2069,6 +2071,118 @@ sub import_song_text {
     }
     close SONG;
 }
+
+#****m* lyricue/import_song_songbeamer
+# NAME
+#   import_song_songbeamer --
+# SYNOPSIS
+#   import_song_songbeamer ($filename)
+# FUNCTION
+#   Import a song from Songbeamer format
+# INPUTS
+#   $filename - Filename of .sng file to import
+# OUTPUT
+#   Filled in add song dialog
+# SOURCE
+#
+sub import_song_songbeamer {
+    my ($filename) = @_;
+    debug("import songbeamer song");
+
+    my ($artist, $name, $number, $book, $copyright, $firstpage) = "";
+    my $hashnum = 0;
+    open(SONG, $filename) || return;
+    while (<SONG>) {
+        if (/^#Title=/) {
+            if (!$name) {
+                chomp;
+                $name = $_;
+                $name =~ s/^#.*=//g;
+                $name =~ s/^ *//g;
+                $name =~ s/\r//g;
+                $widgets->{'add'}->get_widget('entryEditName')->set_text($name);
+            }
+        } elsif (/^#Songbook=/) {
+
+            if (!$book) {
+                chomp;
+                $book = $_;
+                $book =~ s/^#.*=//g;
+                $book =~ s/^ *//g;
+                $book =~ s/\/.*$//g;
+                $book =~ s/\r//g;
+                $widgets->{'add'}->get_widget('entryEditBook')->set_text($book);
+            }
+            if (!$number) {
+                chomp;
+                $number = $_;
+                $number =~ s/^#.*=[^\/]*\///g;
+                $number =~ s/^ *//g;
+                $number =~ s/\r//g;
+                $widgets->{'add'}->get_widget('entryEditNumber')
+                  ->set_text($number);
+            }
+        } elsif (/^#Author=/) {
+            chomp;
+            $_ =~ s/^#.*=//g;
+            $_ =~ s/^ *//g;
+            $_ =~ s/\r//g;
+
+
+            if (!$artist) {
+                $artist = $_;
+                $widgets->{'add'}->get_widget('entryEditArtist')
+                  ->set_text($artist);
+            } else {
+                $artist = ", " . $_;
+                $widgets->{'add'}->get_widget('entryEditArtist')
+                  ->append_text($artist);
+            }
+        } elsif (/^#Melody=/) {
+            chomp;
+            $_ =~ s/^#.*=//g;
+            $_ =~ s/^ *//g;
+            $_ =~ s/\r//g;
+
+            if (!$artist) {
+                $artist = $_;
+                $widgets->{'add'}->get_widget('entryEditArtist')
+                  ->set_text($artist);
+            } else {
+                $artist = ", " . $_;
+                $widgets->{'add'}->get_widget('entryEditArtist')
+                  ->append_text($artist);
+            }
+        } elsif (/^#\(c\)=/) {
+
+            if (!$copyright) {
+                chomp;
+                $copyright = $_;
+                $copyright =~ s/^#.*=//g;
+                $copyright =~ s/^ *//g;
+                $copyright =~ s/\r//g;
+                $widgets->{'add'}->get_widget('entryEditCopyright')
+                  ->set_text($copyright);
+            }
+        } elsif (/^#/) { # many functions in SongBeamer are unknown to Lyricue
+            debug("unknown operator");
+        } elsif (/^---/) {
+            if($firstpage) { #no new page in the first run
+                debug("add page");
+                $hashnum = add_page();
+            }
+            else {
+                $firstpage = "yes";
+            }
+        } else {
+            debug("add line");
+            my $iter = $widgets->{'textAPageB'}{$hashnum}->get_end_iter();
+            $widgets->{'textAPageB'}{$hashnum}->insert($iter, $_);
+        }
+    }
+    close SONG;
+}
+
 
 #***
 
