@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.243 2009/04/22 04:27:52 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.244 2009/04/22 06:28:45 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -227,50 +227,43 @@ my %selectedimages;
 my ($lyricDbh, $mediaDbh, $bibleDbh);
 
 my ($errorcodes);
-$errorcodes->{'lyricdbopen'} = Encode::decode(
-    "utf-8",
+$errorcodes->{'lyricdbopen'} = fromutf(
     gettext(
 "I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running"
     )
 );
-$errorcodes->{'bibledbopen'} = Encode::decode(
-    "utf-8",
+$errorcodes->{'bibledbopen'} = fromutf(
     gettext(
 "I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named "
     )
 );
-$errorcodes->{'mediadbopen'} = Encode::decode(
-    "utf-8",
+$errorcodes->{'mediadbopen'} = fromutf(
     gettext(
 "I'm sorry but I could not open the media database.\nPlease confirm that Lyricue is installed correctly and MySql is running"
     )
 );
 $errorcodes->{'sqlprepare'} =
-  Encode::decode("utf-8", gettext("Unable to prepare query.\nHas mysql died?"));
+  fromutf(gettext("Unable to prepare query.\nHas mysql died?"));
 $errorcodes->{'sqlexecute'} =
-  Encode::decode("utf-8", gettext("Unable to execute query.\nHas mysql died?"));
-$errorcodes->{'socketopen'} = Encode::decode(
-    "utf-8",
+  fromutf( gettext("Unable to execute query.\nHas mysql died?"));
+$errorcodes->{'socketopen'} = fromutf(
     gettext(
 "Sorry, I was unable to listen on the network.\nPlease make sure I am not already running"
     )
 );
 $errorcodes->{'erroropen'} =
-  Encode::decode("utf-8", gettext("Could not open "));
-$errorcodes->{'fileopenread'} = Encode::decode(
-    "utf-8",
+  fromutf(gettext("Could not open "));
+$errorcodes->{'fileopenread'} = fromutf(
     gettext(
 "Unable to read the file, are you sure it exists?\nThe file asked for was "
     )
 );
-$errorcodes->{'fileopenwrite'} = Encode::decode(
-    "utf-8",
+$errorcodes->{'fileopenwrite'} = fromutf(
     gettext(
 "Unable to write to the file, you may not have sufficent permissions.\nPlease check the permissions for "
     )
 );
-$errorcodes->{'usage'} = Encode::decode(
-    "utf-8",
+$errorcodes->{'usage'} = fromutf(
     gettext(
             "\nUsage: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n\n"
           . "\t-v:  Prints Lyricue version information & exits\n"
@@ -284,8 +277,7 @@ $errorcodes->{'usage'} = Encode::decode(
     )
 );
 
-$errorcodes->{'nobible'} = Encode::decode(
-    "utf-8",
+$errorcodes->{'nobible'} = fromutf(
     gettext("No bible has been selected\n"
           . "Please select one from the menu"));
 
@@ -718,7 +710,7 @@ sub add_playlist {
         my $newiter   = $model->append($iter);
         $model->set(
             $newiter,
-            0 => $title,
+            0 => fromutf($title),
             1 => undef,
             2 => $row->{'playorder'},
             3 => $row->{'transition'}
@@ -859,15 +851,15 @@ sub update_available {
         $widgets->{'main'}->get_widget('treeAvailable')->{user_data} = "load";
         my $column1 =
           Gtk2::TreeViewColumn->new_with_attributes(
-            Encode::decode("utf-8", gettext("Title")),
+            fromutf(gettext("Title")),
             Gtk2::CellRendererText->new, text => 0);
         my $column2 =
           Gtk2::TreeViewColumn->new_with_attributes(
-            Encode::decode("utf-8", gettext("Book")),
+            fromutf(gettext("Book")),
             Gtk2::CellRendererText->new, text => 1);
         my $column3 =
           Gtk2::TreeViewColumn->new_with_attributes(
-            Encode::decode("utf-8", gettext("Song Number")),
+            fromutf(gettext("Song Number")),
             Gtk2::CellRendererText->new, text => 2);
         $column1->set_resizable(TRUE);
         $column2->set_resizable(TRUE);
@@ -896,7 +888,7 @@ sub update_available {
         $row = $sth->fetchrow_hashref();
         my $iter = $store->append;
         $store->set(
-            $iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
+            $iter,             0, fromutf($row->{'title'}), 1, fromutf($row->{'book'}), 2,
             $row->{'songnum'}, 3, $row->{'id'}
         );
         $special_id = $row->{'id'};
@@ -916,7 +908,6 @@ sub update_available {
         $query .= " AND songnum=" . $songname;
     } else {
         $songname =~ s/[\s,]/%/g;
-        $songname = Encode::encode("iso-8859-1", $songname);
         $query .= " AND title LIKE \"%" . $songname . "%\"";
     }
 
@@ -930,7 +921,7 @@ sub update_available {
     while ($row = $sth->fetchrow_hashref()) {
         my $iter = $store->append;
         $store->set(
-            $iter,             0, $row->{'title'}, 1, $row->{'book'}, 2,
+            $iter,             0, fromutf($row->{'title'}), 1, fromutf($row->{'book'}), 2,
             $row->{'songnum'}, 3, $row->{'id'}
         );
     }
@@ -948,7 +939,7 @@ sub update_available {
 
         while ($row = $sth->fetchrow_hashref()) {
             my $iter = $store->append;
-            $store->set($iter, 0, $row->{'line'} . " (" . $row->{'title'} . ")",
+            $store->set($iter, 0, fromutf($row->{'line'}) . " (" . fromutf($row->{'title'}) . ")",
                 1, $row->{'book'}, 2, $row->{'songnum'}, 3, $row->{'id'});
         }
     }
@@ -988,29 +979,29 @@ sub popup_avail_menu {
         if ($globals->{'access'} =~ /e/) {
             push @items,
               [
-                Encode::decode("utf-8", gettext("/Edit Song")),
+                fromutf(gettext("/Edit Song")),
                 undef, 'edit_song', 1, '', ''
               ];
         }
         if ($globals->{'access'} =~ /d/) {
             push @items,
               [
-                Encode::decode("utf-8", gettext("/Delete Song")),
+                fromutf(gettext("/Delete Song")),
                 undef, 'delete_song', 1, '', ''
               ];
         }
         push @items,
           (
             [
-                Encode::decode("utf-8", gettext("/Refresh List")),
+                fromutf( gettext("/Refresh List")),
                 undef, 'update_available', 1, '', ''
             ],
             [
-                Encode::decode("utf-8", gettext("/Order - Songbook -> No.")),
+                fromutf(gettext("/Order - Songbook -> No.")),
                 undef, 'change_sort_order', 4, '', ''
             ],
             [
-                Encode::decode("utf-8", gettext("/Order - Songbook -> Name.")),
+                fromutf( gettext("/Order - Songbook -> Name.")),
                 undef,
                 'change_sort_order',
                 5,
@@ -1022,7 +1013,7 @@ sub popup_avail_menu {
             push @items,
               (
                 [
-                    Encode::decode("utf-8", gettext("/Add to Playlist")),
+                    fromutf( gettext("/Add to Playlist")),
                     undef, 'add_to_playlist', 1, '', ''
                 ]
               );
@@ -1097,46 +1088,46 @@ sub popup_play_menu {
 
     my @items = (
         [
-            Encode::decode("utf-8", gettext("/Duplicate Item")), undef,
+            fromutf( gettext("/Duplicate Item")), undef,
             'copy_item', 1
         ],
         [
-            Encode::decode("utf-8", gettext("/Remove from Playlist")), undef,
+            fromutf(gettext("/Remove from Playlist")), undef,
             'remove_from_playlist', 1
         ],
         [
-            Encode::decode("utf-8", gettext("/Refresh Playlist")), undef,
+            fromutf( gettext("/Refresh Playlist")), undef,
             'update_playlist', 1
         ],
-        [Encode::decode("utf-8", gettext("/Add Verse")), undef, 'add_verse', 1],
+        [fromutf( gettext("/Add Verse")), undef, 'add_verse', 1],
         [
-            Encode::decode("utf-8", gettext("/Invert Line Display")), undef,
+            fromutf( gettext("/Invert Line Display")), undef,
             'invert_lines', 1
         ],
         [
-            Encode::decode("utf-8", gettext("/Loop this playlist item")),
+            fromutf( gettext("/Loop this playlist item")),
             undef, 'begin_loop', 1
         ],
         [
-            Encode::decode("utf-8", gettext("/Associate background")), undef,
+            fromutf( gettext("/Associate background")), undef,
             'prepare_for_association', 1
         ],
         [
-            Encode::decode("utf-8", gettext("/Dis-associate background")),
+            fromutf(gettext("/Dis-associate background")),
             undef, 'disassociate_bg', 1
         ],
         [
-            Encode::decode("utf-8", gettext("/Preview this item")), undef,
+            fromutf( gettext("/Preview this item")), undef,
             'preview_playlist_item', 1
         ],
         [
-            Encode::decode("utf-8", gettext("/Move to sublist/Main")),
+            fromutf( gettext("/Move to sublist/Main")),
             undef, 'move_item_to_sublist', $playlist
         ],
     );
     foreach (sort { uc($a->{'title'}) cmp uc($b->{'title'}) } @list) {
         my $item =
-          Encode::decode("utf-8", gettext("/Move to sublist/")) . $_->{'title'};
+          fromutf( gettext("/Move to sublist/")) . $_->{'title'};
         push @items, [$item, undef, 'move_item_to_sublist', $_->{'data'}],;
     }
     my $factory = Gtk2::ItemFactory->new('Gtk2::Menu', '<playpopup>', undef);
@@ -1210,17 +1201,17 @@ sub delete_song {
               || display_fatal($errorcodes->{'sqlexecute'}, $!);
             $row = $sth->fetchrow_hashref();
             my $labelText =
-              Encode::decode("utf-8",
+              fromutf(
                 gettext("Are you sure you wish to delete "))
               . $row->{'title'} . "\n";
 
             if ($row->{'book'} ne "") {
                 $labelText .=
-                  Encode::decode("utf-8", gettext("from the book \""))
+                  fromutf( gettext("from the book \""))
                   . $row->{'book'} . "\"\n";
             }
             $labelText .=
-              Encode::decode("utf-8", gettext("which was written by \""))
+              fromutf( gettext("which was written by \""))
               . $row->{'artist'} . "\"";
             my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
                 'dialogConfirm', 'lyricue');
@@ -1372,11 +1363,7 @@ sub do_save_song {
             if ($dbpages{$pageOrder{$page}}) {
                 $query = "UPDATE page SET lyrics="
                   . $lyricDbh->quote(
-                    Encode::encode(
-                        "iso-8859-1",
-                        get_buffer_text($widgets->{'textAPageB'}{$page})
-                    )
-                  )
+                    get_buffer_text( $widgets->{'textAPageB'}{$page}))
                   . " WHERE songid="
                   . $songid
                   . " AND pagenum="
@@ -1392,8 +1379,8 @@ sub do_save_song {
                   . $songid . ", "
                   . $pageOrder{$page} . ", "
                   . $lyricDbh->quote(
-                    Encode::encode(
-                        "iso-8859-1",
+                    toutf(
+                        
                         get_buffer_text($widgets->{'textAPageB'}{$page})
                     )
                   ) . ")";
@@ -1407,38 +1394,23 @@ sub do_save_song {
 
         $query = "UPDATE lyricMain SET title="
           . quote(
-            Encode::encode(
-                "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditName')->get_text()
-            )
           );
         $query .= ", songnum="
           . quote(
-            Encode::encode(
-                "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditNumber')->get_text()
-            )
           );
         $query .= ", book="
           . quote(
-            Encode::encode(
-                "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditBook')->get_text()
-            )
           );
         $query .= ", artist="
           . quote(
-            Encode::encode(
-                "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditArtist')->get_text()
-            )
           );
         $query .= ", copyright="
           . quote(
-            Encode::encode(
-                "iso-8859-1",
                 $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
-            )
           );
         my $noaudit = "";
         if (!$widgets->{'add'}->get_widget('checkEditAudit')->get_active()) {
@@ -1446,8 +1418,8 @@ sub do_save_song {
         }
         $query .= ", keywords="
           . quote(
-            Encode::encode(
-                "iso-8859-1",
+            toutf(
+                
                 $noaudit
                   . $widgets->{'add'}->get_widget('entryEditKeywords')
                   ->get_text()
@@ -1475,38 +1447,38 @@ sub do_save_song {
 "INSERT INTO lyricMain ( id, title, songnum, book, artist, keywords, copyright, entered, written ) VALUES ( "
           . $songid . ", ";
         $query .= quote(
-            Encode::encode(
-                "iso-8859-1",
+            toutf(
+                
                 $widgets->{'add'}->get_widget('entryEditName')->get_text()
             )
         ) . ",";
         $query .= quote(
-            Encode::encode(
-                "iso-8859-1",
+            toutf(
+                
                 $widgets->{'add'}->get_widget('entryEditNumber')->get_text()
             )
         ) . ",";
         $query .= quote(
-            Encode::encode(
-                "iso-8859-1",
+            toutf(
+                
                 $widgets->{'add'}->get_widget('entryEditBook')->get_text()
             )
         ) . ",";
         $query .= quote(
-            Encode::encode(
-                "iso-8859-1",
+            toutf(
+                
                 $widgets->{'add'}->get_widget('entryEditArtist')->get_text()
             )
         ) . ",";
         $query .= quote(
-            Encode::encode(
-                "iso-8859-1",
+            toutf(
+                
                 $widgets->{'add'}->get_widget('entryEditKeywords')->get_text()
             )
         ) . ",";
         $query .= quote(
-            Encode::encode(
-                "iso-8859-1",
+            toutf(
+                
                 $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
             )
         ) . ", NOW(), NOW() )";
@@ -1522,8 +1494,8 @@ sub do_save_song {
               . $songid . ", "
               . $pageOrder{$page} . ", "
               . $lyricDbh->quote(
-                Encode::encode(
-                    "iso-8859-1",
+                toutf(
+                    
                     get_buffer_text($widgets->{'textAPageB'}{$page})
                 )
               ) . ")";
@@ -1660,7 +1632,7 @@ sub renumber_pages {
         }
         debug("$i:$pageOrder{$i}");
         $widgets->{'labelAPage'}{$i}->set_text(
-            Encode::decode("utf-8", gettext("Page ")) . $pageOrder{$i});
+            fromutf( gettext("Page ")) . $pageOrder{$i});
         $widgets->{'labelAPage'}{$i}->show();
     }
 }
@@ -1694,7 +1666,7 @@ sub remove_page {
         if ($pageOrder{$i} < $pagenum) {
             $newpageOrder{$i} = $pageOrder{$i};
             $widgets->{'labelAPage'}{$i}->set_text(
-                Encode::decode("utf-8", gettext("Page ")) . $newpageOrder{$i});
+                fromutf( gettext("Page ")) . $newpageOrder{$i});
             debug("$newpageOrder{$i}");
         } elsif ($pageOrder{$i} == $pagenum) {
             $widgets->{'add'}->get_widget('notebookEditPages')
@@ -1704,7 +1676,7 @@ sub remove_page {
             $newpageOrder{$i} = $pageOrder{$i} - 1;
             debug("$newpageOrder{$i}");
             $widgets->{'labelAPage'}{$i}->set_text(
-                Encode::decode("utf-8", gettext("Page ")) . $newpageOrder{$i});
+                fromutf( gettext("Page ")) . $newpageOrder{$i});
         }
     }
     %pageOrder = %newpageOrder;
@@ -1892,7 +1864,7 @@ sub insert_verse {
     $query =
         "INSERT INTO playlists (id,title) VALUES ("
       . $playlist . ", \""
-      . Encode::encode("iso-8859-1", $verse) . "\")";
+      . toutf( $verse) . "\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -2217,7 +2189,7 @@ sub update_songinfo {
 
         while ($row = $sth->fetchrow_hashref()) {
             $hashnum = add_page();
-            $widgets->{'textAPageB'}{$hashnum}->set_text($row->{'lyrics'});
+            $widgets->{'textAPageB'}{$hashnum}->set_text(fromutf($row->{'lyrics'}));
         }
 
         $query =
@@ -2229,13 +2201,13 @@ sub update_songinfo {
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         if ($row = $sth->fetchrow_hashref()) {
             $widgets->{'add'}->get_widget('entryEditName')
-              ->set_text($row->{'title'});
+              ->set_text(fromutf($row->{'title'}));
             $widgets->{'add'}->get_widget('entryEditBook')
-              ->set_text($row->{'book'});
+              ->set_text(fromutf($row->{'book'}));
             $widgets->{'add'}->get_widget('entryEditNumber')
-              ->set_text($row->{'songnum'});
+              ->set_text(fromutf($row->{'songnum'}));
             $widgets->{'add'}->get_widget('entryEditArtist')
-              ->set_text($row->{'artist'});
+              ->set_text(fromutf($row->{'artist'}));
             if ($row->{'keywords'} =~ /^NOAUDIT /) {
                 $row->{'keywords'} =~ s/^NOAUDIT //g;
                 $widgets->{'add'}->get_widget('checkEditAudit')
@@ -2245,9 +2217,9 @@ sub update_songinfo {
                   ->set_active(TRUE);
             }
             $widgets->{'add'}->get_widget('entryEditKeywords')
-              ->set_text($row->{'keywords'});
+              ->set_text(fromutf($row->{'keywords'}));
             $widgets->{'add'}->get_widget('entryEditCopyright')
-              ->set_text($row->{'copyright'});
+              ->set_text(fromutf($row->{'copyright'}));
         }
         $widgets->{'add'}->get_widget('notebookEditPages')->set_current_page(0);
     }
@@ -2527,11 +2499,11 @@ sub clear_playlist {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogConfirm', 'lyricue');
     $deletexml->signal_autoconnect_from_package('');
     my $labelText =
-      Encode::decode("utf-8",
+      fromutf(
         gettext("Are you sure you wish to clear the current playlist?"));
     $deletexml->get_widget('labelDelete')->set_text($labelText);
     $deletexml->get_widget('dialogConfirm')
-      ->set_title(Encode::decode("utf-8", gettext("Confirm Clear Playlist")));
+      ->set_title(fromutf( gettext("Confirm Clear Playlist")));
     my $confirm = $deletexml->get_widget('dialogConfirm')->run();
 
     if ($confirm eq "ok") {
@@ -2866,7 +2838,7 @@ sub preview_page {
     my $label = $widgets->{'labelAPage'};
     foreach (keys %$label) {
         if ($widgets->{'labelAPage'}{$_}->get_text() eq
-            Encode::decode("utf-8", gettext("Page ")) . $current_page)
+            fromutf( gettext("Page ")) . $current_page)
         {
             $current_hash = $_;
         }
@@ -3152,18 +3124,18 @@ sub update_display {
         )
       )
     {
-        print $server Encode::encode("utf-8",
+        print $server toutf(
             $command . ":" . $primary . ":" . $secondary . "\n");
         if (defined(my $status = <$server>)) {
             chomp($status);
             if ($status =~ /^pl:/) {
                 my @line = split(/:/, $status);
-                $status = Encode::decode("utf-8", gettext("Displaying "));
+                $status = fromutf( gettext("Displaying "));
                 if ($line[1] eq "v") {
-                    $status = Encode::decode("utf-8", gettext(" verses "));
+                    $status = fromutf( gettext(" verses "));
                 } else {
                     $status =
-                      Encode::decode("utf-8", gettext(" page ")) . $line[3];
+                      fromutf( gettext(" page ")) . $line[3];
                     $widgets->{'main'}->get_widget('treePlaylist')
                       ->select_item($line[2]);
                 }
@@ -3268,13 +3240,13 @@ sub preview_display {
                     if ($status =~ /^pl:/) {
                         my @line = split(/:/, $status);
                         $status =
-                          Encode::decode("utf-8", gettext("Previewed "));
+                          fromutf( gettext("Previewed "));
                         if ($line[1] eq "v") {
                             $status .=
-                              Encode::decode("utf-8", gettext(" verses "));
+                              fromutf( gettext(" verses "));
                         } else {
                             $status .=
-                              Encode::decode("utf-8", gettext(" page "))
+                              fromutf( gettext(" page "))
                               . $line[3];
                             $widgets->{'main'}->get_widget('treePlaylist')
                               ->select_item($line[2]);
@@ -3309,9 +3281,9 @@ sub open_dialogColour {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogColour', 'lyricue');
     $colourxml->signal_autoconnect_from_package('');
     $colourxml->get_widget('dialogColour')
-      ->set_title(Encode::decode("utf-8", gettext("Select ")) 
+      ->set_title(fromutf( gettext("Select ")) 
           . $item
-          . Encode::decode("utf-8", gettext(" Colour")));
+          . fromutf( gettext(" Colour")));
     $colourxml->get_widget('dialogColour')->{'user_data'} = $item;
 
     if ($item eq "Font") {
@@ -3464,7 +3436,7 @@ sub create_dialogChapter {
             $globals->{'bibledb'}, $book, $untranslated_book
         );
         qdebug($command);
-        $maxchap = Encode::decode("utf-8", `$command`);
+        $maxchap = fromutf( `$command`);
         ($book, undef) = split(/\s\d/, $maxchap, 2);
 
         $command = sprintf(
@@ -3473,7 +3445,7 @@ sub create_dialogChapter {
             $globals->{'bibledb'}, $book, $book
         );
         qdebug($command);
-        $maxchap = Encode::decode("utf-8", `$command`);
+        $maxchap = fromutf( `$command`);
         $maxchap =~ s/^$book ([0-9]*):[0-9].*$/$1/g;
         if ($maxchap) {
             $cont = TRUE;
@@ -3481,8 +3453,8 @@ sub create_dialogChapter {
     } else {
         my $query =
           "SELECT MAX(chapternum) FROM verse WHERE book like \""
-          . Encode::encode("iso-8859-1", $book) . "%\" or book like \""
-          . Encode::encode("iso-8859-1", $untranslated_book) . "%\"";
+          . toutf( $book) . "%\" or book like \""
+          . toutf( $untranslated_book) . "%\"";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -3551,12 +3523,12 @@ sub create_dialogVerse {
             $globals->{'bibledb'}, $book, $chapter, $book
         );
         qdebug($command);
-        $maxverse = Encode::decode("utf-8", `$command`);
+        $maxverse = fromutf( `$command`);
         $maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
     } else {
         my $query =
             "SELECT MAX(versenum) FROM verse WHERE book=\""
-          . Encode::encode("iso-8859-1", $book)
+          . toutf( $book)
           . "\" AND chapternum="
           . $chapter;
         qdebug($query);
@@ -4438,19 +4410,19 @@ sub do_adv_search {
             $widgets->{'search'}->get_widget('treeSearch')->set_model($store);
             my $column =
               Gtk2::TreeViewColumn->new_with_attributes(
-                Encode::decode("utf-8", gettext("Title")),
+                fromutf( gettext("Title")),
                 Gtk2::CellRendererText->new, text => 0);
             $widgets->{'search'}->get_widget('treeSearch')
               ->append_column($column);
             $column =
               Gtk2::TreeViewColumn->new_with_attributes(
-                Encode::decode("utf-8", gettext("Book")),
+                fromutf( gettext("Book")),
                 Gtk2::CellRendererText->new, text => 1);
             $widgets->{'search'}->get_widget('treeSearch')
               ->append_column($column);
             $column =
               Gtk2::TreeViewColumn->new_with_attributes(
-                Encode::decode("utf-8", gettext("Song No")),
+                fromutf( gettext("Song No")),
                 Gtk2::CellRendererText->new, text => 2);
             $widgets->{'search'}->get_widget('treeSearch')
               ->append_column($column);
@@ -4870,7 +4842,7 @@ sub rename_playlist {
                 'dialogPromptEntry', 'lyricue');
             $renamexml->signal_autoconnect_from_package('');
             my $labelText =
-              Encode::decode("utf-8", gettext("Renaming "))
+              fromutf( gettext("Renaming "))
               . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text();
             $renamexml->get_widget('dialogPromptEntry')->set_title($labelText);
             $renamexml->get_widget('labelPromptE')->set_text($labelText);
@@ -5037,7 +5009,7 @@ sub update_cplayclist {
     my @row;
     while (@row = $sth->fetchrow_array()) {
         my $iter = $store->append;
-        $store->set($iter, 0, Encode::decode("utf-8",$row[0]));
+        $store->set($iter, 0, fromutf($row[0]));
     }
 }
 
@@ -6203,7 +6175,7 @@ sub add_directory {
             'dialogPromptEntry', 'lyricue');
         $sublistxml->signal_autoconnect_from_package('');
         $sublistxml->get_widget('dialogPromptEntry')
-          ->set_title(Encode::decode("utf-8", gettext("Create new sublist")));
+          ->set_title(fromutf( gettext("Create new sublist")));
         $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
 
         my $response = $sublistxml->get_widget('dialogPromptEntry')->run();
@@ -6236,7 +6208,7 @@ sub change_bgimage {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImage', 'lyricue');
     $widgets->{'image'}->signal_autoconnect_from_package('');
     $widgets->{'image'}->get_widget('dialogImage')
-      ->set_title(Encode::decode("utf-8", gettext("Choose a Background")));
+      ->set_title(fromutf( gettext("Choose a Background")));
     $widgets->{'image'}->get_widget('buttonImageAdd')
       ->signal_connect('clicked', 'import_background');
     $widgets->{'image'}->get_widget('hboxImageSublist')->hide;
@@ -6252,7 +6224,7 @@ sub change_bgimage {
             $bgimage =
               $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
             $widgets->{'image'}->get_widget('buttonImageOK')
-              ->set_label(Encode::decode("utf-8", gettext("Set as Default")));
+              ->set_label(fromutf( gettext("Set as Default")));
             $widgets->{'image'}->get_widget('buttonImageOK')
               ->signal_connect('clicked', "set_default_backdrop");
             $widgets->{'image'}->get_widget('buttonImageAdd')->hide();
@@ -6308,7 +6280,7 @@ sub create_dialogSublist {
         'dialogPromptEntry', 'lyricue');
     $sublistxml->signal_autoconnect_from_package('');
     $sublistxml->get_widget('dialogPromptEntry')
-      ->set_title(Encode::decode("utf-8", gettext("Create new sublist")));
+      ->set_title(fromutf( gettext("Create new sublist")));
     $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
     $sublistxml->get_widget('buttonPromptEOK')
       ->signal_connect("clicked", "new_sublist_from_xml", $sublistxml);
@@ -6352,7 +6324,7 @@ sub on_treePlaylist_drag_data_received {
             for my $uri (split(/\n/, $data->data)) {
                 $u1 = URI->new($uri);
                 debug("received URI: " . $uri);
-                $file = Encode::decode("UTF-8", $u1->file);
+                $file = fromutf("UTF-8", $u1->file);
                 debug("Recieved file: " . $file);
                 my $main_playlist =
                   $widgets->{'main'}->get_widget('labelCurrentPlaylist')
@@ -6628,7 +6600,7 @@ sub load_access {
     if ($access eq "blank") {
         my $accessxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogConfirm', 'lyricue');
         $accessxml->signal_autoconnect_from_package('');
-        my $labelText .= Encode::decode("utf-8", gettext("This user has no access entry.\nBy default they will have full access.\nTo fix please edit /etc/lyricue/access.conf and add an entry for this user.\nClick OK to continue anyway or Cancel to Exit"));
+        my $labelText .= fromutf( gettext("This user has no access entry.\nBy default they will have full access.\nTo fix please edit /etc/lyricue/access.conf and add an entry for this user.\nClick OK to continue anyway or Cancel to Exit"));
         $accessxml->get_widget('labelDelete')->set_text($labelText);
         my $confirm = $accessxml->get_widget('dialogConfirm')->run();
         if ($confirm ne "ok") {
@@ -6697,7 +6669,7 @@ sub add_user {
         'dialogPromptEntry', 'lyricue');
     $userxml->signal_autoconnect_from_package('');
     $userxml->get_widget('dialogPromptEntry')
-      ->set_title(Encode::decode("utf-8", gettext("Add a user")));
+      ->set_title(fromutf( gettext("Add a user")));
     $userxml->get_widget('labelPromptE')->set_text("Enter username");
     my $confirm = $userxml->get_widget('dialogPromptEntry')->run();
     if ($confirm eq "ok") {
@@ -6895,7 +6867,7 @@ sub quick_save {
 
         $query =
             "UPDATE page SET lyrics="
-          . $lyricDbh->quote(Encode::encode("iso-8859-1", $songtext))
+          . $lyricDbh->quote($songtext)
           . " WHERE pageid="
           . $row[0];
         qdebug($query);
@@ -7001,7 +6973,7 @@ sub select_category {
     my $choosexml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
     $choosexml->get_widget('windowChoosePlay')
-      ->set_title(Encode::decode("utf-8", gettext("Select Category")));
+      ->set_title(fromutf( gettext("Select Category")));
     $choosexml->get_widget('buttonLoad')->set_label("Select");
     $choosexml->get_widget('buttonDelete')->hide();
     $choosexml->get_widget('buttonRename')->hide();
@@ -7174,7 +7146,7 @@ sub update_quickedit {
                             $endv,                  $line[0]
                         );
                         debug($command);
-                        my $command_out = Encode::decode("utf-8", `$command`);
+                        my $command_out = fromutf( `$command`);
                         ($line[0], undef) = split(/\s\d/, $command_out, 2);
                         my @command_lines = split(/$line[0] /, $command_out);
                         my $lineno = 0;
@@ -7227,7 +7199,7 @@ sub update_quickedit {
         }
 
         $widgets->{'main'}->get_widget('textQuick')
-          ->get_buffer->set_text($quicktext);
+          ->get_buffer->set_text(fromutf($quicktext));
         $widgets->{'main'}->get_widget('textQuick')->{user_data} =
           $model->get($iter, 2);
         $sth->finish;
@@ -7254,7 +7226,7 @@ sub media_move {
         my $choosexml =
           Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
         $choosexml->get_widget('windowChoosePlay')
-          ->set_title(Encode::decode("utf-8", gettext("Select Category")));
+          ->set_title(fromutf( gettext("Select Category")));
         $choosexml->get_widget('buttonLoad')->set_label("Select");
         $choosexml->get_widget('buttonDelete')->hide();
         $choosexml->get_widget('buttonRename')->hide();
@@ -7351,7 +7323,7 @@ sub media_delete {
             $title =~ s/, $//;
             debug("Deleting $title");
             my $labelText =
-              Encode::decode("utf-8",
+              fromutf(
                 gettext("Are you sure you wish to delete "))
               . $title . "\n";
             my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
@@ -7360,7 +7332,7 @@ sub media_delete {
             $deletexml->get_widget('labelDelete')->set_text($labelText);
             $deletexml->get_widget('dialogConfirm')
               ->set_title(
-                Encode::decode("utf-8", gettext("Confirm Delete Image")));
+                fromutf( gettext("Confirm Delete Image")));
             my $confirm = $deletexml->get_widget('dialogConfirm')->run();
 
             if ($confirm eq "ok") {
@@ -7451,7 +7423,7 @@ sub restore_db {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
     $fileDialog->get_widget('dialogFile')
       ->set_title(
-        Encode::decode("utf-8", gettext("Select Database Backup file")));
+        fromutf( gettext("Select Database Backup file")));
     my $response = $fileDialog->get_widget('dialogFile')->run();
     if ($response eq "ok") {
         my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
@@ -7462,7 +7434,7 @@ sub restore_db {
         $confirmDialog->signal_autoconnect_from_package('');
         $confirmDialog->get_widget('dialogConfirm')
           ->set_title(
-            Encode::decode("utf-8", gettext("Confirm Restore Database")));
+            fromutf( gettext("Confirm Restore Database")));
         $confirmDialog->get_widget('labelDelete')
           ->set_text(
 "WARNING: Restoring this database will overwrite your current database"
@@ -7691,7 +7663,7 @@ sub navigator_update {
         );
         qdebug($command);
         $book = ucfirst($book . "[:alpha:]*");
-        my $command_out = Encode::decode("utf-8", `$command`);
+        my $command_out = fromutf( `$command`);
         ($book, undef) = split(/\s\d/, $command_out, 2);
         my @command_lines = split(/$book /, $command_out);
         my $mark          = 0;
@@ -7898,7 +7870,7 @@ sub get_max_verse {
                 $book
             );
             qdebug($command);
-            $line = Encode::decode("utf-8", `$command`);
+            $line = fromutf( `$command`);
             $versenum++;
             if ($versenum > $endverse - 1) { $loop = FALSE; }
             chomp($line);
@@ -8096,7 +8068,7 @@ sub import_song_opw {
 
     open(OPW, $filename) || die("Unable to open $filename");
     while (<OPW>) {
-        $input .= Encode::decode("cp-1252", $_);
+        $input .= fromutf("cp-1252", $_);
     }
     close OPW;
 
@@ -8246,8 +8218,8 @@ sub db_install_user {
             );
         };
         if ($@) {
-            my $labelText = Encode::decode(
-                "utf-8",
+            my $labelText = fromutf(
+                
                 gettext(
 "Unable to login to database as admin, maybe the database is down.\nPlease re-enter your database admin login and retry"
                 )
@@ -8256,7 +8228,7 @@ sub db_install_user {
                 'dialogConfirm', 'lyricue');
             $loginxml->signal_autoconnect_from_package('');
             $loginxml->get_widget('dialogConfirm')
-              ->set_title(Encode::decode("utf-8", gettext("Login Error")));
+              ->set_title(fromutf( gettext("Login Error")));
             $loginxml->get_widget('labelDelete')->set_text($labelText);
             my $confirm = $loginxml->get_widget('dialogConfirm')->run();
             if ($confirm eq "ok") {
@@ -8722,4 +8694,13 @@ sub alphanum {
         }
     }
     return $n;
+}
+
+sub fromutf {
+    my ($line) = @_;
+    return Encode::decode("utf8",$line);
+}
+sub toutf {
+    my ($line) = @_;
+    return Encode::encode("utf8",$line);
 }

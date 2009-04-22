@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.146 2009/04/22 04:27:52 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.147 2009/04/22 06:28:45 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -200,24 +200,21 @@ my ($background, $background_black);
 my @points;
 
 my ($errorcodes);
-$errorcodes->{'lyricdbopen'} = Encode::decode(
-    "utf-8",
+$errorcodes->{'lyricdbopen'} = fromutf(
     gettext(
 "I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running"
     )
 );
-$errorcodes->{'bibledbopen'} = Encode::decode(
-    "utf-8",
+$errorcodes->{'bibledbopen'} = fromutf(
     gettext(
 "I'm sorry but I could not open the bible database.\nPlease confirm that Lyricue is installed correctly and the current bible database exists.\nThe requested database was named "
     )
   ),
   $errorcodes->{'sqlprepare'} =
-  Encode::decode("utf-8", gettext("Unable to prepare query.\nHas mysql died?"));
+  fromutf(gettext("Unable to prepare query.\nHas mysql died?"));
 $errorcodes->{'sqlexecute'} =
-  Encode::decode("utf-8", gettext("Unable to execute query.\nHas mysql died?"));
-$errorcodes->{'socketopen'} = Encode::decode(
-    "utf-8",
+  fromutf(gettext("Unable to execute query.\nHas mysql died?"));
+$errorcodes->{'socketopen'} = fromutf(
     gettext(
 "Sorry, I was unable to listen on the network.\nPlease make sure I am not already running"
     )
@@ -427,7 +424,7 @@ sub process_input {
 
     debug("Received :" . $input);
     if ($input) {
-        Encode::decode("utf-8", $input);
+        fromutf($input);
         chomp($input);
         my @line = split(/:/, $input);
         $_ = lc($line[0]);
@@ -534,7 +531,7 @@ sub process_input {
             $line[2] =~ s/#BREAK#/\n/g;
             $line[2] =~ s/#SEMI#/:/g;
             $line[2] =~ s/<.*?>//g;
-            set_maintext(Encode::decode("utf-8", $line[2]), NONE, $wrap);
+            set_maintext(fromutf($line[2]), NONE, $wrap);
 
             #reset_timer($globals->{'snapshot_timer'});
             #$globals->{'snapshot_timer'} = Glib::Idle->add(\&update_snapshot);
@@ -1114,7 +1111,7 @@ sub process_input {
                             );
                             debug($command);
                             my $command_out =
-                              Encode::decode('utf-8', `$command`);
+                              fromutf(`$command`);
                             ($line[0], undef) = split(/\s\d/, $command_out, 2);
                             my @command_lines =
                               split(/$line[0]/,, $command_out);
@@ -1788,6 +1785,7 @@ sub load_config {
 sub set_maintext {
     my ($text, $transition, $wrap) = @_;
     if (!defined $text) { $text = " "; }
+    $text = fromutf($text);
 
     if ($globals->{'server_type'} == SIMPLE) {
         set_maintext_simple($text, $transition, $wrap);
@@ -2304,6 +2302,7 @@ sub mod {
 sub set_footer {
     my ($text) = @_;
     if (!defined $text) { $text = " "; }
+    $text = fromutf($text);
     if ($globals->{'server_type'} == SIMPLE) {
         set_footer_simple($text);
     } elsif ($globals->{'server_type'} == CLUTTER) {
@@ -2405,6 +2404,7 @@ sub set_footer_canvas {
 sub set_header {
     my ($text) = @_;
     if (!defined $text) { $text = " "; }
+    $text = fromutf($text);
     if ($globals->{'server_type'} == SIMPLE) {
         set_header_simple($text);
     } elsif ($globals->{'server_type'} == CLUTTER) {
@@ -3046,3 +3046,14 @@ sub HandleMouse {
         update_display("display", "prev_page", $config->{'Loop'});
     }
 }
+
+sub fromutf {
+    my ($line) = @_;
+    return Encode::decode("utf8",$line);
+}
+
+sub toutf {
+    my ($line) = @_;
+    return Encode::encode("utf8",$line);
+}
+
