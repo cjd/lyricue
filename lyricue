@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.244 2009/04/22 06:28:45 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.245 2009/04/24 05:42:24 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -203,7 +203,7 @@ use constant NORMAL      => 0;
 use constant SLIDE_TEXT  => 1;
 use constant WIPE        => 2;
 use constant CLIP        => 3;
-use constant ROTATE_TEXT => 3;
+use constant ROTATE_TEXT => 4;
 
 # Transition directions
 use constant NONE      => 2**0;
@@ -2580,16 +2580,15 @@ sub display_song {
                     my ($model, $iter) = $selection->get_selected;
                     if ($iter) {
                         my $transition = $model->get($iter, 3);
+print $transition;
 
                         # Set the transition values
                         my $old_direction = mod($transition, 2**NUM_TRANS);
                         $transition = $transition >> NUM_TRANS;
                         my $new_direction = mod($transition, 2**NUM_TRANS);
                         my $effect = $transition >> NUM_TRANS;
-                        if ($effect == NONE) {
-                            $widgets->{'transitions'}
-                              ->get_widget('radioTransNone')->set_active(TRUE);
-                        } 
+                        $widgets->{'transitions'}
+                          ->get_widget('radioTransNone')->set_active(TRUE);
                         if ($effect == WIPE) {
                             $widgets->{'transitions'}
                               ->get_widget('radioTransWipe')->set_active(TRUE);
@@ -2612,19 +2611,32 @@ sub display_song {
                               ->get_widget('checkTransNew')->set_active(TRUE);
                             $new_direction = $new_direction - WAIT;
                         }
-                        my @directions = (
-                            "None",         "Up",
-                            "Down",         "",
-                            "Right",        "Up + Right",
-                            "Down + Right", "",
-                            "Left",         "Up + Left",
-                            "Down + Left",  "X-Axis",
-                            "Y-Axis",             "Z-Axis"
-                        );
+                        my $olddir="";
+                        if ($old_direction & UP) {$olddir .= "Up + "}
+                        if ($old_direction & DOWN) {$olddir .= "Down + "}
+                        if ($old_direction & LEFT) {$olddir .= "Left + "}
+                        if ($old_direction & RIGHT) {$olddir .= "Right + "}
+                        if ($old_direction & X_AXIS) {$olddir .= "X-Axis + "}
+                        if ($old_direction & Y_AXIS) {$olddir .= "Y-Axis + "}
+                        if ($old_direction & Z_AXIS) {$olddir .= "Z-Axis + "}
+                        $olddir =~ s/ \+ $//g;
+                        if ($olddir eq "") {$olddir="None"}
+
+                        my $newdir="";
+                        if ($new_direction & UP) {$newdir .= "Up + "}
+                        if ($new_direction & DOWN) {$newdir .= "Down + "}
+                        if ($new_direction & LEFT) {$newdir .= "Left + "}
+                        if ($new_direction & RIGHT) {$newdir .= "Right + "}
+                        if ($new_direction & X_AXIS) {$newdir .= "X-Axis + "}
+                        if ($new_direction & Y_AXIS) {$newdir .= "Y-Axis + "}
+                        if ($new_direction & Z_AXIS) {$newdir .= "Z-Axis + "}
+                        $newdir =~ s/ \+ $//g;
+                        if ($newdir eq "") {$newdir="None"}
+
                         $widgets->{'transitions'}->get_widget('entryTransOld')
-                          ->set_text($directions[$old_direction]);
+                          ->set_text($olddir);
                         $widgets->{'transitions'}->get_widget('entryTransNew')
-                          ->set_text($directions[$new_direction]);
+                          ->set_text($newdir);
                     }
                 } else {
                     update_quickedit();
