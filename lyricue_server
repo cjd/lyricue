@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.148 2009/04/24 05:42:24 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.149 2009/04/28 05:54:40 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1842,6 +1842,9 @@ sub set_maintext_clutter {
     # Set start position
     $globals->{'timeline'}->signal_connect(
         'started' => sub {
+            if ($effect == NORMAL) {
+                $globals->{'maintext'}->set_opacity(0);
+            }
             if ($effect == ROTATE) {
                 if ($new_direction & X_AXIS) {
                     $globals->{'maintext'}->set_rotation('x-axis', 90, 0, 0, 0);
@@ -1877,6 +1880,12 @@ sub set_maintext_clutter {
     $globals->{'timeline'}->signal_connect(
         'new-frame' => sub {
             my ($self, $alpha_value) = @_;
+            if ($effect == NORMAL) {
+                $globals->{'maintext'}->set_opacity($self->get_progress*255);
+                if (defined $globals->{'maintext_old'}) {
+                    $globals->{'maintext_old'}->set_opacity(255-($self->get_progress*255));
+                }
+            }
             if ($effect == ROTATE) {
                 my $rotation = 90 - ($self->get_progress * 90);
                 # New item
@@ -1959,6 +1968,7 @@ sub set_maintext_clutter {
                 $globals->{'stage'}->get_width() / 2,
                 $globals->{'stage'}->get_height() / 2
             );
+            $globals->{'maintext'}->set_opacity(255);
             undef $globals->{'timeline'};
         }
     );
