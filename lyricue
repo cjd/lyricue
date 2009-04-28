@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.245 2009/04/24 05:42:24 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.246 2009/04/28 11:08:20 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6391,71 +6391,103 @@ sub select_transitions {
     $widgets->{'transitions'}->get_widget('windowTransitions')->show();
 }
 
-sub apply_transition {
-    debug("Applying transition");
+sub apply_transition_selected {
+    debug("Apply transition to selected items");
+    my $trans_type = calculate_transition();
     my $selection =
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
-    my ($model, $iter) = $selection->get_selected;
-    if ($iter) {
-        my $trans_type = NORMAL;
-        if ($widgets->{'transitions'}->get_widget('radioTransWipe')->get_active()) {
-            $trans_type = WIPE;
-        } elsif ($widgets->{'transitions'}->get_widget('radioTransSlide')->get_active()) {
-            $trans_type = SLIDE_TEXT;
-        } elsif ($widgets->{'transitions'}->get_widget('radioTransRotate')->get_active()) {
-            $trans_type = ROTATE_TEXT;
+    if ($selection) {
+        my @list = $selection->get_selected_rows();
+        my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
+        foreach (@list) {
+            apply_transition($model->get($model->get_iter($_),2),$trans_type);
         }
+    }
+}
 
-        # Set new direction
-        $trans_type = $trans_type << 8;
-        $_ = $widgets->{'transitions'}->get_widget('entryTransNew')->get_text();
-        if (/Up/) {
-            $trans_type = $trans_type + UP;
-        } elsif (/Down/) {
-            $trans_type = $trans_type + DOWN;
-        }
+sub apply_transition_playlist {
+    debug("Apply transition to playlist");
+    my $trans_type = calculate_transition();
+    my $playlist =
+      $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+    my $query = "SELECT playorder FROM playlist WHERE playlist="
+      . $playlist;
+    qdebug($query);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    while (my @row = $sth->fetchrow_array()) {
+        apply_transition($row[0],$trans_type);
+    }
+}
 
-        if (/Left/) {
-            $trans_type = $trans_type + LEFT;
-        } elsif (/Right/) {
-            $trans_type = $trans_type + RIGHT;
-        }
-        if ($widgets->{'transitions'}->get_widget('checkTransNew')->get_active()
-          )
-        {
-            $trans_type = $trans_type + WAIT;
-        }
+sub calculate_transition {
+    my $trans_type = NORMAL;
+    if ($widgets->{'transitions'}->get_widget('radioTransWipe')->get_active()) {
+        $trans_type = WIPE;
+    } elsif ($widgets->{'transitions'}->get_widget('radioTransSlide')->get_active()) {
+        $trans_type = SLIDE_TEXT;
+    } elsif ($widgets->{'transitions'}->get_widget('radioTransRotate')->get_active()) {
+        $trans_type = ROTATE_TEXT;
+    }
 
-        if (/X/) { $trans_type = $trans_type + X_AXIS; }
-        if (/Y/) { $trans_type = $trans_type + Y_AXIS; }
-        if (/Z/) { $trans_type = $trans_type + Z_AXIS; }
+    # Set new direction
+    $trans_type = $trans_type << 8;
+    $_ = $widgets->{'transitions'}->get_widget('entryTransNew')->get_text();
+    if (/Up/) {
+        $trans_type = $trans_type + UP;
+    } elsif (/Down/) {
+        $trans_type = $trans_type + DOWN;
+    }
 
-        # Set old direction
-        $trans_type = $trans_type << 8;
-        $_ = $widgets->{'transitions'}->get_widget('entryTransOld')->get_text();
-        if (/Up/) {
-            $trans_type = $trans_type + UP;
-        } elsif (/Down/) {
-            $trans_type = $trans_type + DOWN;
-        }
+    if (/Left/) {
+        $trans_type = $trans_type + LEFT;
+    } elsif (/Right/) {
+        $trans_type = $trans_type + RIGHT;
+    }
+    if ($widgets->{'transitions'}->get_widget('checkTransNew')->get_active()
+      )
+    {
+        $trans_type = $trans_type + WAIT;
+    }
 
-        if (/Left/) {
-            $trans_type = $trans_type + LEFT;
-        } elsif (/Right/) {
-            $trans_type = $trans_type + RIGHT;
-        }
-        if ($widgets->{'transitions'}->get_widget('checkTransOld')->get_active()
-          )
-        {
-            $trans_type = $trans_type + WAIT;
-        }
+    if (/X/) { $trans_type = $trans_type + X_AXIS; }
+    if (/Y/) { $trans_type = $trans_type + Y_AXIS; }
+    if (/Z/) { $trans_type = $trans_type + Z_AXIS; }
 
-        if (/X/) { $trans_type = $trans_type + X_AXIS; }
-        if (/Y/) { $trans_type = $trans_type + Y_AXIS; }
-        if (/Z/) { $trans_type = $trans_type + Z_AXIS; }
+    # Set old direction
+    $trans_type = $trans_type << 8;
+    $_ = $widgets->{'transitions'}->get_widget('entryTransOld')->get_text();
+    if (/Up/) {
+        $trans_type = $trans_type + UP;
+    } elsif (/Down/) {
+        $trans_type = $trans_type + DOWN;
+    }
+
+    if (/Left/) {
+        $trans_type = $trans_type + LEFT;
+    } elsif (/Right/) {
+        $trans_type = $trans_type + RIGHT;
+    }
+    if ($widgets->{'transitions'}->get_widget('checkTransOld')->get_active()
+      )
+    {
+        $trans_type = $trans_type + WAIT;
+    }
+
+    if (/X/) { $trans_type = $trans_type + X_AXIS; }
+    if (/Y/) { $trans_type = $trans_type + Y_AXIS; }
+    if (/Z/) { $trans_type = $trans_type + Z_AXIS; }
+    return $trans_type;
+}
+
+sub apply_transition {
+    my ($item,$trans_type) = @_;
+    debug("Applying transition to ".$item);
 
         my $query = "SELECT type,data FROM playlist WHERE playorder="
-          . $model->get($iter, 2);
+          . $item;
         qdebug($query);
         my $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -6467,7 +6499,7 @@ sub apply_transition {
                 "UPDATE playlist SET transition="
               . $trans_type
               . " WHERE playorder="
-              . $model->get($iter, 2)
+              . $item
               . " OR playlist="
               . $row[1];
         } else {
@@ -6475,15 +6507,13 @@ sub apply_transition {
                 "UPDATE playlist SET transition="
               . $trans_type
               . " WHERE playorder="
-              . $model->get($iter, 2);
+              . $item;
         }
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
-    }
-
 }
 
 sub mod {
