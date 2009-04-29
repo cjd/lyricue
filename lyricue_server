@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.149 2009/04/28 05:54:40 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.150 2009/04/29 08:22:56 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1103,7 +1103,7 @@ sub process_input {
                         } else {
                             my $command = "";
                             $command = sprintf(
-"%s -b %s -e UTF8 -k '%s' %d:%d-%d:%d |tr \\\\n \' \'",
+"%s -b %s -e UTF8 -k '%s' %d:%d-%d:%d |tr \\\\n \'#\'",
                                 $globals->{'diatheke'}, $globals->{'bibledb'},
                                 $line[0],               $line[1],
                                 $line[2],               $line[3],
@@ -1111,10 +1111,10 @@ sub process_input {
                             );
                             debug($command);
                             my $command_out =
-                              fromutf(`$command`);
+                              `$command`;
                             ($line[0], undef) = split(/\s\d/, $command_out, 2);
                             my @command_lines =
-                              split(/$line[0]/,, $command_out);
+                              split(/\#/,, $command_out);
 
                             foreach (@command_lines) {
                                 chomp;
@@ -1813,27 +1813,42 @@ sub set_maintext_clutter {
 
     $globals->{'maintext_old'} = $globals->{'maintext'};
     undef $globals->{'maintext'};
-    $globals->{'maintext'} =
-      Clutter::Label->new($config->{'Main'}, $text,
-        Clutter::Color->new(0xff, 0xff, 0xff, 0xff));
-    $globals->{'maintext'}->set_alignment('left');
-    $globals->{'maintext'}->set_use_markup(1);
-    if ($globals->{'maintext'}->get_width() > $config->{'Width'})
-    {
-        $globals->{'maintext'}->set_line_wrap(1);
-        $globals->{'maintext'}->set_size($config->{'Width'}, -1);
+    $globals->{'maintext'} = Clutter::Group->new;
+
+    foreach my $count ( 0,2,6,8,4) {
+        my $colour;
+        if ( $count==4) {
+            $colour = Clutter::Color->parse($config->{'Colour'});
+        } else {
+            $colour = Clutter::Color->parse($config->{'ShadowColour'});
+            $colour->alpha(0x88);
+        }
+        my $item =
+          Clutter::Label->new($config->{'Main'}, $text, $colour);
+        $item->set_alignment('left');
+        $item->set_use_markup(1);
+        if ($item->get_width() > $config->{'Width'})
+        {
+            $item->set_line_wrap(1);
+            $item->set_size($globals->{'stage'}->get_width(), -1);
+        }
+        $item->set_anchor_point(
+            $item->get_width() / 2,
+            $item->get_height() / 2
+        );
+        $item->set_scale(1/$MINISCALE,1/$MINISCALE);
+        $item->set_position(
+            ($count % 3)-1,
+            (int($count/3)-1)
+        );
+        $globals->{'maintext'}->add($item);
     }
-    $globals->{'maintext'}->set_anchor_point(
-        $globals->{'maintext'}->get_width() / 2,
-        $globals->{'maintext'}->get_height() / 2
-    );
-    $globals->{'maintext'}->set_scale(1/$MINISCALE,1/$MINISCALE);
     $globals->{'maintext'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
     );
 
-    $globals->{'timeline'} = Clutter::Timeline->new_for_duration(50);
+    $globals->{'timeline'} = Clutter::Timeline->new_for_duration(200);
     $globals->{'timeline'}->set_speed(15);
     $globals->{'timeline'}->set_loop(0);
     my $alpha =
@@ -1960,6 +1975,7 @@ sub set_maintext_clutter {
     $globals->{'timeline'}->signal_connect(
         'completed' => sub {
             if (defined $globals->{'maintext_old'}) {
+                $globals->{'maintext_old'}->remove_all;
                 $globals->{'maintext_old'}->destroy();
                 undef $globals->{'maintext_old'};
             }
@@ -2568,7 +2584,9 @@ sub get_bibles {
 
     # Bibles provided by Sword libraries
     if ($^O ne 'MSWin32') {
-        open(SWORD, $globals->{'diatheke'} . " -b system -k modulelist|");
+        my $command = $globals->{'diatheke'} . " -b system -k modulelist|";
+        debug($command);
+        open(SWORD, $command);
         while (<SWORD>) {
             if (/^Biblical Texts:/) {
                 while (<SWORD>) {
