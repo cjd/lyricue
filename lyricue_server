@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.150 2009/04/29 08:22:56 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.151 2009/04/29 08:45:29 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1813,36 +1813,7 @@ sub set_maintext_clutter {
 
     $globals->{'maintext_old'} = $globals->{'maintext'};
     undef $globals->{'maintext'};
-    $globals->{'maintext'} = Clutter::Group->new;
-
-    foreach my $count ( 0,2,6,8,4) {
-        my $colour;
-        if ( $count==4) {
-            $colour = Clutter::Color->parse($config->{'Colour'});
-        } else {
-            $colour = Clutter::Color->parse($config->{'ShadowColour'});
-            $colour->alpha(0x88);
-        }
-        my $item =
-          Clutter::Label->new($config->{'Main'}, $text, $colour);
-        $item->set_alignment('left');
-        $item->set_use_markup(1);
-        if ($item->get_width() > $config->{'Width'})
-        {
-            $item->set_line_wrap(1);
-            $item->set_size($globals->{'stage'}->get_width(), -1);
-        }
-        $item->set_anchor_point(
-            $item->get_width() / 2,
-            $item->get_height() / 2
-        );
-        $item->set_scale(1/$MINISCALE,1/$MINISCALE);
-        $item->set_position(
-            ($count % 3)-1,
-            (int($count/3)-1)
-        );
-        $globals->{'maintext'}->add($item);
-    }
+    $globals->{'maintext'} = create_outlined_text($text, $config->{'Main'}, $config->{'Colour'}, $config->{'ShadowColour'});
     $globals->{'maintext'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
@@ -1989,6 +1960,41 @@ sub set_maintext_clutter {
         }
     );
     $globals->{'timeline'}->start();
+}
+
+sub create_outlined_text {
+    my ($text, $font, $text_colour, $shadow_colour) = @_;
+    my $group = Clutter::Group->new;
+
+    foreach my $count ( 0,2,6,8,4) {
+        my $colour;
+        if ( $count==4) {
+            $colour = Clutter::Color->parse($text_colour);
+        } else {
+            $colour = Clutter::Color->parse($shadow_colour);
+            $colour->alpha(0x88);
+        }
+        my $item =
+          Clutter::Label->new($font, $text, $colour);
+        $item->set_alignment('left');
+        $item->set_use_markup(1);
+        if ($item->get_width() > $config->{'Width'})
+        {
+            $item->set_line_wrap(1);
+            $item->set_size($globals->{'stage'}->get_width(), -1);
+        }
+        $item->set_anchor_point(
+            $item->get_width() / 2,
+            $item->get_height() / 2
+        );
+        $item->set_scale(1/$MINISCALE,1/$MINISCALE);
+        $item->set_position(
+            ($count % 3)-1,
+            (int($count/3)-1)
+        );
+        $group->add($item);
+    }
+    return $group;
 }
 
 sub set_maintext_simple {
@@ -2340,30 +2346,19 @@ sub set_footer {
 
 sub set_footer_clutter {
     my ($text) = @_;
+    if (defined $globals->{'footer'}) {
+        $globals->{'footer'}->destroy;
+        undef $globals->{'footer'};
+    }
     if ($text eq "") {
-        if (defined $globals->{'footer'}) {
-            $globals->{'footer'}->destroy();
-            undef $globals->{'footer'};
-        }
         return;
     }
-    if (!defined $globals->{'footer'}) {
-        $globals->{'footer'} =
-          Clutter::Label->new($config->{'Footer'}, $text,
-            Clutter::Color->new(0xff, 0xff, 0xff, 0xff));
-        $globals->{'stage'}->add($globals->{'footer'});
-    }
-    $globals->{'footer'}->set_alignment('left');
-    $globals->{'footer'}->set_use_markup(1);
-    if ($globals->{'footer'}->get_width() > $globals->{'stage'}->get_width()) {
-        $globals->{'footer'}->set_line_wrap(1);
-        $globals->{'footer'}->set_size($globals->{'stage'}->get_width(), -1);
-    }
-    $globals->{'footer'}->set_anchor_point(
-        $globals->{'footer'}->get_width() / 2,
-        $globals->{'footer'}->get_height() / 2
+    $globals->{'footer'} = create_outlined_text($text, $config->{'Footer'}, $config->{'Colour'}, $config->{'ShadowColour'});
+    $globals->{'footer'}->set_position(
+        $globals->{'stage'}->get_width() / 2,
+        $globals->{'stage'}->get_height() / 2
     );
-    $globals->{'footer'}->set_scale(1/$MINISCALE,1/$MINISCALE);
+    $globals->{'stage'}->add($globals->{'footer'});
     $globals->{'footer'}->set_position($globals->{'stage'}->get_width() / 2,
         $globals->{'stage'} - ($globals->{'footer'}->get_height() / 2));
 }
@@ -2443,31 +2438,20 @@ sub set_header {
 sub set_header_clutter {
     my ($text) = @_;
     debug("Setting header");
+    if (defined $globals->{'header'}) {
+        $globals->{'header'}->destroy();
+        undef $globals->{'header'};
+    }
     if ($text eq "") {
-        if (defined $globals->{'header'}) {
-            $globals->{'header'}->destroy();
-            undef $globals->{'header'};
-        }
         return;
     }
 
-    if (!defined $globals->{'header'}) {
-        $globals->{'header'} =
-          Clutter::Label->new($config->{'Header'}, $text,
-            Clutter::Color->new(0xff, 0xff, 0xff, 0xff));
-        $globals->{'stage'}->add($globals->{'header'});
-    }
-    $globals->{'header'}->set_alignment('left');
-    $globals->{'header'}->set_use_markup(1);
-    if ($globals->{'header'}->get_width() > $config->{'Width'}) {
-        $globals->{'header'}->set_line_wrap(1);
-        $globals->{'header'}->set_size($config->{'Width'}, -1);
-    }
-    $globals->{'header'}->set_anchor_point(
-        $globals->{'header'}->get_width() / 2,
-        $globals->{'header'}->get_height() / 2
+    $globals->{'header'} = create_outlined_text($text, $config->{'Header'}, $config->{'Colour'}, $config->{'ShadowColour'});
+    $globals->{'header'}->set_position(
+        $globals->{'stage'}->get_width() / 2,
+        $globals->{'stage'}->get_height() / 2
     );
-    $globals->{'header'}->set_scale(1/$MINISCALE,1/$MINISCALE);
+    $globals->{'stage'}->add($globals->{'header'});
     $globals->{'header'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'header'}->get_height() / 2
