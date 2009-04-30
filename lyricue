@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.246 2009/04/28 11:08:20 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.247 2009/04/30 10:51:22 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -2994,26 +2994,32 @@ sub add_image {
 }
 
 sub update_imagedir {
-    my ($type, $category) = @_;
+    my ($type, $data) = @_;
+    my ($access, $category);
     debug("update image directory");
-
     my $main = "";
     if ($type eq "bg") {
         $main = $config->{'SpecialBack'};
     } else {
         $main = $config->{'SpecialImage'};
     }
-    if ($category eq "") {
-        $category = $main;
+    if ($data eq "") {
+        $data = $main;
     }
-    debug("changing to $category");
+    ($access, $category)  = split /;/,$data;
+    if (!defined $category) {
+        $category=$access;
+        $access="db";
+    }
+
+    debug("changing to $access;$category");
 
     # display sorted list
 
     # Update categories list
     $widgets->{'image'}->get_widget('optionImageCategory')->{'user_data'} =
       $type;
-    $widgets->{'image'}->get_widget('treeImage')->{'user_data'} = $category;
+    $widgets->{'image'}->get_widget('treeImage')->{'user_data'} = $data;
     my $history =
       $widgets->{'image'}->get_widget('optionImageCategory')->get_history();
     my $menu = Gtk2::Menu->new();
@@ -3036,30 +3042,66 @@ sub update_imagedir {
 
     while ($row = $sth->fetchrow_hashref()) {
         my $item = Gtk2::MenuItem->new_with_label($row->{'category'});
-        $item->{user_data} = $row->{'category'};
+        $item->{user_data} = "db;".$row->{'category'};
         $item->show();
         $menu->append($item);
 
     }
+    if ($type eq "bg") {
+        # Add categories from directories
+        my $dirname = $globals->{'background_path'};
+        my (@files, $file);
+        my $ret = opendir DIR, $dirname;
+        if ($ret) {
+            foreach $file (readdir(DIR)) {
+                if (!($file =~ /^\./))  {
+                    my $item = Gtk2::MenuItem->new_with_label($file);
+                    $item->{user_data} = "dir;".$file;
+                    $item->show();
+                    $menu->append($item);
+                }
+            }
+            closedir DIR;
+        }
+    }
+
     $widgets->{'image'}->get_widget('optionImageCategory')
       ->set_history($history);
-
-    # update list of available images
-    $query =
-        "SELECT * FROM media WHERE category LIKE \""
-      . $category
-      . "\" AND type=\""
-      . $type
-      . "\" ORDER BY description";
-    qdebug($query);
-    $sth = $mediaDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
     my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
-    while ($row = $sth->fetchrow_hashref()) {
-        $iter = $store->append;
-        $store->set($iter, 0, $row->{'description'}, 1, $row->{'id'});
+
+    if ($type eq "bg") {
+        if ($access eq "dir") {
+            my $dirname = $globals->{'background_path'}.$category;
+            my $ret = opendir DIR, $dirname;
+            if ($ret) {
+                my $file="";
+                foreach $file (readdir(DIR)) {
+                    if (!($file =~ /^\./))  {
+                        $iter = $store->append;
+                        $store->set($iter, 0, $file, 1, "dir;".$dirname."/".$file);
+                    }
+                }
+            }
+        }
+    }
+
+    if ($access eq "db") {
+        # update list of available images
+        $query =
+            "SELECT * FROM media WHERE category LIKE \""
+          . $category
+          . "\" AND type=\""
+          . $type
+          . "\" ORDER BY description";
+        qdebug($query);
+        $sth = $mediaDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        while ($row = $sth->fetchrow_hashref()) {
+            $iter = $store->append;
+            $store->set($iter, 0, $row->{'description'}, 1, "db;".$row->{'id'});
+        }
     }
     $widgets->{'image'}->get_widget('treeImage')->set_model($store);
     $widgets->{'image'}->get_widget('entryImageFontColour')
@@ -3701,19 +3743,21 @@ sub change_preview {
         my $iter =
           $widgets->{'image'}->get_widget('treeImage')
           ->get_model->get_iter($newsel);
-        my $id =
+        my $data =
           $widgets->{'image'}->get_widget('treeImage')
           ->get_model->get($iter, 1);
+        my ($type,$id) = split /;/, $data;
         my $tmp = 0;
         foreach $tmp (@selecteditems) {
             my $iter2 =
               $widgets->{'image'}->get_widget('treeImage')
               ->get_model->get_iter($tmp);
-            my $id2 =
+            my $data2 =
               $widgets->{'image'}->get_widget('treeImage')
               ->get_model->get($iter2, 1);
-            if (!defined $selectedimages{$id2}) {
-                $id = $id2;
+            if (!defined $selectedimages{$data2}) {
+                $data = $data2;
+                ($type,$id) = split /;/, $data;
             }
         }
         %selectedimages = ();
@@ -3729,18 +3773,25 @@ sub change_preview {
 
         if ($globals->{'bg_previews'}) {
             debug("sub change_preview: create_pixbuf");
-            my $scaled = create_pixbuf($id, 480, 360);
+            my $scaled = create_pixbuf($data, 480, 360);
             if ($scaled) {
-                my $query =
-                  "SELECT textcolour, shadowcolour FROM media WHERE id=\"" 
-                  . $id . "\"";
-                qdebug($query);
-                my $sth = $mediaDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                my $rv = $sth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                my $row = $sth->fetchrow_hashref();
-                if (   ($row->{'textcolour'} ne "NULL")
+                my $row;
+                if ($type eq "db") {
+                    my $query =
+                      "SELECT textcolour, shadowcolour FROM media WHERE id=\"" 
+                      . $id . "\"";
+                    qdebug($query);
+                    my $sth = $mediaDbh->prepare($query)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    my $rv = $sth->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                    $row = $sth->fetchrow_hashref();
+                } else {
+                    $row->{'textcolour'} = "Default";
+                    $row->{'shadowcolour'} = "Default";
+                }
+                if (   ($row->{'textcolour'} ne "")
+                    && ($row->{'textcolour'} ne "NULL")
                     && ($row->{'textcolour'} ne "Default"))
                 {
                     $widgets->{'image'}->get_widget('entryImageFontColour')
@@ -3754,7 +3805,8 @@ sub change_preview {
                     $widgets->{'image'}->get_widget('colorbuttonFontColour')
                       ->set_color(Gtk2::Gdk::Color->parse($config->{'Colour'}));
                 }
-                if (   ($row->{'shadowcolour'} ne "NULL")
+                if (   ($row->{'shadowcolour'} ne "")
+                    && ($row->{'shadowcolour'} ne "NULL")
                     && ($row->{'shadowcolour'} ne "Default"))
                 {
                     $widgets->{'image'}->get_widget('entryImageShadowColour')
@@ -3772,7 +3824,7 @@ sub change_preview {
                 $widgets->{'image'}->get_widget('imageImage')
                   ->set_from_pixbuf($scaled);
                 $widgets->{'image'}->get_widget('imageImage')->{user_data} =
-                  $id;
+                  $data;
             }
         }
     }
@@ -3799,7 +3851,7 @@ sub set_default_backdrop {
     debug("Set default backdrop");
     my $image = $widgets->{'image'}->get_widget('imageImage')->{user_data};
     if ($image) {
-        my $scaled = create_pixbuf("db;".$image, 100, 75);
+        my $scaled = create_pixbuf($image, 100, 75);
         if ($scaled) {
             $widgets->{'prefs'}->get_widget('imagePrefBG')
               ->set_from_pixbuf($scaled);

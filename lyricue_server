@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.151 2009/04/29 08:45:29 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.152 2009/04/30 10:51:22 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -348,13 +348,6 @@ check_tracker();
 debug("Creating window");
 create_window();
 
-debug("Loading background");
-if (!($config->{'BGImage'} =~ /;/)) {
-    $config->{'BGImage'} = "db;".$config->{'BGImage'};
-}
-
-change_backdrop($config->{'BGImage'});
-
 # init the TCP mode
 my ($socket);
 my @cnx = ();
@@ -368,7 +361,12 @@ if ($globals->{'use_port'} !~ /^\d+$/) {
 
 do_pending();
 
-debug("Main program running");
+debug("Loading background");
+if (!($config->{'BGImage'} =~ /;/)) {
+    $config->{'BGImage'} = "db;".$config->{'BGImage'};
+}
+
+change_backdrop($config->{'BGImage'});
 
 my $sockaddr = 'S n a4 x8';
 $socket = IO::Socket::INET->new(
@@ -388,6 +386,7 @@ debug("Listening on " . $globals->{'use_port'});
 # Disable screensaver
 system('xset s off -dpms');
 
+debug("Main program running");
 Glib::Timeout->add(200, \&check_net);
 Gtk2->main();
 
@@ -895,6 +894,10 @@ sub process_input {
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
                 $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my $row = $sth->fetchrow_hashref();
+                if ($row->{'type'} ne "back" &&
+                    $row->{'type'} ne "file" &&
+                    $row->{'type'} ne "imag" ) {
 
                 #Check for associate image and, if present, apply it.
                 my $imgquery =
@@ -923,7 +926,7 @@ sub process_input {
                     if (my $imgrow = $imgsth->fetchrow_hashref()) {
                         change_backdrop($imgrow->{'imagename'});
                     } else {
-                        if ($bgimage_changed && $imgrow->{'data'} eq "imag" ) {
+                        if ($bgimage_changed && $imgrow->{'data'} ne "imag" ) {
 
                             #Reset background if an image was shown
                             change_backdrop($config->{'BGImage'});
@@ -931,6 +934,7 @@ sub process_input {
                     }
                 }
                 $bgimage_changed = FALSE;
+                }
 
                 if ($exec_pid > 0) {
                     debug("Killing " . $exec_pid);
@@ -939,7 +943,7 @@ sub process_input {
                     $exec_pid = 0;
                 }
 
-                if (my $row = $sth->fetchrow_hashref()) {
+                if (defined $row) {
                     if ($row->{'type'} eq "back") {
                         my $file = $row->{'data'};
                         $config->{'BGImage'} = $file;
@@ -1353,6 +1357,7 @@ sub change_backdrop {
     my ($type,$data) = split /;/, $id;
     if ($data eq "") {
         $data = $type;
+        $type = "db";
     }
     if ($type eq "dir") {
         debug("Changing backdrop image to file:" . $data);
@@ -1389,6 +1394,7 @@ sub change_backdrop {
                 );
                 $globals->{'timeline_bg'}->start();
             }
+debug("load $data");
             $globals->{'background'} = Clutter::Texture->new($data);
             $globals->{'background'}->set(
                 keep_aspect_ratio => 1,
@@ -1405,6 +1411,7 @@ sub change_backdrop {
                 $globals->{'stage'}->get_height / 2
             );
             $globals->{'stage'}->add($globals->{'background'});
+debug("loaded");
         } else {
             my ($pixbuf);
             eval {
@@ -1974,8 +1981,7 @@ sub create_outlined_text {
             $colour = Clutter::Color->parse($shadow_colour);
             $colour->alpha(0x88);
         }
-        my $item =
-          Clutter::Label->new($font, $text, $colour);
+        my $item = Clutter::Label->new($font, $text, $colour);
         $item->set_alignment('left');
         $item->set_use_markup(1);
         if ($item->get_width() > $config->{'Width'})
