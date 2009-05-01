@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.153 2009/05/01 10:14:02 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.154 2009/05/01 10:45:14 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -911,6 +911,7 @@ sub process_input {
 
                 if (my $imgrow = $imgsth->fetchrow_hashref()) {
                     change_backdrop($imgrow->{'imagename'});
+                    $bgimage_changed = TRUE;
                 } else {
 
                     # If the song has changed then then check parent and set
@@ -925,15 +926,16 @@ sub process_input {
                       || display_fatal($errorcodes->{'sqlexecute'}, $!);
                     if (my $imgrow = $imgsth->fetchrow_hashref()) {
                         change_backdrop($imgrow->{'imagename'});
+                        $bgimage_changed = TRUE;
                     } else {
                         if ($bgimage_changed && $imgrow->{'data'} ne "imag" ) {
 
                             #Reset background if an image was shown
                             change_backdrop($config->{'BGImage'});
+                            $bgimage_changed = FALSE;
                         }
                     }
                 }
-                $bgimage_changed = FALSE;
                 }
 
                 if ($exec_pid > 0) {
@@ -1705,7 +1707,6 @@ sub change_to_db {
         $bibleDbh = "";
     }
     $globals->{'biblename'} = $config->{'Bibles'}->{$globals->{'bibledb'}};
-print $globals->{'biblename'}."\n";
     $globals->{'biblename'} =~ s/^.*?://g;
     $globals->{'biblename'} =~ s/^.*?;//g;
     $globals->{'biblename'} =~ s/_//g;
@@ -2366,7 +2367,7 @@ sub set_footer_clutter {
     );
     $globals->{'stage'}->add($globals->{'footer'});
     $globals->{'footer'}->set_position($globals->{'stage'}->get_width() / 2,
-        $globals->{'stage'} - ($globals->{'footer'}->get_height() / 2));
+        $globals->{'stage'}->get_height() - ($globals->{'footer'}->get_height() / 2));
 }
 
 sub set_footer_simple {
