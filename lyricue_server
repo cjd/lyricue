@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.152 2009/04/30 10:51:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.153 2009/05/01 10:14:02 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1371,7 +1371,7 @@ sub change_backdrop {
                     undef $globals->{'background_old'};
                 }
                 $globals->{'background_old'} = $globals->{'background'};
-                $globals->{'timeline_bg'} = Clutter::Timeline->new_for_duration(200);
+                $globals->{'timeline_bg'} = Clutter::Timeline->new_for_duration(50);
                 $globals->{'timeline_bg'}->set_speed(15);
                 my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'}, \&Clutter::Alpha::ramp_inc);
                 $globals->{'timeline_bg'}->signal_connect(
@@ -1826,7 +1826,7 @@ sub set_maintext_clutter {
         $globals->{'stage'}->get_height() / 2
     );
 
-    $globals->{'timeline'} = Clutter::Timeline->new_for_duration(200);
+    $globals->{'timeline'} = Clutter::Timeline->new_for_duration(50);
     $globals->{'timeline'}->set_speed(15);
     $globals->{'timeline'}->set_loop(0);
     my $alpha =

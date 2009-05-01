@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.247 2009/04/30 10:51:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.248 2009/05/01 10:14:02 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4142,6 +4142,10 @@ sub create_dialog_prefs {
       ->set_text($config->{'SpecialImage'});
     $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')
       ->set_text($config->{'SpecialBack'});
+    $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')
+      ->set_filename($config->{'ImageDirectory'});
+    $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')
+      ->set_filename($config->{'BGDirectory'});
 
     if ($config->{'DatabaseType'} eq "mysql") {
         $widgets->{'prefs'}->get_widget('radioPrefDBMysql')->set_active(TRUE);
@@ -5270,6 +5274,12 @@ sub load_config {
     if (!($conf->{'BGImage'} =~ /;/)) {
         $conf->{'BGImage'} = "db;".$conf->{'BGImage'};
     }
+    if (!($conf->{'ImageDirectory'})) {
+        $conf->{'ImageDirectory'}=$globals->{'basedir'}."images/";
+    }
+    if (!($conf->{'BGDirectory'})) {
+        $conf->{'BGDirectory'}=$globals->{'basedir'}."backgrounds/";
+    }
 
     return $conf;
 }
@@ -5369,6 +5379,12 @@ sub save_preferences {
       . "\n";
     print CONFIG "SpecialBack = "
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text()
+      . "\n";
+    print CONFIG "ImageDirectory = "
+      . $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->get_full_path()
+      . "\n";
+    print CONFIG "BGDirectory = "
+      . $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->get_full_path()
       . "\n";
     print CONFIG "TrayIcons = " . $config->{'TrayIcons'}."\n";
 
