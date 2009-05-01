@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.154 2009/05/01 10:45:14 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.155 2009/05/01 12:38:22 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -952,70 +952,11 @@ sub process_input {
                         change_backdrop($file);
                     } elsif ($row->{'type'} eq "file") {
                         if (-r $row->{'data'}) {
-                            my ($fileobj, @fileexts);
-
-                            # Image
-                            @fileexts = qw(jpg gif png);
-                            for $fileobj (@fileexts) {
-                                if ($row->{'data'} =~ /$fileobj/i) {
-                                    $bgimage_changed = TRUE;
-                                    set_footer("");
-                                    set_maintext("", NONE, FALSE);
-                                    set_header("");
-                                    change_backdrop("dir;".$row->{'data'});
-                                }
-                            }
-
-                            # Movie file
-                            @fileexts = qw(avi mpg mov wmv);
-                            for $fileobj (@fileexts) {
-                                if ($row->{'data'} =~ /$fileobj/i) {
-                                    if ($globals->{'server_type'} == CLUTTER) {
-                                        debug("Clutter Video");
-                                        if (defined $globals->{'background'}) {
-                                            $globals->{'background'}->destroy();
-                                            undef $globals->{'background'};
-                                        }
-                                        $globals->{'background'} =
-                                          Clutter::Gst::VideoTexture->new();
-                                        $globals->{'background'}
-                                          ->set_filename($row->{'data'});
-                                        $globals->{'background'}->set(
-                                            keep_aspect_ratio => 1,
-                                            request_mode => 'height-for-width',
-                                        );
-                                        $globals->{'background'}->set_width(
-                                            $globals->{'stage'}->get_width());
-                                        $globals->{'background'}
-                                          ->set_anchor_point(
-                                            $globals->{'background'}
-                                              ->get_width / 2,
-                                            $globals->{'background'}
-                                              ->get_height / 2
-                                          );
-                                        $globals->{'background'}->set_position(
-                                            $globals->{'stage'}->get_width / 2,
-                                            0
-                                        );
-                                        $globals->{'stage'}
-                                          ->add($globals->{'background'});
-                                        $globals->{'background'}
-                                          ->set_playing(TRUE);
-                                        $globals->{'video_playing'} = TRUE;
-                                    } else {
-                                        $exec_pid = fork;
-                                        if ($exec_pid > 0) {
-
-                                            my $command =
-                                                $config->{'MPlayer'} . " "
-                                              . $row->{'data'};
-                                            debug($command);
-
-                                            system($command);
-                                        }
-                                    }
-                                }
-                            }
+                            $bgimage_changed = TRUE;
+                            set_footer("");
+                            set_maintext("", NONE, FALSE);
+                            set_header("");
+                            change_backdrop("dir;".$row->{'data'});
                         }
                     } elsif ($row->{'type'} eq "imag") {
                         $bgimage_changed = TRUE;
@@ -1233,7 +1174,7 @@ sub process_input {
             }
         } ## end elsif (/^display$/)
     } ## end if ($_)
-    debug("The status message sent is: " . $status);
+    debug("The status message sent is: " . Encode::decode("utf8",$status));
     update_tracker();
     return $status;
 } ## end sub process_input
@@ -1362,75 +1303,127 @@ sub change_backdrop {
         $type = "db";
     }
     if ($type eq "dir") {
-        debug("Changing backdrop image to file:" . $data);
-        if (($globals->{'server_type'} == SIMPLE))
-        {
-            $globals->{'bg_file'} = $data;
-        } elsif ($globals->{'server_type'} == CLUTTER) {
-            if (defined $globals->{'background'}) {
-                if (defined $globals->{'background_old'}) {
-                    $globals->{'background_old'}->destroy();
-                    undef $globals->{'background_old'};
+        # Movie file
+        my @fileexts = qw(avi mpg mov wmv mp4);
+        my $video=FALSE;
+        for my $fileobj (@fileexts) {
+            if ($data =~ /$fileobj$/i) {
+                debug("Changing backdrop video to file:" . $data);
+                $video=TRUE;
+                if ($globals->{'server_type'} == CLUTTER) {
+                    debug("Clutter Video");
+                    if (defined $globals->{'background'}) {
+                        $globals->{'background'}->destroy();
+                        undef $globals->{'background'};
+                    }
+                    $globals->{'background'} =
+                      Clutter::Gst::VideoTexture->new();
+                    $globals->{'background'}
+                      ->set_filename($data);
+                    $globals->{'background'}->set(
+                        keep_aspect_ratio => 1,
+                        request_mode => 'height-for-width',
+                    );
+                    $globals->{'background'}->set_width(
+                        $globals->{'stage'}->get_width());
+                    $globals->{'background'}
+                      ->set_anchor_point(
+                        $globals->{'background'}
+                          ->get_width / 2,
+                        $globals->{'background'}
+                          ->get_height / 2
+                      );
+                    $globals->{'background'}->set_position(
+                        $globals->{'stage'}->get_width / 2,
+                        0
+                    );
+                    $globals->{'stage'}
+                      ->add($globals->{'background'});
+                    $globals->{'background'}
+                      ->set_playing(TRUE);
+                    $globals->{'video_playing'} = TRUE;
+                } else {
+                    $exec_pid = fork;
+                    if ($exec_pid > 0) {
+
+                        my $command =
+                            $config->{'MPlayer'} . " "
+                          . $data;
+                        debug($command);
+
+                        system($command);
+                    }
                 }
-                $globals->{'background_old'} = $globals->{'background'};
-                $globals->{'timeline_bg'} = Clutter::Timeline->new_for_duration(50);
-                $globals->{'timeline_bg'}->set_speed(15);
-                my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'}, \&Clutter::Alpha::ramp_inc);
-                $globals->{'timeline_bg'}->signal_connect(
-                    'new-frame' => sub {
-                        my ($self, $alpha_value) = @_;
-                        if (defined $globals->{'background_old'}) {
-                            $globals->{'background_old'}
-                            ->set_opacity((1 - $self->get_progress)*255);
-                        }
-                    }
-                );
-                $globals->{'timeline_bg'}->signal_connect(
-                    'completed' => sub {
-                        if (defined $globals->{'background_old'}) {
-                            $globals->{'background_old'}->destroy();
-                            undef $globals->{'background_old'};
-                        }
-                        undef $globals->{'timeline_bg'};
-                    }
-                );
-                $globals->{'timeline_bg'}->start();
             }
-debug("load $data");
-            $globals->{'background'} = Clutter::Texture->new($data);
-            $globals->{'background'}->set(
-                keep_aspect_ratio => 1,
-                request_mode      => 'width-for-height',
-            );
-            $globals->{'background'}
-              ->set_height($globals->{'stage'}->get_height());
-            $globals->{'background'}->set_anchor_point(
-                $globals->{'background'}->get_width / 2,
-                $globals->{'background'}->get_height / 2
-            );
-            $globals->{'background'}->set_position(
-                $globals->{'stage'}->get_width / 2,
-                $globals->{'stage'}->get_height / 2
-            );
-            $globals->{'stage'}->add($globals->{'background'});
-debug("loaded");
-        } else {
-            my ($pixbuf);
-            eval {
-                $pixbuf =
-                  Gtk2::Gdk::Pixbuf->new_from_file_at_size($data,
-                    $config->{'Width'}, $config->{'Height'});
-            };
-            if ($@) {
-                debug("Unable to load background: $data");
-            } else {
-                if (defined $background) {
-                    $background->destroy;
+        }
+        if (!$video) {
+            debug("Changing backdrop image to file:" . $data);
+            if (($globals->{'server_type'} == SIMPLE))
+            {
+                $globals->{'bg_file'} = $data;
+            } elsif ($globals->{'server_type'} == CLUTTER) {
+                if (defined $globals->{'background'}) {
+                    if (defined $globals->{'background_old'}) {
+                        $globals->{'background_old'}->destroy();
+                        undef $globals->{'background_old'};
+                    }
+                    $globals->{'background_old'} = $globals->{'background'};
+                    $globals->{'timeline_bg'} = Clutter::Timeline->new_for_duration(50);
+                    $globals->{'timeline_bg'}->set_speed(15);
+                    my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'}, \&Clutter::Alpha::ramp_inc);
+                    $globals->{'timeline_bg'}->signal_connect(
+                        'new-frame' => sub {
+                            my ($self, $alpha_value) = @_;
+                            if (defined $globals->{'background_old'}) {
+                                $globals->{'background_old'}
+                                ->set_opacity((1 - $self->get_progress)*255);
+                            }
+                        }
+                    );
+                    $globals->{'timeline_bg'}->signal_connect(
+                        'completed' => sub {
+                            if (defined $globals->{'background_old'}) {
+                                $globals->{'background_old'}->destroy();
+                                undef $globals->{'background_old'};
+                            }
+                            undef $globals->{'timeline_bg'};
+                        }
+                    );
+                    $globals->{'timeline_bg'}->start();
                 }
-                $background = Gnome2::Canvas::Item->new(
-                    $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
-                    pixbuf     => $pixbuf,
-                    x          => 0,
+                $globals->{'background'} = Clutter::Texture->new($data);
+                $globals->{'background'}->set(
+                    keep_aspect_ratio => 1,
+                    request_mode      => 'width-for-height',
+                );
+                $globals->{'background'}
+                  ->set_height($globals->{'stage'}->get_height());
+                $globals->{'background'}->set_anchor_point(
+                    $globals->{'background'}->get_width / 2,
+                    $globals->{'background'}->get_height / 2
+                );
+                $globals->{'background'}->set_position(
+                    $globals->{'stage'}->get_width / 2,
+                    $globals->{'stage'}->get_height / 2
+                );
+                $globals->{'stage'}->add($globals->{'background'});
+            } else {
+                my ($pixbuf);
+                eval {
+                    $pixbuf =
+                      Gtk2::Gdk::Pixbuf->new_from_file_at_size($data,
+                        $config->{'Width'}, $config->{'Height'});
+                };
+                if ($@) {
+                    debug("Unable to load background: $data");
+                } else {
+                    if (defined $background) {
+                        $background->destroy;
+                    }
+                    $background = Gnome2::Canvas::Item->new(
+                        $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
+                        pixbuf     => $pixbuf,
+                        x          => 0,
                     y          => 0,
                     width      => $config->{'Width'},
                     height     => $config->{'Height'},
@@ -1439,6 +1432,7 @@ debug("loaded");
                 );
             }
         }
+    }
     } else {
         my $query =
 "SELECT format, description, data, textcolour, shadowcolour FROM media WHERE id=\""

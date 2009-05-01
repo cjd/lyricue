@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.248 2009/05/01 10:14:02 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.249 2009/05/01 12:38:22 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -717,23 +717,37 @@ sub add_playlist {
         );
 
         # Set sub-item if image associated
+
         if ($imagename) {
-            my $query2 =
-              "SELECT description FROM media WHERE id=\"" . $imagename . "\"";
-            qdebug($query2);
-            my $sth2 = $mediaDbh->prepare($query2)
-              || display_fatal($errorcodes->{'sqlprepare'}, $!);
-            my $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'}, $!);
-            my $row2    = $sth2->fetchrow_hashref();
-            my $imgiter = $model->append($newiter);
-            $model->set(
-                $imgiter,
-                0 => "* Background: " . $row2->{'description'},
-                1 => "",
-                2 => $row->{'playorder'},
-                3 => $row->{'transition'}
-            );
+            my ($type,$id) = split /;/, $imagename;
+            if ($type eq "db") {
+                my $query2 =
+                  "SELECT description FROM media WHERE id=\"" . $id . "\"";
+                qdebug($query2);
+                my $sth2 = $mediaDbh->prepare($query2)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv2 = $sth2->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my $row2    = $sth2->fetchrow_hashref();
+                my $imgiter = $model->append($newiter);
+                $model->set(
+                    $imgiter,
+                    0 => "* Background: " . $row2->{'description'},
+                    1 => "",
+                    2 => $row->{'playorder'},
+                    3 => $row->{'transition'}
+                );
+            } else {
+                my $imgiter = $model->append($newiter);
+                $id =~ s/^$globals->{'background_path'}//g;
+                $model->set(
+                    $imgiter,
+                    0 => "* Background: " . $id,
+                    1 => "",
+                    2 => $row->{'playorder'},
+                    3 => $row->{'transition'}
+                );
+            }
         }
 
         # Set sub-item if transition associated
@@ -6071,7 +6085,7 @@ sub bgdir_load {
 
     # update list of available backdrops
     debug("Loading new preview images from: " .$type. "-" . $category);
-
+print "test\n";
     # Disable dir buttons
     $widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(FALSE);
     $widgets->{'main'}->get_widget('hboxBackImage')->hide();
@@ -6113,24 +6127,44 @@ sub bgdir_load {
         my $ret = opendir DIR, $dirname;
         if ($ret) {
             foreach $file (readdir(DIR)) {
+print($file."\n");
                 if (!($file =~ /^\./))  {
                     do_pending();
-                    my $scaled = create_pixbuf($type.";".$dirname."/".$file, 64, 48);
-                    if ($scaled) {
-                        my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
-                        if ($pixmap) {
-                            $widgets->{'pixmaps'}[$counter] = $pixmap;
-                            $widgets->{'buttons'}[$counter] = new Gtk2::Button();
-                            $widgets->{'buttons'}[$counter]
-                            ->add($widgets->{'pixmaps'}[$counter]);
+                    my @fileexts = qw(avi mpg mov wmv mp4);
+                    my $video=FALSE;
+                    for my $fileobj (@fileexts) {
+                        if ($file =~ /$fileobj$/i) {
+                            $video=TRUE;
+                            $widgets->{'pixmaps'}[$counter] = "";
+                            $widgets->{'buttons'}[$counter] = new Gtk2::Button($file);
                             $widgets->{'buttons'}[$counter]->{user_data} = ($type.";".$dirname."/".$file);
-                            $widgets->{'pixmaps'}[$counter]->show();
                             $widgets->{'buttons'}[$counter]->show();
                             $widgets->{'buttons'}[$counter]
                             ->signal_connect("clicked", "backdrop_clicked", \$widgets);
                             $widgets->{'main'}->get_widget('hboxBackImage')
                             ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE, 0);
                             $counter++;
+                        }
+                    }
+
+                    if (!$video) {
+                        my $scaled = create_pixbuf($type.";".$dirname."/".$file, 64, 48);
+                        if ($scaled) {
+                            my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
+                            if ($pixmap) {
+                                $widgets->{'pixmaps'}[$counter] = $pixmap;
+                                $widgets->{'buttons'}[$counter] = new Gtk2::Button();
+                                $widgets->{'buttons'}[$counter]
+                                ->add($widgets->{'pixmaps'}[$counter]);
+                                $widgets->{'buttons'}[$counter]->{user_data} = ($type.";".$dirname."/".$file);
+                                $widgets->{'pixmaps'}[$counter]->show();
+                                $widgets->{'buttons'}[$counter]->show();
+                                $widgets->{'buttons'}[$counter]
+                                ->signal_connect("clicked", "backdrop_clicked", \$widgets);
+                                $widgets->{'main'}->get_widget('hboxBackImage')
+                                ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE, 0);
+                                $counter++;
+                            }
                         }
                     }
                 }
