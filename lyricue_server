@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.155 2009/05/01 12:38:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.156 2009/05/02 11:34:36 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1172,7 +1172,12 @@ sub process_input {
                 #$globals->{'snapshot_timer'} =
                 #Glib::Idle->add(\&update_snapshot);
             }
-        } ## end elsif (/^display$/)
+        } elsif (/^media$/) {
+            if ($line[1] eq "pause") {
+                debug("Toggling Play/Pause media");
+                eval {$globals->{'background'}->set_playing(!$globals->{'background'}->get_playing);}
+            }
+        }
     } ## end if ($_)
     debug("The status message sent is: " . Encode::decode("utf8",$status));
     update_tracker();
@@ -1252,6 +1257,9 @@ sub HandleKey {
         || ($data->keyval == $Gtk2::Gdk::Keysyms{b}))
     {
         update_display("blank", 0, 0);
+    } elsif ($data->keyval == $Gtk2::Gdk::Keysyms{p})
+    {
+        update_display("media", "pause", 0);
     } elsif ($data->keyval == $Gtk2::Gdk::Keysyms{Q}) {
 
         # exit

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.249 2009/05/01 12:38:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.250 2009/05/02 11:34:36 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -8847,4 +8847,9 @@ sub fromutf {
 sub toutf {
     my ($line) = @_;
     return Encode::encode("utf8",$line);
+}
+
+sub pause_media {
+    debug("Play/Pause media");
+    update_display("media", "pause","");
 }
