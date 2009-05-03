@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.156 2009/05/02 11:34:36 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.157 2009/05/03 02:26:20 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -363,7 +363,7 @@ do_pending();
 
 debug("Loading background");
 if (!($config->{'BGImage'} =~ /;/)) {
-    $config->{'BGImage'} = "db;".$config->{'BGImage'};
+    $config->{'BGImage'} = "db;" . $config->{'BGImage'};
 }
 
 change_backdrop($config->{'BGImage'});
@@ -895,47 +895,49 @@ sub process_input {
                 $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $row = $sth->fetchrow_hashref();
-                if ($row->{'type'} ne "back" &&
-                    $row->{'type'} ne "file" &&
-                    $row->{'type'} ne "imag" ) {
+                if (   $row->{'type'} ne "back"
+                    && $row->{'type'} ne "file"
+                    && $row->{'type'} ne "imag")
+                {
 
-                #Check for associate image and, if present, apply it.
-                my $imgquery =
-                  "SELECT imagename FROM associations WHERE playlist="
-                  . $current_item;
-                debug($imgquery);
-                my $imgsth = $lyricDbh->prepare($imgquery)
-                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                $imgsth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-
-                if (my $imgrow = $imgsth->fetchrow_hashref()) {
-                    change_backdrop($imgrow->{'imagename'});
-                    $bgimage_changed = TRUE;
-                } else {
-
-                    # If the song has changed then then check parent and set
-                    # background if one is associated with it
-                    my $parentquery =
-"SELECT a.imagename,q.data FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder="
+                    #Check for associate image and, if present, apply it.
+                    my $imgquery =
+                      "SELECT imagename FROM associations WHERE playlist="
                       . $current_item;
-                    debug($parentquery);
-                    my $imgsth = $lyricDbh->prepare($parentquery)
+                    debug($imgquery);
+                    my $imgsth = $lyricDbh->prepare($imgquery)
                       || display_fatal($errorcodes->{'sqlprepare'}, $!);
                     $imgsth->execute
                       || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
                     if (my $imgrow = $imgsth->fetchrow_hashref()) {
                         change_backdrop($imgrow->{'imagename'});
                         $bgimage_changed = TRUE;
                     } else {
-                        if ($bgimage_changed && $imgrow->{'data'} ne "imag" ) {
 
-                            #Reset background if an image was shown
-                            change_backdrop($config->{'BGImage'});
-                            $bgimage_changed = FALSE;
+                        # If the song has changed then then check parent and set
+                        # background if one is associated with it
+                        my $parentquery =
+"SELECT a.imagename,q.data FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder="
+                          . $current_item;
+                        debug($parentquery);
+                        my $imgsth = $lyricDbh->prepare($parentquery)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        $imgsth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        if (my $imgrow = $imgsth->fetchrow_hashref()) {
+                            change_backdrop($imgrow->{'imagename'});
+                            $bgimage_changed = TRUE;
+                        } else {
+                            if ($bgimage_changed && $imgrow->{'data'} ne "imag")
+                            {
+
+                                #Reset background if an image was shown
+                                change_backdrop($config->{'BGImage'});
+                                $bgimage_changed = FALSE;
+                            }
                         }
                     }
-                }
                 }
 
                 if ($exec_pid > 0) {
@@ -956,7 +958,7 @@ sub process_input {
                             set_footer("");
                             set_maintext("", NONE, FALSE);
                             set_header("");
-                            change_backdrop("dir;".$row->{'data'});
+                            change_backdrop("dir;" . $row->{'data'});
                         }
                     } elsif ($row->{'type'} eq "imag") {
                         $bgimage_changed = TRUE;
@@ -1057,8 +1059,7 @@ sub process_input {
                                 $line[4],               $line[0]
                             );
                             debug($command);
-                            my $command_out =
-                              `$command`;
+                            my $command_out = `$command`;
                             ($line[0], undef) = split(/\s\d/, $command_out, 2);
                             my @command_lines =
                               split(/\#/,, $command_out);
@@ -1175,11 +1176,14 @@ sub process_input {
         } elsif (/^media$/) {
             if ($line[1] eq "pause") {
                 debug("Toggling Play/Pause media");
-                eval {$globals->{'background'}->set_playing(!$globals->{'background'}->get_playing);}
+                eval {
+                    $globals->{'background'}
+                      ->set_playing(!$globals->{'background'}->get_playing);
+                };
             }
         }
     } ## end if ($_)
-    debug("The status message sent is: " . Encode::decode("utf8",$status));
+    debug("The status message sent is: " . Encode::decode("utf8", $status));
     update_tracker();
     return $status;
 } ## end sub process_input
@@ -1257,8 +1261,7 @@ sub HandleKey {
         || ($data->keyval == $Gtk2::Gdk::Keysyms{b}))
     {
         update_display("blank", 0, 0);
-    } elsif ($data->keyval == $Gtk2::Gdk::Keysyms{p})
-    {
+    } elsif ($data->keyval == $Gtk2::Gdk::Keysyms{p}) {
         update_display("media", "pause", 0);
     } elsif ($data->keyval == $Gtk2::Gdk::Keysyms{Q}) {
 
@@ -1305,19 +1308,20 @@ sub HandleKey {
 sub change_backdrop {
     my ($id) = @_;
     debug("Setting backdrop to $id");
-    my ($type,$data) = split /;/, $id;
+    my ($type, $data) = split /;/, $id;
     if ($data eq "") {
         $data = $type;
         $type = "db";
     }
     if ($type eq "dir") {
+
         # Movie file
         my @fileexts = qw(avi mpg mov wmv mp4);
-        my $video=FALSE;
+        my $video    = FALSE;
         for my $fileobj (@fileexts) {
             if ($data =~ /$fileobj$/i) {
                 debug("Changing backdrop video to file:" . $data);
-                $video=TRUE;
+                $video = TRUE;
                 if ($globals->{'server_type'} == CLUTTER) {
                     debug("Clutter Video");
                     if (defined $globals->{'background'}) {
@@ -1326,37 +1330,27 @@ sub change_backdrop {
                     }
                     $globals->{'background'} =
                       Clutter::Gst::VideoTexture->new();
-                    $globals->{'background'}
-                      ->set_filename($data);
+                    $globals->{'background'}->set_filename($data);
                     $globals->{'background'}->set(
                         keep_aspect_ratio => 1,
-                        request_mode => 'height-for-width',
+                        request_mode      => 'height-for-width',
                     );
-                    $globals->{'background'}->set_width(
-                        $globals->{'stage'}->get_width());
                     $globals->{'background'}
-                      ->set_anchor_point(
-                        $globals->{'background'}
-                          ->get_width / 2,
-                        $globals->{'background'}
-                          ->get_height / 2
-                      );
-                    $globals->{'background'}->set_position(
-                        $globals->{'stage'}->get_width / 2,
-                        0
+                      ->set_width($globals->{'stage'}->get_width());
+                    $globals->{'background'}->set_anchor_point(
+                        $globals->{'background'}->get_width / 2,
+                        $globals->{'background'}->get_height / 2
                     );
-                    $globals->{'stage'}
-                      ->add($globals->{'background'});
                     $globals->{'background'}
-                      ->set_playing(TRUE);
+                      ->set_position($globals->{'stage'}->get_width / 2, 0);
+                    $globals->{'stage'}->add($globals->{'background'});
+                    $globals->{'background'}->set_playing(TRUE);
                     $globals->{'video_playing'} = TRUE;
                 } else {
                     $exec_pid = fork;
                     if ($exec_pid > 0) {
 
-                        my $command =
-                            $config->{'MPlayer'} . " "
-                          . $data;
+                        my $command = $config->{'MPlayer'} . " " . $data;
                         debug($command);
 
                         system($command);
@@ -1366,8 +1360,7 @@ sub change_backdrop {
         }
         if (!$video) {
             debug("Changing backdrop image to file:" . $data);
-            if (($globals->{'server_type'} == SIMPLE))
-            {
+            if (($globals->{'server_type'} == SIMPLE)) {
                 $globals->{'bg_file'} = $data;
             } elsif ($globals->{'server_type'} == CLUTTER) {
                 if (defined $globals->{'background'}) {
@@ -1376,15 +1369,17 @@ sub change_backdrop {
                         undef $globals->{'background_old'};
                     }
                     $globals->{'background_old'} = $globals->{'background'};
-                    $globals->{'timeline_bg'} = Clutter::Timeline->new_for_duration(50);
+                    $globals->{'timeline_bg'} =
+                      Clutter::Timeline->new_for_duration(50);
                     $globals->{'timeline_bg'}->set_speed(15);
-                    my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'}, \&Clutter::Alpha::ramp_inc);
+                    my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
+                        \&Clutter::Alpha::ramp_inc);
                     $globals->{'timeline_bg'}->signal_connect(
                         'new-frame' => sub {
                             my ($self, $alpha_value) = @_;
                             if (defined $globals->{'background_old'}) {
-                                $globals->{'background_old'}
-                                ->set_opacity((1 - $self->get_progress)*255);
+                                $globals->{'background_old'}->set_opacity(
+                                    (1 - $self->get_progress) * 255);
                             }
                         }
                     );
@@ -1432,15 +1427,15 @@ sub change_backdrop {
                         $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
                         pixbuf     => $pixbuf,
                         x          => 0,
-                    y          => 0,
-                    width      => $config->{'Width'},
-                    height     => $config->{'Height'},
-                    width_set  => TRUE,
-                    height_set => TRUE,
-                );
+                        y          => 0,
+                        width      => $config->{'Width'},
+                        height     => $config->{'Height'},
+                        width_set  => TRUE,
+                        height_set => TRUE,
+                    );
+                }
             }
         }
-    }
     } else {
         my $query =
 "SELECT format, description, data, textcolour, shadowcolour FROM media WHERE id=\""
@@ -1478,8 +1473,7 @@ sub change_backdrop {
 
             if ($row->{'format'} eq "bg") {
                 debug("Changing backdrop colour to " . $row->{'description'});
-                if ( $globals->{'server_type'} == SIMPLE)
-                {
+                if ($globals->{'server_type'} == SIMPLE) {
                     open(BGIMG, ">" . $globals->{'bg_file'});
                     print BGIMG
                       sprintf(
@@ -1541,8 +1535,7 @@ sub change_backdrop {
                         $offset_x =
                           ($config->{'Width'} - ($tmp_width * $scale)) / 2;
                     }
-                    if ($globals->{'server_type'} == SIMPLE)
-                    {
+                    if ($globals->{'server_type'} == SIMPLE) {
                         $pixbuf->save($globals->{'bg_file'}, 'png');
                     } elsif ($globals->{'server_type'} == CLUTTER) {
                         $pixbuf->save($globals->{'bg_file'}, 'png');
@@ -1823,7 +1816,9 @@ sub set_maintext_clutter {
 
     $globals->{'maintext_old'} = $globals->{'maintext'};
     undef $globals->{'maintext'};
-    $globals->{'maintext'} = create_outlined_text($text, $config->{'Main'}, $config->{'Colour'}, $config->{'ShadowColour'});
+    $globals->{'maintext'} =
+      create_outlined_text($text, $config->{'Main'}, $config->{'Colour'},
+        $config->{'ShadowColour'});
     $globals->{'maintext'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
@@ -1849,12 +1844,13 @@ sub set_maintext_clutter {
                     $globals->{'maintext'}->set_rotation('y-axis', 90, 0, 0, 0);
                 }
                 if ($new_direction & Z_AXIS) {
-                    $globals->{'maintext'}->set_rotation('z-axis', 180, 0, 0, 0);
+                    $globals->{'maintext'}
+                      ->set_rotation('z-axis', 180, 0, 0, 0);
                 }
             }
             if ($effect == SLIDE_TEXT) {
-                my $x=$globals->{'stage'}->get_width() / 2;
-                my $y=$globals->{'stage'}->get_height() / 2;
+                my $x = $globals->{'stage'}->get_width() / 2;
+                my $y = $globals->{'stage'}->get_height() / 2;
                 if ($new_direction & UP) {
                     $y = $globals->{'stage'}->get_height();
                 } elsif ($new_direction & DOWN) {
@@ -1865,8 +1861,8 @@ sub set_maintext_clutter {
                 } elsif ($new_direction & RIGHT) {
                     $x = 0;
                 }
-                    
-                $globals->{'maintext'}->set_position($x,$y);
+
+                $globals->{'maintext'}->set_position($x, $y);
             }
             $globals->{'stage'}->add($globals->{'maintext'});
         }
@@ -1877,43 +1873,53 @@ sub set_maintext_clutter {
         'new-frame' => sub {
             my ($self, $alpha_value) = @_;
             if ($effect == NORMAL) {
-                $globals->{'maintext'}->set_opacity($self->get_progress*255);
+                $globals->{'maintext'}->set_opacity($self->get_progress * 255);
                 if (defined $globals->{'maintext_old'}) {
-                    $globals->{'maintext_old'}->set_opacity(255-($self->get_progress*255));
+                    $globals->{'maintext_old'}
+                      ->set_opacity(255 - ($self->get_progress * 255));
                 }
             }
             if ($effect == ROTATE) {
                 my $rotation = 90 - ($self->get_progress * 90);
+
                 # New item
                 if ($new_direction & X_AXIS) {
-                    $globals->{'maintext'}->set_rotation('x-axis', $rotation, 0, 0, 0);
+                    $globals->{'maintext'}
+                      ->set_rotation('x-axis', $rotation, 0, 0, 0);
                 }
                 if ($new_direction & Y_AXIS) {
-                    $globals->{'maintext'}->set_rotation('y-axis', $rotation, 0, 0, 0);
+                    $globals->{'maintext'}
+                      ->set_rotation('y-axis', $rotation, 0, 0, 0);
                 }
                 if ($new_direction & Z_AXIS) {
-                    $globals->{'maintext'}->set_rotation('z-axis', $rotation * 2, 0, 0, 0);
+                    $globals->{'maintext'}
+                      ->set_rotation('z-axis', $rotation * 2, 0, 0, 0);
                 }
                 if (defined $globals->{'maintext_old'}) {
+
                     # Old item
                     $rotation = 90 - $rotation;
                     if ($new_direction & X_AXIS) {
-                        $globals->{'maintext_old'}->set_rotation('x-axis', $rotation, 0, 0, 0);
+                        $globals->{'maintext_old'}
+                          ->set_rotation('x-axis', $rotation, 0, 0, 0);
                     }
                     if ($new_direction & Y_AXIS) {
-                        $globals->{'maintext_old'}->set_rotation('y-axis', $rotation, 0, 0, 0);
+                        $globals->{'maintext_old'}
+                          ->set_rotation('y-axis', $rotation, 0, 0, 0);
                     }
                     if ($new_direction & Z_AXIS) {
-                        $globals->{'maintext_old'}->set_rotation('z-axis', $rotation * 2, 0, 0, 0);
+                        $globals->{'maintext_old'}
+                          ->set_rotation('z-axis', $rotation * 2, 0, 0, 0);
                     }
                 }
             }
             if ($effect == SLIDE_TEXT) {
+
                 # New item
-                my $x_start=$globals->{'stage'}->get_width() / 2;
-                my $y_start=$globals->{'stage'}->get_height() / 2;
-                my $x_end=$x_start;
-                my $y_end=$y_start;
+                my $x_start = $globals->{'stage'}->get_width() / 2;
+                my $y_start = $globals->{'stage'}->get_height() / 2;
+                my $x_end   = $x_start;
+                my $y_end   = $y_start;
                 if ($new_direction & UP) {
                     $y_start = $globals->{'stage'}->get_height();
                 } elsif ($new_direction & DOWN) {
@@ -1924,16 +1930,16 @@ sub set_maintext_clutter {
                 } elsif ($new_direction & RIGHT) {
                     $x_start = 0;
                 }
-                my $step = 1 - $self->get_progress;
+                my $step  = 1 - $self->get_progress;
                 my $x_now = (($x_start - $x_end) * $step) + $x_end;
                 my $y_now = (($y_start - $y_end) * $step) + $y_end;
-                $globals->{'maintext'}->set_position($x_now,$y_now);
+                $globals->{'maintext'}->set_position($x_now, $y_now);
 
                 # New item
-                $x_start=$globals->{'stage'}->get_width() / 2;
-                $y_start=$globals->{'stage'}->get_height() / 2;
-                $x_end=$x_start;
-                $y_end=$y_start;
+                $x_start = $globals->{'stage'}->get_width() / 2;
+                $y_start = $globals->{'stage'}->get_height() / 2;
+                $x_end   = $x_start;
+                $y_end   = $y_start;
                 if ($old_direction & UP) {
                     $y_end = $globals->{'stage'}->get_height();
                 } elsif ($old_direction & DOWN) {
@@ -1944,10 +1950,10 @@ sub set_maintext_clutter {
                 } elsif ($old_direction & RIGHT) {
                     $x_end = 0;
                 }
-                my $step = 1 - $self->get_progress;
+                my $step  = 1 - $self->get_progress;
                 my $x_now = (($x_start - $x_end) * $step) + $x_end;
                 my $y_now = (($y_start - $y_end) * $step) + $y_end;
-                $globals->{'maintext_old'}->set_position($x_now,$y_now);
+                $globals->{'maintext_old'}->set_position($x_now, $y_now);
             }
         }
     );
@@ -1976,9 +1982,9 @@ sub create_outlined_text {
     my ($text, $font, $text_colour, $shadow_colour) = @_;
     my $group = Clutter::Group->new;
 
-    foreach my $count ( 0,2,6,8,4) {
+    foreach my $count (0, 2, 6, 8, 4) {
         my $colour;
-        if ( $count==4) {
+        if ($count == 4) {
             $colour = Clutter::Color->parse($text_colour);
         } else {
             $colour = Clutter::Color->parse($shadow_colour);
@@ -1987,20 +1993,14 @@ sub create_outlined_text {
         my $item = Clutter::Label->new($font, $text, $colour);
         $item->set_alignment('left');
         $item->set_use_markup(1);
-        if ($item->get_width() > $config->{'Width'})
-        {
+        if ($item->get_width() > $config->{'Width'}) {
             $item->set_line_wrap(1);
             $item->set_size($globals->{'stage'}->get_width(), -1);
         }
-        $item->set_anchor_point(
-            $item->get_width() / 2,
-            $item->get_height() / 2
-        );
-        $item->set_scale(1/$MINISCALE,1/$MINISCALE);
-        $item->set_position(
-            ($count % 3)-1,
-            (int($count/3)-1)
-        );
+        $item->set_anchor_point($item->get_width() / 2,
+            $item->get_height() / 2);
+        $item->set_scale(1 / $MINISCALE, 1 / $MINISCALE);
+        $item->set_position(($count % 3) - 1, (int($count / 3) - 1));
         $group->add($item);
     }
     return $group;
@@ -2362,14 +2362,19 @@ sub set_footer_clutter {
     if ($text eq "") {
         return;
     }
-    $globals->{'footer'} = create_outlined_text($text, $config->{'Footer'}, $config->{'Colour'}, $config->{'ShadowColour'});
+    $globals->{'footer'} =
+      create_outlined_text($text, $config->{'Footer'}, $config->{'Colour'},
+        $config->{'ShadowColour'});
     $globals->{'footer'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
     );
     $globals->{'stage'}->add($globals->{'footer'});
-    $globals->{'footer'}->set_position($globals->{'stage'}->get_width() / 2,
-        $globals->{'stage'}->get_height() - ($globals->{'footer'}->get_height() / 2));
+    $globals->{'footer'}->set_position(
+        $globals->{'stage'}->get_width() / 2,
+        $globals->{'stage'}->get_height() -
+          ($globals->{'footer'}->get_height() / 2)
+    );
 }
 
 sub set_footer_simple {
@@ -2455,7 +2460,9 @@ sub set_header_clutter {
         return;
     }
 
-    $globals->{'header'} = create_outlined_text($text, $config->{'Header'}, $config->{'Colour'}, $config->{'ShadowColour'});
+    $globals->{'header'} =
+      create_outlined_text($text, $config->{'Header'}, $config->{'Colour'},
+        $config->{'ShadowColour'});
     $globals->{'header'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
@@ -2531,7 +2538,7 @@ sub set_header_canvas {
 sub get_bibles {
     my $bibles;
     debug("Getting available bibles");
-    
+
     # Bible databases found
     my $dbs = $globals->{'db_available_db'};
     foreach (keys %$dbs) {
@@ -2745,7 +2752,7 @@ sub create_window {
             $vbox->pack_start($fill, TRUE, TRUE, 0);
         }
         $vbox->pack_start($globals->{'footerText'}, FALSE, FALSE, 0);
-    } elsif ($globals->{'server_type'} == CLUTTER ) {
+    } elsif ($globals->{'server_type'} == CLUTTER) {
         debug("Using clutter server");
         Clutter::Threads->init();
         Clutter->init();
@@ -3070,11 +3077,11 @@ sub HandleMouse {
 
 sub fromutf {
     my ($line) = @_;
-    return Encode::decode("utf8",$line);
+    return Encode::decode("utf8", $line);
 }
 
 sub toutf {
     my ($line) = @_;
-    return Encode::encode("utf8",$line);
+    return Encode::encode("utf8", $line);
 }
 

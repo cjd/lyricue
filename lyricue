@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.251 2009/05/03 02:11:20 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.252 2009/05/03 02:26:20 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -139,11 +139,11 @@ if ($^O eq 'MSWin32') {
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}     = "1.9.9";
-$globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
-$globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
-$globals->{'configfile'}  = $globals->{'basedir'} . "config2";
-$globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
+$globals->{'version'}         = "1.9.9";
+$globals->{'accessfile'}      = $globals->{'etcdir'} . "access.conf";
+$globals->{'defaultconf'}     = $globals->{'etcdir'} . "default.conf";
+$globals->{'configfile'}      = $globals->{'basedir'} . "config2";
+$globals->{'gladefile'}       = $globals->{'sharedir'} . "lyricue.glade";
 $globals->{'background_path'} = $globals->{'basedir'} . "backgrounds/";
 
 $globals->{'host'}        = "localhost";
@@ -245,14 +245,13 @@ $errorcodes->{'mediadbopen'} = fromutf(
 $errorcodes->{'sqlprepare'} =
   fromutf(gettext("Unable to prepare query.\nHas mysql died?"));
 $errorcodes->{'sqlexecute'} =
-  fromutf( gettext("Unable to execute query.\nHas mysql died?"));
+  fromutf(gettext("Unable to execute query.\nHas mysql died?"));
 $errorcodes->{'socketopen'} = fromutf(
     gettext(
 "Sorry, I was unable to listen on the network.\nPlease make sure I am not already running"
     )
 );
-$errorcodes->{'erroropen'} =
-  fromutf(gettext("Could not open "));
+$errorcodes->{'erroropen'}    = fromutf(gettext("Could not open "));
 $errorcodes->{'fileopenread'} = fromutf(
     gettext(
 "Unable to read the file, are you sure it exists?\nThe file asked for was "
@@ -277,9 +276,10 @@ $errorcodes->{'usage'} = fromutf(
     )
 );
 
-$errorcodes->{'nobible'} = fromutf(
-    gettext("No bible has been selected\n"
-          . "Please select one from the menu"));
+$errorcodes->{'nobible'} =
+  fromutf(
+    gettext("No bible has been selected\n" . "Please select one from the menu")
+  );
 
 # Widgets affected by access controls
 # access 'e'
@@ -615,8 +615,7 @@ sub add_playlist {
 
         my $title = "";
         if ($row->{'type'} eq "back") {
-            my $query2 =
-              "SELECT description FROM media WHERE id=\""
+            my $query2 = "SELECT description FROM media WHERE id=\""
               . $row->{'data'} . "\"";
             qdebug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
@@ -633,8 +632,7 @@ sub add_playlist {
                 $title = "File: " . $row->{'data'};
             }
         } elsif ($row->{'type'} eq "imag") {
-            my $query2 =
-              "SELECT description FROM media WHERE id=\""
+            my $query2 = "SELECT description FROM media WHERE id=\""
               . $row->{'data'} . "\"";
             qdebug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
@@ -719,7 +717,7 @@ sub add_playlist {
         # Set sub-item if image associated
 
         if ($imagename) {
-            my ($type,$id) = split /;/, $imagename;
+            my ($type, $id) = split /;/, $imagename;
             if ($type eq "db") {
                 my $query2 =
                   "SELECT description FROM media WHERE id=\"" . $id . "\"";
@@ -864,15 +862,12 @@ sub update_available {
     } else {
         $widgets->{'main'}->get_widget('treeAvailable')->{user_data} = "load";
         my $column1 =
-          Gtk2::TreeViewColumn->new_with_attributes(
-            fromutf(gettext("Title")),
+          Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Title")),
             Gtk2::CellRendererText->new, text => 0);
         my $column2 =
-          Gtk2::TreeViewColumn->new_with_attributes(
-            fromutf(gettext("Book")),
+          Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Book")),
             Gtk2::CellRendererText->new, text => 1);
-        my $column3 =
-          Gtk2::TreeViewColumn->new_with_attributes(
+        my $column3 = Gtk2::TreeViewColumn->new_with_attributes(
             fromutf(gettext("Song Number")),
             Gtk2::CellRendererText->new, text => 2);
         $column1->set_resizable(TRUE);
@@ -902,8 +897,9 @@ sub update_available {
         $row = $sth->fetchrow_hashref();
         my $iter = $store->append;
         $store->set(
-            $iter,             0, fromutf($row->{'title'}), 1, fromutf($row->{'book'}), 2,
-            $row->{'songnum'}, 3, $row->{'id'}
+            $iter,                   0, fromutf($row->{'title'}), 1,
+            fromutf($row->{'book'}), 2, $row->{'songnum'},        3,
+            $row->{'id'}
         );
         $special_id = $row->{'id'};
     }
@@ -911,7 +907,7 @@ sub update_available {
     $query = "SELECT id,title,songnum,book FROM lyricMain WHERE id > 0";
 
     if ($special_id > 0) {
-        $query .= " AND id != ".$special_id;
+        $query .= " AND id != " . $special_id;
     }
 
     # Add search term if applicable
@@ -935,8 +931,9 @@ sub update_available {
     while ($row = $sth->fetchrow_hashref()) {
         my $iter = $store->append;
         $store->set(
-            $iter,             0, fromutf($row->{'title'}), 1, fromutf($row->{'book'}), 2,
-            $row->{'songnum'}, 3, $row->{'id'}
+            $iter,                   0, fromutf($row->{'title'}), 1,
+            fromutf($row->{'book'}), 2, $row->{'songnum'},        3,
+            $row->{'id'}
         );
     }
 
@@ -953,8 +950,17 @@ sub update_available {
 
         while ($row = $sth->fetchrow_hashref()) {
             my $iter = $store->append;
-            $store->set($iter, 0, fromutf($row->{'line'}) . " (" . fromutf($row->{'title'}) . ")",
-                1, $row->{'book'}, 2, $row->{'songnum'}, 3, $row->{'id'});
+            $store->set(
+                $iter,
+                0,
+                fromutf($row->{'line'}) . " (" . fromutf($row->{'title'}) . ")",
+                1,
+                $row->{'book'},
+                2,
+                $row->{'songnum'},
+                3,
+                $row->{'id'}
+            );
         }
     }
 
@@ -992,10 +998,7 @@ sub popup_avail_menu {
 
         if ($globals->{'access'} =~ /e/) {
             push @items,
-              [
-                fromutf(gettext("/Edit Song")),
-                undef, 'edit_song', 1, '', ''
-              ];
+              [fromutf(gettext("/Edit Song")), undef, 'edit_song', 1, '', ''];
         }
         if ($globals->{'access'} =~ /d/) {
             push @items,
@@ -1007,7 +1010,7 @@ sub popup_avail_menu {
         push @items,
           (
             [
-                fromutf( gettext("/Refresh List")),
+                fromutf(gettext("/Refresh List")),
                 undef, 'update_available', 1, '', ''
             ],
             [
@@ -1015,19 +1018,15 @@ sub popup_avail_menu {
                 undef, 'change_sort_order', 4, '', ''
             ],
             [
-                fromutf( gettext("/Order - Songbook -> Name.")),
-                undef,
-                'change_sort_order',
-                5,
-                '',
-                ''
+                fromutf(gettext("/Order - Songbook -> Name.")),
+                undef, 'change_sort_order', 5, '', ''
             ]
           );
         if ($globals->{'access'} =~ /p/) {
             push @items,
               (
                 [
-                    fromutf( gettext("/Add to Playlist")),
+                    fromutf(gettext("/Add to Playlist")),
                     undef, 'add_to_playlist', 1, '', ''
                 ]
               );
@@ -1101,47 +1100,34 @@ sub popup_play_menu {
     }
 
     my @items = (
-        [
-            fromutf( gettext("/Duplicate Item")), undef,
-            'copy_item', 1
-        ],
+        [fromutf(gettext("/Duplicate Item")), undef, 'copy_item', 1],
         [
             fromutf(gettext("/Remove from Playlist")), undef,
-            'remove_from_playlist', 1
+            'remove_from_playlist',                    1
+        ],
+        [fromutf(gettext("/Refresh Playlist")),    undef, 'update_playlist', 1],
+        [fromutf(gettext("/Add Verse")),           undef, 'add_verse',       1],
+        [fromutf(gettext("/Invert Line Display")), undef, 'invert_lines',    1],
+        [fromutf(gettext("/Loop this playlist item")), undef, 'begin_loop', 1],
+        [
+            fromutf(gettext("/Associate background")), undef,
+            'prepare_for_association',                 1
         ],
         [
-            fromutf( gettext("/Refresh Playlist")), undef,
-            'update_playlist', 1
-        ],
-        [fromutf( gettext("/Add Verse")), undef, 'add_verse', 1],
-        [
-            fromutf( gettext("/Invert Line Display")), undef,
-            'invert_lines', 1
+            fromutf(gettext("/Dis-associate background")), undef,
+            'disassociate_bg',                             1
         ],
         [
-            fromutf( gettext("/Loop this playlist item")),
-            undef, 'begin_loop', 1
+            fromutf(gettext("/Preview this item")), undef,
+            'preview_playlist_item',                1
         ],
         [
-            fromutf( gettext("/Associate background")), undef,
-            'prepare_for_association', 1
-        ],
-        [
-            fromutf(gettext("/Dis-associate background")),
-            undef, 'disassociate_bg', 1
-        ],
-        [
-            fromutf( gettext("/Preview this item")), undef,
-            'preview_playlist_item', 1
-        ],
-        [
-            fromutf( gettext("/Move to sublist/Main")),
-            undef, 'move_item_to_sublist', $playlist
+            fromutf(gettext("/Move to sublist/Main")), undef,
+            'move_item_to_sublist',                    $playlist
         ],
     );
     foreach (sort { uc($a->{'title'}) cmp uc($b->{'title'}) } @list) {
-        my $item =
-          fromutf( gettext("/Move to sublist/")) . $_->{'title'};
+        my $item = fromutf(gettext("/Move to sublist/")) . $_->{'title'};
         push @items, [$item, undef, 'move_item_to_sublist', $_->{'data'}],;
     }
     my $factory = Gtk2::ItemFactory->new('Gtk2::Menu', '<playpopup>', undef);
@@ -1215,17 +1201,16 @@ sub delete_song {
               || display_fatal($errorcodes->{'sqlexecute'}, $!);
             $row = $sth->fetchrow_hashref();
             my $labelText =
-              fromutf(
-                gettext("Are you sure you wish to delete "))
+              fromutf(gettext("Are you sure you wish to delete "))
               . $row->{'title'} . "\n";
 
             if ($row->{'book'} ne "") {
                 $labelText .=
-                  fromutf( gettext("from the book \""))
+                  fromutf(gettext("from the book \""))
                   . $row->{'book'} . "\"\n";
             }
             $labelText .=
-              fromutf( gettext("which was written by \""))
+              fromutf(gettext("which was written by \""))
               . $row->{'artist'} . "\"";
             my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
                 'dialogConfirm', 'lyricue');
@@ -1375,9 +1360,10 @@ sub do_save_song {
 
         foreach $page (keys(%pageOrder)) {
             if ($dbpages{$pageOrder{$page}}) {
-                $query = "UPDATE page SET lyrics="
+                $query =
+                  "UPDATE page SET lyrics="
                   . $lyricDbh->quote(
-                    get_buffer_text( $widgets->{'textAPageB'}{$page}))
+                    get_buffer_text($widgets->{'textAPageB'}{$page}))
                   . " WHERE songid="
                   . $songid
                   . " AND pagenum="
@@ -1394,7 +1380,7 @@ sub do_save_song {
                   . $pageOrder{$page} . ", "
                   . $lyricDbh->quote(
                     toutf(
-                        
+
                         get_buffer_text($widgets->{'textAPageB'}{$page})
                     )
                   ) . ")";
@@ -1407,38 +1393,29 @@ sub do_save_song {
         }
 
         $query = "UPDATE lyricMain SET title="
-          . quote(
-                $widgets->{'add'}->get_widget('entryEditName')->get_text()
-          );
+          . quote($widgets->{'add'}->get_widget('entryEditName')->get_text());
         $query .= ", songnum="
-          . quote(
-                $widgets->{'add'}->get_widget('entryEditNumber')->get_text()
-          );
+          . quote($widgets->{'add'}->get_widget('entryEditNumber')->get_text());
         $query .= ", book="
-          . quote(
-                $widgets->{'add'}->get_widget('entryEditBook')->get_text()
-          );
+          . quote($widgets->{'add'}->get_widget('entryEditBook')->get_text());
         $query .= ", artist="
+          . quote($widgets->{'add'}->get_widget('entryEditArtist')->get_text());
+        $query .=
+          ", copyright="
           . quote(
-                $widgets->{'add'}->get_widget('entryEditArtist')->get_text()
-          );
-        $query .= ", copyright="
-          . quote(
-                $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
-          );
+            $widgets->{'add'}->get_widget('entryEditCopyright')->get_text());
         my $noaudit = "";
         if (!$widgets->{'add'}->get_widget('checkEditAudit')->get_active()) {
             $noaudit = "NOAUDIT ";
         }
-        $query .= ", keywords="
-          . quote(
+        $query .= ", keywords=" . quote(
             toutf(
-                
+
                 $noaudit
                   . $widgets->{'add'}->get_widget('entryEditKeywords')
                   ->get_text()
             )
-          );
+        );
         $query .= " WHERE id=" . $songid;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
@@ -1462,37 +1439,37 @@ sub do_save_song {
           . $songid . ", ";
         $query .= quote(
             toutf(
-                
+
                 $widgets->{'add'}->get_widget('entryEditName')->get_text()
             )
         ) . ",";
         $query .= quote(
             toutf(
-                
+
                 $widgets->{'add'}->get_widget('entryEditNumber')->get_text()
             )
         ) . ",";
         $query .= quote(
             toutf(
-                
+
                 $widgets->{'add'}->get_widget('entryEditBook')->get_text()
             )
         ) . ",";
         $query .= quote(
             toutf(
-                
+
                 $widgets->{'add'}->get_widget('entryEditArtist')->get_text()
             )
         ) . ",";
         $query .= quote(
             toutf(
-                
+
                 $widgets->{'add'}->get_widget('entryEditKeywords')->get_text()
             )
         ) . ",";
         $query .= quote(
             toutf(
-                
+
                 $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
             )
         ) . ", NOW(), NOW() )";
@@ -1509,7 +1486,7 @@ sub do_save_song {
               . $pageOrder{$page} . ", "
               . $lyricDbh->quote(
                 toutf(
-                    
+
                     get_buffer_text($widgets->{'textAPageB'}{$page})
                 )
               ) . ")";
@@ -1645,8 +1622,8 @@ sub renumber_pages {
             $pageOrder{$i}++;
         }
         debug("$i:$pageOrder{$i}");
-        $widgets->{'labelAPage'}{$i}->set_text(
-            fromutf( gettext("Page ")) . $pageOrder{$i});
+        $widgets->{'labelAPage'}{$i}
+          ->set_text(fromutf(gettext("Page ")) . $pageOrder{$i});
         $widgets->{'labelAPage'}{$i}->show();
     }
 }
@@ -1679,8 +1656,8 @@ sub remove_page {
         debug("-$pagenum:$i:$pageOrder{$i}:");
         if ($pageOrder{$i} < $pagenum) {
             $newpageOrder{$i} = $pageOrder{$i};
-            $widgets->{'labelAPage'}{$i}->set_text(
-                fromutf( gettext("Page ")) . $newpageOrder{$i});
+            $widgets->{'labelAPage'}{$i}
+              ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
             debug("$newpageOrder{$i}");
         } elsif ($pageOrder{$i} == $pagenum) {
             $widgets->{'add'}->get_widget('notebookEditPages')
@@ -1689,8 +1666,8 @@ sub remove_page {
         } elsif ($pageOrder{$i} > $pagenum) {
             $newpageOrder{$i} = $pageOrder{$i} - 1;
             debug("$newpageOrder{$i}");
-            $widgets->{'labelAPage'}{$i}->set_text(
-                fromutf( gettext("Page ")) . $newpageOrder{$i});
+            $widgets->{'labelAPage'}{$i}
+              ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
         }
     }
     %pageOrder = %newpageOrder;
@@ -1878,7 +1855,7 @@ sub insert_verse {
     $query =
         "INSERT INTO playlists (id,title) VALUES ("
       . $playlist . ", \""
-      . toutf( $verse) . "\")";
+      . toutf($verse) . "\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -2114,7 +2091,6 @@ sub import_song_songbeamer {
             $_ =~ s/^ *//g;
             $_ =~ s/\r//g;
 
-
             if (!$artist) {
                 $artist = $_;
                 $widgets->{'add'}->get_widget('entryEditArtist')
@@ -2150,14 +2126,13 @@ sub import_song_songbeamer {
                 $widgets->{'add'}->get_widget('entryEditCopyright')
                   ->set_text($copyright);
             }
-        } elsif (/^#/) { # many functions in SongBeamer are unknown to Lyricue
+        } elsif (/^#/) {   # many functions in SongBeamer are unknown to Lyricue
             debug("unknown operator");
         } elsif (/^---/) {
-            if($firstpage) { #no new page in the first run
+            if ($firstpage) {    #no new page in the first run
                 debug("add page");
                 $hashnum = add_page();
-            }
-            else {
+            } else {
                 $firstpage = "yes";
             }
         } else {
@@ -2168,7 +2143,6 @@ sub import_song_songbeamer {
     }
     close SONG;
 }
-
 
 #***
 
@@ -2203,7 +2177,8 @@ sub update_songinfo {
 
         while ($row = $sth->fetchrow_hashref()) {
             $hashnum = add_page();
-            $widgets->{'textAPageB'}{$hashnum}->set_text(fromutf($row->{'lyrics'}));
+            $widgets->{'textAPageB'}{$hashnum}
+              ->set_text(fromutf($row->{'lyrics'}));
         }
 
         $query =
@@ -2513,11 +2488,10 @@ sub clear_playlist {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogConfirm', 'lyricue');
     $deletexml->signal_autoconnect_from_package('');
     my $labelText =
-      fromutf(
-        gettext("Are you sure you wish to clear the current playlist?"));
+      fromutf(gettext("Are you sure you wish to clear the current playlist?"));
     $deletexml->get_widget('labelDelete')->set_text($labelText);
     $deletexml->get_widget('dialogConfirm')
-      ->set_title(fromutf( gettext("Confirm Clear Playlist")));
+      ->set_title(fromutf(gettext("Confirm Clear Playlist")));
     my $confirm = $deletexml->get_widget('dialogConfirm')->run();
 
     if ($confirm eq "ok") {
@@ -2594,15 +2568,15 @@ sub display_song {
                     my ($model, $iter) = $selection->get_selected;
                     if ($iter) {
                         my $transition = $model->get($iter, 3);
-print $transition;
+                        print $transition;
 
                         # Set the transition values
                         my $old_direction = mod($transition, 2**NUM_TRANS);
                         $transition = $transition >> NUM_TRANS;
                         my $new_direction = mod($transition, 2**NUM_TRANS);
                         my $effect = $transition >> NUM_TRANS;
-                        $widgets->{'transitions'}
-                          ->get_widget('radioTransNone')->set_active(TRUE);
+                        $widgets->{'transitions'}->get_widget('radioTransNone')
+                          ->set_active(TRUE);
                         if ($effect == WIPE) {
                             $widgets->{'transitions'}
                               ->get_widget('radioTransWipe')->set_active(TRUE);
@@ -2613,7 +2587,8 @@ print $transition;
                         }
                         if ($effect == ROTATE_TEXT) {
                             $widgets->{'transitions'}
-                              ->get_widget('radioTransRotate')->set_active(TRUE);
+                              ->get_widget('radioTransRotate')
+                              ->set_active(TRUE);
                         }
                         if ($old_direction & WAIT) {
                             $widgets->{'transitions'}
@@ -2625,27 +2600,27 @@ print $transition;
                               ->get_widget('checkTransNew')->set_active(TRUE);
                             $new_direction = $new_direction - WAIT;
                         }
-                        my $olddir="";
-                        if ($old_direction & UP) {$olddir .= "Up + "}
-                        if ($old_direction & DOWN) {$olddir .= "Down + "}
-                        if ($old_direction & LEFT) {$olddir .= "Left + "}
-                        if ($old_direction & RIGHT) {$olddir .= "Right + "}
-                        if ($old_direction & X_AXIS) {$olddir .= "X-Axis + "}
-                        if ($old_direction & Y_AXIS) {$olddir .= "Y-Axis + "}
-                        if ($old_direction & Z_AXIS) {$olddir .= "Z-Axis + "}
+                        my $olddir = "";
+                        if ($old_direction & UP)     { $olddir .= "Up + " }
+                        if ($old_direction & DOWN)   { $olddir .= "Down + " }
+                        if ($old_direction & LEFT)   { $olddir .= "Left + " }
+                        if ($old_direction & RIGHT)  { $olddir .= "Right + " }
+                        if ($old_direction & X_AXIS) { $olddir .= "X-Axis + " }
+                        if ($old_direction & Y_AXIS) { $olddir .= "Y-Axis + " }
+                        if ($old_direction & Z_AXIS) { $olddir .= "Z-Axis + " }
                         $olddir =~ s/ \+ $//g;
-                        if ($olddir eq "") {$olddir="None"}
+                        if ($olddir eq "") { $olddir = "None" }
 
-                        my $newdir="";
-                        if ($new_direction & UP) {$newdir .= "Up + "}
-                        if ($new_direction & DOWN) {$newdir .= "Down + "}
-                        if ($new_direction & LEFT) {$newdir .= "Left + "}
-                        if ($new_direction & RIGHT) {$newdir .= "Right + "}
-                        if ($new_direction & X_AXIS) {$newdir .= "X-Axis + "}
-                        if ($new_direction & Y_AXIS) {$newdir .= "Y-Axis + "}
-                        if ($new_direction & Z_AXIS) {$newdir .= "Z-Axis + "}
+                        my $newdir = "";
+                        if ($new_direction & UP)     { $newdir .= "Up + " }
+                        if ($new_direction & DOWN)   { $newdir .= "Down + " }
+                        if ($new_direction & LEFT)   { $newdir .= "Left + " }
+                        if ($new_direction & RIGHT)  { $newdir .= "Right + " }
+                        if ($new_direction & X_AXIS) { $newdir .= "X-Axis + " }
+                        if ($new_direction & Y_AXIS) { $newdir .= "Y-Axis + " }
+                        if ($new_direction & Z_AXIS) { $newdir .= "Z-Axis + " }
                         $newdir =~ s/ \+ $//g;
-                        if ($newdir eq "") {$newdir="None"}
+                        if ($newdir eq "") { $newdir = "None" }
 
                         $widgets->{'transitions'}->get_widget('entryTransOld')
                           ->set_text($olddir);
@@ -2864,7 +2839,7 @@ sub preview_page {
     my $label = $widgets->{'labelAPage'};
     foreach (keys %$label) {
         if ($widgets->{'labelAPage'}{$_}->get_text() eq
-            fromutf( gettext("Page ")) . $current_page)
+            fromutf(gettext("Page ")) . $current_page)
         {
             $current_hash = $_;
         }
@@ -2907,7 +2882,7 @@ sub preview_page {
 sub add_verse {
     debug("Add verse clicked");
 
-    if ((!defined $globals->{'bibledb'}) || ($globals->{'bibledb'} eq "")){
+    if ((!defined $globals->{'bibledb'}) || ($globals->{'bibledb'} eq "")) {
         display_message($errorcodes->{'nobible'});
     } else {
         my $bookxml =
@@ -3020,10 +2995,10 @@ sub update_imagedir {
     if ($data eq "") {
         $data = $main;
     }
-    ($access, $category)  = split /;/,$data;
+    ($access, $category) = split /;/, $data;
     if (!defined $category) {
-        $category=$access;
-        $access="db";
+        $category = $access;
+        $access   = "db";
     }
 
     debug("changing to $access;$category");
@@ -3056,21 +3031,22 @@ sub update_imagedir {
 
     while ($row = $sth->fetchrow_hashref()) {
         my $item = Gtk2::MenuItem->new_with_label($row->{'category'});
-        $item->{user_data} = "db;".$row->{'category'};
+        $item->{user_data} = "db;" . $row->{'category'};
         $item->show();
         $menu->append($item);
 
     }
     if ($type eq "bg") {
+
         # Add categories from directories
         my $dirname = $globals->{'background_path'};
         my (@files, $file);
         my $ret = opendir DIR, $dirname;
         if ($ret) {
             foreach $file (readdir(DIR)) {
-                if (!($file =~ /^\./))  {
+                if (!($file =~ /^\./)) {
                     my $item = Gtk2::MenuItem->new_with_label($file);
-                    $item->{user_data} = "dir;".$file;
+                    $item->{user_data} = "dir;" . $file;
                     $item->show();
                     $menu->append($item);
                 }
@@ -3086,14 +3062,15 @@ sub update_imagedir {
 
     if ($type eq "bg") {
         if ($access eq "dir") {
-            my $dirname = $globals->{'background_path'}.$category;
+            my $dirname = $globals->{'background_path'} . $category;
             my $ret = opendir DIR, $dirname;
             if ($ret) {
-                my $file="";
+                my $file = "";
                 foreach $file (readdir(DIR)) {
-                    if (!($file =~ /^\./))  {
+                    if (!($file =~ /^\./)) {
                         $iter = $store->append;
-                        $store->set($iter, 0, $file, 1, "dir;".$dirname."/".$file);
+                        $store->set($iter, 0, $file, 1,
+                            "dir;" . $dirname . "/" . $file);
                     }
                 }
             }
@@ -3101,6 +3078,7 @@ sub update_imagedir {
     }
 
     if ($access eq "db") {
+
         # update list of available images
         $query =
             "SELECT * FROM media WHERE category LIKE \""
@@ -3114,7 +3092,8 @@ sub update_imagedir {
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         while ($row = $sth->fetchrow_hashref()) {
             $iter = $store->append;
-            $store->set($iter, 0, $row->{'description'}, 1, "db;".$row->{'id'});
+            $store->set($iter, 0, $row->{'description'}, 1,
+                "db;" . $row->{'id'});
         }
     }
     $widgets->{'image'}->get_widget('treeImage')->set_model($store);
@@ -3198,12 +3177,11 @@ sub update_display {
             chomp($status);
             if ($status =~ /^pl:/) {
                 my @line = split(/:/, $status);
-                $status = fromutf( gettext("Displaying "));
+                $status = fromutf(gettext("Displaying "));
                 if ($line[1] eq "v") {
-                    $status = fromutf( gettext(" verses "));
+                    $status = fromutf(gettext(" verses "));
                 } else {
-                    $status =
-                      fromutf( gettext(" page ")) . $line[3];
+                    $status = fromutf(gettext(" page ")) . $line[3];
                     $widgets->{'main'}->get_widget('treePlaylist')
                       ->select_item($line[2]);
                 }
@@ -3307,15 +3285,11 @@ sub preview_display {
                     chomp($status);
                     if ($status =~ /^pl:/) {
                         my @line = split(/:/, $status);
-                        $status =
-                          fromutf( gettext("Previewed "));
+                        $status = fromutf(gettext("Previewed "));
                         if ($line[1] eq "v") {
-                            $status .=
-                              fromutf( gettext(" verses "));
+                            $status .= fromutf(gettext(" verses "));
                         } else {
-                            $status .=
-                              fromutf( gettext(" page "))
-                              . $line[3];
+                            $status .= fromutf(gettext(" page ")) . $line[3];
                             $widgets->{'main'}->get_widget('treePlaylist')
                               ->select_item($line[2]);
                         }
@@ -3349,9 +3323,8 @@ sub open_dialogColour {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogColour', 'lyricue');
     $colourxml->signal_autoconnect_from_package('');
     $colourxml->get_widget('dialogColour')
-      ->set_title(fromutf( gettext("Select ")) 
-          . $item
-          . fromutf( gettext(" Colour")));
+      ->set_title(
+        fromutf(gettext("Select ")) . $item . fromutf(gettext(" Colour")));
     $colourxml->get_widget('dialogColour')->{'user_data'} = $item;
 
     if ($item eq "Font") {
@@ -3504,7 +3477,7 @@ sub create_dialogChapter {
             $globals->{'bibledb'}, $book, $untranslated_book
         );
         qdebug($command);
-        $maxchap = fromutf( `$command`);
+        $maxchap = fromutf(`$command`);
         ($book, undef) = split(/\s\d/, $maxchap, 2);
 
         $command = sprintf(
@@ -3513,16 +3486,17 @@ sub create_dialogChapter {
             $globals->{'bibledb'}, $book, $book
         );
         qdebug($command);
-        $maxchap = fromutf( `$command`);
+        $maxchap = fromutf(`$command`);
         $maxchap =~ s/^$book ([0-9]*):[0-9].*$/$1/g;
         if ($maxchap) {
             $cont = TRUE;
         }
     } else {
         my $query =
-          "SELECT MAX(chapternum) FROM verse WHERE book like \""
-          . toutf( $book) . "%\" or book like \""
-          . toutf( $untranslated_book) . "%\"";
+            "SELECT MAX(chapternum) FROM verse WHERE book like \""
+          . toutf($book)
+          . "%\" or book like \""
+          . toutf($untranslated_book) . "%\"";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -3591,12 +3565,12 @@ sub create_dialogVerse {
             $globals->{'bibledb'}, $book, $chapter, $book
         );
         qdebug($command);
-        $maxverse = fromutf( `$command`);
+        $maxverse = fromutf(`$command`);
         $maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
     } else {
         my $query =
             "SELECT MAX(versenum) FROM verse WHERE book=\""
-          . toutf( $book)
+          . toutf($book)
           . "\" AND chapternum="
           . $chapter;
         qdebug($query);
@@ -3760,7 +3734,7 @@ sub change_preview {
         my $data =
           $widgets->{'image'}->get_widget('treeImage')
           ->get_model->get($iter, 1);
-        my ($type,$id) = split /;/, $data;
+        my ($type, $id) = split /;/, $data;
         my $tmp = 0;
         foreach $tmp (@selecteditems) {
             my $iter2 =
@@ -3771,7 +3745,7 @@ sub change_preview {
               ->get_model->get($iter2, 1);
             if (!defined $selectedimages{$data2}) {
                 $data = $data2;
-                ($type,$id) = split /;/, $data;
+                ($type, $id) = split /;/, $data;
             }
         }
         %selectedimages = ();
@@ -3792,7 +3766,7 @@ sub change_preview {
                 my $row;
                 if ($type eq "db") {
                     my $query =
-                      "SELECT textcolour, shadowcolour FROM media WHERE id=\"" 
+                      "SELECT textcolour, shadowcolour FROM media WHERE id=\""
                       . $id . "\"";
                     qdebug($query);
                     my $sth = $mediaDbh->prepare($query)
@@ -3801,7 +3775,7 @@ sub change_preview {
                       || display_fatal($errorcodes->{'sqlexecute'}, $!);
                     $row = $sth->fetchrow_hashref();
                 } else {
-                    $row->{'textcolour'} = "Default";
+                    $row->{'textcolour'}   = "Default";
                     $row->{'shadowcolour'} = "Default";
                 }
                 if (   ($row->{'textcolour'} ne "")
@@ -4490,21 +4464,18 @@ sub do_adv_search {
                 'Glib::String', 'Glib::String'
             );
             $widgets->{'search'}->get_widget('treeSearch')->set_model($store);
-            my $column =
-              Gtk2::TreeViewColumn->new_with_attributes(
-                fromutf( gettext("Title")),
+            my $column = Gtk2::TreeViewColumn->new_with_attributes(
+                fromutf(gettext("Title")),
                 Gtk2::CellRendererText->new, text => 0);
             $widgets->{'search'}->get_widget('treeSearch')
               ->append_column($column);
-            $column =
-              Gtk2::TreeViewColumn->new_with_attributes(
-                fromutf( gettext("Book")),
+            $column = Gtk2::TreeViewColumn->new_with_attributes(
+                fromutf(gettext("Book")),
                 Gtk2::CellRendererText->new, text => 1);
             $widgets->{'search'}->get_widget('treeSearch')
               ->append_column($column);
-            $column =
-              Gtk2::TreeViewColumn->new_with_attributes(
-                fromutf( gettext("Song No")),
+            $column = Gtk2::TreeViewColumn->new_with_attributes(
+                fromutf(gettext("Song No")),
                 Gtk2::CellRendererText->new, text => 2);
             $widgets->{'search'}->get_widget('treeSearch')
               ->append_column($column);
@@ -4830,8 +4801,7 @@ sub select_playlist {
     my ($widget) = @_;
     debug("Selecting a main playlist");
 
-    my $query =
-      "SELECT id FROM playlists WHERE title LIKE \""
+    my $query = "SELECT id FROM playlists WHERE title LIKE \""
       . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() . "\"";
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -4924,7 +4894,7 @@ sub rename_playlist {
                 'dialogPromptEntry', 'lyricue');
             $renamexml->signal_autoconnect_from_package('');
             my $labelText =
-              fromutf( gettext("Renaming "))
+              fromutf(gettext("Renaming "))
               . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text();
             $renamexml->get_widget('dialogPromptEntry')->set_title($labelText);
             $renamexml->get_widget('labelPromptE')->set_text($labelText);
@@ -4990,8 +4960,7 @@ sub delete_playlist {
     my ($widget) = @_;
     debug("Deleting a playlist");
 
-    my $query =
-      "SELECT id FROM playlists WHERE title=\""
+    my $query = "SELECT id FROM playlists WHERE title=\""
       . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() . "\"";
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -5286,13 +5255,13 @@ sub load_config {
         }
     }
     if (!($conf->{'BGImage'} =~ /;/)) {
-        $conf->{'BGImage'} = "db;".$conf->{'BGImage'};
+        $conf->{'BGImage'} = "db;" . $conf->{'BGImage'};
     }
     if (!($conf->{'ImageDirectory'})) {
-        $conf->{'ImageDirectory'}=$globals->{'basedir'}."images/";
+        $conf->{'ImageDirectory'} = $globals->{'basedir'} . "images/";
     }
     if (!($conf->{'BGDirectory'})) {
-        $conf->{'BGDirectory'}=$globals->{'basedir'}."backgrounds/";
+        $conf->{'BGDirectory'} = $globals->{'basedir'} . "backgrounds/";
     }
 
     return $conf;
@@ -5302,8 +5271,7 @@ sub load_config {
 
 sub save_state {
     my $config = "";
-    $config .=
-      "FrameLeft = "
+    $config .= "FrameLeft = "
       . $widgets->{'main'}->get_widget('hpanedMainLeft')->get_position() . "\n";
     $config .=
         "FrameRight = "
@@ -5355,26 +5323,34 @@ sub save_preferences {
     print CONFIG "OverscanV = "
       . $widgets->{'prefs'}->get_widget('spinPrefOverscanV')->get_value()
       . "\n";
-    print CONFIG "Loop = "
-      , $widgets->{'prefs'}->get_widget('checkPrefLoop')->get_active()?1:0 , "\n";
-    print CONFIG "Audit = "
-      , $widgets->{'prefs'}->get_widget('checkPrefAudit')->get_active()?1:0 , "\n";
-    print CONFIG "DynamicPreview = "
-      , $widgets->{'prefs'}->get_widget('checkPrefView')->get_active()?1:0 , "\n";
-    print CONFIG "Miniview = "
-      , $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active()?1:0
-      , "\n";
-    print CONFIG "Xinerama = "
-      , $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()?1:0
-      , "\n";
-    print CONFIG "CentreY = "
-      , $widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active()?1:0
-      , "\n";
-    print CONFIG "CentreX = "
-      , $widgets->{'prefs'}->get_widget('comboPrefHorizontal')->get_active()?1:0
-      , "\n";
+    print CONFIG "Loop = ",
+      $widgets->{'prefs'}->get_widget('checkPrefLoop')->get_active() ? 1 : 0,
+      "\n";
+    print CONFIG "Audit = ",
+      $widgets->{'prefs'}->get_widget('checkPrefAudit')->get_active() ? 1 : 0,
+      "\n";
+    print CONFIG "DynamicPreview = ",
+      $widgets->{'prefs'}->get_widget('checkPrefView')->get_active() ? 1 : 0,
+      "\n";
+    print CONFIG "Miniview = ",
+      $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active()
+      ? 1
+      : 0, "\n";
+    print CONFIG "Xinerama = ",
+      $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
+      ? 1
+      : 0, "\n";
+    print CONFIG "CentreY = ",
+      $widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active()
+      ? 1
+      : 0, "\n";
+    print CONFIG "CentreX = ",
+      $widgets->{'prefs'}->get_widget('comboPrefHorizontal')->get_active()
+      ? 1
+      : 0, "\n";
 
-    if ($widgets->{'prefs'}->get_widget('radioPrefServerClutter')->get_active()) {
+    if ($widgets->{'prefs'}->get_widget('radioPrefServerClutter')->get_active())
+    {
         print CONFIG "ServerType = clutter\n";
     } elsif (
         $widgets->{'prefs'}->get_widget('radioPrefServerFast')->get_active())
@@ -5395,12 +5371,12 @@ sub save_preferences {
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text()
       . "\n";
     print CONFIG "ImageDirectory = "
-      . $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->get_filename()
-      . "\n";
+      . $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')
+      ->get_filename() . "\n";
     print CONFIG "BGDirectory = "
       . $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->get_filename()
       . "\n";
-    print CONFIG "TrayIcons = " . $config->{'TrayIcons'}."\n";
+    print CONFIG "TrayIcons = " . $config->{'TrayIcons'} . "\n";
 
     if ($widgets->{'prefs'}->get_widget('radioPrefDBMysql')->get_active()) {
         print CONFIG "DatabaseType = mysql\n";
@@ -5970,7 +5946,7 @@ sub init_mainWindow {
 sub bgdir_list {
     debug("Loading directory list");
     my $counter = 0;
-    my $cat = "";
+    my $cat     = "";
     debug("Adding Main image dir button");
     my @categories = ();
     if ($config->{'SpecialBack'} ne "") {
@@ -5996,19 +5972,20 @@ sub bgdir_list {
         $widgets->{'main'}->get_widget('vboxBackDir')
           ->add($widgets->{'dirbuttons'}[$counter]);
         $widgets->{'dirbuttons'}[$counter]
-          ->signal_connect("clicked", \&bgdir_change, "db;".$cat);
+          ->signal_connect("clicked", \&bgdir_change, "db;" . $cat);
         $widgets->{'dirbuttons'}[$counter]->show;
         $counter++;
     }
 
     @categories = ();
+
     # Add categories from directories
     my $dirname = $globals->{'background_path'};
     my (@files, $file);
     my $ret = opendir DIR, $dirname;
     if ($ret) {
         foreach $file (readdir(DIR)) {
-            if (!($file =~ /^\./))  {
+            if (!($file =~ /^\./)) {
                 push @categories, $file;
             }
         }
@@ -6021,7 +5998,7 @@ sub bgdir_list {
         $widgets->{'main'}->get_widget('vboxBackDir')
           ->add($widgets->{'dirbuttons'}[$counter]);
         $widgets->{'dirbuttons'}[$counter]
-          ->signal_connect("clicked", \&bgdir_change, "dir;".$cat);
+          ->signal_connect("clicked", \&bgdir_change, "dir;" . $cat);
         $widgets->{'dirbuttons'}[$counter]->show;
         $counter++;
     }
@@ -6044,9 +6021,10 @@ sub bgdir_list {
 #
 sub bgdir_change {
     my ($widget, $data) = @_;
-    my ($type, $category)  = split /;/,$data;
+    my ($type, $category) = split /;/, $data;
     debug(  "Changing background source category to "
-          . $category . " of type "
+          . $category
+          . " of type "
           . $type
           . "\nDestroying old images");
     $globals->{'category'} = $category;
@@ -6084,8 +6062,9 @@ sub bgdir_load {
     my $counter = 0;
 
     # update list of available backdrops
-    debug("Loading new preview images from: " .$type. "-" . $category);
-print "test\n";
+    debug("Loading new preview images from: " . $type . "-" . $category);
+    print "test\n";
+
     # Disable dir buttons
     $widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(FALSE);
     $widgets->{'main'}->get_widget('hboxBackImage')->hide();
@@ -6100,76 +6079,88 @@ print "test\n";
         my $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
         while ($row = $sth->fetchrow_hashref()) {
-    
+
             do_pending();
-            my $scaled = create_pixbuf($type.";".$row->{'id'}, 64, 48);
+            my $scaled = create_pixbuf($type . ";" . $row->{'id'}, 64, 48);
             if ($scaled) {
                 my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
-    
+
                 $widgets->{'pixmaps'}[$counter] = $pixmap;
                 $widgets->{'buttons'}[$counter] = new Gtk2::Button();
                 $widgets->{'buttons'}[$counter]
                   ->add($widgets->{'pixmaps'}[$counter]);
-                $widgets->{'buttons'}[$counter]->{user_data} = ($type.";".$row->{'id'});
+                $widgets->{'buttons'}[$counter]->{user_data} =
+                  ($type . ";" . $row->{'id'});
                 $widgets->{'pixmaps'}[$counter]->show();
                 $widgets->{'buttons'}[$counter]->show();
                 $widgets->{'buttons'}[$counter]
                   ->signal_connect("clicked", "backdrop_clicked", \$widgets);
                 $widgets->{'main'}->get_widget('hboxBackImage')
-                  ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE, 0);
-    
+                  ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE,
+                    0);
+
                 $counter++;
             }
         }
     } else {
-        my $dirname = $globals->{'background_path'}.$category;
+        my $dirname = $globals->{'background_path'} . $category;
         my (@files, $file);
         my $ret = opendir DIR, $dirname;
         if ($ret) {
             foreach $file (readdir(DIR)) {
-print($file."\n");
-                if (!($file =~ /^\./))  {
+                print($file. "\n");
+                if (!($file =~ /^\./)) {
                     do_pending();
                     my @fileexts = qw(avi mpg mov wmv mp4);
-                    my $video=FALSE;
+                    my $video    = FALSE;
                     for my $fileobj (@fileexts) {
                         if ($file =~ /$fileobj$/i) {
-                            $video=TRUE;
+                            $video = TRUE;
                             $widgets->{'pixmaps'}[$counter] = "";
-                            $widgets->{'buttons'}[$counter] = new Gtk2::Button($file);
-                            $widgets->{'buttons'}[$counter]->{user_data} = ($type.";".$dirname."/".$file);
+                            $widgets->{'buttons'}[$counter] =
+                              new Gtk2::Button($file);
+                            $widgets->{'buttons'}[$counter]->{user_data} =
+                              ($type . ";" . $dirname . "/" . $file);
                             $widgets->{'buttons'}[$counter]->show();
                             $widgets->{'buttons'}[$counter]
-                            ->signal_connect("clicked", "backdrop_clicked", \$widgets);
+                              ->signal_connect("clicked", "backdrop_clicked",
+                                \$widgets);
                             $widgets->{'main'}->get_widget('hboxBackImage')
-                            ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE, 0);
+                              ->pack_start($widgets->{'buttons'}[$counter],
+                                FALSE, FALSE, 0);
                             $counter++;
                         }
                     }
 
                     if (!$video) {
-                        my $scaled = create_pixbuf($type.";".$dirname."/".$file, 64, 48);
+                        my $scaled =
+                          create_pixbuf($type . ";" . $dirname . "/" . $file,
+                            64, 48);
                         if ($scaled) {
                             my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
                             if ($pixmap) {
                                 $widgets->{'pixmaps'}[$counter] = $pixmap;
-                                $widgets->{'buttons'}[$counter] = new Gtk2::Button();
+                                $widgets->{'buttons'}[$counter] =
+                                  new Gtk2::Button();
                                 $widgets->{'buttons'}[$counter]
-                                ->add($widgets->{'pixmaps'}[$counter]);
-                                $widgets->{'buttons'}[$counter]->{user_data} = ($type.";".$dirname."/".$file);
+                                  ->add($widgets->{'pixmaps'}[$counter]);
+                                $widgets->{'buttons'}[$counter]->{user_data} =
+                                  ($type . ";" . $dirname . "/" . $file);
                                 $widgets->{'pixmaps'}[$counter]->show();
                                 $widgets->{'buttons'}[$counter]->show();
                                 $widgets->{'buttons'}[$counter]
-                                ->signal_connect("clicked", "backdrop_clicked", \$widgets);
+                                  ->signal_connect("clicked",
+                                    "backdrop_clicked", \$widgets);
                                 $widgets->{'main'}->get_widget('hboxBackImage')
-                                ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE, 0);
+                                  ->pack_start($widgets->{'buttons'}[$counter],
+                                    FALSE, FALSE, 0);
                                 $counter++;
                             }
                         }
                     }
                 }
             }
-        closedir DIR;
+            closedir DIR;
         }
     }
 
@@ -6289,7 +6280,7 @@ sub add_directory {
             'dialogPromptEntry', 'lyricue');
         $sublistxml->signal_autoconnect_from_package('');
         $sublistxml->get_widget('dialogPromptEntry')
-          ->set_title(fromutf( gettext("Create new sublist")));
+          ->set_title(fromutf(gettext("Create new sublist")));
         $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
 
         my $response = $sublistxml->get_widget('dialogPromptEntry')->run();
@@ -6322,7 +6313,7 @@ sub change_bgimage {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImage', 'lyricue');
     $widgets->{'image'}->signal_autoconnect_from_package('');
     $widgets->{'image'}->get_widget('dialogImage')
-      ->set_title(fromutf( gettext("Choose a Background")));
+      ->set_title(fromutf(gettext("Choose a Background")));
     $widgets->{'image'}->get_widget('buttonImageAdd')
       ->signal_connect('clicked', 'import_background');
     $widgets->{'image'}->get_widget('hboxImageSublist')->hide;
@@ -6338,7 +6329,7 @@ sub change_bgimage {
             $bgimage =
               $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
             $widgets->{'image'}->get_widget('buttonImageOK')
-              ->set_label(fromutf( gettext("Set as Default")));
+              ->set_label(fromutf(gettext("Set as Default")));
             $widgets->{'image'}->get_widget('buttonImageOK')
               ->signal_connect('clicked', "set_default_backdrop");
             $widgets->{'image'}->get_widget('buttonImageAdd')->hide();
@@ -6394,7 +6385,7 @@ sub create_dialogSublist {
         'dialogPromptEntry', 'lyricue');
     $sublistxml->signal_autoconnect_from_package('');
     $sublistxml->get_widget('dialogPromptEntry')
-      ->set_title(fromutf( gettext("Create new sublist")));
+      ->set_title(fromutf(gettext("Create new sublist")));
     $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
     $sublistxml->get_widget('buttonPromptEOK')
       ->signal_connect("clicked", "new_sublist_from_xml", $sublistxml);
@@ -6499,10 +6490,10 @@ sub apply_transition_selected {
     my $selection =
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
     if ($selection) {
-        my @list = $selection->get_selected_rows();
+        my @list  = $selection->get_selected_rows();
         my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
         foreach (@list) {
-            apply_transition($model->get($model->get_iter($_),2),$trans_type);
+            apply_transition($model->get($model->get_iter($_), 2), $trans_type);
         }
     }
 }
@@ -6512,15 +6503,14 @@ sub apply_transition_playlist {
     my $trans_type = calculate_transition();
     my $playlist =
       $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
-    my $query = "SELECT playorder FROM playlist WHERE playlist="
-      . $playlist;
+    my $query = "SELECT playorder FROM playlist WHERE playlist=" . $playlist;
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     my $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $!);
     while (my @row = $sth->fetchrow_array()) {
-        apply_transition($row[0],$trans_type);
+        apply_transition($row[0], $trans_type);
     }
 }
 
@@ -6528,9 +6518,13 @@ sub calculate_transition {
     my $trans_type = NORMAL;
     if ($widgets->{'transitions'}->get_widget('radioTransWipe')->get_active()) {
         $trans_type = WIPE;
-    } elsif ($widgets->{'transitions'}->get_widget('radioTransSlide')->get_active()) {
+    } elsif (
+        $widgets->{'transitions'}->get_widget('radioTransSlide')->get_active())
+    {
         $trans_type = SLIDE_TEXT;
-    } elsif ($widgets->{'transitions'}->get_widget('radioTransRotate')->get_active()) {
+    } elsif (
+        $widgets->{'transitions'}->get_widget('radioTransRotate')->get_active())
+    {
         $trans_type = ROTATE_TEXT;
     }
 
@@ -6548,9 +6542,7 @@ sub calculate_transition {
     } elsif (/Right/) {
         $trans_type = $trans_type + RIGHT;
     }
-    if ($widgets->{'transitions'}->get_widget('checkTransNew')->get_active()
-      )
-    {
+    if ($widgets->{'transitions'}->get_widget('checkTransNew')->get_active()) {
         $trans_type = $trans_type + WAIT;
     }
 
@@ -6572,9 +6564,7 @@ sub calculate_transition {
     } elsif (/Right/) {
         $trans_type = $trans_type + RIGHT;
     }
-    if ($widgets->{'transitions'}->get_widget('checkTransOld')->get_active()
-      )
-    {
+    if ($widgets->{'transitions'}->get_widget('checkTransOld')->get_active()) {
         $trans_type = $trans_type + WAIT;
     }
 
@@ -6585,37 +6575,36 @@ sub calculate_transition {
 }
 
 sub apply_transition {
-    my ($item,$trans_type) = @_;
-    debug("Applying transition to ".$item);
+    my ($item, $trans_type) = @_;
+    debug("Applying transition to " . $item);
 
-        my $query = "SELECT type,data FROM playlist WHERE playorder="
+    my $query = "SELECT type,data FROM playlist WHERE playorder=" . $item;
+    qdebug($query);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    my @row = $sth->fetchrow_array();
+    if ($row[0] eq "play") {
+        $query =
+            "UPDATE playlist SET transition="
+          . $trans_type
+          . " WHERE playorder="
+          . $item
+          . " OR playlist="
+          . $row[1];
+    } else {
+        $query =
+            "UPDATE playlist SET transition="
+          . $trans_type
+          . " WHERE playorder="
           . $item;
-        qdebug($query);
-        my $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'}, $!);
-        my @row = $sth->fetchrow_array();
-        if ($row[0] eq "play") {
-            $query =
-                "UPDATE playlist SET transition="
-              . $trans_type
-              . " WHERE playorder="
-              . $item
-              . " OR playlist="
-              . $row[1];
-        } else {
-            $query =
-                "UPDATE playlist SET transition="
-              . $trans_type
-              . " WHERE playorder="
-              . $item;
-        }
-        qdebug($query);
-        $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    }
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+    $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $!);
 }
 
 sub mod {
@@ -6742,9 +6731,14 @@ sub load_access {
         close ACCESS;
     }
     if ($access eq "blank") {
-        my $accessxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogConfirm', 'lyricue');
+        my $accessxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+            'dialogConfirm', 'lyricue');
         $accessxml->signal_autoconnect_from_package('');
-        my $labelText .= fromutf( gettext("This user has no access entry.\nBy default they will have full access.\nTo fix please edit /etc/lyricue/access.conf and add an entry for this user.\nClick OK to continue anyway or Cancel to Exit"));
+        my $labelText .= fromutf(
+            gettext(
+"This user has no access entry.\nBy default they will have full access.\nTo fix please edit /etc/lyricue/access.conf and add an entry for this user.\nClick OK to continue anyway or Cancel to Exit"
+            )
+        );
         $accessxml->get_widget('labelDelete')->set_text($labelText);
         my $confirm = $accessxml->get_widget('dialogConfirm')->run();
         if ($confirm ne "ok") {
@@ -6813,7 +6807,7 @@ sub add_user {
         'dialogPromptEntry', 'lyricue');
     $userxml->signal_autoconnect_from_package('');
     $userxml->get_widget('dialogPromptEntry')
-      ->set_title(fromutf( gettext("Add a user")));
+      ->set_title(fromutf(gettext("Add a user")));
     $userxml->get_widget('labelPromptE')->set_text("Enter username");
     my $confirm = $userxml->get_widget('dialogPromptEntry')->run();
     if ($confirm eq "ok") {
@@ -7047,17 +7041,20 @@ sub resize_preview {
 sub create_pixbuf {
     my ($data, $width, $height) = @_;
     my ($pixbuf);
-    my ($type,$id) = split /;/, $data;
+    my ($type, $id) = split /;/, $data;
     if ($type eq "dir") {
-        eval { $pixbuf= Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width, $height); };
+        eval {
+            $pixbuf =
+              Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width, $height);
+        };
         if ($@) {
             return undef;
         } else {
             return $pixbuf;
         }
     } else {
-        my $query =
-          "SELECT format, description, data FROM media WHERE id=\"" . $id . "\"";
+        my $query = "SELECT format, description, data FROM media WHERE id=\"" 
+          . $id . "\"";
         qdebug($query);
         my $sth = $mediaDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -7078,7 +7075,7 @@ sub create_pixbuf {
                 $pixbuf = $pixbuf_loader->get_pixbuf();
             }
         }
-    
+
         if ($width == 0) {
             return $pixbuf;
         } else {
@@ -7086,7 +7083,7 @@ sub create_pixbuf {
         }
     }
 }
-    
+
 sub import_image {
     import_media("img");
 }
@@ -7117,7 +7114,7 @@ sub select_category {
     my $choosexml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
     $choosexml->get_widget('windowChoosePlay')
-      ->set_title(fromutf( gettext("Select Category")));
+      ->set_title(fromutf(gettext("Select Category")));
     $choosexml->get_widget('buttonLoad')->set_label("Select");
     $choosexml->get_widget('buttonDelete')->hide();
     $choosexml->get_widget('buttonRename')->hide();
@@ -7191,10 +7188,9 @@ sub do_import_media {
             }
             close MEDIA;
             debug("Length: " . length($data));
-            my $sth =
-              $mediaDbh->prepare(
+            my $sth = $mediaDbh->prepare(
 q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,NOW(),?,?)}
-              );
+            );
             my $rv =
               $sth->execute($category, "", $type, $format, $owner, $description,
                 $data);
@@ -7290,7 +7286,7 @@ sub update_quickedit {
                             $endv,                  $line[0]
                         );
                         debug($command);
-                        my $command_out = fromutf( `$command`);
+                        my $command_out = fromutf(`$command`);
                         ($line[0], undef) = split(/\s\d/, $command_out, 2);
                         my @command_lines = split(/$line[0] /, $command_out);
                         my $lineno = 0;
@@ -7362,7 +7358,8 @@ sub media_move {
             my $iter =
               $widgets->{'image'}->get_widget('treeImage')
               ->get_model->get_iter($_);
-            push @id, $widgets->{'image'}->get_widget('treeImage')
+            push @id,
+              $widgets->{'image'}->get_widget('treeImage')
               ->get_model->get($iter, 1);
         }
     }
@@ -7370,7 +7367,7 @@ sub media_move {
         my $choosexml =
           Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
         $choosexml->get_widget('windowChoosePlay')
-          ->set_title(fromutf( gettext("Select Category")));
+          ->set_title(fromutf(gettext("Select Category")));
         $choosexml->get_widget('buttonLoad')->set_label("Select");
         $choosexml->get_widget('buttonDelete')->hide();
         $choosexml->get_widget('buttonRename')->hide();
@@ -7457,7 +7454,8 @@ sub media_delete {
             my $iter =
               $widgets->{'image'}->get_widget('treeImage')
               ->get_model->get_iter($_);
-            push @id, $widgets->{'image'}->get_widget('treeImage')
+            push @id,
+              $widgets->{'image'}->get_widget('treeImage')
               ->get_model->get($iter, 1);
             $title .= "\""
               . $widgets->{'image'}->get_widget('treeImage')
@@ -7467,16 +7465,14 @@ sub media_delete {
             $title =~ s/, $//;
             debug("Deleting $title");
             my $labelText =
-              fromutf(
-                gettext("Are you sure you wish to delete "))
+              fromutf(gettext("Are you sure you wish to delete ")) 
               . $title . "\n";
             my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
                 'dialogConfirm', 'lyricue');
             $deletexml->signal_autoconnect_from_package('');
             $deletexml->get_widget('labelDelete')->set_text($labelText);
             $deletexml->get_widget('dialogConfirm')
-              ->set_title(
-                fromutf( gettext("Confirm Delete Image")));
+              ->set_title(fromutf(gettext("Confirm Delete Image")));
             my $confirm = $deletexml->get_widget('dialogConfirm')->run();
 
             if ($confirm eq "ok") {
@@ -7566,8 +7562,7 @@ sub restore_db {
     my $fileDialog =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
     $fileDialog->get_widget('dialogFile')
-      ->set_title(
-        fromutf( gettext("Select Database Backup file")));
+      ->set_title(fromutf(gettext("Select Database Backup file")));
     my $response = $fileDialog->get_widget('dialogFile')->run();
     if ($response eq "ok") {
         my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
@@ -7577,8 +7572,7 @@ sub restore_db {
             'dialogConfirm', 'lyricue');
         $confirmDialog->signal_autoconnect_from_package('');
         $confirmDialog->get_widget('dialogConfirm')
-          ->set_title(
-            fromutf( gettext("Confirm Restore Database")));
+          ->set_title(fromutf(gettext("Confirm Restore Database")));
         $confirmDialog->get_widget('labelDelete')
           ->set_text(
 "WARNING: Restoring this database will overwrite your current database"
@@ -7762,7 +7756,7 @@ sub navigator_changed {
 sub navigator_update {
     debug("Updating navigator");
     reset_timer($globals->{'nav_update_timer'});
-    if ((!defined $globals->{'bibledb'}) || ($globals->{'bibledb'} eq "")){
+    if ((!defined $globals->{'bibledb'}) || ($globals->{'bibledb'} eq "")) {
         display_message($errorcodes->{'nobible'});
         return;
     }
@@ -7807,7 +7801,7 @@ sub navigator_update {
         );
         qdebug($command);
         $book = ucfirst($book . "[:alpha:]*");
-        my $command_out = fromutf( `$command`);
+        my $command_out = fromutf(`$command`);
         ($book, undef) = split(/\s\d/, $command_out, 2);
         my @command_lines = split(/$book /, $command_out);
         my $mark          = 0;
@@ -8014,7 +8008,7 @@ sub get_max_verse {
                 $book
             );
             qdebug($command);
-            $line = fromutf( `$command`);
+            $line = fromutf(`$command`);
             $versenum++;
             if ($versenum > $endverse - 1) { $loop = FALSE; }
             chomp($line);
@@ -8363,7 +8357,7 @@ sub db_install_user {
         };
         if ($@) {
             my $labelText = fromutf(
-                
+
                 gettext(
 "Unable to login to database as admin, maybe the database is down.\nPlease re-enter your database admin login and retry"
                 )
@@ -8372,7 +8366,7 @@ sub db_install_user {
                 'dialogConfirm', 'lyricue');
             $loginxml->signal_autoconnect_from_package('');
             $loginxml->get_widget('dialogConfirm')
-              ->set_title(fromutf( gettext("Login Error")));
+              ->set_title(fromutf(gettext("Login Error")));
             $loginxml->get_widget('labelDelete')->set_text($labelText);
             my $confirm = $loginxml->get_widget('dialogConfirm')->run();
             if ($confirm eq "ok") {
@@ -8391,15 +8385,13 @@ sub db_install_user {
         debug("User already setup\n");
     } else {
         debug("Creating mysql user..");
-        $sth =
-          $dbh->prepare(
+        $sth = $dbh->prepare(
 "insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'"
-          );
+        );
         $sth->execute;
-        $sth =
-          $dbh->prepare(
+        $sth = $dbh->prepare(
 "insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'"
-          );
+        );
         $sth->execute;
         $sth = $dbh->prepare("flush privileges");
         $sth->execute;
@@ -8578,10 +8570,11 @@ sub db_updatedb_lyricDb {
     my $fields = $dbh->selectall_arrayref("describe playlist");
     my $pl;
     foreach (@$fields) {
-            $pl->{$_->[0]} = $_->[1];
+        $pl->{$_->[0]} = $_->[1];
     }
     if ($pl->{'data'} ne "varchar(256)") {
-        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql", "lyricDb");
+        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql",
+            "lyricDb");
     }
 }
 
@@ -8776,10 +8769,9 @@ sub on_hboxBackImage_drag_data_received {
                 }
                 close MEDIA;
                 debug("Length: " . length($filedata));
-                my $sth =
-                  $mediaDbh->prepare(
+                my $sth = $mediaDbh->prepare(
 q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,?,?,?)}
-                  );
+                );
                 my $rv =
                   $sth->execute($category, "", "bg", $format, $owner, $time,
                     $description, $filedata);
@@ -8842,14 +8834,15 @@ sub alphanum {
 
 sub fromutf {
     my ($line) = @_;
-    return Encode::decode("utf8",$line);
+    return Encode::decode("utf8", $line);
 }
+
 sub toutf {
     my ($line) = @_;
-    return Encode::encode("utf8",$line);
+    return Encode::encode("utf8", $line);
 }
 
 sub pause_media {
     debug("Play/Pause media");
-    update_display("media", "pause","");
+    update_display("media", "pause", "");
 }
