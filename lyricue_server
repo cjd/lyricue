@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.157 2009/05/03 02:26:20 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.158 2009/05/03 02:29:03 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -971,12 +971,6 @@ sub process_input {
                         # Kill invalid points from previous songs
                         $current_point = -1;
                         @points        = ();
-
-                        #Reset background if an image was shown
-                        if ($bgimage_changed) {
-                            $bgimage_changed = FALSE;
-                            change_backdrop($config->{'BGImage'});
-                        }
 
                         my $query =
 "SELECT * FROM playlist,playlists WHERE playlist.playlist=playlists.id AND playorder="
