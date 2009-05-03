@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.252 2009/05/03 02:26:20 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.253 2009/05/03 10:58:16 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6034,7 +6034,7 @@ sub bgdir_change {
             && $widgets->{'buttons'}[$count] != NULL)
         {
             $widgets->{'buttons'}[$count]->destroy();
-            $widgets->{'pixmaps'}[$count]->destroy();
+            eval{$widgets->{'pixmaps'}[$count]->destroy()};
             $count++;
         }
     }
