@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.250 2009/05/02 11:34:36 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.251 2009/05/03 02:11:20 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5395,10 +5395,10 @@ sub save_preferences {
       . $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text()
       . "\n";
     print CONFIG "ImageDirectory = "
-      . $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->get_full_path()
+      . $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->get_filename()
       . "\n";
     print CONFIG "BGDirectory = "
-      . $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->get_full_path()
+      . $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->get_filename()
       . "\n";
     print CONFIG "TrayIcons = " . $config->{'TrayIcons'}."\n";
 
