@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.159 2009/05/03 10:58:17 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.160 2009/05/04 04:44:46 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1307,7 +1307,38 @@ sub change_backdrop {
         $data = $type;
         $type = "db";
     }
-    if ($type eq "dir") {
+    if ($type eq "special") {
+        debug("Changing backdrop to live video feed");
+        if (defined $globals->{'background'}) {
+            $globals->{'background'}->destroy();
+            undef $globals->{'background'};
+        }
+        $globals->{'background'} =
+          Clutter::Gst::VideoTexture->new();
+        my $playbin = $globals->{'background'}->get_playbin();
+        use GStreamer;
+        my $pipeline = GStreamer::Pipeline->new("");
+        my $src = GStreamer::ElementFactory -> make("v4l2src", "src");
+        my $colorspace = GStreamer::ElementFactory -> make("ffmpegcolorspace", "colorspace");
+        my $sink = Clutter::Gst::VideoSink->new($globals->{'background'});
+        $pipeline->add($src,$colorspace, $sink);
+        $src->link($colorspace,$sink);
+        $globals->{'background'}->set(
+            keep_aspect_ratio => 1,
+            request_mode      => 'height-for-width',
+        );
+        $globals->{'background'}
+          ->set_width($globals->{'stage'}->get_width());
+        $globals->{'background'}->set_anchor_point(
+            $globals->{'background'}->get_width / 2,
+            $globals->{'background'}->get_height / 2
+        );
+        $globals->{'background'}
+          ->set_position($globals->{'stage'}->get_width / 2, 0);
+        $globals->{'stage'}->add($globals->{'background'});
+        $pipeline->set_state('GST_STATE_PLAYING');
+        $globals->{'video_playing'} = TRUE;
+    } elsif ($type eq "dir") {
 
         # Movie file
         my @fileexts = qw(avi mpg mov wmv mp4);

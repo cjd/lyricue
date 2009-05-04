@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.254 2009/05/04 03:30:36 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.255 2009/05/04 04:44:46 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -8845,4 +8845,9 @@ sub toutf {
 sub pause_media {
     debug("Play/Pause media");
     update_display("media", "pause", "");
+}
+
+sub media_v4l {
+    debug("Starting Live Video");
+    update_display("backdrop","special;v4l","");
 }
