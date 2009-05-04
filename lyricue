@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.255 2009/05/04 04:44:46 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.256 2009/05/04 05:23:37 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4132,10 +4132,10 @@ sub create_dialog_prefs {
       ->set_text($config->{'SpecialBack'});
     $config->{'ImageDirectory'} =~ s/^\~/$ENV{HOME}/;
     $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')
-      ->set_filename($config->{'ImageDirectory'});
+      ->set_current_folder($config->{'ImageDirectory'});
     $config->{'BGDirectory'} =~ s/^\~/$ENV{HOME}/;
     $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')
-      ->set_filename($config->{'BGDirectory'});
+      ->set_current_folder($config->{'BGDirectory'});
 
     if ($config->{'DatabaseType'} eq "mysql") {
         $widgets->{'prefs'}->get_widget('radioPrefDBMysql')->set_active(TRUE);

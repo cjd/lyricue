@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.160 2009/05/04 04:44:46 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.161 2009/05/04 05:23:37 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1170,10 +1170,12 @@ sub process_input {
         } elsif (/^media$/) {
             if ($line[1] eq "pause") {
                 debug("Toggling Play/Pause media");
-                eval {
-                    $globals->{'background'}
-                      ->set_playing(!$globals->{'background'}->get_playing);
-                };
+                if ($MINISERV < 0) {
+                    eval {
+                        $globals->{'background'}
+                          ->set_playing(!$globals->{'background'}->get_playing);
+                    };
+                }
             }
         }
     } ## end if ($_)
@@ -1336,7 +1338,9 @@ sub change_backdrop {
         $globals->{'background'}
           ->set_position($globals->{'stage'}->get_width / 2, 0);
         $globals->{'stage'}->add($globals->{'background'});
-        $pipeline->set_state('GST_STATE_PLAYING');
+        if ($MINISERV < 0) {
+            $pipeline->set_state('GST_STATE_PLAYING');
+        }
         $globals->{'video_playing'} = TRUE;
     } elsif ($type eq "dir") {
 
@@ -1369,7 +1373,9 @@ sub change_backdrop {
                     $globals->{'background'}
                       ->set_position($globals->{'stage'}->get_width / 2, 0);
                     $globals->{'stage'}->add($globals->{'background'});
-                    $globals->{'background'}->set_playing(TRUE);
+                    if ($MINISERV < 0) {
+                        $globals->{'background'}->set_playing(TRUE);
+                    }
                     $globals->{'video_playing'} = TRUE;
                 } else {
                     $exec_pid = fork;
