@@ -7,8 +7,8 @@ Build-Depends-Indep: debhelper (>= 5.0.0), po-debconf
 
 Package: lyricue-cvs
 Architecture: all
-Depends: libdbd-mysql-perl|libdbd-sqlite3-perl, libgtk2-perl, libgtk2-gladexml-perl, libgtk2-spell-perl, libgtk2-trayicon-perl, libdbi-perl, libglib-perl, ${misc:Depends}, ${perl:Depends}
-Recommends: libgnome2-canvas-perl, lyricue-bible|diatheke, mysql-server, libclutter-perl
+Depends: libclutter-perl, libdbd-sqlite3-perl|libdbd-mysql-perl, libgtk2-perl, libgtk2-gladexml-perl, libgtk2-spell-perl, libgtk2-trayicon-perl, libdbi-perl, libglib-perl, ${misc:Depends}, ${perl:Depends}
+Recommends: libgnome2-canvas-perl, lyricue-bible|diatheke, mysql-server
 Conflicts: lyricue
 Description: The GNU Lyric Display System
  This application is used to edit/display song lyrics on a second

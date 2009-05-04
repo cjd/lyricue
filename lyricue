@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.253 2009/05/03 10:58:16 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.254 2009/05/04 03:30:36 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4130,8 +4130,10 @@ sub create_dialog_prefs {
       ->set_text($config->{'SpecialImage'});
     $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')
       ->set_text($config->{'SpecialBack'});
+    $config->{'ImageDirectory'} =~ s/^\~/$ENV{HOME}/;
     $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')
       ->set_filename($config->{'ImageDirectory'});
+    $config->{'BGDirectory'} =~ s/^\~/$ENV{HOME}/;
     $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')
       ->set_filename($config->{'BGDirectory'});
 
@@ -6063,7 +6065,6 @@ sub bgdir_load {
 
     # update list of available backdrops
     debug("Loading new preview images from: " . $type . "-" . $category);
-    print "test\n";
 
     # Disable dir buttons
     $widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(FALSE);
@@ -6108,7 +6109,6 @@ sub bgdir_load {
         my $ret = opendir DIR, $dirname;
         if ($ret) {
             foreach $file (readdir(DIR)) {
-                print($file. "\n");
                 if (!($file =~ /^\./)) {
                     do_pending();
                     my @fileexts = qw(avi mpg mov wmv mp4);
