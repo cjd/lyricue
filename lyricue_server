@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.161 2009/05/04 05:23:37 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.162 2009/05/06 01:55:31 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -137,11 +137,6 @@ use constant NUM_TRANS => 8;
 use constant CANVAS  => 0;
 use constant SIMPLE  => 1;
 use constant CLUTTER => 2;
-
-# Centreing
-use constant TOP    => 0;
-use constant CENTRE => 1;
-use constant BOTTOM => 2;
 
 #
 # Site Configuration.  You should only have to
@@ -462,8 +457,8 @@ sub process_input {
             $status = gettext("Backdrop changed to ") . $config->{'BGImage'};
         } elsif (/^blank$/) {
             set_header("");
-            set_maintext("", NONE, FALSE);
             set_footer("");
+            set_maintext("", NONE, FALSE);
             if ($line[1] ne "") {
                 $config->{'BGImage'} = $line[1];
                 change_backdrop($config->{'BGImage'});
@@ -956,15 +951,15 @@ sub process_input {
                         if (-r $row->{'data'}) {
                             $bgimage_changed = TRUE;
                             set_footer("");
-                            set_maintext("", NONE, FALSE);
                             set_header("");
+                            set_maintext("", NONE, FALSE);
                             change_backdrop("dir;" . $row->{'data'});
                         }
                     } elsif ($row->{'type'} eq "imag") {
                         $bgimage_changed = TRUE;
                         set_footer("");
-                        set_maintext("", NONE, FALSE);
                         set_header("");
+                        set_maintext("", NONE, FALSE);
                         change_backdrop($row->{'data'});
                     } elsif ($row->{'type'} eq "vers") {
 
@@ -1068,10 +1063,10 @@ sub process_input {
                             }
                         }
 
-                        set_maintext($verse, $transition, TRUE);
 
                         set_header($versetext);
                         set_footer($globals->{'biblename'});
+                        set_maintext($verse, $transition, TRUE);
                         $status =
                             gettext("Displaying ")
                           . $versetext
@@ -1145,11 +1140,11 @@ sub process_input {
                             $current_point = -1;
                             @points        = ();
                         }
-                        set_header($row2->{'title'});
                         $row2->{'lyrics'} =~ s/<.*?>//g;
+                        set_header($row2->{'title'});
+                        set_footer($footer);
                         set_maintext($row2->{'lyrics'}, $row->{'transition'},
                             FALSE);
-                        set_footer($footer);
                         $status =
                             gettext("Displaying ")
                           . $row2->{'title'}
@@ -1850,9 +1845,28 @@ sub set_maintext_clutter {
     $globals->{'maintext'} =
       create_outlined_text($text, $config->{'Main'}, $config->{'Colour'},
         $config->{'ShadowColour'});
+    my $final_x = $globals->{'stage'}->get_width() / 2;
+    my $final_y = $globals->{'stage'}->get_height() / 2;
+    if ($config->{'VerticalLocation'} =~ /^T/) {
+        if ($globals->{'header'}) {
+            $final_y = $globals->{'header'}->get_height() + ($globals->{'maintext'}->get_height/2);
+        } else {
+            $final_y = $globals->{'maintext'}->get_height/2;
+        }
+    } elsif ($config->{'VerticalLocation'} =~ /^B/) {
+        if ($globals->{'footer'}) {
+            $final_y = $globals->{'stage'}->get_height() - ($globals->{'maintext'}->get_height/2) - $globals->{'footer'}->get_height();
+        } else {
+            $final_y = $globals->{'stage'}->get_height() - ($globals->{'maintext'}->get_height/2);
+        }
+    }
+    if ($config->{'HorizontalLocation'} =~ /^L/) {
+        $final_x = $globals->{'maintext'}->get_width/2;
+    } elsif ($config->{'HorizontalLocation'} =~ /^R/) {
+        $final_x = $globals->{'stage'}->get_width() - $globals->{'maintext'}->get_width/2;
+    }
     $globals->{'maintext'}->set_position(
-        $globals->{'stage'}->get_width() / 2,
-        $globals->{'stage'}->get_height() / 2
+        $final_x, $final_y
     );
 
     $globals->{'timeline'} = Clutter::Timeline->new_for_duration(100);
@@ -1949,8 +1963,8 @@ sub set_maintext_clutter {
                 # New item
                 my $x_start = $globals->{'stage'}->get_width() / 2;
                 my $y_start = $globals->{'stage'}->get_height() / 2;
-                my $x_end   = $x_start;
-                my $y_end   = $y_start;
+                my $x_end   = $final_x;
+                my $y_end   = $final_y;
                 if ($new_direction & UP) {
                     $y_start = $globals->{'stage'}->get_height();
                 } elsif ($new_direction & DOWN) {
@@ -1969,8 +1983,8 @@ sub set_maintext_clutter {
                 # New item
                 $x_start = $globals->{'stage'}->get_width() / 2;
                 $y_start = $globals->{'stage'}->get_height() / 2;
-                $x_end   = $x_start;
-                $y_end   = $y_start;
+                $x_end   = $final_x;
+                $y_end   = $final_y;
                 if ($old_direction & UP) {
                     $y_end = $globals->{'stage'}->get_height();
                 } elsif ($old_direction & DOWN) {
@@ -1999,8 +2013,7 @@ sub set_maintext_clutter {
             }
             $globals->{'maintext'}->set_rotation('y-axis', 0, 0, 0, 0);
             $globals->{'maintext'}->set_position(
-                $globals->{'stage'}->get_width() / 2,
-                $globals->{'stage'}->get_height() / 2
+                $final_x, $final_y
             );
             $globals->{'maintext'}->set_opacity(255);
             undef $globals->{'timeline'};
@@ -2022,7 +2035,13 @@ sub create_outlined_text {
             $colour->alpha(0x88);
         }
         my $item = Clutter::Label->new($font, $text, $colour);
-        $item->set_alignment('left');
+        if ($config->{'Justification'} =~ /^L/) {
+            $item->set_alignment('left');
+        } elsif ($config->{'Justification'} =~ /^R/) {
+            $item->set_alignment('right');
+        } else {
+            $item->set_alignment('center');
+        }
         $item->set_use_markup(1);
         if ($item->get_width() > $config->{'Width'}) {
             $item->set_line_wrap(1);
@@ -2074,9 +2093,9 @@ sub set_maintext_canvas {
     $oldText = $globals->{'mainText'};
 
     my $top_y = 0;
-    if ($config->{'CentreY'} == TOP) {
+    if ($config->{'VerticalLocation'} =~ /^T/) {
         $top_y = $headerHeight;
-    } elsif ($config->{'CentreY'} == BOTTOM) {
+    } elsif ($config->{'VerticalLocation'} =~ /^B/) {
         $top_y = $config->{'Height'};
     } else {
         $top_y = ($config->{'Height'} - $config->{'ShadowSize'}) / 2;
@@ -2139,11 +2158,10 @@ sub set_maintext_canvas {
     my $centreX = $config->{'Width'} / 2;
     my $centreY = $config->{'Height'} / 2;
 
-    if ($config->{'CentreY'} == BOTTOM) {
+    if ($config->{'VerticalLocation'} =~ /^B/ ) {
         $centreY = ($config->{'Height'} - ($h / 2)) - $headerHeight;
-    } elsif ($config->{'CentreY'} == TOP) {
+    } elsif ($config->{'VerticalLocation'} =~ /^T/ ) {
         $centreY = ($h / 2) + $headerHeight;
-    } else {
     }
 
     my @items = ();
@@ -2768,12 +2786,12 @@ sub create_window {
             -1);
         $globals->{'footerText'}->set_justify('center');
 
-        if ($config->{'CentreY'} == BOTTOM) {
+        if ($config->{'VerticalLocation'} =~ /^B/ ) {
             my $fill = Gtk2::Label->new();
             $vbox->pack_start($fill,                    TRUE,  TRUE,  0);
             $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
             $vbox->pack_start($globals->{'mainText'},   FALSE, TRUE,  0);
-        } elsif ($config->{'CentreY'} == CENTRE) {
+        } elsif ($config->{'VerticalLocation'} =~ /^C/ ) {
             $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
             $vbox->pack_start($globals->{'mainText'},   TRUE,  TRUE,  0);
         } else {

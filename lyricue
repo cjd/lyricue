@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.257 2009/05/06 00:32:03 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.258 2009/05/06 01:55:31 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4059,10 +4059,24 @@ sub create_dialog_prefs {
       ->set_value($config->{'OverscanH'});
     $widgets->{'prefs'}->get_widget('checkPrefXinerama')
       ->set_active($config->{'Xinerama'});
+    if ($config->{'VerticalLocation'}) {
+        $widgets->{'prefs'}->get_widget('comboPrefVertical')
+          ->prepend_text($config->{'VerticalLocation'});
+    }
     $widgets->{'prefs'}->get_widget('comboPrefVertical')
-      ->set_active($config->{'CentreY'});
+       ->set_active(0);
+    if ($config->{'HorizontalLocation'}) {
+        $widgets->{'prefs'}->get_widget('comboPrefHorizontal')
+          ->prepend_text($config->{'HorizontalLocation'});
+    }
     $widgets->{'prefs'}->get_widget('comboPrefHorizontal')
-      ->set_active($config->{'CentreX'});
+      ->set_active(0);
+    if ($config->{'Justification'}) {
+        $widgets->{'prefs'}->get_widget('comboPrefJustification')
+          ->prepend_text($config->{'Justification'});
+    }
+    $widgets->{'prefs'}->get_widget('comboPrefJustification')
+      ->set_active(0);
 
     if (defined($config->{'ServerType'})) {
         if ($config->{'ServerType'} eq "simple") {
@@ -5266,6 +5280,22 @@ sub load_config {
         $conf->{'BGDirectory'} = $globals->{'basedir'} . "backgrounds/";
     }
 
+    if ($conf->{'CentreX'}) {
+        if ($conf->{'CentreX'}) { 
+            $conf->{'HorizontalLocation'} = "Centre";
+        } else {
+            $conf->{'HorizontalLocation'} = "Left";
+        }
+    }
+
+    if ($conf->{'CentreY'}) {
+        if ($conf->{'CentreY'}) { 
+            $conf->{'VerticalLocation'} = "Centre";
+        } else {
+            $conf->{'VerticalLocation'} = "Top";
+        }
+    }
+
     return $conf;
 }
 
@@ -5342,14 +5372,9 @@ sub save_preferences {
       $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
       ? 1
       : 0, "\n";
-    print CONFIG "CentreY = ",
-      $widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active()
-      ? 1
-      : 0, "\n";
-    print CONFIG "CentreX = ",
-      $widgets->{'prefs'}->get_widget('comboPrefHorizontal')->get_active()
-      ? 1
-      : 0, "\n";
+    print CONFIG "VerticalLocation = " .  $widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active_text() . "\n";
+    print CONFIG "HorizontalLocation = " .  $widgets->{'prefs'}->get_widget('comboPrefHorizontal')->get_active_text() . "\n";
+    print CONFIG "Justification = ".$widgets->{'prefs'}->get_widget('comboPrefJustification')->get_active_text()."\n";
 
     if ($widgets->{'prefs'}->get_widget('radioPrefServerClutter')->get_active())
     {
@@ -5404,7 +5429,6 @@ sub save_preferences {
         }
     }
     close CONFIG;
-    $config = load_config();
     if ($db_changed) {
         db_restart();
     }
