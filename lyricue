@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.256 2009/05/04 05:23:37 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.257 2009/05/06 00:32:03 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -8504,8 +8504,6 @@ sub db_installdb {
             } else {
                 $query .= $_;
                 if ($query ne "") {
-
-                    #print $query ."\n";
                     $dbh->do($query);
                 }
                 $query = "";
@@ -8566,15 +8564,17 @@ sub db_updatedb_lyricDb {
         }
     }
 
-    # Increase data size - does nothing if already done
-    my $fields = $dbh->selectall_arrayref("describe playlist");
-    my $pl;
-    foreach (@$fields) {
-        $pl->{$_->[0]} = $_->[1];
-    }
-    if ($pl->{'data'} ne "varchar(256)") {
-        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql",
-            "lyricDb");
+    # Increase data size - does nothing if already done - only works for mysql
+    if ( $config->{'DatabaseType'} eq "mysql" ) {
+        my $fields = $dbh->selectall_arrayref("describe playlist");
+        my $pl;
+        foreach (@$fields) {
+            $pl->{$_->[0]} = $_->[1];
+        }
+        if ($pl->{'data'} ne "varchar(256)") {
+            db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql",
+                "lyricDb");
+        }
     }
 }
 
