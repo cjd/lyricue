@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.162 2009/05/06 01:55:31 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.163 2009/05/06 02:16:53 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -145,7 +145,7 @@ use constant CLUTTER => 2;
 
 my ($globals);
 $globals->{'etcdir'}   = "/etc/lyricue/";
-$globals->{'basedir'}  = $ENV{'HOME'} . "/.lyricue/";
+$globals->{'basedir'}  = $ENV{'HOME'} . "/.local/share/lyricue/";
 $globals->{'sharedir'} = "/usr/share/lyricue/";
 
 #
@@ -1420,6 +1420,7 @@ sub change_backdrop {
                     );
                     $globals->{'timeline_bg'}->start();
                 }
+                if ( -r $data ) {
                 $globals->{'background'} = Clutter::Texture->new($data);
                 $globals->{'background'}->set(
                     keep_aspect_ratio => 1,
@@ -1436,6 +1437,7 @@ sub change_backdrop {
                     $globals->{'stage'}->get_height / 2
                 );
                 $globals->{'stage'}->add($globals->{'background'});
+                }
             } else {
                 my ($pixbuf);
                 eval {
@@ -1610,7 +1612,9 @@ sub change_backdrop {
         $rc_style->bg_pixmap_name('normal', $globals->{'bg_file'});
         $globals->{'window'}->modify_style($rc_style);
     } elsif ($globals->{'server_type'} == CLUTTER) {
-        $globals->{'background'}->lower_bottom();
+        if ($globals->{'background'}) {
+            $globals->{'background'}->lower_bottom();
+        }
     } else {
         $background->lower_to_bottom;
         $background_black->lower_to_bottom;

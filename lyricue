@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.258 2009/05/06 01:55:31 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.259 2009/05/06 02:16:52 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -127,7 +127,8 @@ if ($^O eq 'MSWin32') {
     $globals->{'sharedir'} = "";
 } else {
     $globals->{'etcdir'}   = "/etc/lyricue/";
-    $globals->{'basedir'}  = $ENV{'HOME'} . "/.lyricue/";
+    $globals->{'basedir'}  = $ENV{'HOME'} . "/.local/share/lyricue/";
+    $globals->{'oldbasedir'}  = $ENV{'HOME'} . "/.lyricue/";
     $globals->{'sharedir'} = "/usr/share/lyricue/";
 }
 
@@ -383,12 +384,32 @@ umask 0002;
 if (-e $globals->{'basedir'}) {
     if (!-d $globals->{'basedir'}) {
         print STDERR
-"Old ~/.lyricue existed but was not a directory, moving to ~/.lyricue.orig\n";
+"Old ~/.lyricue existed but was not a directory, moving to ~/.local/share/lyricue.orig\n";
         rename $globals->{'basedir'}, $globals->{'basedir'} . ".orig";
         mkdir $globals->{'basedir'}, 0777;
     }
 } else {
-    mkdir $globals->{'basedir'}, 0777;
+    if (-e $globals->{'oldbasedir'}) {
+        my $movexml = Gtk2::GladeXML->new($globals->{'gladefile'},
+                'dialogConfirm', 'lyricue');
+        $movexml->signal_autoconnect_from_package('');
+        $movexml->get_widget('labelDelete')->set_text(fromutf(gettext(
+            "The directory used to hold configuration files has changed\n" .
+            "It is now ~/.local/share/lyricue\n" .
+            "If you do not wish to do this press Cancel and Lyricue will exit")));
+        my $confirm = $movexml->get_widget('dialogConfirm')->run();
+        if ($confirm eq "ok" ) {
+            debug ("Migrating lyricue configuration");
+            system ("mkdir -p ".$globals->{'basedir'});
+            system ("cp -r ".$globals->{'oldbasedir'}."/* ".$globals->{'basedir'});
+            close_dialog($movexml->get_widget('dialogConfirm'));
+        } else {
+            print STDERR "Exiting as we are not migrating configuration";
+            exit;
+        }
+    } else {
+        system ("mkdir -p ".$globals->{'basedir'});
+    }
 }
 
 $widgets->{'main'} =
