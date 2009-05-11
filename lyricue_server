@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.163 2009/05/06 02:16:53 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.164 2009/05/11 06:47:22 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2029,6 +2029,7 @@ sub set_maintext_clutter {
 sub create_outlined_text {
     my ($text, $font, $text_colour, $shadow_colour) = @_;
     my $group = Clutter::Group->new;
+    $text =~ s/\&/\&amp\;/g;
 
     foreach my $count (0, 2, 10, 12, 18,24, 6) {
         my $colour;
