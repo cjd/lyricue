@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.260 2009/05/14 06:41:07 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.261 2009/05/14 08:26:14 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4167,10 +4167,12 @@ sub create_dialog_prefs {
       ->set_text($config->{'SpecialBack'});
     $config->{'ImageDirectory'} =~ s/^\~/$ENV{HOME}/;
     $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')
-      ->set_current_folder($config->{'ImageDirectory'});
+      ->set_label($config->{'ImageDirectory'});
+    $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->{'user_data'} = "img";
     $config->{'BGDirectory'} =~ s/^\~/$ENV{HOME}/;
     $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')
-      ->set_current_folder($config->{'BGDirectory'});
+      ->set_label($config->{'BGDirectory'});
+    $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->{'user_data'} = "bg";
 
     if ($config->{'DatabaseType'} eq "mysql") {
         $widgets->{'prefs'}->get_widget('radioPrefDBMysql')->set_active(TRUE);
@@ -5420,9 +5422,9 @@ sub save_preferences {
       . "\n";
     print CONFIG "ImageDirectory = "
       . $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')
-      ->get_filename() . "\n";
+      ->get_label() . "\n";
     print CONFIG "BGDirectory = "
-      . $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->get_filename()
+      . $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->get_label()
       . "\n";
     print CONFIG "TrayIcons = " . $config->{'TrayIcons'} . "\n";
 
@@ -8981,4 +8983,21 @@ sub load_biblemenu {
         $menutop->append($bibleMenu->{$_});
     }
     $widgets->{'main'}->get_widget('bible1')->set_submenu($menutop);
+}
+
+sub open_dirchooser {
+    my ($widget) = @_;
+    debug("Opening Directory chooser");
+    my $directoryxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDirChooser', 'lyricue');
+    $directoryxml->signal_autoconnect_from_package('');
+    $directoryxml->get_widget('dialogDirChooser')->set_filename($widget->get_label());
+    my $confirm = $directoryxml->get_widget('dialogDirChooser')->run();
+    if ($confirm eq "ok" ) {
+        if ($widget->{'user_data'} eq "img") {
+            $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->set_label($directoryxml->get_widget('dialogDirChooser')->get_filename());
+        } elsif ($widget->{'user_data'} eq "bg") {
+            $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->set_label($directoryxml->get_widget('dialogDirChooser')->get_filename());
+        }
+    }
+    close_dialog($directoryxml->get_widget('dialogDirChooser'));
 }
