@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.259 2009/05/06 02:16:52 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.260 2009/05/14 06:41:07 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5893,27 +5893,7 @@ sub init_mainWindow {
     $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} = 0;
 
     # Update the bible menu
-    my $menutop = Gtk2::Menu->new();
-    my $group   = -1;
-    my $bibles  = $config->{'Bibles'};
-    my ($defbible, undef) = split(/\:/, $config->{'DefBible'}, 2);
-    foreach (sort keys %$bibles) {
-        my @bible = split(/;/, $config->{'Bibles'}->{$_}, 2);
-
-        $bibleMenu->{$_} =
-          Gtk2::RadioMenuItem->new_with_label($group, $bible[1]);
-        if ($group == -1) {
-            $group = $bibleMenu->{$_}->get_group;
-        }
-        $bibleMenu->{$_}
-          ->signal_connect("toggled", "select_bible_db", $bible[0] . ";" . $_);
-        if (defined($defbible) && ($_ eq $defbible)) {
-            $bibleMenu->{$_}->set_active(TRUE);
-        }
-        $bibleMenu->{$_}->show;
-        $menutop->append($bibleMenu->{$_});
-    }
-    $widgets->{'main'}->get_widget('bible1')->set_submenu($menutop);
+    load_biblemenu();
 
     # Update the application menu
     my $menutop2 = Gtk2::Menu->new();
@@ -8895,4 +8875,110 @@ sub pause_media {
 sub media_v4l {
     debug("Starting Live Video");
     update_display("backdrop","special;v4l","");
+}
+
+sub install_bibles {
+    debug("Loading bible install window");
+    $widgets->{'bible'} = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'windowBibleManager', 'lyricue');
+    $widgets->{'bible'}->signal_autoconnect_from_package('');
+    $widgets->{'bible'}->get_widget('buttonBibleSword')->{'user_data'} = "http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles";
+    $widgets->{'bible'}->get_widget('buttonBibleDB')->{'user_data'} = "http://www.adebenham.com/lyricue/bibles.html";
+    $widgets->{'bible'}->get_widget('windowBibleManager')->show_all();
+}
+
+sub do_install_bible {
+    my $dbfilename = $widgets->{'bible'}->get_widget('fileBibleInstall')->get_filename();
+    close_dialog($widgets->{'bible'}->get_widget('windowBibleManager'));
+    if (!defined $dbfilename) {
+        debug("No file selected");
+        return;
+    }
+    debug("Installing bible from ".$dbfilename);
+
+    my $message = "";
+
+    use File::Temp qw/tempdir/;
+    my $tmpdir  = tempdir( "lyricue-XXXX", TMPDIR => 1, CLEANUP=>1);
+    if ($dbfilename =~ /sql.gz$/i ) {
+        # Compressed bibleDb
+        my $command = "gzip -dc \"".$dbfilename."\" > ".$tmpdir."/bibleDb.sql";
+        debug($command);
+        system($command);
+        $dbfilename = $tmpdir."/bibleDb.sql";
+    }
+    if ( $dbfilename =~ /sql$/i ) {
+        # Uncompressed bibleDb
+        open (DB, $dbfilename);
+        debug("bibleDb: ".$dbfilename);
+        my $dbname="";
+        while (<DB>) {
+            if (/^CREATE DATABASE.*;$/) {
+                $dbname = $_;
+                $dbname =~ s/^CREATE DATABASE (.*);$/$1/g;
+                last;
+            }
+        }
+        close DB;
+        if ($dbname ne "") {
+            db_installdb($dbfilename,$dbname);
+            $message=gettext("Bible installed from ").$dbfilename;
+        } else {
+            $message=gettext("Unable to load from ").$dbfilename;
+        }
+    } elsif ( $dbfilename =~ /zip$/i ) {
+        # Sword bible
+        my $command = "unzip \"".$dbfilename."\" -d \$HOME/.sword/";
+        debug($command);
+        system($command);
+        $message="Sword bible extracted to ~/.sword";
+    }
+    
+    my $donexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
+    $donexml->signal_autoconnect_from_package('');
+    $donexml->get_widget('labelError')->set_text($message);
+    my $confirm = $donexml->get_widget('dialogError')->run();
+    close_dialog($donexml->get_widget('dialogError'));
+
+    load_biblemenu();
+}
+
+sub load_link {
+    my ($widget) = @_;
+    debug("Load URL:".$widget->{'user_data'});
+    my $command="xdg-open ".$widget->{'user_data'};
+    system($command);
+} 
+
+sub load_biblemenu {
+    debug("Populate biblemenu");
+    my $menutop = Gtk2::Menu->new();
+    my $group = -1;
+
+    my $bibleMenuAdd = Gtk2::MenuItem->new_with_label("Install new bibles");
+    $bibleMenuAdd->signal_connect("activate", "install_bibles");
+    $bibleMenuAdd->show();
+    $menutop->append($bibleMenuAdd);
+
+    db_check_databases();
+    $config->{'Bibles'} = get_bibles();
+    my $bibles  = $config->{'Bibles'};
+    my ($defbible, undef) = split(/\:/, $config->{'DefBible'}, 2);
+    foreach (sort keys %$bibles) {
+        my @bible = split(/;/, $config->{'Bibles'}->{$_}, 2);
+
+        $bibleMenu->{$_} =
+          Gtk2::RadioMenuItem->new_with_label($group, $bible[1]);
+        if ($group == -1) {
+            $group = $bibleMenu->{$_}->get_group;
+        }
+        $bibleMenu->{$_}
+          ->signal_connect("toggled", "select_bible_db", $bible[0] . ";" . $_);
+        if (defined($defbible) && ($_ eq $defbible)) {
+            $bibleMenu->{$_}->set_active(TRUE);
+        }
+        $bibleMenu->{$_}->show;
+        $menutop->append($bibleMenu->{$_});
+    }
+    $widgets->{'main'}->get_widget('bible1')->set_submenu($menutop);
 }
