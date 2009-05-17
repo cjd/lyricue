@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.261 2009/05/14 08:26:14 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.262 2009/05/17 23:02:04 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -145,7 +145,6 @@ $globals->{'accessfile'}      = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'}     = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}      = $globals->{'basedir'} . "config2";
 $globals->{'gladefile'}       = $globals->{'sharedir'} . "lyricue.glade";
-$globals->{'background_path'} = $globals->{'basedir'} . "backgrounds/";
 
 $globals->{'host'}        = "localhost";
 $globals->{'mysqlhost'}   = "";
@@ -653,15 +652,25 @@ sub add_playlist {
                 $title = "File: " . $row->{'data'};
             }
         } elsif ($row->{'type'} eq "imag") {
-            my $query2 = "SELECT description FROM media WHERE id=\""
-              . $row->{'data'} . "\"";
-            qdebug($query2);
-            my $sth2 = $mediaDbh->prepare($query2)
-              || display_fatal($errorcodes->{'sqlprepare'}, $!);
-            my $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'}, $!);
-            my $row2 = $sth2->fetchrow_hashref();
-            $title = "Image: " . $row2->{'description'};
+            my ($type, $id) = split /;/, $row->{'data'};
+            if (!defined $id) {
+                $id = $type;
+                $type = "db";
+            }
+            if ($type eq "dir") {
+                $id =~ s/^$config->{'ImageDirectory'}\///;
+                $title = "Image: " . $id;
+            } else {
+                my $query2 = "SELECT description FROM media WHERE id=\""
+                  . $row->{'data'} . "\"";
+                qdebug($query2);
+                my $sth2 = $mediaDbh->prepare($query2)
+                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                my $rv2 = $sth2->execute
+                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                my $row2 = $sth2->fetchrow_hashref();
+                $title = "Image: " . $row2->{'description'};
+            }
         } elsif ($row->{'type'} eq "vers") {
             $title = "Verses " . $row->{'data'};
         } elsif ($row->{'type'} eq "song") {
@@ -758,7 +767,7 @@ sub add_playlist {
                 );
             } else {
                 my $imgiter = $model->append($newiter);
-                $id =~ s/^$globals->{'background_path'}//g;
+                $id =~ s/^$config->{'BGDirectory'}//g;
                 $model->set(
                     $imgiter,
                     0 => "* Background: " . $id,
@@ -3057,23 +3066,26 @@ sub update_imagedir {
         $menu->append($item);
 
     }
-    if ($type eq "bg") {
 
-        # Add categories from directories
-        my $dirname = $globals->{'background_path'};
-        my (@files, $file);
-        my $ret = opendir DIR, $dirname;
-        if ($ret) {
-            foreach $file (readdir(DIR)) {
-                if (!($file =~ /^\./)) {
-                    my $item = Gtk2::MenuItem->new_with_label($file);
-                    $item->{user_data} = "dir;" . $file;
-                    $item->show();
-                    $menu->append($item);
-                }
+    # Add categories from directories
+    my $dirname = "";
+    if ($type eq "bg") {
+        $dirname = $config->{'BGDirectory'};
+    } else {
+        $dirname = $config->{'ImageDirectory'};
+    }
+    my (@files, $file);
+    my $ret = opendir DIR, $dirname;
+    if ($ret) {
+        foreach $file (readdir(DIR)) {
+            if (!($file =~ /^\./) && ( -d $dirname."/".$file) ) {
+                my $item = Gtk2::MenuItem->new_with_label($file);
+                $item->{user_data} = "dir;" . $file;
+                $item->show();
+                $menu->append($item);
             }
-            closedir DIR;
         }
+        closedir DIR;
     }
 
     $widgets->{'image'}->get_widget('optionImageCategory')
@@ -3081,18 +3093,21 @@ sub update_imagedir {
     my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
 
-    if ($type eq "bg") {
-        if ($access eq "dir") {
-            my $dirname = $globals->{'background_path'} . $category;
-            my $ret = opendir DIR, $dirname;
-            if ($ret) {
-                my $file = "";
-                foreach $file (readdir(DIR)) {
-                    if (!($file =~ /^\./)) {
-                        $iter = $store->append;
-                        $store->set($iter, 0, $file, 1,
-                            "dir;" . $dirname . "/" . $file);
-                    }
+    if ($access eq "dir") {
+        my $dirname = "";
+        if ($type eq "bg") {
+            $dirname = $config->{'BGDirectory'} . "/" . $category;
+        } else {
+            $dirname = $config->{'ImageDirectory'} . "/" . $category;
+        }
+        my $ret = opendir DIR, $dirname;
+        if ($ret) {
+            my $file = "";
+            foreach $file (readdir(DIR)) {
+                if (!($file =~ /^\./)) {
+                    $iter = $store->append;
+                    $store->set($iter, 0, $file, 1,
+                        "dir;" . $dirname . "/" . $file);
                 }
             }
         }
@@ -6009,12 +6024,12 @@ sub bgdir_list {
     @categories = ();
 
     # Add categories from directories
-    my $dirname = $globals->{'background_path'};
+    my $dirname = $config->{'BGDirectory'};
     my (@files, $file);
     my $ret = opendir DIR, $dirname;
     if ($ret) {
         foreach $file (readdir(DIR)) {
-            if (!($file =~ /^\./)) {
+            if (!($file =~ /^\./) && ( -d $dirname."/".$file)) {
                 push @categories, $file;
             }
         }
@@ -6054,8 +6069,8 @@ sub bgdir_change {
     debug(  "Changing background source category to "
           . $category
           . " of type "
-          . $type
-          . "\nDestroying old images");
+          . $type);
+    debug ("Destroying old images");
     $globals->{'category'} = $category;
     my $count = 0;
     if ($widgets->{'buttons'}) {
@@ -6131,7 +6146,7 @@ sub bgdir_load {
             }
         }
     } else {
-        my $dirname = $globals->{'background_path'} . $category;
+        my $dirname = $config->{'BGDirectory'} ."/". $category;
         my (@files, $file);
         my $ret = opendir DIR, $dirname;
         if ($ret) {
