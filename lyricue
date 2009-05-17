@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.262 2009/05/17 23:02:04 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.263 2009/05/17 23:09:12 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -55,7 +55,7 @@ All configuration is done by editing the configuration section in the program
 
 =head1 REQUIRES
 
-Perl 5.6 or later, DBI::MySQL, Gtk2-Perl, MySql database
+Perl 5.6 or later, DBI::MySQL, Gtk2-Perl, MySQL database
 
 =head1 AUTHOR
 
@@ -229,7 +229,7 @@ my ($lyricDbh, $mediaDbh, $bibleDbh);
 my ($errorcodes);
 $errorcodes->{'lyricdbopen'} = fromutf(
     gettext(
-"I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySql is running"
+"I'm sorry but I could not open the lyric database.\nPlease confirm that Lyricue is installed correctly and MySQL is running"
     )
 );
 $errorcodes->{'bibledbopen'} = fromutf(
@@ -239,7 +239,7 @@ $errorcodes->{'bibledbopen'} = fromutf(
 );
 $errorcodes->{'mediadbopen'} = fromutf(
     gettext(
-"I'm sorry but I could not open the media database.\nPlease confirm that Lyricue is installed correctly and MySql is running"
+"I'm sorry but I could not open the media database.\nPlease confirm that Lyricue is installed correctly and MySQL is running"
     )
 );
 $errorcodes->{'sqlprepare'} =
@@ -6323,7 +6323,7 @@ sub add_directory {
         $sublistxml->signal_autoconnect_from_package('');
         $sublistxml->get_widget('dialogPromptEntry')
           ->set_title(fromutf(gettext("Create new sublist")));
-        $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
+        $sublistxml->get_widget('labelPromptE')->set_text(fromutf(gettext("Name of sublist")));
 
         my $response = $sublistxml->get_widget('dialogPromptEntry')->run();
         if ($response eq "ok") {
@@ -6428,7 +6428,7 @@ sub create_dialogSublist {
     $sublistxml->signal_autoconnect_from_package('');
     $sublistxml->get_widget('dialogPromptEntry')
       ->set_title(fromutf(gettext("Create new sublist")));
-    $sublistxml->get_widget('labelPromptE')->set_text("Name of sublist");
+    $sublistxml->get_widget('labelPromptE')->set_text(fromutf(gettext("Name of sublist")));
     $sublistxml->get_widget('buttonPromptEOK')
       ->signal_connect("clicked", "new_sublist_from_xml", $sublistxml);
 }
@@ -6850,7 +6850,7 @@ sub add_user {
     $userxml->signal_autoconnect_from_package('');
     $userxml->get_widget('dialogPromptEntry')
       ->set_title(fromutf(gettext("Add a user")));
-    $userxml->get_widget('labelPromptE')->set_text("Enter username");
+    $userxml->get_widget('labelPromptE')->set_text(fromutf(gettext("Enter username")));
     my $confirm = $userxml->get_widget('dialogPromptEntry')->run();
     if ($confirm eq "ok") {
         my $users =
@@ -7616,9 +7616,9 @@ sub restore_db {
         $confirmDialog->get_widget('dialogConfirm')
           ->set_title(fromutf(gettext("Confirm Restore Database")));
         $confirmDialog->get_widget('labelDelete')
-          ->set_text(
+          ->set_text(fromutf(gettext(
 "WARNING: Restoring this database will overwrite your current database"
-          );
+          )));
         my $confirm = $confirmDialog->get_widget('dialogConfirm')->run();
         if ($confirm eq "ok") {
 
@@ -8709,7 +8709,7 @@ sub db_connect {
 
 sub prefs_select_mysql {
     if ($config->{'DatabaseType'} ne "mysql") {
-        debug("Selecting MySql DB");
+        debug("Selecting MySQL DB");
         $config->{'DatabaseType'} = "mysql";
         db_restart();
     }
