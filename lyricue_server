@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.166 2009/05/18 06:15:25 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.167 2009/05/18 06:25:05 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -172,6 +172,7 @@ $globals->{'miniview_port'} = "2348";    #port used for lyric server socket
 $globals->{'run_windowed'}  = FALSE;
 $globals->{'server_type'}   = CANVAS;
 $globals->{'blanked_state'} = TRUE;
+$globals->{'bgid'}          = "";
 $globals->{'diatheke'} = `which diatheke`;
 chomp $globals->{'diatheke'};
 
@@ -1297,7 +1298,12 @@ sub HandleKey {
 #
 sub change_backdrop {
     my ($id) = @_;
+    if ($id == $globals->{'bgid'}) {
+        debug("Backdrop ID same - not changing");
+        return;
+    } 
     debug("Setting backdrop to $id");
+    $globals->{'bgid'} = $id;
     my ($type, $data) = split /;/, $id;
     if ($data eq "") {
         $data = $type;
