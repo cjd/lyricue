@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.165 2009/05/18 05:51:58 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.166 2009/05/18 06:15:25 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1063,7 +1063,6 @@ sub process_input {
                             }
                         }
 
-
                         set_header($versetext);
                         set_footer($globals->{'biblename'});
                         set_maintext($verse, $transition, TRUE);
@@ -1310,76 +1309,82 @@ sub change_backdrop {
             $globals->{'background'}->destroy();
             undef $globals->{'background'};
         }
-        $globals->{'background'} =
-          Clutter::Gst::VideoTexture->new();
-        my $playbin = $globals->{'background'}->get_playbin();
-        use GStreamer;
-        my $pipeline = GStreamer::Pipeline->new("");
-        my $src = GStreamer::ElementFactory -> make("v4l2src", "src");
-        my $colorspace = GStreamer::ElementFactory -> make("ffmpegcolorspace", "colorspace");
-        my $sink = Clutter::Gst::VideoSink->new($globals->{'background'});
-        $pipeline->add($src,$colorspace, $sink);
-        $src->link($colorspace,$sink);
-        $globals->{'background'}->set(
-            keep_aspect_ratio => 1,
-            request_mode      => 'height-for-width',
-        );
-        $globals->{'background'}
-          ->set_width($globals->{'stage'}->get_width());
-        $globals->{'background'}->set_anchor_point(
-            $globals->{'background'}->get_width / 2,
-            $globals->{'background'}->get_height / 2
-        );
-        $globals->{'background'}
-          ->set_position($globals->{'stage'}->get_width / 2, 0);
-        $globals->{'stage'}->add($globals->{'background'});
         if ($MINISERV < 0) {
-            $pipeline->set_state('GST_STATE_PLAYING');
+            $globals->{'background'} = Clutter::Gst::VideoTexture->new();
+            my $playbin = $globals->{'background'}->get_playbin();
+            use GStreamer;
+            my $pipeline = GStreamer::Pipeline->new("");
+            my $src = GStreamer::ElementFactory->make("v4l2src", "src");
+            my $colorspace =
+              GStreamer::ElementFactory->make("ffmpegcolorspace", "colorspace");
+            my $sink = Clutter::Gst::VideoSink->new($globals->{'background'});
+            $pipeline->add($src, $colorspace, $sink);
+            $src->link($colorspace, $sink);
+            $globals->{'background'}->set(
+                keep_aspect_ratio => 1,
+                request_mode      => 'height-for-width',
+            );
+            $globals->{'background'}
+              ->set_width($globals->{'stage'}->get_width());
+            $globals->{'background'}->set_anchor_point(
+                $globals->{'background'}->get_width / 2,
+                $globals->{'background'}->get_height / 2
+            );
+            $globals->{'background'}
+              ->set_position($globals->{'stage'}->get_width / 2, 0);
+            $globals->{'stage'}->add($globals->{'background'});
+
+            if ($MINISERV < 0) {
+                $pipeline->set_state('GST_STATE_PLAYING');
+            }
+            $globals->{'video_playing'} = TRUE;
         }
-        $globals->{'video_playing'} = TRUE;
     } elsif ($type eq "dir") {
 
         # Movie file
         my @fileexts = qw(avi mpg mov wmv mp4);
         my $video    = FALSE;
-        for my $fileobj (@fileexts) {
-            if ($data =~ /$fileobj$/i) {
-                debug("Changing backdrop video to file:" . $data);
-                $video = TRUE;
-                if ($globals->{'server_type'} == CLUTTER) {
-                    debug("Clutter Video");
-                    if (defined $globals->{'background'}) {
-                        $globals->{'background'}->destroy();
-                        undef $globals->{'background'};
-                    }
-                    $globals->{'background'} =
-                      Clutter::Gst::VideoTexture->new();
-                    $globals->{'background'}->set_filename($data);
-                    $globals->{'background'}->set(
-                        keep_aspect_ratio => 1,
-                        request_mode      => 'height-for-width',
-                    );
-                    $globals->{'background'}
-                      ->set_width($globals->{'stage'}->get_width());
-                    $globals->{'background'}->set_anchor_point(
-                        $globals->{'background'}->get_width / 2,
-                        $globals->{'background'}->get_height / 2
-                    );
-                    $globals->{'background'}
-                      ->set_position($globals->{'stage'}->get_width / 2, 0);
-                    $globals->{'stage'}->add($globals->{'background'});
-                    if ($MINISERV < 0) {
-                        $globals->{'background'}->set_playing(TRUE);
-                    }
-                    $globals->{'video_playing'} = TRUE;
-                } else {
-                    $exec_pid = fork;
-                    if ($exec_pid > 0) {
+        if ($MINISERV < 0) {
+            for my $fileobj (@fileexts) {
+                if ($data =~ /$fileobj$/i) {
+                    debug("Changing backdrop video to file:" . $data);
+                    $video = TRUE;
+                    if ($globals->{'server_type'} == CLUTTER) {
+                        debug("Clutter Video");
+                        if (defined $globals->{'background'}) {
+                            $globals->{'background'}->destroy();
+                            undef $globals->{'background'};
+                        }
+                        $globals->{'background'} =
+                          Clutter::Gst::VideoTexture->new();
+                        $globals->{'background'}->set_filename($data);
+                        $globals->{'background'}->set(
+                            keep_aspect_ratio => 1,
+                            request_mode      => 'height-for-width',
+                        );
+                        $globals->{'background'}
+                          ->set_width($globals->{'stage'}->get_width());
+                        $globals->{'background'}->set_anchor_point(
+                            $globals->{'background'}->get_width / 2,
+                            $globals->{'background'}->get_height / 2
+                        );
+                        $globals->{'background'}
+                          ->set_position($globals->{'stage'}->get_width / 2, 0);
+                        $globals->{'stage'}->add($globals->{'background'});
 
-                        my $command = $config->{'MPlayer'} . " " . $data;
-                        debug($command);
+                        if ($MINISERV < 0) {
+                            $globals->{'background'}->set_playing(TRUE);
+                        }
+                        $globals->{'video_playing'} = TRUE;
+                    } else {
+                        $exec_pid = fork;
+                        if ($exec_pid > 0) {
 
-                        system($command);
+                            my $command = $config->{'MPlayer'} . " " . $data;
+                            debug($command);
+
+                            system($command);
+                        }
                     }
                 }
             }
@@ -1420,23 +1425,23 @@ sub change_backdrop {
                     );
                     $globals->{'timeline_bg'}->start();
                 }
-                if ( -r $data ) {
-                $globals->{'background'} = Clutter::Texture->new($data);
-                $globals->{'background'}->set(
-                    keep_aspect_ratio => 1,
-                    request_mode      => 'width-for-height',
-                );
-                $globals->{'background'}
-                  ->set_height($globals->{'stage'}->get_height());
-                $globals->{'background'}->set_anchor_point(
-                    $globals->{'background'}->get_width / 2,
-                    $globals->{'background'}->get_height / 2
-                );
-                $globals->{'background'}->set_position(
-                    $globals->{'stage'}->get_width / 2,
-                    $globals->{'stage'}->get_height / 2
-                );
-                $globals->{'stage'}->add($globals->{'background'});
+                if (-r $data) {
+                    $globals->{'background'} = Clutter::Texture->new($data);
+                    $globals->{'background'}->set(
+                        keep_aspect_ratio => 1,
+                        request_mode      => 'width-for-height',
+                    );
+                    $globals->{'background'}
+                      ->set_height($globals->{'stage'}->get_height());
+                    $globals->{'background'}->set_anchor_point(
+                        $globals->{'background'}->get_width / 2,
+                        $globals->{'background'}->get_height / 2
+                    );
+                    $globals->{'background'}->set_position(
+                        $globals->{'stage'}->get_width / 2,
+                        $globals->{'stage'}->get_height / 2
+                    );
+                    $globals->{'stage'}->add($globals->{'background'});
                 }
             } else {
                 my ($pixbuf);
@@ -1853,25 +1858,32 @@ sub set_maintext_clutter {
     my $final_y = $globals->{'stage'}->get_height() / 2;
     if ($config->{'VerticalLocation'} =~ /^T/) {
         if ($globals->{'header'}) {
-            $final_y = $globals->{'header'}->get_height() + ($globals->{'maintext'}->get_height/2);
+            $final_y =
+              $globals->{'header'}->get_height() +
+              ($globals->{'maintext'}->get_height / 2);
         } else {
-            $final_y = $globals->{'maintext'}->get_height/2;
+            $final_y = $globals->{'maintext'}->get_height / 2;
         }
     } elsif ($config->{'VerticalLocation'} =~ /^B/) {
         if ($globals->{'footer'}) {
-            $final_y = $globals->{'stage'}->get_height() - ($globals->{'maintext'}->get_height/2) - $globals->{'footer'}->get_height();
+            $final_y =
+              $globals->{'stage'}->get_height() -
+              ($globals->{'maintext'}->get_height / 2) -
+              $globals->{'footer'}->get_height();
         } else {
-            $final_y = $globals->{'stage'}->get_height() - ($globals->{'maintext'}->get_height/2);
+            $final_y =
+              $globals->{'stage'}->get_height() -
+              ($globals->{'maintext'}->get_height / 2);
         }
     }
     if ($config->{'HorizontalLocation'} =~ /^L/) {
-        $final_x = $globals->{'maintext'}->get_width/2;
+        $final_x = $globals->{'maintext'}->get_width / 2;
     } elsif ($config->{'HorizontalLocation'} =~ /^R/) {
-        $final_x = $globals->{'stage'}->get_width() - $globals->{'maintext'}->get_width/2;
+        $final_x =
+          $globals->{'stage'}->get_width() -
+          $globals->{'maintext'}->get_width / 2;
     }
-    $globals->{'maintext'}->set_position(
-        $final_x, $final_y
-    );
+    $globals->{'maintext'}->set_position($final_x, $final_y);
 
     $globals->{'timeline'} = Clutter::Timeline->new_for_duration(100);
     $globals->{'timeline'}->set_speed(15);
@@ -2016,9 +2028,7 @@ sub set_maintext_clutter {
                 undef $globals->{'maintext_old'};
             }
             $globals->{'maintext'}->set_rotation('y-axis', 0, 0, 0, 0);
-            $globals->{'maintext'}->set_position(
-                $final_x, $final_y
-            );
+            $globals->{'maintext'}->set_position($final_x, $final_y);
             $globals->{'maintext'}->set_opacity(255);
             undef $globals->{'timeline'};
         }
@@ -2031,7 +2041,7 @@ sub create_outlined_text {
     my $group = Clutter::Group->new;
     $text =~ s/\&/\&amp\;/g;
 
-    foreach my $count (0, 2, 10, 12, 18,24, 6) {
+    foreach my $count (0, 2, 10, 12, 18, 24, 6) {
         my $colour;
         if ($count == 6) {
             $colour = Clutter::Color->parse($text_colour);
@@ -2050,6 +2060,7 @@ sub create_outlined_text {
         $item->set_use_markup(1);
         if ($item->get_width() > $config->{'Width'}) {
             $item->set_line_wrap(1);
+
             #$item->set_size($globals->{'stage'}->get_width(), -1);
             $item->set_size($config->{'Width'}, -1);
         }
@@ -2164,9 +2175,9 @@ sub set_maintext_canvas {
     my $centreX = $config->{'Width'} / 2;
     my $centreY = $config->{'Height'} / 2;
 
-    if ($config->{'VerticalLocation'} =~ /^B/ ) {
+    if ($config->{'VerticalLocation'} =~ /^B/) {
         $centreY = ($config->{'Height'} - ($h / 2)) - $headerHeight;
-    } elsif ($config->{'VerticalLocation'} =~ /^T/ ) {
+    } elsif ($config->{'VerticalLocation'} =~ /^T/) {
         $centreY = ($h / 2) + $headerHeight;
     }
 
@@ -2792,12 +2803,12 @@ sub create_window {
             -1);
         $globals->{'footerText'}->set_justify('center');
 
-        if ($config->{'VerticalLocation'} =~ /^B/ ) {
+        if ($config->{'VerticalLocation'} =~ /^B/) {
             my $fill = Gtk2::Label->new();
             $vbox->pack_start($fill,                    TRUE,  TRUE,  0);
             $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
             $vbox->pack_start($globals->{'mainText'},   FALSE, TRUE,  0);
-        } elsif ($config->{'VerticalLocation'} =~ /^C/ ) {
+        } elsif ($config->{'VerticalLocation'} =~ /^C/) {
             $vbox->pack_start($globals->{'headerText'}, FALSE, FALSE, 0);
             $vbox->pack_start($globals->{'mainText'},   TRUE,  TRUE,  0);
         } else {
