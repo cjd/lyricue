@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.263 2009/05/17 23:09:12 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.264 2009/05/18 00:03:15 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -3500,7 +3500,8 @@ sub apply_font {
 sub create_dialogChapter {
     my ($widget) = @_;
     my $book = $widget->get_label;
-    my $untranslated_book = $book; # NEED TO FIND A WAY TO UNTRANSLATE A MESSAGE
+    my $untranslated_book = substr($widget->get_name, 6); # Strip 'button' from widget name
+    $untranslated_book =~ s/([A-Z])/ $1/g;
     debug("Selected " . $book);
     my $cont    = FALSE;
     my $maxchap = 0;
@@ -3596,7 +3597,7 @@ sub create_dialogVerse {
     my $maxverse = 0;
     if ($globals->{'usesword'}) {
         my $command = sprintf(
-            "%s -b %s -e UTF8 -k '%s' %d | grep '^%s' | tail -2 | head -1",
+            "%s -b %s -e UTF8 -k '%s' %d | grep '^%s' | tail -1",
             $globals->{'diatheke'},
             $globals->{'bibledb'}, $book, $chapter, $book
         );
@@ -3625,7 +3626,7 @@ sub create_dialogVerse {
           Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowVerse',
             'lyricue');
         $versexml->signal_autoconnect_from_package('');
-        $versexml->get_widget('tableVerse')->resize(ceil($maxverse / 5) + 1, 5);
+        $versexml->get_widget('tableVerse')->resize(ceil($maxverse / 5)+1 , 5);
         $versexml->get_widget('labelVerse')->set_text($book . " - " . $chapter);
         $versexml->get_widget('windowVerse')->get_toplevel->{user_data} =
           $book . " - " . $chapter;
@@ -3640,7 +3641,7 @@ sub create_dialogVerse {
                     $widgets->{'verseButton'}{$number}->show;
                     $versexml->get_widget('tableVerse')
                       ->attach($widgets->{'verseButton'}{$number},
-                        $_, $_ + 1, $i + 1, $i + 2, 'fill', 'expand', 0, 0);
+                        $_, $_ + 1, $i + 1 , $i + 2, 'fill', 'expand', 0, 0);
                     $widgets->{'verseButton'}{$number}
                       ->signal_connect("event", "changeVerseStatus", $maxverse);
                 }
