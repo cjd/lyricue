@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.164 2009/05/11 06:47:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.165 2009/05/18 05:51:58 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2037,7 +2037,7 @@ sub create_outlined_text {
             $colour = Clutter::Color->parse($text_colour);
         } else {
             $colour = Clutter::Color->parse($shadow_colour);
-            $colour->alpha(0x88);
+            $colour->alpha(0xA0);
         }
         my $item = Clutter::Label->new($font, $text, $colour);
         if ($config->{'Justification'} =~ /^L/) {
@@ -2050,14 +2050,15 @@ sub create_outlined_text {
         $item->set_use_markup(1);
         if ($item->get_width() > $config->{'Width'}) {
             $item->set_line_wrap(1);
-            $item->set_size($globals->{'stage'}->get_width(), -1);
+            #$item->set_size($globals->{'stage'}->get_width(), -1);
+            $item->set_size($config->{'Width'}, -1);
         }
         $item->set_anchor_point($item->get_width() / 2,
             $item->get_height() / 2);
-        $item->set_scale(1 / $MINISCALE, 1 / $MINISCALE);
         $item->set_position(($count % 5) - 1, (int($count / 5) - 1));
         $group->add($item);
     }
+    $group->set_scale(1 / $MINISCALE, 1 / $MINISCALE);
     return $group;
 }
 
