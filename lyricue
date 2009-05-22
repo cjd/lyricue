@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.264 2009/05/18 00:03:15 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.265 2009/05/22 01:48:41 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -127,7 +127,7 @@ if ($^O eq 'MSWin32') {
     $globals->{'sharedir'} = "";
 } else {
     $globals->{'etcdir'}   = "/etc/lyricue/";
-    $globals->{'basedir'}  = $ENV{'HOME'} . "/.local/share/lyricue/";
+    $globals->{'basedir'}  = Glib::get_user_data_dir . "/lyricue/";
     $globals->{'oldbasedir'}  = $ENV{'HOME'} . "/.lyricue/";
     $globals->{'sharedir'} = "/usr/share/lyricue/";
 }
@@ -5313,10 +5313,10 @@ sub load_config {
         $conf->{'BGImage'} = "db;" . $conf->{'BGImage'};
     }
     if (!($conf->{'ImageDirectory'})) {
-        $conf->{'ImageDirectory'} = $globals->{'basedir'} . "images/";
+        $conf->{'ImageDirectory'} = Glib::get_user_special_dir('pictures') . "/";
     }
     if (!($conf->{'BGDirectory'})) {
-        $conf->{'BGDirectory'} = $globals->{'basedir'} . "backgrounds/";
+        $conf->{'BGDirectory'} = Glib::get_user_special_dir('pictures') . "/";
     }
 
     if ($conf->{'CentreX'}) {
@@ -8704,6 +8704,8 @@ sub db_connect {
               . ":database=$dbname;host=$globals->{'mysqlhost'}",
             "lyric", ""
         ) || display_fatal($dberror, $DBI::errstr);
+        #my $sth = $dbh->prepare("SET NAMES utf8");
+        #$sth->execute();
     }
     return $dbh;
 }

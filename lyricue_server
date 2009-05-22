@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.167 2009/05/18 06:25:05 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.168 2009/05/22 01:48:41 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -145,7 +145,7 @@ use constant CLUTTER => 2;
 
 my ($globals);
 $globals->{'etcdir'}   = "/etc/lyricue/";
-$globals->{'basedir'}  = $ENV{'HOME'} . "/.local/share/lyricue/";
+$globals->{'basedir'}  = Glib::get_user_data_dir . "/lyricue/";
 $globals->{'sharedir'} = "/usr/share/lyricue/";
 
 #
