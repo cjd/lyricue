@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.168 2009/05/22 01:48:41 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.169 2009/05/24 07:43:35 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1298,7 +1298,7 @@ sub HandleKey {
 #
 sub change_backdrop {
     my ($id) = @_;
-    if ($id == $globals->{'bgid'}) {
+    if ($id eq $globals->{'bgid'}) {
         debug("Backdrop ID same - not changing");
         return;
     } 
