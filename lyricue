@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.265 2009/05/22 01:48:41 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.266 2009/05/24 10:54:19 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5964,10 +5964,10 @@ sub init_mainWindow {
     my ($width, $height) =
       $widgets->{'main'}->get_widget('windowMain')->get_size();
     if ((defined $config->{'FrameRight'}) && ($config->{'FrameRight'} != 0)) {
-        $widgets->{'main'}->get_widget('hpanedMainLeft')
-          ->set_position($config->{'FrameLeft'});
         $widgets->{'main'}->get_widget('hpanedMainRight')
           ->set_position($config->{'FrameRight'});
+        $widgets->{'main'}->get_widget('hpanedMainLeft')
+          ->set_position($config->{'FrameLeft'});
     } else {
         if ($globals->{'access'} =~ /p/) {
             $widgets->{'main'}->get_widget('hpanedMainLeft')
@@ -5993,9 +5993,20 @@ sub bgdir_list {
     my $counter = 0;
     my $cat     = "";
     debug("Adding Main image dir button");
-    my @categories = ();
+    my @dbcategories = ();
+    my @dircategories = ();
     if ($config->{'SpecialBack'} ne "") {
-        push @categories, $config->{'SpecialBack'};
+	my ($type, $id) = split /;/, $config->{'SpecialBack'};
+	if (!defined $id) {
+            $id = $type;
+            $type = "db";
+	}
+	$id = "00000".$id;
+        if ($type eq "db") {
+           push @dbcategories, $id;
+        } else {
+           push @dircategories, $id;
+        }
     }
 
     # Add categories from mediaDb
@@ -6008,10 +6019,11 @@ sub bgdir_list {
     my $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $!);
     while ($row = $sth->fetchrow_hashref()) {
-        push @categories, $row->{'category'};
+        push @dbcategories, $row->{'category'};
     }
 
-    foreach $cat (@categories) {
+    foreach $cat (sort @dbcategories) {
+	$cat =~ s/^00000//g;
         debug("Adding image dir button for db-" . $cat);
         $widgets->{'dirbuttons'}[$counter] = new Gtk2::Button($cat);
         $widgets->{'main'}->get_widget('vboxBackDir')
@@ -6022,7 +6034,6 @@ sub bgdir_list {
         $counter++;
     }
 
-    @categories = ();
 
     # Add categories from directories
     my $dirname = $config->{'BGDirectory'};
@@ -6031,13 +6042,14 @@ sub bgdir_list {
     if ($ret) {
         foreach $file (readdir(DIR)) {
             if (!($file =~ /^\./) && ( -d $dirname."/".$file)) {
-                push @categories, $file;
+                push @dircategories, $file;
             }
         }
         closedir DIR;
     }
 
-    foreach $cat (@categories) {
+    foreach $cat (sort @dircategories) {
+	$cat =~ s/^00000//g;
         debug("Adding image dir button for dir-" . $cat);
         $widgets->{'dirbuttons'}[$counter] = new Gtk2::Button($cat);
         $widgets->{'main'}->get_widget('vboxBackDir')
