@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.169 2009/05/24 07:43:35 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.170 2009/05/25 10:34:16 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2762,27 +2762,31 @@ sub create_window {
 
     do_pending();
 
-    eval { require Clutter };
-    if ($@) {
-        print "Optional module Clutter not available. Using canvas server\n";
-        $globals->{'server_type'} = CANVAS;
-    } else {
-        import Clutter;
-        import Clutter qw( :gtk-init );
-        import Clutter::Keysyms;
+    if ( $globals->{'server_type'} == CLUTTER ) {
+        eval { require Clutter };
+        if ($@) {
+            print "Optional module Clutter not available. Using canvas server\n";
+            $globals->{'server_type'} = CANVAS;
+        } else {
+            import Clutter;
+            import Clutter qw( :gtk-init );
+            import Clutter::Keysyms;
+        }
     }
     my $aspect = $config->{'Width'} / $config->{'Height'};
     my $geom   = Gtk2::Gdk::Geometry->new;
     $geom->min_aspect($aspect);
     $globals->{'window'}
       ->set_geometry_hints($globals->{'window'}, $geom, 'GDK_HINT_ASPECT');
-    eval { require Gnome2::Canvas; };
-    if ($@) {
-        print
-          "Optional module Gnome2::Canvas not available. Using simple server\n";
-        $globals->{'server_type'} = SIMPLE;
-    } else {
-        import Gnome2::Canvas;
+    if ( $globals->{'server_type'} == CLUTTER ) {
+        eval { require Gnome2::Canvas; };
+        if ($@) {
+            print
+              "Optional module Gnome2::Canvas not available. Using simple server\n";
+            $globals->{'server_type'} = SIMPLE;
+        } else {
+            import Gnome2::Canvas;
+        }
     }
     if ($globals->{'server_type'} == SIMPLE) {
         debug("Using simple server");
