@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.170 2009/05/25 10:34:16 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.171 2009/05/25 10:38:50 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2830,7 +2830,6 @@ sub create_window {
         $vbox->pack_start($globals->{'footerText'}, FALSE, FALSE, 0);
     } elsif ($globals->{'server_type'} == CLUTTER) {
         debug("Using clutter server");
-        Clutter::Threads->init();
         Clutter->init();
         Clutter::Gst->init;
         my $black_colour = Clutter::Color->new(0, 0, 0, 0xff);
