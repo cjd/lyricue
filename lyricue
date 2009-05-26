@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.266 2009/05/24 10:54:19 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.267 2009/05/26 06:40:41 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7819,7 +7819,7 @@ sub navigator_update {
     $buffer->set_text("");
     my $iter  = $buffer->get_iter_at_offset(0);
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
-    $verse =~ s/ (\D)/_$1/;
+    $verse =~ s/ (\D)/_$1/g;
     my ($book, $chapter, $startverse, $endverse) =
       split(/[ :\-,]/, $verse, 4);
     $book =~ s/_/ /g;
