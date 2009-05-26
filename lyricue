@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.267 2009/05/26 06:40:41 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.268 2009/05/26 08:23:31 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5468,9 +5468,11 @@ sub save_preferences {
         }
     }
     close CONFIG;
+    $config = load_config();
     if ($db_changed) {
         db_restart();
     }
+
     init_preview();
     init_miniview();
 
