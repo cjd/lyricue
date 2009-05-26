@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.171 2009/05/25 10:38:50 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.172 2009/05/26 01:45:41 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -362,7 +362,7 @@ if (!($config->{'BGImage'} =~ /;/)) {
     $config->{'BGImage'} = "db;" . $config->{'BGImage'};
 }
 
-change_backdrop($config->{'BGImage'});
+change_backdrop($config->{'BGImage'},TRUE);
 
 my $sockaddr = 'S n a4 x8';
 $socket = IO::Socket::INET->new(
@@ -385,6 +385,14 @@ system('xset s off -dpms');
 debug("Main program running");
 Glib::Timeout->add(200, \&check_net);
 Gtk2->main();
+
+sub loop_background {
+    my ($widget, $id) = @_;
+    debug("Video ended - Looping");
+    $globals->{'bgid'}="";
+    change_backdrop($id,TRUE);
+    return TRUE;
+}
 
 sub check_net {
     my @ready = $s->can_read(0);
@@ -454,7 +462,7 @@ sub process_input {
             $status = gettext("Configuration reloaded");
         } elsif (/^backdrop$/) {
             $config->{'BGImage'} = $line[1];
-            change_backdrop($config->{'BGImage'});
+            change_backdrop($config->{'BGImage'},TRUE);
             $status = gettext("Backdrop changed to ") . $config->{'BGImage'};
         } elsif (/^blank$/) {
             set_header("");
@@ -462,7 +470,7 @@ sub process_input {
             set_maintext("", NONE, FALSE);
             if ($line[1] ne "") {
                 $config->{'BGImage'} = $line[1];
-                change_backdrop($config->{'BGImage'});
+                change_backdrop($config->{'BGImage'},TRUE);
                 $status = gettext("Screen blanked");
             } else {
                 $status = gettext("Text cleared");
@@ -907,7 +915,7 @@ sub process_input {
                       || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
                     if (my $imgrow = $imgsth->fetchrow_hashref()) {
-                        change_backdrop($imgrow->{'imagename'});
+                        change_backdrop($imgrow->{'imagename'},TRUE);
                         $bgimage_changed = TRUE;
                     } else {
 
@@ -922,14 +930,14 @@ sub process_input {
                         $imgsth->execute
                           || display_fatal($errorcodes->{'sqlexecute'}, $!);
                         if (my $imgrow = $imgsth->fetchrow_hashref()) {
-                            change_backdrop($imgrow->{'imagename'});
+                            change_backdrop($imgrow->{'imagename'},TRUE);
                             $bgimage_changed = TRUE;
                         } else {
                             if ($bgimage_changed && $imgrow->{'data'} ne "imag")
                             {
 
                                 #Reset background if an image was shown
-                                change_backdrop($config->{'BGImage'});
+                                change_backdrop($config->{'BGImage'},TRUE);
                                 $bgimage_changed = FALSE;
                             }
                         }
@@ -947,21 +955,21 @@ sub process_input {
                     if ($row->{'type'} eq "back") {
                         my $file = $row->{'data'};
                         $config->{'BGImage'} = $file;
-                        change_backdrop($file);
+                        change_backdrop($file,TRUE);
                     } elsif ($row->{'type'} eq "file") {
                         if (-r $row->{'data'}) {
                             $bgimage_changed = TRUE;
                             set_footer("");
                             set_header("");
                             set_maintext("", NONE, FALSE);
-                            change_backdrop("dir;" . $row->{'data'});
+                            change_backdrop("dir;" . $row->{'data'}, FALSE);
                         }
                     } elsif ($row->{'type'} eq "imag") {
                         $bgimage_changed = TRUE;
                         set_footer("");
                         set_header("");
                         set_maintext("", NONE, FALSE);
-                        change_backdrop($row->{'data'});
+                        change_backdrop($row->{'data'}, FALSE);
                     } elsif ($row->{'type'} eq "vers") {
 
                         # Kill invalid points from previous songs
@@ -1287,21 +1295,23 @@ sub HandleKey {
 # NAME
 #   change_backdrop
 # SYNOPSIS
-#   change_backdrop ( $id )
+#   change_backdrop ( $id  ,$loop )
 # FUNCTION
 #   Loads an image and sets it as the screens background
 # INPUTS
 #   $id - id of image
+#   $loop - loop video
 # OUTPUT
 #   Updates screen
 # SOURCE
 #
 sub change_backdrop {
-    my ($id) = @_;
+    my ($id, $loop) = @_;
     if ($id eq $globals->{'bgid'}) {
         debug("Backdrop ID same - not changing");
         return;
     } 
+    $globals->{'video_loop'}=FALSE;
     debug("Setting backdrop to $id");
     $globals->{'bgid'} = $id;
     my ($type, $data) = split /;/, $id;
@@ -1380,6 +1390,11 @@ sub change_backdrop {
 
                         if ($MINISERV < 0) {
                             $globals->{'background'}->set_playing(TRUE);
+                            $globals->{'video_loop'}=$loop;
+                            if ($loop) {
+                                $globals->{'background'}->signal_connect(
+                                    "eos", "loop_background", $id);
+                            }
                         }
                         $globals->{'video_playing'} = TRUE;
                     } else {
