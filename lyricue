@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.268 2009/05/26 08:23:31 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.269 2009/05/27 03:54:53 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7647,6 +7647,7 @@ sub restore_db {
                 if (/^USE/) {
                     $db = $_;
                     $db =~ s/^USE (.*);.*$/$1/g;
+                    $db =~ s/\`//g;
                     debug($db . " - database");
                     if ($db eq "lyricDb") {
                         $dbh = $lyricDbh;
@@ -7713,7 +7714,7 @@ sub backup_db {
         #}
         #}
         my $command =
-"mysqldump --no-create-db --no-create-info --user=lyric --password='' --databases "
+"mysqldump --skip-extended-insert --no-create-db --no-create-info --user=lyric --password='' --databases "
           . $databases
           . " | gzip -c > "
           . $filename;
