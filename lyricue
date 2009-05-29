@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.271 2009/05/29 06:06:09 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.272 2009/05/29 08:29:04 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -162,6 +162,8 @@ if ($^O eq 'MSWin32') {
 }
 $globals->{'unoconv'} = `which unoconv`;
 chomp $globals->{'unoconv'};
+$globals->{'convert'} = `which convert`;
+chomp $globals->{'convert'};
 $globals->{'server_port'}        = "2346";    #port used for lyric server
 $globals->{'preview_port'}       = "2347";    #port used for preview
 $globals->{'miniview_port'}      = "2348";    #port used for miniview
@@ -660,7 +662,7 @@ sub add_playlist {
                 $title = "Image: " . $id;
             } else {
                 my $query2 = "SELECT description FROM media WHERE id=\""
-                  . $row->{'data'} . "\"";
+                  . $id . "\"";
                 qdebug($query2);
                 my $sth2 = $mediaDbh->prepare($query2)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -5140,7 +5142,7 @@ sub update_cplayclist {
     }
 
     my $query =
-"SELECT title FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND type='play' WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
+"SELECT title FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -5538,6 +5540,7 @@ sub do_add_file {
     if ($globals->{'unoconv'} ne "") {
         if (($file =~ /ppt$/i) || ($file =~ /odp$/i)) {
             # Add presentation
+            debug("Adding ppt/odp presentation");
             my $target = $file;
             $target =~ s/^.*\///g;
             my $tmpdir  = tempdir( "lyricue-XXXX", TMPDIR => 1, CLEANUP=>0);
@@ -5566,6 +5569,35 @@ sub do_add_file {
 
             debug($command);
             system($command);
+            do_add_directory($tmpdir,$target);
+            return;
+        }
+    }
+    if ($globals->{'convert'} ne "") {
+        if (($file =~ /pdf$/)) { 
+            # Add pdf file
+            my $target = $file;
+            debug("Adding pdf presentation");
+            $target =~ s/^.*\///g;
+            my $tmpdir  = tempdir( "lyricue-XXXX", TMPDIR => 1, CLEANUP=>0);
+            my $command = $globals->{'convert'}." ".$file." ".$tmpdir."/temp.jpg";
+            debug($command);
+            system($command);
+            # Clean up directory
+            my $ret = opendir DIR, $tmpdir;
+debug($tmpdir);
+            if ($ret) {
+                foreach my $filename (readdir(DIR)) {
+debug($filename);
+                    if ($filename =~ /^temp.*jpg$/) {
+                        my $count = $filename;
+                        $count =~ s/^.*([0-9]+).*$/$1/g;
+                        $count++;
+                        rename $tmpdir."/".$filename, $tmpdir."/page_".$count.".jpg";
+                    }
+                }
+                closedir DIR;
+            }
             do_add_directory($tmpdir,$target);
             return;
         }
