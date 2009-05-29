@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.270 2009/05/29 01:37:21 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.271 2009/05/29 06:06:09 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -93,6 +93,7 @@ use Gtk2::GladeXML;
 use Gtk2::Pango;
 use Gtk2::Gdk::Keysyms;
 use URI::file;
+use File::Temp qw/tempdir/;
 
 eval { require Locale::gettext };
 
@@ -159,6 +160,8 @@ if ($^O eq 'MSWin32') {
     $globals->{'diatheke'} = `which diatheke`;
     chomp $globals->{'diatheke'};
 }
+$globals->{'unoconv'} = `which unoconv`;
+chomp $globals->{'unoconv'};
 $globals->{'server_port'}        = "2346";    #port used for lyric server
 $globals->{'preview_port'}       = "2347";    #port used for preview
 $globals->{'miniview_port'}      = "2348";    #port used for miniview
@@ -2444,7 +2447,7 @@ sub remove_from_playlist {
 #
 sub remove_single_item {
     my ($item) = @_;
-    debug("Deleting $item");
+    debug("Deleting $item from playlist");
     reset_timer($globals->{'timer'});
     my $query = "SELECT type,data  FROM playlist WHERE playorder=" . $item;
     qdebug($query);
@@ -2488,6 +2491,42 @@ sub remove_single_item {
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
+    if (($row[0] eq "file") && ($row[1] =~ /^\/tmp\/lyricue-/)) {
+        # Removing temporary file
+        my $command = "rm ".$row[1];
+        my $dir = $row[1];
+        $dir =~ s/^(\/tmp\/lyricue-.*\/).*$/$1/g;
+
+        # Check if used elsewhere
+        $query = "SELECT playorder FROM playlist WHERE data=\"".$row[1]."\"";
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        if(@row = $sth->fetchrow_array) {
+            debug("Temporary file used elsewhere - not removing");
+            return;
+        } 
+        debug($command);
+        system($command);
+
+        # Check if directory empty
+        my $ret = opendir DIR, $dir;
+        if ($ret) {
+            my $found = FALSE;
+            foreach (readdir(DIR)) {
+                if (! /^\.*$/) {
+                    $found = TRUE;
+                }
+            }
+            if (!$found) {
+                debug("Empty directory - removing");
+                $command = "rmdir ".$dir;
+                debug($command);
+                system($command);
+            }
+        }
+    }
 }
 
 #***
@@ -5496,6 +5535,41 @@ sub file_ok_sel {
 sub do_add_file {
     my ($file, $playlist) = @_;
     debug("do_add_file: file=" . $file);
+    if ($globals->{'unoconv'} ne "") {
+        if (($file =~ /ppt$/i) || ($file =~ /odp$/i)) {
+            # Add presentation
+            my $target = $file;
+            $target =~ s/^.*\///g;
+            my $tmpdir  = tempdir( "lyricue-XXXX", TMPDIR => 1, CLEANUP=>0);
+            my $command = "cp ".$file." ".$tmpdir."/".$target;
+            debug($command);
+            system($command);
+            $command = $globals->{'unoconv'}." -f html ".$tmpdir."/".$target;
+            debug($command);
+            system($command);
+            # Clean up directory
+            my $ret = opendir DIR, $tmpdir;
+            if ($ret) {
+                foreach my $filename (readdir(DIR)) {
+                    if (($filename =~ /\.html$/) || ($filename eq $target)) {
+                        unlink $tmpdir."/".$filename;
+                    } elsif ($filename =~ /^img.*jpg$/) {
+                        my $count = $filename;
+                        $count =~ s/^.*([0-9]+).*$/$1/g;
+                        $count++;
+                        rename $tmpdir."/".$filename, $tmpdir."/page_".$count.".jpg";
+                    }
+                }
+                closedir DIR;
+            }
+            $command = "rm ".$tmpdir."/*.html \"".$tmpdir."/".$target."\"";
+
+            debug($command);
+            system($command);
+            do_add_directory($tmpdir,$target);
+            return;
+        }
+    }
     if (($file ne "") && (-r $file)) {
 
         # Find next playorder
@@ -6315,6 +6389,11 @@ sub add_directory {
         debug("Choosing" . $dirname);
     }
     $d->destroy;
+    do_add_directory($dirname,"");
+}
+
+sub do_add_directory {
+    my ($dirname,$sublist) = @_;
 
     my (@files, $file);
     opendir DIR, $dirname || return 0;
@@ -6328,27 +6407,33 @@ sub add_directory {
     }
     closedir DIR;
     if (@files) {
-        my $sublistxml = Gtk2::GladeXML->new($globals->{'gladefile'},
-            'dialogPromptEntry', 'lyricue');
-        $sublistxml->signal_autoconnect_from_package('');
-        $sublistxml->get_widget('dialogPromptEntry')
-          ->set_title(fromutf(gettext("Create new sublist")));
-        $sublistxml->get_widget('labelPromptE')->set_text(fromutf(gettext("Name of sublist")));
+        if ($sublist eq "") {
+            my $sublistxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+                'dialogPromptEntry', 'lyricue');
+            $sublistxml->signal_autoconnect_from_package('');
+            $sublistxml->get_widget('dialogPromptEntry')
+            ->set_title(fromutf(gettext("Create new sublist")));
+            $sublistxml->get_widget('labelPromptE')->set_text(fromutf(gettext("Name of sublist")));
 
-        my $response = $sublistxml->get_widget('dialogPromptEntry')->run();
-        if ($response eq "ok") {
-            my $sublist = $sublistxml->get_widget('entryPromptE')->get_text();
-            debug("Sublist name: " . $sublist);
-            my $playlist = new_sublist($sublist);
-
-            @files = sort alphanum @files;
-
-            foreach $file (@files) {
-                do_add_file($file, $playlist);
+            my $response = $sublistxml->get_widget('dialogPromptEntry')->run();
+            if ($response eq "ok") {
+                my $sublist = $sublistxml->get_widget('entryPromptE')->get_text();
+                close_dialog($sublistxml->get_widget('dialogPromptEntry'));
+            } else {
+                close_dialog($sublistxml->get_widget('dialogPromptEntry'));
+                return;
             }
+            debug("Sublist name: " . $sublist);
         }
-        close_dialog($sublistxml->get_widget('dialogPromptEntry'));
+        my $playlist = new_sublist($sublist);
+
+        @files = sort alphanum @files;
+
+        foreach $file (@files) {
+            do_add_file($file, $playlist);
+        }
     }
+    update_playlist();
 }
 
 sub add_background {
@@ -8930,7 +9015,6 @@ sub do_install_bible {
 
     my $message = "";
 
-    use File::Temp qw/tempdir/;
     my $tmpdir  = tempdir( "lyricue-XXXX", TMPDIR => 1, CLEANUP=>1);
     if ($dbfilename =~ /sql.gz$/i ) {
         # Compressed bibleDb
