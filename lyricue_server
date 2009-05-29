@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.172 2009/05/26 01:45:41 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.173 2009/05/29 01:37:21 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -362,7 +362,7 @@ if (!($config->{'BGImage'} =~ /;/)) {
     $config->{'BGImage'} = "db;" . $config->{'BGImage'};
 }
 
-change_backdrop($config->{'BGImage'},TRUE);
+change_backdrop($config->{'BGImage'}, TRUE);
 
 my $sockaddr = 'S n a4 x8';
 $socket = IO::Socket::INET->new(
@@ -389,8 +389,8 @@ Gtk2->main();
 sub loop_background {
     my ($widget, $id) = @_;
     debug("Video ended - Looping");
-    $globals->{'bgid'}="";
-    change_backdrop($id,TRUE);
+    $globals->{'bgid'} = "";
+    change_backdrop($id, TRUE);
     return TRUE;
 }
 
@@ -462,7 +462,7 @@ sub process_input {
             $status = gettext("Configuration reloaded");
         } elsif (/^backdrop$/) {
             $config->{'BGImage'} = $line[1];
-            change_backdrop($config->{'BGImage'},TRUE);
+            change_backdrop($config->{'BGImage'}, TRUE);
             $status = gettext("Backdrop changed to ") . $config->{'BGImage'};
         } elsif (/^blank$/) {
             set_header("");
@@ -470,7 +470,7 @@ sub process_input {
             set_maintext("", NONE, FALSE);
             if ($line[1] ne "") {
                 $config->{'BGImage'} = $line[1];
-                change_backdrop($config->{'BGImage'},TRUE);
+                change_backdrop($config->{'BGImage'}, TRUE);
                 $status = gettext("Screen blanked");
             } else {
                 $status = gettext("Text cleared");
@@ -915,7 +915,7 @@ sub process_input {
                       || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
                     if (my $imgrow = $imgsth->fetchrow_hashref()) {
-                        change_backdrop($imgrow->{'imagename'},TRUE);
+                        change_backdrop($imgrow->{'imagename'}, TRUE);
                         $bgimage_changed = TRUE;
                     } else {
 
@@ -930,14 +930,14 @@ sub process_input {
                         $imgsth->execute
                           || display_fatal($errorcodes->{'sqlexecute'}, $!);
                         if (my $imgrow = $imgsth->fetchrow_hashref()) {
-                            change_backdrop($imgrow->{'imagename'},TRUE);
+                            change_backdrop($imgrow->{'imagename'}, TRUE);
                             $bgimage_changed = TRUE;
                         } else {
                             if ($bgimage_changed && $imgrow->{'data'} ne "imag")
                             {
 
                                 #Reset background if an image was shown
-                                change_backdrop($config->{'BGImage'},TRUE);
+                                change_backdrop($config->{'BGImage'}, TRUE);
                                 $bgimage_changed = FALSE;
                             }
                         }
@@ -955,7 +955,7 @@ sub process_input {
                     if ($row->{'type'} eq "back") {
                         my $file = $row->{'data'};
                         $config->{'BGImage'} = $file;
-                        change_backdrop($file,TRUE);
+                        change_backdrop($file, TRUE);
                     } elsif ($row->{'type'} eq "file") {
                         if (-r $row->{'data'}) {
                             $bgimage_changed = TRUE;
@@ -1310,8 +1310,8 @@ sub change_backdrop {
     if ($id eq $globals->{'bgid'}) {
         debug("Backdrop ID same - not changing");
         return;
-    } 
-    $globals->{'video_loop'}=FALSE;
+    }
+    $globals->{'video_loop'} = FALSE;
     debug("Setting backdrop to $id");
     $globals->{'bgid'} = $id;
     my ($type, $data) = split /;/, $id;
@@ -1360,11 +1360,11 @@ sub change_backdrop {
         # Movie file
         my @fileexts = qw(avi mpg mov wmv mp4);
         my $video    = FALSE;
-        if ($MINISERV < 0) {
-            for my $fileobj (@fileexts) {
-                if ($data =~ /$fileobj$/i) {
-                    debug("Changing backdrop video to file:" . $data);
-                    $video = TRUE;
+        for my $fileobj (@fileexts) {
+            if ($data =~ /$fileobj$/i) {
+                debug("Changing backdrop video to file:" . $data);
+                $video = TRUE;
+                if ($MINISERV < 0) {    # Don't play video in miniview
                     if ($globals->{'server_type'} == CLUTTER) {
                         debug("Clutter Video");
                         if (defined $globals->{'background'}) {
@@ -1390,10 +1390,11 @@ sub change_backdrop {
 
                         if ($MINISERV < 0) {
                             $globals->{'background'}->set_playing(TRUE);
-                            $globals->{'video_loop'}=$loop;
+                            $globals->{'video_loop'} = $loop;
                             if ($loop) {
-                                $globals->{'background'}->signal_connect(
-                                    "eos", "loop_background", $id);
+                                $globals->{'background'}
+                                  ->signal_connect("eos", "loop_background",
+                                    $id);
                             }
                         }
                         $globals->{'video_playing'} = TRUE;
@@ -2749,7 +2750,9 @@ sub create_window {
         my $width  = $config->{'Width'};
         my $height = $config->{'Height'};
         my ($width2, $height2) = $globals->{'window'}->get_size();
-        $MINISCALE = $width / $width2;
+        $MINISCALE = $height / $height2;
+
+        #$MINISCALE = $width / $width2;
         $width  /= $MINISCALE;
         $height /= $MINISCALE;
 
@@ -2777,10 +2780,11 @@ sub create_window {
 
     do_pending();
 
-    if ( $globals->{'server_type'} == CLUTTER ) {
+    if ($globals->{'server_type'} == CLUTTER) {
         eval { require Clutter };
         if ($@) {
-            print "Optional module Clutter not available. Using canvas server\n";
+            print
+              "Optional module Clutter not available. Using canvas server\n";
             $globals->{'server_type'} = CANVAS;
         } else {
             import Clutter;
@@ -2793,11 +2797,11 @@ sub create_window {
     $geom->min_aspect($aspect);
     $globals->{'window'}
       ->set_geometry_hints($globals->{'window'}, $geom, 'GDK_HINT_ASPECT');
-    if ( $globals->{'server_type'} == CLUTTER ) {
+    if ($globals->{'server_type'} == CLUTTER) {
         eval { require Gnome2::Canvas; };
         if ($@) {
             print
-              "Optional module Gnome2::Canvas not available. Using simple server\n";
+"Optional module Gnome2::Canvas not available. Using simple server\n";
             $globals->{'server_type'} = SIMPLE;
         } else {
             import Gnome2::Canvas;

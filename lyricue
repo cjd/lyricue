@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.269 2009/05/27 03:54:53 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.270 2009/05/29 01:37:21 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -32,10 +32,6 @@ Get lyricue version
 =item B<-d>
 
 Turn on debugging mode. Prints out debugging information
-
-=item B<-dq>
-
-Turn on query debugging mode. Prints out debugging information and all db queries
 
 =item B<-l>
 
@@ -271,8 +267,7 @@ $errorcodes->{'usage'} = fromutf(
           . "\t-s:  Specify the host on which the lyric server is located\n"
           . "\t-r:  Specify the host on which the mysql server is located\n"
           . "\t-d:  Prints debugging messages\n"
-          . "\t-w:  Don't maximize on startup\n"
-          . "\t-dq: Prints debugging messages + sql\n\n"
+          . "\t-w:  Don't maximize on startup\n\n"
     )
 );
 
@@ -336,7 +331,7 @@ if ($ARGV[0]) {
         } elsif ($ARGV[$_] eq "-b") {
             $globals->{'bg_previews'} = FALSE;
         } elsif ($ARGV[$_] eq "-d") {
-            $globals->{'debugging'} = 1;
+            $globals->{'debugging'} = 2;
             debug(  "Lyric Interface version "
                   . $globals->{'version'} . "\n"
                   . $ID);
@@ -6915,11 +6910,11 @@ sub init_preview {
     if ($config->{'DynamicPreview'}) {
         if (!defined($widgets->{'preview'})) {
             $widgets->{'main'}->get_widget('framePreview')->show();
-            $widgets->{'preview'} = Gtk2::Socket->new;
-            $widgets->{'preview'}->show;
-            $widgets->{'preview'}->set_size_request(280, 210);
             $widgets->{'main'}->get_widget('framePreview')
               ->set_size_request(280, 210);
+            $widgets->{'preview'} = Gtk2::Socket->new;
+            $widgets->{'preview'}->set_size_request(280, 210);
+            $widgets->{'preview'}->show;
             $widgets->{'main'}->get_widget('framePreview')
               ->add($widgets->{'preview'});
 
@@ -6981,8 +6976,8 @@ sub init_miniview {
             update_display("status", "previewon", "");
             $widgets->{'main'}->get_widget('frameCurrent')->show();
             $widgets->{'miniview'} = Gtk2::Socket->new;
-            $widgets->{'miniview'}->show;
             $widgets->{'miniview'}->set_size_request(280, 210);
+            $widgets->{'miniview'}->show;
             $widgets->{'main'}->get_widget('frameCurrent')
               ->add($widgets->{'miniview'});
             $widgets->{'main'}->get_widget('frameCurrent')
@@ -7311,6 +7306,7 @@ sub update_quickedit {
                     $loop      = 1;
                     $widgets->{'main'}->get_widget('textQuick')
                       ->set_wrap_mode('none');
+                    $quicktext = fromutf($quicktext);
                 } elsif ($row[0] eq "play") {
                     $query =
                         "SELECT playorder FROM playlist WHERE playlist="
@@ -7377,6 +7373,7 @@ sub update_quickedit {
                             $quicktext .=
                               $row[0] . ":" . $row[1] . "   " . $row[2] . "\n";
                         }
+                        $quicktext = fromutf($quicktext);
                     }
                     $loop = 1;
                     $widgets->{'main'}->get_widget('textQuick')
@@ -7396,7 +7393,7 @@ sub update_quickedit {
         }
 
         $widgets->{'main'}->get_widget('textQuick')
-          ->get_buffer->set_text(fromutf($quicktext));
+          ->get_buffer->set_text($quicktext);
         $widgets->{'main'}->get_widget('textQuick')->{user_data} =
           $model->get($iter, 2);
         $sth->finish;
