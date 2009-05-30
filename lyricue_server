@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.173 2009/05/29 01:37:21 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.174 2009/05/30 06:08:22 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -568,6 +568,10 @@ sub process_input {
                 my $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $current_play = $sth->fetchrow_hashref();
+                if (!$current_play->{'data'}) {
+                    debug("Playlist item has gone away");
+                    return;
+                }
 
                 if ($line[1] eq "playlist") {
                     debug("Changing playlist to " . $line[2]);
