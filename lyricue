@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.273 2009/05/30 04:28:41 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.274 2009/05/30 05:50:47 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5541,6 +5541,9 @@ sub do_add_file {
         if (($file =~ /ppt$/i) || ($file =~ /odp$/i)) {
             # Add presentation
             debug("Adding ppt/odp presentation");
+            my $dialog = Gtk2::MessageDialog->new($widgets->{'main'}->get_widget('windowMain'),'destroy-with-parent', 'info', 'none', gettext("Importing presentation"));
+            $dialog->show_all();
+            do_pending();
             my $target = $file;
             $target =~ s/^.*\///g;
             my $tmpdir  = tempdir( "lyricue-XXXX", TMPDIR => 1, CLEANUP=>0);
@@ -5570,6 +5573,7 @@ sub do_add_file {
             debug($command);
             system($command);
             do_add_directory($tmpdir,$target);
+            $dialog->destroy;
             return;
         }
     }
@@ -5578,6 +5582,9 @@ sub do_add_file {
             # Add pdf file
             my $target = $file;
             debug("Adding pdf presentation");
+            my $dialog = Gtk2::MessageDialog->new($widgets->{'main'}->get_widget('windowMain'),'destroy-with-parent', 'info', 'none', gettext("Importing presentation"));
+            $dialog->show_all();
+            do_pending();
             $target =~ s/^.*\///g;
             my $tmpdir  = tempdir( "lyricue-XXXX", TMPDIR => 1, CLEANUP=>0);
             my $command = $globals->{'convert'}." ".$file." ".$tmpdir."/temp.jpg";
@@ -5599,6 +5606,7 @@ debug($filename);
                 closedir DIR;
             }
             do_add_directory($tmpdir,$target);
+            $dialog->destroy;
             return;
         }
     }
