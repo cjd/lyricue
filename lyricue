@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.272 2009/05/29 08:29:04 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.273 2009/05/30 04:28:41 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -5544,10 +5544,10 @@ sub do_add_file {
             my $target = $file;
             $target =~ s/^.*\///g;
             my $tmpdir  = tempdir( "lyricue-XXXX", TMPDIR => 1, CLEANUP=>0);
-            my $command = "cp ".$file." ".$tmpdir."/".$target;
+            my $command = "cp \"".$file."\" \"".$tmpdir."/".$target."\"";
             debug($command);
             system($command);
-            $command = $globals->{'unoconv'}." -f html ".$tmpdir."/".$target;
+            $command = $globals->{'unoconv'}." -f html \"".$tmpdir."/".$target."\"";
             debug($command);
             system($command);
             # Clean up directory
