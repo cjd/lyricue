@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.174 2009/05/30 06:08:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.175 2009/05/30 08:23:42 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -568,10 +568,6 @@ sub process_input {
                 my $rv = $sth->execute
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $current_play = $sth->fetchrow_hashref();
-                if (!$current_play->{'data'}) {
-                    debug("Playlist item has gone away");
-                    return;
-                }
 
                 if ($line[1] eq "playlist") {
                     debug("Changing playlist to " . $line[2]);
@@ -2385,18 +2381,14 @@ sub set_maintext_canvas {
 }
 
 sub Configure_event {
+    my ($width, $height) = $globals->{'window'}->get_size();
+    debug ($width."x".$height);
+    $MINISCALE = $config->{'Height'} / $height;
+    $globals->{'window'}->resize($config->{'Width'}/$MINISCALE, $config->{'Height'} / $MINISCALE);
 
-#my ($width, $height) = $globals->{'window'}->get_size();
-#$MINISCALE = $config->{'Width'} / $width;
-#if (!$globals->{'fast'}) {
-#    if ($globals->{'canvas'}) {
-#        $globals->{'canvas'}->set_pixels_per_unit(1 / $MINISCALE);
-#    }
-#}
-#$globals->{'window'}->set_size_request($width, $config->{'Height'} / $MINISCALE);
-
-    #debug($width . "x" . ($config->{'Height'} / $MINISCALE));
-    #debug("Scale: " . $MINISCALE);
+    debug("Scale: " . $MINISCALE);
+    debug($config->{'Width'}/$MINISCALE. "x" . ($config->{'Height'} / $MINISCALE));
+    return TRUE;
 }
 
 sub display_fatal {
@@ -2740,6 +2732,7 @@ sub create_window {
 
     if ($MINISERV > 0) {
         $globals->{'window'} = Gtk2::Plug->new($MINISERV);
+        $globals->{'window'}->set_default_size(246,185);
     } else {
         $globals->{'window'} = Gtk2::Window->new('toplevel');
     }
