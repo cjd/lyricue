@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.274 2009/05/30 05:50:47 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.275 2009/05/31 06:32:07 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6457,7 +6457,7 @@ sub do_add_directory {
 
             my $response = $sublistxml->get_widget('dialogPromptEntry')->run();
             if ($response eq "ok") {
-                my $sublist = $sublistxml->get_widget('entryPromptE')->get_text();
+                $sublist = $sublistxml->get_widget('entryPromptE')->get_text();
                 close_dialog($sublistxml->get_widget('dialogPromptEntry'));
             } else {
                 close_dialog($sublistxml->get_widget('dialogPromptEntry'));
