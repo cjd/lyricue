@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.176 2009/05/31 06:33:10 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.177 2009/05/31 09:05:53 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2382,14 +2382,13 @@ sub set_maintext_canvas {
 
 sub Configure_event {
     if ($MINISERV > 0) {
-    my ($width, $height) = $globals->{'window'}->get_size();
-    debug ($width."x".$height);
-    $MINISCALE = $config->{'Height'} / $height;
-    $globals->{'window'}->resize($config->{'Width'}/$MINISCALE, $config->{'Height'} / $MINISCALE);
+        my ($width, $height) = $globals->{'window'}->get_size();
+        debug ($width."x".$height);
+        $MINISCALE = $config->{'Height'} / $height;
+        $globals->{'window'}->resize($config->{'Width'}/$MINISCALE, $config->{'Height'} / $MINISCALE);
 
-    debug("Scale: " . $MINISCALE);
-    debug($config->{'Width'}/$MINISCALE. "x" . ($config->{'Height'} / $MINISCALE));
-    return TRUE;
+        debug("Scale: " . $MINISCALE);
+        debug($config->{'Width'}/$MINISCALE. "x" . ($config->{'Height'} / $MINISCALE));
     }
     return FALSE;
 }
