@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.179 2009/06/01 05:00:33 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.180 2009/06/01 05:08:31 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2458,7 +2458,7 @@ sub set_footer_clutter {
     $globals->{'footer'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() -
-          ($globals->{'footer'}->get_height() / 2)
+          ($globals->{'footer'}->get_height() / 2 / $MINISCALE)
     );
 }
 
@@ -2555,7 +2555,7 @@ sub set_header_clutter {
     $globals->{'stage'}->add($globals->{'header'});
     $globals->{'header'}->set_position(
         $globals->{'stage'}->get_width() / 2,
-        $globals->{'header'}->get_height() / 2
+        $globals->{'header'}->get_height() / 2 / $MINISCALE
     );
 }
 
