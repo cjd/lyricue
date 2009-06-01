@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.275 2009/05/31 06:32:07 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.276 2009/06/01 04:23:42 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7036,7 +7036,7 @@ sub init_preview {
         if (!defined($widgets->{'preview'})) {
             $widgets->{'main'}->get_widget('framePreview')->show();
             $widgets->{'main'}->get_widget('framePreview')
-              ->set_size_request(280, 210);
+              ->set_size_request(255, 210);
             $widgets->{'preview'} = Gtk2::Socket->new;
             $widgets->{'preview'}->set_size_request(280, 210);
             $widgets->{'preview'}->show;
