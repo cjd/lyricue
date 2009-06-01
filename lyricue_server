@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.178 2009/06/01 04:23:42 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.179 2009/06/01 05:00:33 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -389,9 +389,8 @@ Gtk2->main();
 sub loop_background {
     my ($widget, $id) = @_;
     debug("Video ended - Looping");
-    $globals->{'bgid'} = "";
-    change_backdrop($id, TRUE);
-    return TRUE;
+    Clutter::Media::set_position($globals->{'background'},0);
+    return FALSE;
 }
 
 sub check_net {
@@ -2932,8 +2931,8 @@ sub create_window {
     # set window attributes and show it
     debug("Showing window");
     $globals->{'window'}->show_all();
-    $globals->{'window'}->signal_connect("configure_event", \&Configure_event);
-    Configure_event();
+    #$globals->{'window'}->signal_connect("configure_event", \&Configure_event);
+    #Configure_event();
 
     if ($globals->{'server_type'} == CANVAS) {
         $globals->{'canvas'}->update_now();
