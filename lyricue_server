@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.180 2009/06/01 05:08:31 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.181 2009/06/02 23:42:08 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2795,7 +2795,7 @@ sub create_window {
     $geom->min_aspect($aspect);
     $globals->{'window'}
       ->set_geometry_hints($globals->{'window'}, $geom, 'GDK_HINT_ASPECT');
-    if ($globals->{'server_type'} == CLUTTER) {
+    if ($globals->{'server_type'} == CANVAS) {
         eval { require Gnome2::Canvas; };
         if ($@) {
             print
