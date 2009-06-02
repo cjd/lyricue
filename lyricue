@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.276 2009/06/01 04:23:42 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.277 2009/06/02 06:16:24 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -179,6 +179,8 @@ $globals->{'hovering_over_link'} = FALSE;
 $globals->{'mini'}               = FALSE;
 $globals->{'db_adminuser'}       = "";
 $globals->{'current_item'}       = -1;
+$globals->{'icon_width'}         = 96;
+$globals->{'icon_height'}        = 72;
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -2960,6 +2962,24 @@ sub add_verse {
 
 #***
 
+sub add_image_pl {
+    debug ("Add image to playlist clicked");
+    my $widget = $widgets->{'main'}->get_widget('iconviewImage');
+    my $selected="";
+    my @list = $widget->get_selected_items;
+    if (defined $list[0]) {
+        my $model = $widget->get_model;
+        my $iter = $model->get_iter($list[0]);
+        $selected = $model->get($iter,2);
+    }
+    if ($selected ne ""){
+        my $playlist =
+          $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+        add_image_item($playlist,$selected);
+        update_playlist();
+    }
+}
+
 #****m* lyricue/add_image
 # NAME
 #   add_image --
@@ -3997,14 +4017,25 @@ sub print_songs {
 sub backdrop_clicked {
     my ($widget) = @_;
     debug("Backdrop clicked");
+    my $selected="";
+    my @list = $widget->get_selected_items;
+    if (defined $list[0]) {
+        my $model = $widget->get_model;
+        my $iter = $model->get_iter($list[0]);
+        $selected = $model->get($iter,2);
+    }
+    if ($selected eq ""){
+        return;
+    }
+
     if (@ASSOCIATE) {
-        associate_bg($widget->{user_data});
+        associate_bg($selected);
     } else {
-        debug("Changing backdrop to " . $widget->{user_data});
+        debug("Changing backdrop to " . $selected);
         if ($globals->{'bg_previews'}) {
-            my $prevFile = $widget->{user_data};
+            my $prevFile = $selected;
             my $scaled =
-              create_pixbuf($widgets->{'buttonCurr'}->{user_data}, 72, 54);
+              create_pixbuf($widgets->{'buttonCurr'}->{user_data}, $globals->{'icon_width'}, $globals->{'icon_height'});
 
             if ($scaled) {
                 $widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
@@ -4012,7 +4043,7 @@ sub backdrop_clicked {
                   $widgets->{'buttonCurr'}->{user_data};
             }
 
-            $scaled = create_pixbuf($prevFile, 72, 54);
+            $scaled = create_pixbuf($prevFile, $globals->{'icon_width'}, $globals->{'icon_height'});
             if ($scaled) {
                 $widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
                 $widgets->{'buttonCurr'}->{user_data} = $prevFile;
@@ -4040,19 +4071,29 @@ sub backdrop_clicked {
 sub do_add_image {
     my ($widget) = @_;
     debug("do add image");
-    my $playorder = 1;
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
     my @list      = $selection->get_selected_rows();
     my $model     = $widgets->{'image'}->get_widget('treeImage')->get_model();
     my $playlist =
       $widgets->{'image'}->get_widget('optionImageSublist')
       ->get_menu->get_active->{'user_data'};
+    foreach (@list) {
+        my $image = $model->get($model->get_iter($_), 1);
+        add_image_item($playlist, $image);
+    }
+    close_dialog($widget);
+    update_playlist();
+}
 
-    $query = "SELECT MAX(playorder) FROM playlist";
+sub add_image_item {
+    my ($playlist, $image) = @_;
+    my $playorder = 1;
+
+    my $query = "SELECT MAX(playorder) FROM playlist";
     qdebug($query);
-    $sth = $lyricDbh->prepare($query)
+    my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
-    $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+    my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
 
     if ($row = $sth->fetchrow_hashref()) {
         if ($row->{'MAX(playorder)'}) {
@@ -4060,8 +4101,6 @@ sub do_add_image {
         }
     }
 
-    foreach (@list) {
-        my $image = $model->get($model->get_iter($_), 1);
         debug($image);
         $query =
             "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
@@ -4074,10 +4113,7 @@ sub do_add_image {
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
         $playorder++;
-    }
 
-    close_dialog($widget);
-    update_playlist();
 }
 
 #***
@@ -5386,10 +5422,12 @@ sub save_state {
       . "\n";
     my ($width, $height) =
       $widgets->{'main'}->get_widget('windowMain')->get_size();
+    if (defined $widgets->{'main'}->get_widget('vpanedMain')) {
     $config .=
         "FrameMain = "
       . ($height - $widgets->{'main'}->get_widget('vpanedMain')->get_position())
       . "\n";
+    }
     return $config;
 }
 
@@ -6012,8 +6050,9 @@ sub init_mainWindow {
         $widgets->{'buttonPrev'}->signal_connect("clicked", "backdrop_clicked");
     }
 
-    # Update list of background directories
-    bgdir_list();
+    # Update list of background/image directories
+    bgdir_list("bg");
+    bgdir_list("img");
 
     # Setup Available list and blank playlist
     $widgets->{'main'}->get_widget('treeAvailable')->set_enable_search(TRUE);
@@ -6050,7 +6089,7 @@ sub init_mainWindow {
         ['copy', 'move'],
         {'target' => "STRING", 'flags' => [], 'info' => 0}
     );
-    $widgets->{'main'}->get_widget('hboxBackImage')->drag_dest_set(
+    $widgets->{'main'}->get_widget('iconviewBack')->drag_dest_set(
         'all',
         ['copy', 'move'],
         {'target' => "STRING", 'flags' => [], 'info' => 0}
@@ -6087,6 +6126,7 @@ sub init_mainWindow {
               ->set_position($width / 5 * 2);
         }
     }
+    if (defined $widgets->{'main'}->get_widget('vpanedMain')) {
     if ((defined $config->{'FrameMain'}) && ($config->{'FrameMain'} != 0)) {
         $widgets->{'main'}->get_widget('vpanedMain')
           ->set_position($height - $config->{'FrameMain'});
@@ -6094,20 +6134,36 @@ sub init_mainWindow {
         $widgets->{'main'}->get_widget('vpanedMain')
           ->set_position($height - 125);
     }
+    }
 
     $globals->{'hand_cursor'} = Gtk2::Gdk::Cursor->new('hand2');
     $globals->{'text_cursor'} = Gtk2::Gdk::Cursor->new('xterm');
 }
 
 sub bgdir_list {
-    debug("Loading directory list");
+    my ($type) = @_;
+    debug("Loading ".$type." directory list");
     my $counter = 0;
     my $cat     = "";
-    debug("Adding Main image dir button");
+    my $store = Gtk2::ListStore->new('Glib::String','Glib::String');
+    my ($combo,$special,$dirname);
+    if ($type eq "bg") {
+        $combo = $widgets->{'main'}->get_widget('comboBGDirList');
+        $special = $config->{'SpecialBack'};
+        $dirname = $config->{'BGDirectory'};
+    } else {
+        $combo = $widgets->{'main'}->get_widget('comboImgDirList');
+        $special = $config->{'SpecialImage'};
+        $dirname = $config->{'ImageDirectory'};
+    }
+    $combo->set_model($store);
+    my $renderer = Gtk2::CellRendererText->new;
+    $combo->pack_start($renderer, TRUE);
+    $combo->add_attribute($renderer, text=>0);
     my @dbcategories = ();
     my @dircategories = ();
-    if ($config->{'SpecialBack'} ne "") {
-	my ($type, $id) = split /;/, $config->{'SpecialBack'};
+    if ($special ne "") {
+	my ($type, $id) = split /;/, $special;
 	if (!defined $id) {
             $id = $type;
             $type = "db";
@@ -6123,7 +6179,7 @@ sub bgdir_list {
     # Add categories from mediaDb
     my $query =
       "SELECT DISTINCT category FROM media WHERE type=\"bg\" AND category !=\""
-      . $config->{'SpecialBack'}
+      . $special
       . "\" ORDER BY category";
     my $sth = $mediaDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -6134,20 +6190,15 @@ sub bgdir_list {
     }
 
     foreach $cat (sort @dbcategories) {
-	$cat =~ s/^00000//g;
+	    $cat =~ s/^00000//g;
         debug("Adding image dir button for db-" . $cat);
-        $widgets->{'dirbuttons'}[$counter] = new Gtk2::Button($cat);
-        $widgets->{'main'}->get_widget('vboxBackDir')
-          ->add($widgets->{'dirbuttons'}[$counter]);
-        $widgets->{'dirbuttons'}[$counter]
-          ->signal_connect("clicked", \&bgdir_change, "db;" . $cat);
-        $widgets->{'dirbuttons'}[$counter]->show;
-        $counter++;
+        my $iter = $store->append;
+        $store->set($iter , 0 , $cat , 1 , "db");
+
     }
 
 
     # Add categories from directories
-    my $dirname = $config->{'BGDirectory'};
     my (@files, $file);
     my $ret = opendir DIR, $dirname;
     if ($ret) {
@@ -6160,15 +6211,10 @@ sub bgdir_list {
     }
 
     foreach $cat (sort @dircategories) {
-	$cat =~ s/^00000//g;
+	    $cat =~ s/^00000//g;
         debug("Adding image dir button for dir-" . $cat);
-        $widgets->{'dirbuttons'}[$counter] = new Gtk2::Button($cat);
-        $widgets->{'main'}->get_widget('vboxBackDir')
-          ->add($widgets->{'dirbuttons'}[$counter]);
-        $widgets->{'dirbuttons'}[$counter]
-          ->signal_connect("clicked", \&bgdir_change, "dir;" . $cat);
-        $widgets->{'dirbuttons'}[$counter]->show;
-        $counter++;
+        my $iter = $store->append;
+        $store->set($iter , 0 , $cat , 1 , "dir");
     }
 }
 
@@ -6179,7 +6225,7 @@ sub bgdir_list {
 #   bgdir_change ($directory)
 # FUNCTION
 #   Clears background image preview buttions
-#   Calls bgdir_load to create new buttons
+#   Calls imgdir_load to create new buttons
 # INPUTS
 #   $category - background image category to load images from
 #   $type - 'dir' or 'db'
@@ -6188,35 +6234,56 @@ sub bgdir_list {
 # SOURCE
 #
 sub bgdir_change {
-    my ($widget, $data) = @_;
-    my ($type, $category) = split /;/, $data;
+    my ($widget) = @_;
+    my $iter = $widget->get_active_iter;
+    my ($category, $type) = $widget->get_model->get($iter,0,1);
     debug(  "Changing background source category to "
           . $category
           . " of type "
           . $type);
     debug ("Destroying old images");
     $globals->{'category'} = $category;
-    my $count = 0;
-    if ($widgets->{'buttons'}) {
-        while (defined $widgets->{'buttons'}[$count]
-            && $widgets->{'buttons'}[$count] != NULL)
-        {
-            $widgets->{'buttons'}[$count]->destroy();
-            eval{$widgets->{'pixmaps'}[$count]->destroy()};
-            $count++;
-        }
-    }
-    bgdir_load($category, $type);
+    imgdir_load($widgets->{'main'}->get_widget('iconviewBack'), "bg", $category, $type);
     debug("Background category change complete");
 }
 
 #***
-
-#****m* lyricue/bgdir_load
+#****m* lyricue/imgdir_change
 # NAME
-#   bgdir_load --
+#   imgdir_change --
 # SYNOPSIS
-#   bgdir_load ($category)
+#   imgdir_change ($directory)
+# FUNCTION
+#   Clears image preview buttions
+#   Calls imgdir_load to create new buttons
+# INPUTS
+#   $category - image category to load images from
+#   $type - 'dir' or 'db'
+# OUTPUT
+#   Updated background preview buttons
+# SOURCE
+#
+sub imgdir_change {
+    my ($widget) = @_;
+    my $iter = $widget->get_active_iter;
+    my ($category, $type) = $widget->get_model->get($iter,0,1);
+    debug(  "Changing image source category to "
+          . $category
+          . " of type "
+          . $type);
+    debug ("Destroying old images");
+    $globals->{'category'} = $category;
+    imgdir_load($widgets->{'main'}->get_widget('iconviewImage'), "img", $category, $type);
+    debug("Image category change complete");
+}
+
+#***
+
+#****m* lyricue/imgdir_load
+# NAME
+#   imgdir_load --
+# SYNOPSIS
+#   imgdir_load ($category)
 # FUNCTION
 #   Create new preview pixmaps and buttons
 # INPUTS
@@ -6225,20 +6292,22 @@ sub bgdir_change {
 #   Updated background preview buttons
 # SOURCE
 #
-sub bgdir_load {
-    my ($category, $type) = @_;
+sub imgdir_load {
+    my ($iconview,$section, $category, $type) = @_;
     my $counter = 0;
 
     # update list of available backdrops
-    debug("Loading new preview images from: " . $type . "-" . $category);
+    debug("Loading new preview images from: " . $type . ";" . $category);
 
-    # Disable dir buttons
-    $widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(FALSE);
-    $widgets->{'main'}->get_widget('hboxBackImage')->hide();
+    $iconview->hide();
+    my $store = Gtk2::ListStore->new('Glib::String', 'Gtk2::Gdk::Pixbuf', 'Glib::String');
+    $iconview->set_model($store);
+    $iconview->set_text_column(0);
+    $iconview->set_pixbuf_column(1);
 
     if ($type eq "db") {
         my $query =
-            "SELECT id FROM media WHERE category=\""
+            "SELECT id,description FROM media WHERE category=\""
           . $category
           . "\" AND type=\"bg\" ORDER BY description";
         my $sth = $mediaDbh->prepare($query)
@@ -6248,29 +6317,19 @@ sub bgdir_load {
         while ($row = $sth->fetchrow_hashref()) {
 
             do_pending();
-            my $scaled = create_pixbuf($type . ";" . $row->{'id'}, 64, 48);
+            my $scaled = create_pixbuf($type . ";" . $row->{'id'}, $globals->{'icon_width'}, $globals->{'icon_height'});
             if ($scaled) {
-                my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
-
-                $widgets->{'pixmaps'}[$counter] = $pixmap;
-                $widgets->{'buttons'}[$counter] = new Gtk2::Button();
-                $widgets->{'buttons'}[$counter]
-                  ->add($widgets->{'pixmaps'}[$counter]);
-                $widgets->{'buttons'}[$counter]->{user_data} =
-                  ($type . ";" . $row->{'id'});
-                $widgets->{'pixmaps'}[$counter]->show();
-                $widgets->{'buttons'}[$counter]->show();
-                $widgets->{'buttons'}[$counter]
-                  ->signal_connect("clicked", "backdrop_clicked", \$widgets);
-                $widgets->{'main'}->get_widget('hboxBackImage')
-                  ->pack_start($widgets->{'buttons'}[$counter], FALSE, FALSE,
-                    0);
-
-                $counter++;
+                my $iter = $store->append;
+                $store->set($iter, 0, $row->{'description'}, 1, $scaled, 2, $type . ";" . $row->{'id'})
             }
         }
     } else {
-        my $dirname = $config->{'BGDirectory'} ."/". $category;
+        my $dirname="";
+        if ($section eq "bg") {
+            $dirname = $config->{'BGDirectory'} ."/". $category;
+        } else {
+            $dirname = $config->{'ImageDirectory'} ."/". $category;
+        }
         my (@files, $file);
         my $ret = opendir DIR, $dirname;
         if ($ret) {
@@ -6282,46 +6341,19 @@ sub bgdir_load {
                     for my $fileobj (@fileexts) {
                         if ($file =~ /$fileobj$/i) {
                             $video = TRUE;
-                            $widgets->{'pixmaps'}[$counter] = "";
-                            $widgets->{'buttons'}[$counter] =
-                              new Gtk2::Button($file);
-                            $widgets->{'buttons'}[$counter]->{user_data} =
-                              ($type . ";" . $dirname . "/" . $file);
-                            $widgets->{'buttons'}[$counter]->show();
-                            $widgets->{'buttons'}[$counter]
-                              ->signal_connect("clicked", "backdrop_clicked",
-                                \$widgets);
-                            $widgets->{'main'}->get_widget('hboxBackImage')
-                              ->pack_start($widgets->{'buttons'}[$counter],
-                                FALSE, FALSE, 0);
-                            $counter++;
+                            my $iter = $store->append;
+                            $store->set($iter, 0, $file, 2, $type . ";" . $dirname . "/" . $file);
                         }
                     }
 
                     if (!$video) {
                         my $scaled =
                           create_pixbuf($type . ";" . $dirname . "/" . $file,
-                            64, 48);
+                            $globals->{'icon_width'},
+                            $globals->{'icon_height'});
                         if ($scaled) {
-                            my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
-                            if ($pixmap) {
-                                $widgets->{'pixmaps'}[$counter] = $pixmap;
-                                $widgets->{'buttons'}[$counter] =
-                                  new Gtk2::Button();
-                                $widgets->{'buttons'}[$counter]
-                                  ->add($widgets->{'pixmaps'}[$counter]);
-                                $widgets->{'buttons'}[$counter]->{user_data} =
-                                  ($type . ";" . $dirname . "/" . $file);
-                                $widgets->{'pixmaps'}[$counter]->show();
-                                $widgets->{'buttons'}[$counter]->show();
-                                $widgets->{'buttons'}[$counter]
-                                  ->signal_connect("clicked",
-                                    "backdrop_clicked", \$widgets);
-                                $widgets->{'main'}->get_widget('hboxBackImage')
-                                  ->pack_start($widgets->{'buttons'}[$counter],
-                                    FALSE, FALSE, 0);
-                                $counter++;
-                            }
+                            my $iter = $store->append;
+                            $store->set($iter, 0, $file, 1, $scaled, 2, $type . ";" . $dirname . "/" . $file);
                         }
                     }
                 }
@@ -6330,10 +6362,7 @@ sub bgdir_load {
         }
     }
 
-    $widgets->{'main'}->get_widget('hboxBackImage')->show();
-
-    # Enable dir buttons
-    $widgets->{'main'}->get_widget('vboxBackDir')->set_sensitive(TRUE);
+    $iconview->show();
 
 }
 
