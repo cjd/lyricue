@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.181 2009/06/02 23:42:08 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.182 2009/06/03 05:12:20 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -170,7 +170,7 @@ $globals->{'server_port'}   = "2346";    #port used for lyric server socket
 $globals->{'preview_port'}  = "2347";    #port used for lyric server socket
 $globals->{'miniview_port'} = "2348";    #port used for lyric server socket
 $globals->{'run_windowed'}  = FALSE;
-$globals->{'server_type'}   = CANVAS;
+$globals->{'server_type'}   = CLUTTER;
 $globals->{'blanked_state'} = TRUE;
 $globals->{'bgid'}          = "";
 $globals->{'diatheke'} = `which diatheke`;
@@ -292,7 +292,9 @@ my $config = load_config();
 db_check_app();
 if ($config->{'ServerType'} eq "simple") {
     $globals->{'server_type'} = SIMPLE;
-} elsif ($config->{'ServerType'} eq "clutter") {
+} elsif ($config->{'ServerType'} eq "canvas") {
+    $globals->{'server_type'} = CANVAS;
+} else {
     $globals->{'server_type'} = CLUTTER;
 }
 
