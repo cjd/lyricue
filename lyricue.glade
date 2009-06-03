@@ -860,52 +860,68 @@
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkHBox" id="hboxMainBottom">
+                          <widget class="GtkExpander" id="expander1">
                             <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="expanded">True</property>
                             <child>
-                              <widget class="GtkVBox" id="vboxCurrentBG">
+                              <widget class="GtkHBox" id="hboxMainBottom">
                                 <property name="visible">True</property>
-                                <property name="orientation">vertical</property>
                                 <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <widget class="GtkLabel" id="labelCurrentBG">
+                                  <widget class="GtkVBox" id="vboxCurrentBG">
                                     <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Current</property>
+                                    <property name="orientation">vertical</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="labelCurrentBG">
+                                        <property name="visible">True</property>
+                                        <property name="label" translatable="yes">Current</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
                                   </widget>
                                   <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">False</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkVBox" id="vboxPrevBG">
+                                    <property name="visible">True</property>
+                                    <property name="orientation">vertical</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkLabel" id="labelPrevBG">
+                                        <property name="visible">True</property>
+                                        <property name="label" translatable="yes">Previous</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                  </widget>
+                                  <packing>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
                               </widget>
-                              <packing>
-                                <property name="position">0</property>
-                              </packing>
                             </child>
                             <child>
-                              <widget class="GtkVBox" id="vboxPrevBG">
+                              <widget class="GtkLabel" id="label4">
                                 <property name="visible">True</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <widget class="GtkLabel" id="labelPrevBG">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Previous</property>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">False</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
+                                <property name="label" translatable="yes">Background preview</property>
                               </widget>
                               <packing>
-                                <property name="position">1</property>
+                                <property name="type">label_item</property>
                               </packing>
                             </child>
                           </widget>
@@ -7713,8 +7729,8 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
