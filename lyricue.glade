@@ -845,6 +845,7 @@
                                 <property name="margin">3</property>
                                 <property name="tooltip_column">0</property>
                                 <signal name="selection_changed" handler="backdrop_clicked"/>
+                                <signal name="drag_data_get" handler="on_iconviewBack_drag_data_get"/>
                               </widget>
                             </child>
                           </widget>
@@ -968,6 +969,7 @@
                                 <property name="column_spacing">3</property>
                                 <property name="margin">3</property>
                                 <property name="tooltip_column">0</property>
+                                <signal name="drag_data_get" handler="on_iconviewImage_drag_data_get"/>
                               </widget>
                             </child>
                           </widget>
@@ -7722,8 +7724,8 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
