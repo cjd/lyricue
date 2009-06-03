@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.278 2009/06/03 00:10:15 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.279 2009/06/03 00:48:51 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -648,8 +648,16 @@ sub add_playlist {
             $title = "Background : " . $row2->{'description'};
         } elsif ($row->{'type'} eq "file") {
             $_ = $row->{'data'};
-            if (/^(.*)\/(.*)$/) {
-                $title = "File: " . $2 . " in " . $1;
+            if (/^(.*)\/(.*?)$/) {
+                my $filename = $2;
+                my $dir = $1;
+                if ($dir =~ /^\/tmp\/lyricue-/) {
+                    $filename =~ s/\..*?$//g;
+                    $filename =~ s/_/ /g;
+                    $title = "Presentation: " . $filename;
+                } else {
+                    $title = "File: " . $filename . " in " . $dir;
+                }
             } else {
                 $title = "File: " . $row->{'data'};
             }

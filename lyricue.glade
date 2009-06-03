@@ -23,6 +23,7 @@
                       <widget class="GtkImageMenuItem" id="media1">
                         <property name="label">Manage _Images</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_image"/>
                         <child internal-child="image">
@@ -37,6 +38,7 @@
                       <widget class="GtkImageMenuItem" id="media2">
                         <property name="label">Manage _Background</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_background"/>
                         <child internal-child="image">
@@ -71,6 +73,7 @@
                       <widget class="GtkImageMenuItem" id="add_song1">
                         <property name="label">_Add Song</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_song"/>
                         <accelerator key="A" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -86,6 +89,7 @@
                       <widget class="GtkImageMenuItem" id="advanced_search1">
                         <property name="label">Advanced _Search</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="create_search"/>
                         <accelerator key="F" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -453,6 +457,7 @@
                       <widget class="GtkImageMenuItem" id="clear_text1">
                         <property name="label">_Clear Text</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="clear_text"/>
                         <child internal-child="image">
@@ -619,12 +624,12 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkToolButton" id="buttonMainImage">
+              <widget class="GtkToolButton" id="buttonMainFile">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Add Image(s)</property>
+                <property name="label" translatable="yes">Add File</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-select-color</property>
-                <signal name="clicked" handler="add_image"/>
+                <property name="stock_id">gtk-file</property>
+                <signal name="clicked" handler="add_file"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7729,8 +7734,8 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="action">select-folder</property>
     <property name="do_overwrite_confirmation">True</property>
+    <property name="action">select-folder</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
