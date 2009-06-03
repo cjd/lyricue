@@ -533,32 +533,6 @@
             <property name="visible">True</property>
             <property name="toolbar_style">both</property>
             <child>
-              <widget class="GtkToolButton" id="buttonMainAdd">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Add Song</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-add</property>
-                <signal name="clicked" handler="add_song"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkToolButton" id="buttonMainEdit">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Edit Song</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-edit</property>
-                <signal name="clicked" handler="edit_song"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
               <widget class="GtkToolButton" id="buttonMainPrev">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Prev. Page</property>
@@ -624,6 +598,19 @@
               </packing>
             </child>
             <child>
+              <widget class="GtkToolButton" id="buttonMainPause">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Pause Media</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-media-pause</property>
+                <signal name="clicked" handler="pause_media"/>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <widget class="GtkToolButton" id="buttonMainFile">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Add File</property>
@@ -641,7 +628,7 @@
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Bible Verse</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-justify-left</property>
+                <property name="stock_id">gtk-index</property>
                 <signal name="clicked" handler="add_verse"/>
               </widget>
               <packing>
@@ -654,21 +641,8 @@
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Add Sublist</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-convert</property>
+                <property name="stock_id">gtk-indent</property>
                 <signal name="clicked" handler="create_sublist"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkToolButton" id="buttonMainPause">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Pause Media</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-media-pause</property>
-                <signal name="clicked" handler="pause_media"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -779,13 +753,27 @@
                             <property name="visible">True</property>
                             <property name="toolbar_style">both-horiz</property>
                             <child>
-                              <widget class="GtkToolButton" id="buttonRefreshList">
+                              <widget class="GtkToolButton" id="buttonMainAdd">
                                 <property name="visible">True</property>
-                                <property name="has_tooltip">True</property>
-                                <property name="tooltip" translatable="yes">Refresh the available songlist</property>
                                 <property name="is_important">True</property>
-                                <property name="stock_id">gtk-refresh</property>
-                                <signal name="clicked" handler="update_available"/>
+                                <property name="label" translatable="yes">New</property>
+                                <property name="use_underline">True</property>
+                                <property name="stock_id">gtk-add</property>
+                                <signal name="clicked" handler="add_song"/>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="homogeneous">True</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkToolButton" id="buttonMainEdit">
+                                <property name="visible">True</property>
+                                <property name="is_important">True</property>
+                                <property name="label" translatable="yes">Edit</property>
+                                <property name="use_underline">True</property>
+                                <property name="stock_id">gtk-edit</property>
+                                <signal name="clicked" handler="edit_song"/>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -800,7 +788,7 @@
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">Add to playlist</property>
                                 <property name="use_underline">True</property>
-                                <property name="stock_id">gtk-add</property>
+                                <property name="stock_id">gtk-convert</property>
                                 <signal name="clicked" handler="add_to_playlist"/>
                               </widget>
                               <packing>
