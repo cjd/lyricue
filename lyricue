@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.281 2009/06/03 05:48:59 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.282 2009/06/04 06:19:25 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6032,6 +6032,8 @@ sub clear_associations {
 sub init_mainWindow {
     debug("Initializing main window");
 
+    # Setup file chooser
+    #$widgets->{'main'}->get_widget('fileAddFile')->
     # Load bg thumbnails
     my $scaled = create_pixbuf($config->{'BGImage'}, 72, 52);
     if ($scaled) {
@@ -9238,4 +9240,15 @@ sub open_dirchooser {
         }
     }
     close_dialog($directoryxml->get_widget('dialogDirChooser'));
+}
+
+sub import_db {
+    my $importxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImportData', 'lyricue');
+    $importxml->signal_autoconnect_from_package('');
+    my $confirm = $importxml->get_widget('dialogImportData')->run();
+    if ($confirm eq "ok" ) {
+        my $filename = $importxml->get_widget('fileImportData')->get_filename;
+        debug ("Importing ".$filename);
+    }
+    close_dialog($importxml->get_widget('dialogImportData')->run());
 }
