@@ -813,8 +813,8 @@
                                 <property name="column_spacing">3</property>
                                 <property name="margin">3</property>
                                 <property name="tooltip_column">0</property>
-                                <signal name="selection_changed" handler="backdrop_clicked"/>
                                 <signal name="drag_data_get" handler="on_iconviewBack_drag_data_get"/>
+                                <signal name="button_release_event" handler="backdrop_clicked"/>
                               </widget>
                             </child>
                           </widget>
