@@ -995,8 +995,8 @@
                         <child>
                           <widget class="GtkFileChooserWidget" id="fileAddFile">
                             <property name="visible">True</property>
-                            <property name="preview_widget_active">False</property>
                             <property name="use_preview_label">False</property>
+                            <property name="preview_widget_active">False</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -1491,95 +1491,70 @@
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkNotebook" id="notebookRight">
+                              <widget class="GtkVBox" id="vboxQuickUpdate">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="show_border">False</property>
-                                <property name="scrollable">True</property>
+                                <property name="orientation">vertical</property>
                                 <child>
-                                  <widget class="GtkVBox" id="vboxQuickUpdate">
-                                    <property name="visible">True</property>
-                                    <property name="orientation">vertical</property>
-                                    <child>
-                                      <widget class="GtkScrolledWindow" id="scrolledwindow1">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <child>
-                                          <widget class="GtkTextView" id="textQuick">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
-                                          </widget>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="position">0</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <widget class="GtkToolbar" id="toolbar3">
-                                        <property name="visible">True</property>
-                                        <property name="toolbar_style">both-horiz</property>
-                                        <child>
-                                          <widget class="GtkToolButton" id="buttonQuickSave">
-                                            <property name="visible">True</property>
-                                            <property name="is_important">True</property>
-                                            <property name="label" translatable="yes">Save</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="stock_id">gtk-save</property>
-                                            <signal name="clicked" handler="quick_save"/>
-                                          </widget>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="homogeneous">True</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkToolButton" id="buttonQuickShow">
-                                            <property name="visible">True</property>
-                                            <property name="is_important">True</property>
-                                            <property name="label" translatable="yes">Show</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="stock_id">gtk-apply</property>
-                                            <signal name="clicked" handler="quick_show"/>
-                                          </widget>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="homogeneous">True</property>
-                                          </packing>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="position">1</property>
-                                      </packing>
-                                    </child>
-                                  </widget>
-                                  <packing>
-                                    <property name="tab_expand">True</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkLabel" id="labelQuickUpdate">
+                                  <widget class="GtkLabel" id="label7">
                                     <property name="visible">True</property>
                                     <property name="label" translatable="yes">Quick Update</property>
                                   </widget>
                                   <packing>
-                                    <property name="tab_fill">False</property>
-                                    <property name="type">tab</property>
+                                    <property name="expand">False</property>
+                                    <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <widget class="GtkLabel" id="label106">
+                                  <widget class="GtkScrolledWindow" id="scrolledwindow1">
                                     <property name="visible">True</property>
-                                    <property name="label" translatable="yes">Bible Navigator</property>
+                                    <property name="can_focus">True</property>
+                                    <child>
+                                      <widget class="GtkTextView" id="textQuick">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                      </widget>
+                                    </child>
                                   </widget>
                                   <packing>
                                     <property name="position">1</property>
-                                    <property name="tab_fill">False</property>
-                                    <property name="type">tab</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkToolbar" id="toolbar3">
+                                    <property name="visible">True</property>
+                                    <property name="toolbar_style">both-horiz</property>
+                                    <child>
+                                      <widget class="GtkToolButton" id="buttonQuickSave">
+                                        <property name="visible">True</property>
+                                        <property name="is_important">True</property>
+                                        <property name="label" translatable="yes">Save</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="stock_id">gtk-save</property>
+                                        <signal name="clicked" handler="quick_save"/>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="homogeneous">True</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkToolButton" id="buttonQuickShow">
+                                        <property name="visible">True</property>
+                                        <property name="is_important">True</property>
+                                        <property name="label" translatable="yes">Show</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="stock_id">gtk-apply</property>
+                                        <signal name="clicked" handler="quick_show"/>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="homogeneous">True</property>
+                                      </packing>
+                                    </child>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">2</property>
                                   </packing>
                                 </child>
                               </widget>
@@ -6297,8 +6272,8 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
