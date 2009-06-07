@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.282 2009/06/04 06:19:25 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.283 2009/06/07 05:54:17 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -3548,179 +3548,6 @@ sub apply_font {
 
 #***
 
-#****m* lyricue/create_dialogChapter
-# NAME
-#   create_dialogChapter --
-# SYNOPSIS
-#   create_dialogChapter ()
-# FUNCTION
-#   Create a dialog to choose chapter for verse
-# INPUTS
-#   $widget - Calling widget
-# OUTPUT
-#   Dialog of available chapters
-# SOURCE
-#
-sub create_dialogChapter {
-    my ($widget) = @_;
-    my $book = $widget->get_label;
-    my $untranslated_book = substr($widget->get_name, 6); # Strip 'button' from widget name
-    $untranslated_book =~ s/([A-Z])/ $1/g;
-    debug("Selected " . $book);
-    my $cont    = FALSE;
-    my $maxchap = 0;
-    if ($globals->{'usesword'}) {
-
-        # Find proper book name
-        my $command = sprintf(
-            "%s -b %s -e UTF8 -k '%s' 1:1 '%s' 1:1",
-            $globals->{'diatheke'},
-            $globals->{'bibledb'}, $book, $untranslated_book
-        );
-        qdebug($command);
-        $maxchap = fromutf(`$command`);
-        ($book, undef) = split(/\s\d/, $maxchap, 2);
-
-        $command = sprintf(
-            "%s -b %s -e UTF8 -k '%s' | grep '^%s'| tail -2 | head -1",
-            $globals->{'diatheke'},
-            $globals->{'bibledb'}, $book, $book
-        );
-        qdebug($command);
-        $maxchap = fromutf(`$command`);
-        $maxchap =~ s/^$book ([0-9]*):[0-9].*$/$1/g;
-        if ($maxchap) {
-            $cont = TRUE;
-        }
-    } else {
-        my $query =
-            "SELECT MAX(chapternum) FROM verse WHERE book like \""
-          . toutf($book)
-          . "%\" or book like \""
-          . toutf($untranslated_book) . "%\"";
-        qdebug($query);
-        $sth = $bibleDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-        if (my @row = $sth->fetchrow_array) {
-            $cont    = TRUE;
-            $maxchap = $row[0];
-        }
-        $sth->finish;
-    }
-
-    if ($cont) {
-        close_dialog($widget);
-        my $chapxml = Gtk2::GladeXML->new($globals->{'gladefile'},
-            'windowChapter', 'lyricue');
-        $chapxml->signal_autoconnect_from_package('');
-
-        $chapxml->get_widget('tableChapter')->resize(ceil($maxchap / 8) + 1, 5);
-        $chapxml->get_widget('labelChapter')->set_text($book);
-
-        for (my $i = 0 ; $i < ceil($maxchap / 8) ; $i++) {
-            foreach (0 .. 7) {
-                debug($i . "|" . $_);
-                if ((($i * 8) + $_ + 1) <= $maxchap) {
-                    my $button = Gtk2::Button->new(($i * 8) + $_ + 1);
-                    $button->show;
-                    $button->signal_connect("clicked", "create_dialogVerse",
-                        $book);
-                    $chapxml->get_widget('tableChapter')->attach(
-                        $button,  $_, $_ + 1, $i + 1, $i + 2, 'fill',
-                        'expand', 0,  0
-                    );
-                }
-            }
-        }
-        $chapxml->get_widget('tableChapter')->show;
-        $chapxml->get_widget('windowChapter')->show;
-    }
-}
-
-#***
-
-#****m* lyricue/create_dialogVerse
-# NAME
-#   create_dialogVerse --
-# SYNOPSIS
-#   create_dialogVerse ($widget, $book)
-# FUNCTION
-#   Create a dialog to choose verse numbers
-# INPUTS
-#   $widget - Calling widget
-#   $book - Book name
-# OUTPUT
-#   Dialog of available verses
-# SOURCE
-#
-sub create_dialogVerse {
-    my ($widget, $book) = @_;
-    debug("Opening Verse dialog");
-    my $chapter  = int($widget->get_label);
-    my $maxverse = 0;
-    if ($globals->{'usesword'}) {
-        my $command = sprintf(
-            "%s -b %s -e UTF8 -k '%s' %d | grep '^%s' | tail -1",
-            $globals->{'diatheke'},
-            $globals->{'bibledb'}, $book, $chapter, $book
-        );
-        qdebug($command);
-        $maxverse = fromutf(`$command`);
-        $maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
-    } else {
-        my $query =
-            "SELECT MAX(versenum) FROM verse WHERE book=\""
-          . toutf($book)
-          . "\" AND chapternum="
-          . $chapter;
-        qdebug($query);
-        $sth = $bibleDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
-
-        if (my @row = $sth->fetchrow_array) {
-            $maxverse = $row[0];
-        }
-    }
-
-    if ($maxverse) {
-        close_dialog($widget);
-        my $versexml =
-          Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowVerse',
-            'lyricue');
-        $versexml->signal_autoconnect_from_package('');
-        $versexml->get_widget('tableVerse')->resize(ceil($maxverse / 5)+1 , 5);
-        $versexml->get_widget('labelVerse')->set_text($book . " - " . $chapter);
-        $versexml->get_widget('windowVerse')->get_toplevel->{user_data} =
-          $book . " - " . $chapter;
-
-        for (my $i = 0 ; $i < ceil($maxverse / 5) ; $i++) {
-            foreach (0 .. 4) {
-                my $number = ($i * 5) + $_ + 1;
-                debug($i . "|" . $_ . "|" . $number);
-                if ($number <= $maxverse) {
-                    $widgets->{'verseButton'}{$number} =
-                      Gtk2::ToggleButton->new($number);
-                    $widgets->{'verseButton'}{$number}->show;
-                    $versexml->get_widget('tableVerse')
-                      ->attach($widgets->{'verseButton'}{$number},
-                        $_, $_ + 1, $i + 1 , $i + 2, 'fill', 'expand', 0, 0);
-                    $widgets->{'verseButton'}{$number}
-                      ->signal_connect("event", "changeVerseStatus", $maxverse);
-                }
-            }
-        }
-        $globals->{'verseStart'} = 0;
-        $globals->{'verseEnd'}   = 0;
-        $versexml->get_widget('tableVerse')->show;
-        $versexml->get_widget('windowVerse')->show;
-    }
-    $sth->finish;
-}
-
-#***
-
 #****m* lyricue/changeVerseStatus
 # NAME
 #   changeVerseStatus --
@@ -3730,10 +3557,7 @@ sub create_dialogVerse {
 #   Make sure you can't choose multiple values for start or finish
 # INPUTS
 #   $widget - Calling widget
-#   $section - start or finish section
-#   $row - Chosen row
-#   $col - Chosen column
-#   $rows - Available rows
+#   $event
 #   $max - Maximum value
 # OUTPUT
 #   Only one value chosen in start or finish area
@@ -3741,63 +3565,54 @@ sub create_dialogVerse {
 #
 sub changeVerseStatus {
     my ($widget, $event, $max) = @_;
-    debug("Change verse status");
+    #debug("Change verse status");
 
     my $number = $widget->get_label;
     if (defined($event->type)) {
+        my $begin = 0;
+        my $end = 0;
         if ($event->type eq 'button-press') {
-            if ($globals->{'verseStart'} == 0) {
+            if (($globals->{'verseEnd'} == 0) && ($globals->{'verseStart'} != 0)) {
+                if ($number < $globals->{'verseStart'}) {
+                    $globals->{'verseEnd'} = $globals->{'verseStart'};
+                    $globals->{'verseStart'}   = $number;
+                } else {
+                    $globals->{'verseEnd'} = $number;
+                }
+                debug("End " . $globals->{'verseStart'}.",".$globals->{'verseEnd'});
+                $begin = $globals->{'verseStart'};
+                $end = $globals->{'verseEnd'};
+            } else {
                 debug("Start " . $globals->{'verseStart'});
                 $globals->{'verseStart'} = $number;
                 $globals->{'verseEnd'}   = 0;
-                my $num;
-                foreach $num (1 .. $max) {
-                    if ($num == $globals->{'verseStart'}) {
-                        $widgets->{'verseButton'}{$num}->set_active(TRUE);
-                    } else {
-                        $widgets->{'verseButton'}{$num}->set_active(FALSE);
-                    }
-                }
-            } else {
-                if ($number < $globals->{'verseStart'}) {
-                    $globals->{'verseEnd'} = $globals->{'verseStart'};
-                    $globals->{'verses'}   = $number;
-                } else {
-                    $globals->{'verseEnd'} = $number;
-                    $globals->{'verses'}   = $globals->{'verseStart'};
-                }
-                debug("End " . $globals->{'verseEnd'});
-                my $num;
-                foreach $num (1 .. $max) {
-                    if (   ($num >= $globals->{'verses'})
-                        && ($num <= $globals->{'verseEnd'}))
-                    {
-                        $widgets->{'verseButton'}{$num}->set_active(TRUE);
-                    } else {
-                        $widgets->{'verseButton'}{$num}->set_active(FALSE);
-                    }
-                }
-                debug(
-                    $globals->{'verses'} . "-" . $globals->{'verseEnd'} . "\n");
-                $globals->{'verseStart'} = 0;
+                $begin=$globals->{'verseStart'};
+                $end=$globals->{'verseStart'};
             }
-            return TRUE;
+            my $book = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+            my $verse = "";
+            $book =~ s/:.*$//g;
+            $verse = $book . ":" . $begin . "-" . $end;
+            $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
         } elsif ($event->type eq 'enter-notify') {
-            if ($globals->{'verseStart'} != 0) {
-                my $min = 0;
+            $begin = 0;
+            if (($globals->{'verseStart'} != 0)  && ($globals->{'verseEnd'} == 0)){
                 if ($number < $globals->{'verseStart'}) {
-                    $min    = $number;
-                    $number = $globals->{'verseStart'};
+                    $begin = $number;
+                    $end   = $globals->{'verseStart'};
                 } else {
-                    $min = $globals->{'verseStart'};
+                    $begin = $globals->{'verseStart'};
+                    $end = $number;
                 }
-                my $num;
-                foreach $num (1 .. $max) {
-                    if (($num >= $min) && ($num <= $number)) {
-                        $widgets->{'verseButton'}{$num}->set_active(TRUE);
-                    } else {
-                        $widgets->{'verseButton'}{$num}->set_active(FALSE);
-                    }
+            }
+        }
+        if ($begin != 0) {
+            foreach my $num (1 .. $max) {
+                my $button = "button".($num-1);
+                if (  ($num >= $begin) && ($num <= $end)) {
+                    $widgets->{'bibleBrowser'}{$button}->set_active(TRUE);
+                } else {
+                    $widgets->{'bibleBrowser'}{$button}->set_active(FALSE);
                 }
             }
             return TRUE;
@@ -6033,7 +5848,10 @@ sub init_mainWindow {
     debug("Initializing main window");
 
     # Setup file chooser
-    #$widgets->{'main'}->get_widget('fileAddFile')->
+
+	# Setup bible browser
+	biblebrowser_init();
+	
     # Load bg thumbnails
     my $scaled = create_pixbuf($config->{'BGImage'}, 72, 52);
     if ($scaled) {
@@ -8033,10 +7851,22 @@ sub navigator_update {
     $verse =~ s/ (\D)/_$1/g;
     my ($book, $chapter, $startverse, $endverse) =
       split(/[ :\-,]/, $verse, 4);
-    $book =~ s/_/ /g;
+
+    my $browser = "";
+    if (defined $book) {
+        $book =~ s/_/ /g;
+    } else {
+        $book = "";
+        $browser = "init";
+        biblebrowser_init();
+    }
 
     if ((!defined $chapter) or ($chapter eq "") or ($chapter =~ /\D/)) {
         $chapter = 1;
+        if ($browser eq "") {
+            $browser = "chapter";
+            biblebrowser_chapter(NULL, $book,"entry");
+        }
     }
     if (   (!defined $startverse)
         or ($startverse eq "")
@@ -8058,6 +7888,27 @@ sub navigator_update {
           . " verses "
           . $startverse . "-"
           . $endverse);
+    if ($browser eq "") {
+        $browser = "verse";
+        my $query = "SELECT book FROM verse WHERE book LIKE \"" . $book . "%\"";
+        qdebug($query);
+        my $sth = $bibleDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        my @bookrow = $sth->fetchrow_array();
+        if ((defined $bookrow[0]) && ($book ne "")) {
+            my $text = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+            $text =~ s/$book/$bookrow[0]/i;
+            $widgets->{'main'}->get_widget('entryNavVerse')->set_text($text);
+            $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
+            biblebrowser_verse(NULL, 0 ,"entry");
+            foreach my $num ($startverse .. $endverse) {
+                my $button = "button".($num-1);
+                $widgets->{'bibleBrowser'}{$button}->set_active(TRUE);
+            }
+        }
+    }
     if ($globals->{'usesword'}) {
         my $command = sprintf(
             "%s -b %s -e UTF8 -k '%s' %d:%d-%d |tr \\\\n \' \'",
@@ -9251,4 +9102,174 @@ sub import_db {
         debug ("Importing ".$filename);
     }
     close_dialog($importxml->get_widget('dialogImportData')->run());
+}
+
+sub biblebrowser_init {
+    my @items = ('Old Testament', 'New Testament');
+    biblebrowser_loaditems("book", \@items, 2);
+}
+	
+sub biblebrowser_book {
+	my ($widget, $section) = @_;
+    debug("Looking up ".$section);
+	my @items = ();
+	if ($section eq "Old Testament") {
+		@items = ('Genesis', 'Exodus' ,'Leviticus' ,'Numbers' ,'Deuteronomy' ,'Joshua' ,'Judges' ,'Ruth' ,'1 Samuel' ,'2 Samuel' ,'1 Kings' ,'2 Kings' ,'1 Chronicles' ,'2 Chronicles' ,'Ezra' ,'Nehemiah' ,'Esther' ,'Job' ,'Psalms' ,'Proverbs' ,'Ecclesiastes' ,'Song of Songs' ,'Isaiah' ,'Jeremiah' ,'Lamentations' ,'Ezekiel' ,'Daniel' ,'Hosea' ,'Joel' ,'Amos' ,'Obadiah' ,'Jonah' ,'Micah' ,'Nahum' ,'Habakkuk' ,'Zephaniah' ,'Haggai' ,'Zechariah' ,'Malachi');
+	} else {
+        @items = ('Matthew' ,'Mark' ,'Luke' ,'John' ,'Acts' ,'Romans' ,'1 Corinthians' ,'2 Corinthians' ,'Galatians' ,'Ephesians' ,'Philippians' ,'Colossians' ,'1 Thessalonians' ,'2 Thessalonians' ,'1 Timothy' ,'2 Timothy' ,'Titus' ,'Philemon' ,'Hebrews' ,'James' ,'1 Peter' ,'2 Peter' ,'1 John' ,'2 John' ,'3 John' ,'Jude' ,'Revelation');
+	}
+    biblebrowser_loaditems("chapter", \@items, 3);
+}
+
+sub biblebrowser_chapter {
+    my ($widget, $book, $source) = @_;
+    debug("Looking up book ".$book);
+    my $translated_book = gettext($book);
+    my $cont    = FALSE;
+    my $maxchap = 0;
+    if ($globals->{'usesword'}) {
+
+        # Find proper book name
+        my $command = sprintf(
+            "%s -b %s -e UTF8 -k '%s' 1:1 '%s' 1:1",
+            $globals->{'diatheke'},
+            $globals->{'bibledb'}, $book, $translated_book
+        );
+        qdebug($command);
+        $maxchap = fromutf(`$command`);
+        ($book, undef) = split(/\s\d/, $maxchap, 2);
+
+        $command = sprintf(
+            "%s -b %s -e UTF8 -k '%s' | grep '^%s'| tail -2 | head -1",
+            $globals->{'diatheke'},
+            $globals->{'bibledb'}, $book, $book
+        );
+        qdebug($command);
+        $maxchap = fromutf(`$command`);
+        $maxchap =~ s/^$book ([0-9]*):[0-9].*$/$1/g;
+        if ($maxchap) {
+            $cont = TRUE;
+        }
+    } else {
+        my $query =
+            "SELECT MAX(chapternum) FROM verse WHERE book like \""
+          . toutf($book)
+          . "%\" or book like \""
+          . toutf($translated_book) . "%\"";
+        qdebug($query);
+        $sth = $bibleDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+        if (my @row = $sth->fetchrow_array) {
+            $cont    = TRUE;
+            $maxchap = $row[0];
+        }
+        $sth->finish;
+    }
+
+    if ($cont) {
+        my @items = ();
+        foreach (1 .. $maxchap) {
+            push @items, $_;
+        }
+        biblebrowser_loaditems("verse", \@items, 8);
+        if ($source ne "entry") {
+            $widgets->{'main'}->get_widget('entryNavVerse')->set_text($book." ");
+            $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
+        }
+    }
+}
+
+sub biblebrowser_verse {
+    my ($widget, $chapter, $source) = @_;
+    my $book = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+    $book =~ s/ *$//g;
+    if ($chapter == 0) {
+        $chapter = $book;
+        $chapter =~ s/^.* ([0-9:\-]*)/$1/;
+        my $verse="";
+        ($chapter,$verse) = split( /:/, $chapter);
+        $book =~ s/ [0-9:\-]*$//;
+        if ($verse eq "") {
+            $globals->{'verseStart'} = 0;
+            $globals->{'verseEnd'}   = 0;
+        }
+    }
+    if ($source ne "entry") {
+        $widgets->{'main'}->get_widget('entryNavVerse')->set_text($book." ".$chapter);
+        $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
+    }
+    debug("Looking up book ".$book." chapter ".$chapter);
+    my $maxverse = 0;
+    if ($globals->{'usesword'}) {
+        my $command = sprintf(
+            "%s -b %s -e UTF8 -k '%s' %d | grep '^%s' | tail -1",
+            $globals->{'diatheke'},
+            $globals->{'bibledb'}, $book, $chapter, $book
+        );
+        qdebug($command);
+        $maxverse = fromutf(`$command`);
+        $maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
+    } else {
+        my $query =
+            "SELECT MAX(versenum) FROM verse WHERE book=\""
+          . toutf($book)
+          . "\" AND chapternum="
+          . $chapter;
+        qdebug($query);
+        $sth = $bibleDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+        $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+        if (my @row = $sth->fetchrow_array) {
+            $maxverse = $row[0];
+        }
+    }
+
+    if ($maxverse) {
+        my @items = ();
+        foreach (1 .. $maxverse) {
+            push @items, $_;
+        }
+        biblebrowser_loaditems("verses", \@items, 8);
+        if ($source ne "entry") {
+            $widgets->{'main'}->get_widget('entryNavVerse')->set_text($book." ".$chapter);
+            $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
+        }
+    }
+}
+
+sub biblebrowser_loaditems {
+    my ($section, $items, $cols) = @_;
+    debug("Filling bible section");
+    my $buttons = $widgets->{'bibleBrowser'};
+    foreach (keys %$buttons) {
+        $widgets->{'bibleBrowser'}{$_}->destroy();
+        delete $widgets->{'bibleBrowser'}{$_};
+    }
+    
+    my $size = @$items;
+    $widgets->{'main'}->get_widget('tableBible')->resize(ceil($size/$cols),$cols);
+    foreach my $row (0 .. ceil($size/$cols)-1) {
+        foreach my $col (0 .. ($cols-1)) {
+            my $itemnum = ($row*$cols)+$col;
+            if ($itemnum < $size) {
+                if ($section eq "verses") {
+                    $widgets->{'bibleBrowser'}{'button'.$itemnum} = Gtk2::ToggleButton->new(@$items[$itemnum]);
+                    $widgets->{'bibleBrowser'}{'button'.$itemnum}
+                      ->signal_connect("event", "changeVerseStatus", $size);
+                    $widgets->{'bibleBrowser'}{'button'.$itemnum}->show();
+                } else {
+                    $widgets->{'bibleBrowser'}{'button'.$itemnum} = Gtk2::Button->new(fromutf(gettext(@$items[$itemnum])));
+	                $widgets->{'bibleBrowser'}{'button'.$itemnum}->signal_connect("clicked","biblebrowser_".$section,@$items[$itemnum]);
+                }
+                $widgets->{'bibleBrowser'}{'button'.$itemnum}->show;
+                $widgets->{'main'}->get_widget('tableBible')->attach(
+                    $widgets->{'bibleBrowser'}{'button'.$itemnum},
+                    $col,$col+1,$row,$row+1,'fill','expand',0,0
+                );
+            }
+        }
+    }
+	$widgets->{'main'}->get_widget('tableBible')->show_all();
 }
