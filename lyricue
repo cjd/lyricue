@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.283 2009/06/07 05:54:17 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.284 2009/06/07 06:45:11 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7890,23 +7890,35 @@ sub navigator_update {
           . $endverse);
     if ($browser eq "") {
         $browser = "verse";
-        my $query = "SELECT book FROM verse WHERE book LIKE \"" . $book . "%\"";
-        qdebug($query);
-        my $sth = $bibleDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-        my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'}, $!);
-        my @bookrow = $sth->fetchrow_array();
-        if ((defined $bookrow[0]) && ($book ne "")) {
-            my $text = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
-            $text =~ s/$book/$bookrow[0]/i;
-            $widgets->{'main'}->get_widget('entryNavVerse')->set_text($text);
-            $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
-            biblebrowser_verse(NULL, 0 ,"entry");
-            foreach my $num ($startverse .. $endverse) {
-                my $button = "button".($num-1);
-                $widgets->{'bibleBrowser'}{$button}->set_active(TRUE);
+        my $newbook = "";
+        if (!$globals->{'usesword'}) {
+            my $query = "SELECT book FROM verse WHERE book LIKE \"" . $book . "%\"";
+            qdebug($query);
+            my $sth = $bibleDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+            my $rv = $sth->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+            my @bookrow = $sth->fetchrow_array();
+            if ((defined $bookrow[0]) && ($book ne "")) {
+                $newbook = $bookrow[0];
             }
+        } else {
+            my $command = sprintf(
+                "%s -b %s -e UTF8 -k '%s' 1:1 | head -1",
+                $globals->{'diatheke'}, $globals->{'bibledb'}, $book
+                );
+            qdebug($command);
+            my $command_out = fromutf(`$command`);
+            ($newbook, undef) = split(/\s\d/, $command_out, 2);
+        }
+        my $text = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+        $text =~ s/$book/$newbook/i;
+        $widgets->{'main'}->get_widget('entryNavVerse')->set_text($text);
+        $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
+        biblebrowser_verse(NULL, 0 ,"entry");
+        foreach my $num ($startverse .. $endverse) {
+            my $button = "button".($num-1);
+            $widgets->{'bibleBrowser'}{$button}->set_active(TRUE);
         }
     }
     if ($globals->{'usesword'}) {
@@ -7917,7 +7929,6 @@ sub navigator_update {
             $book
         );
         qdebug($command);
-        $book = ucfirst($book . "[:alpha:]*");
         my $command_out = fromutf(`$command`);
         ($book, undef) = split(/\s\d/, $command_out, 2);
         my @command_lines = split(/$book /, $command_out);
