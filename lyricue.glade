@@ -627,6 +627,7 @@
           <widget class="GtkHPaned" id="hpanedMainLeft">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="position">300</property>
             <child>
               <widget class="GtkFrame" id="frameMainLeft">
                 <property name="visible">True</property>
@@ -995,8 +996,8 @@
                         <child>
                           <widget class="GtkFileChooserWidget" id="fileAddFile">
                             <property name="visible">True</property>
-                            <property name="use_preview_label">False</property>
                             <property name="preview_widget_active">False</property>
+                            <property name="use_preview_label">False</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -1242,6 +1243,7 @@
                 <property name="width_request">505</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="position">300</property>
                 <signal name="event" handler="resize_preview"/>
                 <child>
                   <widget class="GtkFrame" id="frameMainCentre">
@@ -1426,63 +1428,63 @@
                             <property name="can_focus">True</property>
                             <property name="orientation">vertical</property>
                             <child>
-                              <widget class="GtkHBox" id="hbox67">
+                              <widget class="GtkVBox" id="vbox13">
                                 <property name="visible">True</property>
+                                <property name="orientation">vertical</property>
                                 <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <widget class="GtkVBox" id="vbox13">
+                                  <widget class="GtkLabel" id="labelPreview">
                                     <property name="visible">True</property>
-                                    <property name="orientation">vertical</property>
-                                    <child>
-                                      <widget class="GtkFrame" id="framePreview">
-                                        <property name="visible">True</property>
-                                        <property name="label_xalign">0</property>
-                                        <child>
-                                          <placeholder/>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkLabel" id="label87">
-                                            <property name="visible">True</property>
-                                            <property name="label" translatable="yes">Preview</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="type">label_item</property>
-                                          </packing>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="position">0</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <widget class="GtkFrame" id="frameCurrent">
-                                        <property name="visible">True</property>
-                                        <property name="label_xalign">0</property>
-                                        <child>
-                                          <placeholder/>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkLabel" id="label88">
-                                            <property name="visible">True</property>
-                                            <property name="label" translatable="yes">Current</property>
-                                          </widget>
-                                          <packing>
-                                            <property name="type">label_item</property>
-                                          </packing>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="position">1</property>
-                                      </packing>
-                                    </child>
+                                    <property name="label" translatable="yes">Preview</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">False</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkAspectFrame" id="framePreview">
+                                    <property name="visible">True</property>
+                                    <property name="label_xalign">0.5</property>
+                                    <property name="label_yalign">0</property>
+                                    <property name="shadow_type">in</property>
+                                    <property name="ratio">1.3300000429153442</property>
+                                    <property name="obey_child">False</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                  </widget>
+                                  <packing>
                                     <property name="position">1</property>
                                   </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="labelCurrent">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">Current</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkAspectFrame" id="frameCurrent">
+                                    <property name="visible">True</property>
+                                    <property name="label_xalign">0.5</property>
+                                    <property name="label_yalign">0</property>
+                                    <property name="shadow_type">in</property>
+                                    <property name="ratio">1.3300000429153442</property>
+                                    <property name="obey_child">False</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <placeholder/>
                                 </child>
                               </widget>
                               <packing>

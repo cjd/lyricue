@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.284 2009/06/07 06:45:11 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.285 2009/06/09 05:44:01 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6938,6 +6938,7 @@ sub init_preview {
     # Start/stop preview as needed
     if ($config->{'DynamicPreview'}) {
         if (!defined($widgets->{'preview'})) {
+            $widgets->{'main'}->get_widget('labelPreview')->show();
             $widgets->{'main'}->get_widget('framePreview')->show();
             $widgets->{'main'}->get_widget('framePreview')
               ->set_size_request(255, 210);
@@ -6993,6 +6994,7 @@ sub init_preview {
             kill 9, $globals->{'preview_pid'};
         }
         $widgets->{'main'}->get_widget('framePreview')->hide();
+        $widgets->{'main'}->get_widget('labelPreview')->hide();
     }
 }
 
@@ -7003,6 +7005,7 @@ sub init_miniview {
     if ($config->{'Miniview'}) {
         if (!defined($widgets->{'miniview'})) {
             update_display("status", "previewon", "");
+            $widgets->{'main'}->get_widget('labelCurrent')->show();
             $widgets->{'main'}->get_widget('frameCurrent')->show();
             $widgets->{'miniview'} = Gtk2::Socket->new;
             $widgets->{'miniview'}->set_size_request(280, 210);
@@ -7055,6 +7058,7 @@ sub init_miniview {
         }
         update_display("status", "previewoff", "");
         $widgets->{'main'}->get_widget('frameCurrent')->hide();
+        $widgets->{'main'}->get_widget('labelCurrent')->hide();
     }
 }
 
@@ -9275,9 +9279,10 @@ sub biblebrowser_loaditems {
 	                $widgets->{'bibleBrowser'}{'button'.$itemnum}->signal_connect("clicked","biblebrowser_".$section,@$items[$itemnum]);
                 }
                 $widgets->{'bibleBrowser'}{'button'.$itemnum}->show;
+                $widgets->{'bibleBrowser'}{'button'.$itemnum}->show;
                 $widgets->{'main'}->get_widget('tableBible')->attach(
                     $widgets->{'bibleBrowser'}{'button'.$itemnum},
-                    $col,$col+1,$row,$row+1,'fill','expand',0,0
+                    $col,$col+1,$row,$row+1,['fill','expand'], ['fill','expand'],0,0
                 );
             }
         }
