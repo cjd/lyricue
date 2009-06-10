@@ -51,7 +51,6 @@
                     </child>
                     <child>
                       <widget class="GtkMenuItem" id="import1">
-                        <property name="visible">True</property>
                         <property name="label" translatable="yes">Import Songlist</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="import_db"/>
@@ -2606,7 +2605,7 @@
         <child>
           <widget class="GtkLabel" id="labelAbout">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Version 1.9.9
+            <property name="label" translatable="yes">Version 2.0.0
 Written By:
 Chris Debenham &amp; Clint Turner
 Website:
@@ -6274,8 +6273,8 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="action">select-folder</property>
     <property name="do_overwrite_confirmation">True</property>
+    <property name="action">select-folder</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>

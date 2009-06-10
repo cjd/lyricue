@@ -1,7 +1,7 @@
-# $Revision: 1.8 $, $Date: 2009/04/22 04:27:52 $
+# $Revision: 1.9 $, $Date: 2009/06/10 04:58:21 $
 Summary:	The GNU Lyric Display System
 Name:		lyricue
-Version:	1.9.9
+Version:	2.0.0
 Release:	0.9
 License:	GPL
 Group:		X11/Applications/Graphics
@@ -65,6 +65,12 @@ rm -rf $RPM_BUILD_ROOT
 All persons listed below can be reached at lds-devel@lists.sourceforge.net
 
 $Log: lyricue.spec,v $
+Revision 1.9  2009/06/10 04:58:21  cjdebenh
+Move to 2.0.0
+
+Revision 1.9  2009/06/10 04:27:52  cjdebenh
+Update numbering to 2.0.0
+
 Revision 1.8  2009/04/22 04:27:52  cjdebenh
 Update numbering to 1.9.9
 

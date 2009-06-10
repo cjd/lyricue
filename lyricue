@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.285 2009/06/09 05:44:01 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.286 2009/06/10 04:58:21 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -63,7 +63,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyric_interface Version 1.9.9
+Lyric_interface Version 2.0.0
 
 =cut
 
@@ -137,7 +137,7 @@ if ($^O eq 'MSWin32') {
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}         = "1.9.9";
+$globals->{'version'}         = "2.0.0";
 $globals->{'accessfile'}      = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'}     = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}      = $globals->{'basedir'} . "config2";
@@ -6517,6 +6517,19 @@ sub on_treePlaylist_drag_data_received {
             my $playlist = $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
             add_image_item($playlist,$selected);
         } elsif ($data->data =~ /^bg:/) {
+            my $selected = $data->data;
+            $selected =~ s/^bg://g;
+            my $playlist = $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+            my ($path,$drop);
+            ($path, $drop) = $widget->get_dest_row_at_pos($x, $y);
+debug ($drop);
+            if ($drop eq "into-or-before") {
+                my $iter = $widget->get_model->get_iter($path);
+                my $item = $widget->get_model->get($iter, 2);
+                @ASSOCIATE = ($item, $playlist);
+debug ($item.":".$playlist.":".$selected);
+                associate_bg($selected);
+            }
         } else {
             add_single_song($data->data);
         }
