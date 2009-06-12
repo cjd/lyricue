@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.286 2009/06/10 04:58:21 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.287 2009/06/12 01:05:34 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -9277,11 +9277,9 @@ sub biblebrowser_loaditems {
     }
     
     my $size = @$items;
-    $widgets->{'main'}->get_widget('tableBible')->resize(ceil($size/$cols),$cols);
-    foreach my $row (0 .. ceil($size/$cols)-1) {
-        foreach my $col (0 .. ($cols-1)) {
-            my $itemnum = ($row*$cols)+$col;
-            if ($itemnum < $size) {
+    my $buffer = Gtk2::TextBuffer->new();
+    $widgets->{'main'}->get_widget('textBible')->set_buffer($buffer);
+    foreach my $itemnum (0 .. ($size-1)) {
                 if ($section eq "verses") {
                     $widgets->{'bibleBrowser'}{'button'.$itemnum} = Gtk2::ToggleButton->new(@$items[$itemnum]);
                     $widgets->{'bibleBrowser'}{'button'.$itemnum}
@@ -9292,13 +9290,8 @@ sub biblebrowser_loaditems {
 	                $widgets->{'bibleBrowser'}{'button'.$itemnum}->signal_connect("clicked","biblebrowser_".$section,@$items[$itemnum]);
                 }
                 $widgets->{'bibleBrowser'}{'button'.$itemnum}->show;
-                $widgets->{'bibleBrowser'}{'button'.$itemnum}->show;
-                $widgets->{'main'}->get_widget('tableBible')->attach(
-                    $widgets->{'bibleBrowser'}{'button'.$itemnum},
-                    $col,$col+1,$row,$row+1,['fill','expand'], ['fill','expand'],0,0
-                );
-            }
-        }
+                my $anchor = $buffer->create_child_anchor($buffer->get_end_iter);
+                $widgets->{'main'}->get_widget('textBible')->add_child_at_anchor($widgets->{'bibleBrowser'}{'button'.$itemnum}, $anchor);
     }
-	$widgets->{'main'}->get_widget('tableBible')->show_all();
+	$widgets->{'main'}->get_widget('textBible')->show_all();
 }
