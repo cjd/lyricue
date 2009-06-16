@@ -1,4 +1,4 @@
-# $Revision: 1.9 $, $Date: 2009/06/10 04:58:21 $
+# $Revision: 1.10 $, $Date: 2009/06/16 23:05:08 $
 Summary:	The GNU Lyric Display System
 Name:		lyricue
 Version:	2.0.0
@@ -10,6 +10,7 @@ Source0:	http://www.adebenham.com/debian/%{name}_%{version}.tar.gz
 Patch0:		%{name}-makefile.patch
 Patch1:		%{name}-desktop.patch
 Requires:	mysql-client
+Requires:	mysql-server
 Requires:	perl-DBD-mysql
 Requires:	perl-DBI
 Requires:	perl-Gnome2-Canvas
@@ -65,6 +66,9 @@ rm -rf $RPM_BUILD_ROOT
 All persons listed below can be reached at lds-devel@lists.sourceforge.net
 
 $Log: lyricue.spec,v $
+Revision 1.10  2009/06/16 23:05:08  cjdebenh
+Better error reporting, handle locales better for preferences dialog and work on import db stuff
+
 Revision 1.9  2009/06/10 04:58:21  cjdebenh
 Move to 2.0.0
 
