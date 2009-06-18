@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.183 2009/06/10 04:58:21 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.184 2009/06/18 05:54:08 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1882,8 +1882,8 @@ sub set_maintext_clutter {
     if ($config->{'VerticalLocation'} =~ /^T/) {
         if ($globals->{'header'}) {
             $final_y =
-              $globals->{'header'}->get_height() +
-              ($globals->{'maintext'}->get_height / 2);
+              ($globals->{'header'}->get_height() +
+              ($globals->{'maintext'}->get_height / 2 )) / $MINISCALE;
         } else {
             $final_y = $globals->{'maintext'}->get_height / 2;
         }
@@ -1891,22 +1891,23 @@ sub set_maintext_clutter {
         if ($globals->{'footer'}) {
             $final_y =
               $globals->{'stage'}->get_height() -
-              ($globals->{'maintext'}->get_height / 2) -
-              $globals->{'footer'}->get_height();
+              ((($globals->{'maintext'}->get_height / 2) -
+              $globals->{'footer'}->get_height()) / $MINISCALE);
         } else {
             $final_y =
               $globals->{'stage'}->get_height() -
-              ($globals->{'maintext'}->get_height / 2);
+              (($globals->{'maintext'}->get_height / 2) / $MINISCALE);
         }
     }
     if ($config->{'HorizontalLocation'} =~ /^L/) {
-        $final_x = $globals->{'maintext'}->get_width / 2;
+        $final_x = ($globals->{'maintext'}->get_width / 2) / $MINISCALE;
     } elsif ($config->{'HorizontalLocation'} =~ /^R/) {
         $final_x =
           $globals->{'stage'}->get_width() -
-          $globals->{'maintext'}->get_width / 2;
+          (($globals->{'maintext'}->get_width / 2) / $MINISCALE);
     }
     $globals->{'maintext'}->set_position($final_x, $final_y);
+    debug($final_x.":". $final_y);
 
     $globals->{'timeline'} = Clutter::Timeline->new_for_duration(100);
     $globals->{'timeline'}->set_speed(15);
