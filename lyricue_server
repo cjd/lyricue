@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.184 2009/06/18 05:54:08 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.185 2009/06/21 06:54:52 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1891,7 +1891,7 @@ sub set_maintext_clutter {
         if ($globals->{'footer'}) {
             $final_y =
               $globals->{'stage'}->get_height() -
-              ((($globals->{'maintext'}->get_height / 2) -
+              ((($globals->{'maintext'}->get_height / 2) +
               $globals->{'footer'}->get_height()) / $MINISCALE);
         } else {
             $final_y =
