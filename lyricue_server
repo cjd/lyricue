@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.185 2009/06/21 06:54:52 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.186 2009/06/21 11:25:53 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -232,6 +232,7 @@ $errorcodes->{'socketopen'} = fromutf(
 # SOURCE
 #
 
+
 # Parse command line arguments
 if ($ARGV[0]) {
     foreach (0 .. (@ARGV - 1)) {
@@ -288,6 +289,8 @@ if (!-w $globals->{'configfile'}) {
     }
     system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
 }
+open (LOG, ">".$globals->{'basedir'}."/server-".$globals->{'use_port'}.".log");
+
 my $config = load_config();
 db_check_app();
 if ($config->{'ServerType'} eq "simple") {
@@ -1215,6 +1218,8 @@ sub CloseAppWindow {
     # Re-enable screensaver
     system('xset s on +dpms');
 
+    close LOG;
+
     exit;
     return FALSE;
 }
@@ -1715,18 +1720,19 @@ sub update_miniview {
 # SOURCE
 #
 sub debug {
-    if ($DEBUG) {
-        my $text = shift;
-        chomp($text);
-        if ($text) {
-            my ($sec, $min, $hour, undef) = localtime(time);
-            print STDERR $hour . ":" . $min . ":" . $sec . "|";
+    my $text = shift;
+    chomp($text);
+    if ($text) {
+        my ($sec, $min, $hour, undef) = localtime(time);
+        $text = $hour . ":" . $min . ":" . $sec . "|" . $text . "\n";
+        if ($DEBUG) {
             if ($MINISERV > 0) {
                 print STDERR "SERVER: ";
             }
-            print STDERR $text . "\n";
+            print STDERR $text;
         }
-    }
+        print LOG $text;
+    } 
 } ## end sub debug
 
 #***

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.289 2009/06/16 23:05:07 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.290 2009/06/21 11:25:52 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -385,7 +385,7 @@ umask 0002;
 if (-e $globals->{'basedir'}) {
     if (!-d $globals->{'basedir'}) {
         print STDERR
-"Old ~/.lyricue existed but was not a directory, moving to ~/.local/share/lyricue.orig\n";
+"Old ~/.local/share/lyricue existed but was not a directory, moving to ~/.local/share/lyricue.orig\n";
         rename $globals->{'basedir'}, $globals->{'basedir'} . ".orig";
         mkdir $globals->{'basedir'}, 0777;
     }
@@ -413,6 +413,8 @@ if (-e $globals->{'basedir'}) {
     }
 }
 
+# Setup logging
+open (LOG, ">".$globals->{'basedir'}."/frontend.log");
 $widgets->{'main'} =
   Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain', 'lyricue');
 $widgets->{'main'}->signal_autoconnect_from_package('');
@@ -542,6 +544,7 @@ sub close_main {
         debug("Killing $globals->{'miniview_pid'}");
         kill 9, $globals->{'miniview_pid'};
     }
+    close LOG;
     exit();
     return FALSE;
 }
@@ -4715,13 +4718,14 @@ sub add_copyright_preset {
 # SOURCE
 #
 sub debug {
-    if ($globals->{'debugging'}) {
-        my $text = shift;
-        chomp($text);
-        if ($text) {
-            my ($sec, $min, $hour, undef) = localtime(time);
-            print STDERR $hour . ":" . $min . ":" . $sec . "|INTERFACE: ";
-            print STDERR $text . "\n";
+    my $text = shift;
+    chomp($text);
+    if ($text) {
+        my ($sec, $min, $hour, undef) = localtime(time);
+        $text = $hour . ":" . $min . ":" . $sec . "|INTERFACE: " . $text . "\n";
+        print LOG $text;
+        if ($globals->{'debugging'}) {
+            print STDERR $text;
         }
     }
     return TRUE;
