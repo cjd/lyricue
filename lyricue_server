@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.186 2009/06/21 11:25:53 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.187 2009/06/22 04:22:19 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2390,15 +2390,11 @@ sub set_maintext_canvas {
 
 sub Configure_event {
     my ($widget, $event) = @_;
-    #my ($width, $height) = $globals->{'window'}->get_size();
-    #debug ($width."x".$height);
-    #$MINISCALE = $config->{'Height'} / $height;
-    #$globals->{'window'}->resize($config->{'Width'}/$MINISCALE, $config->{'Height'} / $MINISCALE);
-#
-    #debug("Scale: " . $MINISCALE);
-    #debug($config->{'Width'}/$MINISCALE. "x" . ($config->{'Height'} / $MINISCALE));
-    #$globals->{'stage'}->set_size($config->{'Width'}/$MINISCALE, $config->{'Height'} / $MINISCALE);
-    #return FALSE;
+    my ($width, $height) = $globals->{'window'}->get_size();
+    debug ($width."x".$height);
+    $MINISCALE = $config->{'Height'} / $height;
+    debug("Scale: " . $MINISCALE);
+    return FALSE;
 }
 
 sub display_fatal {
@@ -2940,8 +2936,8 @@ sub create_window {
     # set window attributes and show it
     debug("Showing window");
     $globals->{'window'}->show_all();
-    #$globals->{'window'}->signal_connect("configure_event", \&Configure_event);
-    #Configure_event();
+    $globals->{'window'}->signal_connect("configure_event", \&Configure_event);
+    Configure_event();
 
     if ($globals->{'server_type'} == CANVAS) {
         $globals->{'canvas'}->update_now();
