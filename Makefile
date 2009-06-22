@@ -25,7 +25,7 @@ install:
 	$(INSTALLDATA) $(SQL) $(DESTDIR)/usr/share/lyricue/mysql
 
 	mkdir -p $(DESTDIR)/etc/lyricue
-	@if test ! -e access.conf; then \
+	@if test ! -e $(DESTDIR)/etc/lyricue/access.conf; then \
 	   $(INSTALLDATA) access.conf $(DESTDIR)/etc/lyricue; \
 	fi
 	$(INSTALLDATA) $(ETC) $(DESTDIR)/etc/lyricue

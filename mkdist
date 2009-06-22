@@ -11,8 +11,8 @@ mkdir dist
 mkdir dist/lyricue-${VERSION}
 cp -R * dist/lyricue-${VERSION}
 rm -rf dist/dist
-rm dist/lyricue-${VERSION}/mysql/MySQL_create_bible_*.sql
-rm -rf dist/lyricue-${VERSION}/debian/bible
+rm -rf dist/lyricue-${VERSION}/bibles
+rm -rf dist/lyricue-${VERSION}/dist
 
 pushd dist/lyricue-${VERSION}
 rm -rf dist
@@ -30,25 +30,27 @@ popd
 
 rm -rf dist/lyricue-${VERSION}
 
-echo Making Bible packages
-if [ "$1" = "-b" ]
-then echo Making bibles
-for DB in KJV MES NIV NLT NIRV
-    do DB_LOWER=`echo $DB | tr [:upper:] [:lower:]`
-    DISTDIR=dist/lyricue-bible-$DB_LOWER
-    mkdir $DISTDIR
-    mkdir $DISTDIR/mysql
-    mkdir $DISTDIR/debian
-    cp mysql/MySQL_create_bible_$DB.sql $DISTDIR/mysql
-    cp debian/bibles/$DB/* $DISTDIR/debian
-    pushd $DISTDIR/debian
-    popd
-    pushd $DISTDIR
-    dpkg-buildpackage -rfakeroot
-    popd
-    rm -rf $DISTDIR
-done
-fi
+
+# Bibles no longer provided in deb format
+#echo Making Bible packages
+#if [ "$1" = "-b" ]
+#then echo Making bibles
+#for DB in KJV MES NIV NLT NIRV
+#    do DB_LOWER=`echo $DB | tr [:upper:] [:lower:]`
+#    DISTDIR=dist/lyricue-bible-$DB_LOWER
+#    mkdir $DISTDIR
+#    mkdir $DISTDIR/mysql
+#    mkdir $DISTDIR/debian
+#    cp mysql/MySQL_create_bible_$DB.sql $DISTDIR/mysql
+#    cp debian/bibles/$DB/* $DISTDIR/debian
+#    pushd $DISTDIR/debian
+#    popd
+#    pushd $DISTDIR
+#    dpkg-buildpackage -rfakeroot
+#    popd
+#    rm -rf $DISTDIR
+#done
+#fi
 
 echo Pushing to repository
 cp dist/*deb dist/*.dsc dist/*.asc dist/*.gz dist/*.changes  /var/www/debian
