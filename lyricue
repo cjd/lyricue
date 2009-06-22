@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.290 2009/06/21 11:25:52 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.291 2009/06/22 05:44:27 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -632,7 +632,7 @@ sub add_playlist {
         "SELECT * FROM playlist WHERE playlist="
       . $playlist
       . " ORDER BY playorder";
-    qdebug($query);
+    #qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
     my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
@@ -642,7 +642,7 @@ sub add_playlist {
         if ($row->{'type'} eq "back") {
             my $query2 = "SELECT description FROM media WHERE id=\""
               . $row->{'data'} . "\"";
-            qdebug($query2);
+            #qdebug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
             my $rv2 = $sth2->execute
@@ -676,7 +676,7 @@ sub add_playlist {
             } else {
                 my $query2 = "SELECT description FROM media WHERE id=\""
                   . $id . "\"";
-                qdebug($query2);
+                #qdebug($query2);
                 my $sth2 = $mediaDbh->prepare($query2)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
                 my $rv2 = $sth2->execute
@@ -689,7 +689,7 @@ sub add_playlist {
         } elsif ($row->{'type'} eq "song") {
             my $query2 =
               "SELECT lyrics FROM page WHERE pageid=" . $row->{'data'};
-            qdebug($query2);
+            #qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
             my $rv2 = $sth2->execute
@@ -708,7 +708,7 @@ sub add_playlist {
         } elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
 
             my $query2 = "SELECT * FROM playlists WHERE id=" . $row->{'data'};
-            qdebug($query2);
+            #qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
             my $rv2 = $sth2->execute
@@ -720,7 +720,7 @@ sub add_playlist {
             if ($row2->{'ref'} && $row2->{'ref'} != 0) {
                 $query2 =
                   "SELECT songnum FROM lyricMain WHERE id=" . $row2->{'ref'};
-                qdebug($query2);
+                #qdebug($query2);
                 $sth2 = $lyricDbh->prepare($query2)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
                 $rv2 = $sth2->execute
@@ -737,7 +737,7 @@ sub add_playlist {
         # Add image name to playlist item title
         my $query3 =
           "SELECT * FROM associations WHERE playlist=" . $row->{'playorder'};
-        qdebug($query3);
+        #qdebug($query3);
         my $sth3 = $lyricDbh->prepare($query3)
           || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
         my $rv3 = $sth3->execute
@@ -764,7 +764,7 @@ sub add_playlist {
             if ($type eq "db") {
                 my $query2 =
                   "SELECT description FROM media WHERE id=\"" . $id . "\"";
-                qdebug($query2);
+                #qdebug($query2);
                 my $sth2 = $mediaDbh->prepare($query2)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
                 my $rv2 = $sth2->execute
@@ -3841,7 +3841,10 @@ sub print_songs {
 # SOURCE
 #
 sub backdrop_clicked {
-    my ($widget) = @_;
+    my ($widget,$event) = @_;
+    if ($event->type eq 'button-press') {
+        return;
+    }
     debug("Backdrop clicked");
     my $selected="";
     my @list = $widget->get_selected_items;
@@ -3853,6 +3856,7 @@ sub backdrop_clicked {
     if ($selected eq ""){
         return;
     }
+    #$widget->unselect_all;
 
     if (@ASSOCIATE) {
         associate_bg($selected);
@@ -3880,6 +3884,30 @@ sub backdrop_clicked {
     }
 }
 
+sub backdrop_preview_clicked {
+    my ($widget) = @_;
+    my $selected = $widget->{user_data};
+    debug("Changing backdrop to " . $selected);
+    if ($globals->{'bg_previews'}) {
+        my $prevFile = $selected;
+        my $scaled =
+          create_pixbuf($widgets->{'buttonCurr'}->{user_data}, $globals->{'icon_width'}, $globals->{'icon_height'});
+
+        if ($scaled) {
+            $widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
+            $widgets->{'buttonPrev'}->{user_data} =
+              $widgets->{'buttonCurr'}->{user_data};
+        }
+
+        $scaled = create_pixbuf($prevFile, $globals->{'icon_width'}, $globals->{'icon_height'});
+        if ($scaled) {
+            $widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
+            $widgets->{'buttonCurr'}->{user_data} = $prevFile;
+        }
+        update_display("backdrop", $prevFile, "");
+        preview_display("backdrop", $prevFile, "");
+    }
+}
 #***
 
 #****m* lyricue/do_add_image
@@ -5895,7 +5923,7 @@ sub init_mainWindow {
           ->pack_start($widgets->{'buttonCurr'}, FALSE, FALSE, 0);
         $widgets->{'pixmapCurr'}->show();
         $widgets->{'buttonCurr'}->show();
-        $widgets->{'buttonCurr'}->signal_connect("clicked", "backdrop_clicked");
+        $widgets->{'buttonCurr'}->signal_connect("clicked", "backdrop_preview_clicked");
     }
     $scaled = create_pixbuf($config->{'BGImage'}, 72, 52);
     if ($scaled) {
@@ -5908,7 +5936,7 @@ sub init_mainWindow {
           ->pack_start($widgets->{'buttonPrev'}, FALSE, FALSE, 0);
         $widgets->{'pixmapPrev'}->show();
         $widgets->{'buttonPrev'}->show();
-        $widgets->{'buttonPrev'}->signal_connect("clicked", "backdrop_clicked");
+        $widgets->{'buttonPrev'}->signal_connect("clicked", "backdrop_preview_clicked");
     }
 
     # Update list of background/image directories
