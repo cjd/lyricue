@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.188 2009/06/22 05:44:27 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.189 2009/06/22 06:10:49 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2069,6 +2069,7 @@ sub set_maintext_clutter {
 sub create_outlined_text {
     my ($text, $font, $text_colour, $shadow_colour) = @_;
     my $group = Clutter::Group->new;
+    $group->{user_data} = toutf($text);
     $text =~ s/\&/\&amp\;/g;
 
     foreach my $count (0, 2, 10, 12, 18, 24, 6) {
@@ -2391,10 +2392,42 @@ sub set_maintext_canvas {
 sub Configure_event {
     my ($widget, $event) = @_;
     my ($width, $height) = $globals->{'window'}->get_size();
+    my $old = $MINISCALE;
     $MINISCALE = $config->{'Height'} / $height;
     debug ($width."x".$height."-". $MINISCALE);
+    if ($MINISCALE != $old) {
+        reset_timer($globals->{'update_timer'});
+        $globals->{'update_timer'} = Glib::Timeout->add(200, \&refresh_display);
+    }
     return FALSE;
 }
+
+sub refresh_display {
+    # Refresh Display
+    my $id = $globals->{'bgid'};
+    change_backdrop($config->{'BGImage'}, TRUE);
+    change_backdrop($id, TRUE);
+    if (defined $globals->{'header'}) {
+        set_header($globals->{'header'}->{user_data});
+    }
+    if (defined $globals->{'footer'}) {
+        set_footer($globals->{'footer'}->{user_data});
+    }
+    if (defined $globals->{'maintext'}) {
+        set_maintext($globals->{'maintext'}->{user_data},NONE,TRUE);
+    }
+    reset_timer($globals->{'update_timer'});
+}
+
+sub reset_timer {
+    my ($timer) = @_;
+    if ($timer) {
+        debug("Cancelling timer");
+        Glib::Source->remove($timer);
+        $timer = FALSE;
+    }
+}
+
 
 sub display_fatal {
     my ($message, $error) = @_;
