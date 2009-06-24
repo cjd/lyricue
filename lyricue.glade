@@ -3818,7 +3818,6 @@ http://www.adebenham.com/lyricue</property>
   </widget>
   <widget class="GtkDialog" id="dialogError">
     <property name="visible">True</property>
-    <property name="type">popup</property>
     <property name="title" translatable="yes">Lyricue Error</property>
     <property name="modal">True</property>
     <property name="window_position">center</property>
@@ -3845,7 +3844,10 @@ http://www.adebenham.com/lyricue</property>
             <child>
               <widget class="GtkLabel" id="labelErrorDetails">
                 <property name="visible">True</property>
+                <property name="xalign">0.47999998927116394</property>
                 <property name="label" translatable="yes">label</property>
+                <property name="wrap">True</property>
+                <property name="selectable">True</property>
               </widget>
             </child>
             <child>

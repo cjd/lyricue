@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.292 2009/06/24 00:45:02 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.293 2009/06/24 01:17:26 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4750,7 +4750,7 @@ sub debug {
     chomp($text);
     if ($text) {
         my ($sec, $min, $hour, undef) = localtime(time);
-        $text = $hour . ":" . $min . ":" . $sec . "|INTERFACE: " . $text . "\n";
+        $text = sprintf("%02d:%02d:%02d|INTERFACE: %s\n",$hour, $min, $sec, $text);
         print LOG $text;
         if ($globals->{'debugging'}) {
             print STDERR $text;
@@ -6622,7 +6622,7 @@ sub display_fatal {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
     $errorxml->signal_autoconnect_from_package('');
     $errorxml->get_widget('labelError')->set_text($message);
-    $errorxml->get_widget('labelErrorDetail')->set_text($error);
+    $errorxml->get_widget('labelErrorDetails')->set_text($error);
     my $confirm = $errorxml->get_widget('dialogError')->run();
     close_dialog($errorxml->get_widget('dialogError'));
     print STDERR "Full error message\n";
@@ -7696,22 +7696,30 @@ sub change_colour_media {
     my $shadowcolour =
       $widgets->{'image'}->get_widget('entryImageShadowColour')->get('text');
     my $id = $widgets->{'image'}->get_widget('imageImage')->{user_data};
-    if (defined($id)) {
-        debug("change_colour_media: $fontcolour, $shadowcolour, $id");
-        my $query =
-"UPDATE media SET textcolour=\"$fontcolour\", shadowcolour=\"$shadowcolour\" WHERE id=$id";
-        qdebug($query);
-        my $sth = $mediaDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
-        my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
 
-        #update_imagedir(
-        #$widgets->{'image'}->get_widget('optionImageCategory')
-        #->{'user_data'},
-        #$widgets->{'image'}->get_widget('optionImageCategory')
-        #->get_menu->get_active->{user_data}
-        #);
+    if (defined($id)) {
+        my ($type, $id) = split /;/, $id;
+        if (!defined $id) {
+            $id = $type;
+            $type = "db";
+        }
+        if ($type eq "db") {
+            debug("change_colour_media: $fontcolour, $shadowcolour, $id");
+            my $query =
+"UPDATE media SET textcolour=\"$fontcolour\", shadowcolour=\"$shadowcolour\" WHERE id=$id";
+            qdebug($query);
+            my $sth = $mediaDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
+            my $rv = $sth->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
+
+            #update_imagedir(
+            #$widgets->{'image'}->get_widget('optionImageCategory')
+            #->{'user_data'},
+            #$widgets->{'image'}->get_widget('optionImageCategory')
+            #->get_menu->get_active->{user_data}
+            #);
+        }
     }
 }
 

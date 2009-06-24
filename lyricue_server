@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.190 2009/06/24 00:45:02 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.191 2009/06/24 01:17:26 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1725,10 +1725,8 @@ sub debug {
     if ($text) {
         my ($sec, $min, $hour, undef) = localtime(time);
         $text = $hour . ":" . $min . ":" . $sec . "|" . $text . "\n";
+        $text = sprintf("%02d:%02d:%02d|SERVER: %s\n",$hour, $min, $sec, $text);
         if ($DEBUG) {
-            if ($MINISERV > 0) {
-                print STDERR "SERVER: ";
-            }
             print STDERR $text;
         }
         print LOG $text;
