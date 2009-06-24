@@ -2,33 +2,33 @@
 
 VERSION=`head -1 debian/changelog |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
 LC_ALL=C;export LC_ALL
+BUILD_DIR=~/source/Lyricue/dist
 
-echo Removing old dist files
-rm -rf dist/l*
+echo Removing old ${BUILD_DIR} files
+rm -rf ${BUILD_DIR}/l*
 
 echo Creating new files
-mkdir dist
-mkdir dist/lyricue-${VERSION}
-cp -R * dist/lyricue-${VERSION}
-rm -rf dist/dist
-rm -rf dist/lyricue-${VERSION}/bibles
-rm -rf dist/lyricue-${VERSION}/dist
+mkdir ${BUILD_DIR}
+mkdir ${BUILD_DIR}/lyricue-${VERSION}
+cp -R * ${BUILD_DIR}/lyricue-${VERSION}
+rm -rf ${BUILD_DIR}/${BUILD_DIR}
+rm -rf ${BUILD_DIR}/lyricue-${VERSION}/bibles
+rm -rf ${BUILD_DIR}/lyricue-${VERSION}/${BUILD_DIR}
 
-pushd dist/lyricue-${VERSION}
-rm -rf dist
-rm images/desktop.png images/*.svg
+pushd ${BUILD_DIR}/lyricue-${VERSION}
+rm images/*.svg
 find . -name CVS -type d -exec rm -r \{} \; 2>/dev/null
 make
 
 echo Creating Debian packages
 dpkg-buildpackage -rfakeroot -kB734D1F5
 popd
-rm -rf dist/lyricue-${VERSION}/debian
-pushd dist
+rm -rf ${BUILD_DIR}/lyricue-${VERSION}/debian
+pushd ${BUILD_DIR}
 tar cvfz lyricue*_${VERSION}.tar.gz lyricue-${VERSION}
 popd
 
-rm -rf dist/lyricue-${VERSION}
+rm -rf ${BUILD_DIR}/lyricue-${VERSION}
 
 
 # Bibles no longer provided in deb format
@@ -37,23 +37,23 @@ rm -rf dist/lyricue-${VERSION}
 #then echo Making bibles
 #for DB in KJV MES NIV NLT NIRV
 #    do DB_LOWER=`echo $DB | tr [:upper:] [:lower:]`
-#    DISTDIR=dist/lyricue-bible-$DB_LOWER
-#    mkdir $DISTDIR
-#    mkdir $DISTDIR/mysql
-#    mkdir $DISTDIR/debian
-#    cp mysql/MySQL_create_bible_$DB.sql $DISTDIR/mysql
-#    cp debian/bibles/$DB/* $DISTDIR/debian
-#    pushd $DISTDIR/debian
+#    ${BUILD_DIR}DIR=${BUILD_DIR}/lyricue-bible-$DB_LOWER
+#    mkdir $${BUILD_DIR}DIR
+#    mkdir $${BUILD_DIR}DIR/mysql
+#    mkdir $${BUILD_DIR}DIR/debian
+#    cp mysql/MySQL_create_bible_$DB.sql $${BUILD_DIR}DIR/mysql
+#    cp debian/bibles/$DB/* $${BUILD_DIR}DIR/debian
+#    pushd $${BUILD_DIR}DIR/debian
 #    popd
-#    pushd $DISTDIR
+#    pushd $${BUILD_DIR}DIR
 #    dpkg-buildpackage -rfakeroot
 #    popd
-#    rm -rf $DISTDIR
+#    rm -rf $${BUILD_DIR}DIR
 #done
 #fi
 
 echo Pushing to repository
-cp dist/*deb dist/*.dsc dist/*.asc dist/*.gz dist/*.changes  /var/www/debian
+cp ${BUILD_DIR}/*deb ${BUILD_DIR}/*.dsc ${BUILD_DIR}/*.asc ${BUILD_DIR}/*.gz ${BUILD_DIR}/*.changes  /var/www/debian
 cd /var/www/debian
 rm Packages.gz Sources.gz Packages.bz2 Sources.bz2 Release Release.gpg
 apt-ftparchive packages . > Packages
