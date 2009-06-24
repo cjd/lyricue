@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.189 2009/06/22 06:10:49 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.190 2009/06/24 00:45:02 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -56,7 +56,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyricue_server Version 2.0.0
+Lyricue_server Version ##VERSION##
 
 =cut
 
@@ -152,7 +152,7 @@ $globals->{'sharedir'} = "/usr/share/lyricue/";
 # You shouldn't have to change anything after this line
 #
 
-$globals->{'version'}     = "2.0.0";
+$globals->{'version'}     = "##VERSION##";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";

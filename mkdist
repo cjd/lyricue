@@ -16,6 +16,10 @@ rm -rf ${BUILD_DIR}/lyricue-${VERSION}/bibles
 rm -rf ${BUILD_DIR}/lyricue-${VERSION}/${BUILD_DIR}
 
 pushd ${BUILD_DIR}/lyricue-${VERSION}
+CONV="s/##VERSION##/${VERSION}/g"
+for F in import_media lyricue lyricue.1 lyricue_server lyricue.glade
+do sed --in-place -e $CONV $F
+done
 rm images/*.svg
 find . -name CVS -type d -exec rm -r \{} \; 2>/dev/null
 make

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.291 2009/06/22 05:44:27 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.292 2009/06/24 00:45:02 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -63,7 +63,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyric_interface Version 2.0.0
+Lyric_interface Version ##VERSION##
 
 =cut
 
@@ -137,7 +137,7 @@ if ($^O eq 'MSWin32') {
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}         = "2.0.0";
+$globals->{'version'}         = "##VERSION##";
 $globals->{'accessfile'}      = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'}     = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}      = $globals->{'basedir'} . "config2";
