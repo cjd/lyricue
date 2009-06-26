@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.293 2009/06/24 01:17:26 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.294 2009/06/26 06:24:53 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -181,6 +181,7 @@ $globals->{'db_adminuser'}       = "";
 $globals->{'current_item'}       = -1;
 $globals->{'icon_width'}         = 96;
 $globals->{'icon_height'}        = 72;
+$globals->{'firstrun'} = FALSE;
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -339,9 +340,9 @@ if ($ARGV[0]) {
             $globals->{'bg_previews'} = FALSE;
         } elsif ($ARGV[$_] eq "-d") {
             $globals->{'debugging'} = 2;
-            debug(  "Lyric Interface version "
+            print STDERR  "Lyric Interface version "
                   . $globals->{'version'} . "\n"
-                  . $ID);
+                  . $ID;
         } elsif ($ARGV[$_] eq "-dq") {
             $globals->{'debugging'} = 2;
         } elsif ($ARGV[$_] eq "-sqlite") {
@@ -381,7 +382,7 @@ my ($query, $row, $sth, $rv);
 # Set umask
 umask 0002;
 
-# Check if user .lyricue directory exists, otherwire create
+# Check if user ~/.local/share/lyricue directory exists, otherwire create
 if (-e $globals->{'basedir'}) {
     if (!-d $globals->{'basedir'}) {
         print STDERR
@@ -429,6 +430,7 @@ if ($globals->{'mini'}) {
     $widgets->{'main'}->get_widget('windowMain')->window->set_cursor($cursor);
 }
 
+
 # Load the config file
 if (-d $globals->{'basedir'}) {
     if (!-e $globals->{'configfile'}) {
@@ -436,21 +438,18 @@ if (-d $globals->{'basedir'}) {
         system(
             "cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
         $config = load_config();
-        $globals->{'access'} = load_access();
-        db_select();
-        create_dialog_prefs();
-        $globals->{'configured'} = FALSE;
-        while (!$globals->{'configured'}) {
-            do_pending();
-        }
+        $globals->{'firstrun'} = TRUE;
+        firstrun_wizard();
+        Gtk2->main();
+        $globals->{'firstrun'} = FALSE;
     } else {
         debug("Loading config and access");
         $config = load_config();
-        $globals->{'access'} = load_access();
-
-        # Open lyricDB, bibleDB and mediaDb
-        db_select();
     }
+    $globals->{'access'} = load_access();
+
+    # Open lyricDB, bibleDB and mediaDb
+    db_select();
 }
 
 if (defined $config->{'DefBible'} && ($config->{'DefBible'} ne "")) {
@@ -5268,22 +5267,13 @@ sub load_config {
 #***
 
 sub save_state {
-    my $config = "";
-    $config .= "FrameLeft = "
-      . $widgets->{'main'}->get_widget('hpanedMainLeft')->get_position() . "\n";
-    $config .=
-        "FrameRight = "
-      . $widgets->{'main'}->get_widget('hpanedMainRight')->get_position()
-      . "\n";
+    $config->{'FrameLeft'} = $widgets->{'main'}->get_widget('hpanedMainLeft')->get_position();
+    $config->{'FrameRight'} = $widgets->{'main'}->get_widget('hpanedMainRight')->get_position();
     my ($width, $height) =
       $widgets->{'main'}->get_widget('windowMain')->get_size();
     if (defined $widgets->{'main'}->get_widget('vpanedMain')) {
-    $config .=
-        "FrameMain = "
-      . ($height - $widgets->{'main'}->get_widget('vpanedMain')->get_position())
-      . "\n";
+        $config->{'FrameMain'} = ($height - $widgets->{'main'}->get_widget('vpanedMain')->get_position());
     }
-    return $config;
 }
 
 sub save_and_close_prefs {
@@ -5295,54 +5285,23 @@ sub save_and_close_prefs {
 
 sub save_preferences {
     debug("Saving preferences");
-    my $db_changed = FALSE;
-    unlink $globals->{'configfile'} . ".bak";
-    rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
-    open(CONFIG, ">$globals->{'configfile'}")
-      || display_fatal($errorcodes->{'fileopenwrite'}, $!."\nSQL: ".$query);
-    print CONFIG "Main = "
-      . $widgets->{'prefs'}->get_widget('entryPrefMain')->get_text() . "\n";
-    print CONFIG "Header = "
-      . $widgets->{'prefs'}->get_widget('entryPrefHeader')->get_text() . "\n";
-    print CONFIG "Footer = "
-      . $widgets->{'prefs'}->get_widget('entryPrefFooter')->get_text() . "\n";
-    print CONFIG "Colour = "
-      . $widgets->{'prefs'}->get_widget('entryPrefColour')->get_text() . "\n";
-    print CONFIG "ShadowColour = "
-      . $widgets->{'prefs'}->get_widget('entryPrefShadowColour')->get_text()
-      . "\n";
-    print CONFIG "ShadowSize = "
-      . $widgets->{'prefs'}->get_widget('spinPrefShadow')->get_value() . "\n";
-    print CONFIG "Height = "
-      . $widgets->{'prefs'}->get_widget('spinPrefHeight')->get_value() . "\n";
-    print CONFIG "Width = "
-      . $widgets->{'prefs'}->get_widget('spinPrefWidth')->get_value() . "\n";
-    print CONFIG "OverscanH = "
-      . $widgets->{'prefs'}->get_widget('spinPrefOverscanH')->get_value()
-      . "\n";
-    print CONFIG "OverscanV = "
-      . $widgets->{'prefs'}->get_widget('spinPrefOverscanV')->get_value()
-      . "\n";
-    print CONFIG "Loop = ",
-      $widgets->{'prefs'}->get_widget('checkPrefLoop')->get_active() ? 1 : 0,
-      "\n";
-    print CONFIG "Audit = ",
-      $widgets->{'prefs'}->get_widget('checkPrefAudit')->get_active() ? 1 : 0,
-      "\n";
-    print CONFIG "DynamicPreview = ",
-      $widgets->{'prefs'}->get_widget('checkPrefView')->get_active() ? 1 : 0,
-      "\n";
-    print CONFIG "Miniview = ",
-      $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active()
-      ? 1
-      : 0, "\n";
-    print CONFIG "Xinerama = ",
-      $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active()
-      ? 1
-      : 0, "\n";
+    $config->{'Main'} = $widgets->{'prefs'}->get_widget('entryPrefMain')->get_text();
+    $config->{'Header'} = $widgets->{'prefs'}->get_widget('entryPrefHeader')->get_text();
+    $config->{'Footer'} = $widgets->{'prefs'}->get_widget('entryPrefFooter')->get_text();
+    $config->{'Colour'} = $widgets->{'prefs'}->get_widget('entryPrefColour')->get_text();
+    $config->{'ShadowColour'} = $widgets->{'prefs'}->get_widget('entryPrefShadowColour')->get_text();
+    $config->{'ShadowSize'} = $widgets->{'prefs'}->get_widget('spinPrefShadow')->get_value();
+    $config->{'Height'} = $widgets->{'prefs'}->get_widget('spinPrefHeight')->get_value();
+    $config->{'Width'} = $widgets->{'prefs'}->get_widget('spinPrefWidth')->get_value();
+    $config->{'OverscanH'} = $widgets->{'prefs'}->get_widget('spinPrefOverscanH')->get_value();
+    $config->{'OverscanV'} = $widgets->{'prefs'}->get_widget('spinPrefOverscanV')->get_value();
+    $config->{'Loop'} =  $widgets->{'prefs'}->get_widget('checkPrefLoop')->get_active() ? 1 : 0;
+    $config->{'Audit'} = $widgets->{'prefs'}->get_widget('checkPrefAudit')->get_active() ? 1 : 0;
+    $config->{'DynamicPreview'} = $widgets->{'prefs'}->get_widget('checkPrefView')->get_active() ? 1 : 0;
+    $config->{'Miniview'} = $widgets->{'prefs'}->get_widget('checkPrefMiniview')->get_active() ? 1 : 0;
+    $config->{'Xinerama'} = $widgets->{'prefs'}->get_widget('checkPrefXinerama')->get_active() ? 1 : 0;
     my $set = "";
     foreach my $value ( "Top", "Bottom","Centre") {
-        debug (fromutf(gettext($value)).":".ucfirst($widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active_text()));
         if (fromutf(gettext($value)) eq ucfirst($widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active_text())) {
             $set = $value;
         }
@@ -5350,11 +5309,10 @@ sub save_preferences {
     if ($set eq "") {
         $set = $widgets->{'prefs'}->get_widget('comboPrefVertical')->get_active_text();
     }
-    print CONFIG "VerticalLocation = " .  $set . "\n";
+    $config->{'VerticalLocation'} = $set;
     $set = "";
     my $set2 = "";
     foreach my $value ( "Left", "Right","Centre") {
-        debug(fromutf(gettext($value)).":".ucfirst($widgets->{'prefs'}->get_widget('comboPrefHorizontal')->get_active_text()).":".ucfirst($widgets->{'prefs'}->get_widget('comboPrefJustification')->get_active_text()));
         if (fromutf(gettext($value)) eq ucfirst($widgets->{'prefs'}->get_widget('comboPrefHorizontal')->get_active_text())) {
             $set = $value;
         }
@@ -5368,63 +5326,45 @@ sub save_preferences {
     if ($set2 eq "") {
         $set2 = $widgets->{'prefs'}->get_widget('comboPrefJustification')->get_active_text();
     }
-    print CONFIG "HorizontalLocation = " .  $set . "\n";
-    print CONFIG "Justification = ".$set2."\n";
+    $config->{'HorizontalLocation'} = $set;
+    $config->{'Justification'} = $set2;
 
     if ($widgets->{'prefs'}->get_widget('radioPrefServerClutter')->get_active())
     {
-        print CONFIG "ServerType = clutter\n";
+        $config->{'ServerType'} = "clutter";
     } elsif (
         $widgets->{'prefs'}->get_widget('radioPrefServerFast')->get_active())
     {
-        print CONFIG "ServerType = simple\n";
+        $config->{'ServerType'} = "simple";
     } else {
-        print CONFIG "ServerType = canvas\n";
+        $config->{'ServerType'} = "canvas";
     }
-    print CONFIG "BGImage = "
-      . $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data} . "\n";
-    print CONFIG "SpecialSong = "
-      . $widgets->{'prefs'}->get_widget('entryPrefSpecialSong')->get_text()
-      . "\n";
-    print CONFIG "SpecialImage = "
-      . $widgets->{'prefs'}->get_widget('entryPrefSpecialImage')->get_text()
-      . "\n";
-    print CONFIG "SpecialBack = "
-      . $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text()
-      . "\n";
-    print CONFIG "ImageDirectory = "
-      . $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')
-      ->get_label() . "\n";
-    print CONFIG "BGDirectory = "
-      . $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->get_label()
-      . "\n";
-    print CONFIG "TrayIcons = " . $config->{'TrayIcons'} . "\n";
+    $config->{'BGImage'} = $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
+    $config->{'SpecialSong'} = $widgets->{'prefs'}->get_widget('entryPrefSpecialSong')->get_text();
+    $config->{'SpecialImage'} = $widgets->{'prefs'}->get_widget('entryPrefSpecialImage')->get_text();
+    $config->{'SpecialBack'} = $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text();
+    $config->{'ImageDirectory'} = $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->get_label();
+    $config->{'BGDirectory'} = $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->get_label();
+    $config->{'TrayIcons'} = $config->{'TrayIcons'};
 
+    my $db_changed = FALSE;
     if ($widgets->{'prefs'}->get_widget('radioPrefDBMysql')->get_active()) {
-        print CONFIG "DatabaseType = mysql\n";
         if ($config->{'DatabaseType'} ne "mysql") {
             $db_changed = TRUE;
         }
+        $config->{'DatabaseType'} = "mysql";
     } else {
         if ($config->{'DatabaseType'} ne "SQLite") {
             $db_changed = TRUE;
         }
-        print CONFIG "DatabaseType = SQLite\n";
+        $config->{'DatabaseType'} = "SQLite";
     }
 
-    print CONFIG "DefBible = "
-      . $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text() . "\n";
-    print CONFIG save_state();
-    foreach (0 .. $config->{'AppCount'} - 1) {
-        print CONFIG "App = " . $config->{'App'}[$_] . "\n";
-    }
-    foreach (keys(%$config)) {
-        if (/^Preset/) {
-            print CONFIG $_ . " = " . $config->{$_} . "\n";
-        }
-    }
-    close CONFIG;
-    $config = load_config();
+    $config->{'DefBible'} = $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text();
+
+    save_state();
+    write_config();
+
     if ($db_changed) {
         db_restart();
     }
@@ -5436,6 +5376,23 @@ sub save_preferences {
     update_display("reconfig", "", "");
     preview_display("display", "current", "");
     update_display("display", "current", "");
+}
+
+sub write_config {
+    debug("Writing preferences");
+    unlink $globals->{'configfile'} . ".bak";
+    rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
+    open(CONFIG, ">$globals->{'configfile'}")
+      || display_fatal($errorcodes->{'fileopenwrite'}, $!);
+    foreach (sort keys(%$config)) {
+        if ((!/^Bible/) && (!/^App/) && (!/^LoopText/)) {
+            print CONFIG $_ . " = " . $config->{$_} . "\n";
+        }
+    }
+    foreach (0 .. $config->{'AppCount'} - 1) {
+        print CONFIG "App = " . $config->{'App'}[$_] . "\n";
+    }
+    close CONFIG;
 }
 
 #***
@@ -9177,13 +9134,21 @@ sub open_dirchooser {
     debug("Opening Directory chooser");
     my $directoryxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDirChooser', 'lyricue');
     $directoryxml->signal_autoconnect_from_package('');
-    $directoryxml->get_widget('dialogDirChooser')->set_filename($widget->get_label());
+    my $dir = $widget->get_label();
+    $dir =~ s/^~/$ENV{'HOME'}/;
+    $directoryxml->get_widget('dialogDirChooser')->set_filename($dir);
     my $confirm = $directoryxml->get_widget('dialogDirChooser')->run();
     if ($confirm eq "ok" ) {
+        $dir = $directoryxml->get_widget('dialogDirChooser')->get_filename();
+        $dir =~ s/^$ENV{'HOME'}/~/;
         if ($widget->{'user_data'} eq "img") {
-            $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->set_label($directoryxml->get_widget('dialogDirChooser')->get_filename());
+            $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->set_label($dir);
         } elsif ($widget->{'user_data'} eq "bg") {
-            $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->set_label($directoryxml->get_widget('dialogDirChooser')->get_filename());
+            $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->set_label($dir);
+        } elsif ($widget->{'user_data'} eq "fr_img") {
+            $widgets->{'firstrunxml'}->get_widget('fileFRImagedir')->set_label($dir);
+        } elsif ($widget->{'user_data'} eq "fr_bg") {
+            $widgets->{'firstrunxml'}->get_widget('fileFRBGdir')->set_label($dir);
         }
     }
     close_dialog($directoryxml->get_widget('dialogDirChooser'));
@@ -9426,4 +9391,203 @@ sub biblebrowser_loaditems {
                 $widgets->{'main'}->get_widget('textBible')->add_child_at_anchor($widgets->{'bibleBrowser'}{'button'.$itemnum}, $anchor);
     }
 	$widgets->{'main'}->get_widget('textBible')->show_all();
+}
+
+sub firstrun_wizard {
+        $config = load_config();
+        $widgets->{'firstrunxml'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'assistantFirstRun', 'lyricue');
+        $widgets->{'firstrunxml'}->signal_autoconnect_from_package('');
+        $widgets->{'firstrun'} = $widgets->{'firstrunxml'}->get_widget('assistantFirstRun');
+        $widgets->{'firstrun'}->show_all();
+}
+
+sub firstrun_cancel {
+    debug("Cancelled Wizard");
+    firstrun_close();
+}
+
+sub firstrun_close {
+    debug("Closing Wizard");
+    close_dialog($widgets->{'firstrun'});
+    if ($globals->{'firstrun'}) {
+        Gtk2->main_quit();
+    }
+}
+
+sub firstrun_prepare {
+    debug("prepare page:".$widgets->{'firstrun'}->get_current_page);
+    my $page = $widgets->{'firstrun'}->get_nth_page($widgets->{'firstrun'}->get_current_page);
+    my $font = "Serif 30";
+    my $header=gettext("First-run wizard");
+
+    if ($widgets->{'firstrun'}->get_current_page == 0) {
+        # Intro
+        $header=gettext("Welcome");
+        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
+    } elsif ($widgets->{'firstrun'}->get_current_page == 1) {
+        # Database
+        $header=gettext("Database login");
+        firstrun_pw_check();
+    } elsif ($widgets->{'firstrun'}->get_current_page == 2) {
+        # Server
+        $header=gettext("Projector settings");
+        $widgets->{'firstrunxml'}->get_widget('spinFRWidth')->set_value($config->{'Width'});
+        $widgets->{'firstrunxml'}->get_widget('spinFRHeight')->set_value($config->{'Height'});
+        if ($config->{'VerticalLocation'}) {
+            $widgets->{'firstrunxml'}->get_widget('comboFRVertical')
+              ->prepend_text($config->{'VerticalLocation'});
+        }
+        $widgets->{'firstrunxml'}->get_widget('comboFRVertical')
+          ->set_active(0);
+        if ($config->{'HorizontalLocation'}) {
+            $widgets->{'firstrunxml'}->get_widget('comboFRHorizontal')
+              ->prepend_text($config->{'HorizontalLocation'});
+        }
+        $widgets->{'firstrunxml'}->get_widget('comboFRHorizontal')
+          ->set_active(0);
+        if ($config->{'Justification'}) {
+            $widgets->{'firstrunxml'}->get_widget('comboFRJustification')
+              ->prepend_text($config->{'Justification'});
+        }
+        $widgets->{'firstrunxml'}->get_widget('comboFRJustification')
+          ->set_active(0);
+        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
+    } elsif ($widgets->{'firstrun'}->get_current_page == 3) {
+        # Fonts
+        $header=gettext("Fonts");
+        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
+        $widgets->{'firstrunxml'}->get_widget('fontFRMain')->set_font_name($config->{'Main'});
+        $widgets->{'firstrunxml'}->get_widget('fontFRHeader')->set_font_name($config->{'Header'});
+        $widgets->{'firstrunxml'}->get_widget('fontFRFooter')->set_font_name($config->{'Footer'});
+    } elsif ($widgets->{'firstrun'}->get_current_page == 4) {
+        # Directories
+        $header=gettext("Image Directories");
+        $widgets->{'firstrunxml'}->get_widget('fileFRBGdir')->set_label($config->{'ImageDirectory'});
+        $widgets->{'firstrunxml'}->get_widget('fileFRBGdir')->{'user_data'} = "fr_bg";
+        $widgets->{'firstrunxml'}->get_widget('fileFRImagedir')->set_label($config->{'ImageDirectory'});
+        $widgets->{'firstrunxml'}->get_widget('fileFRImagedir')->{'user_data'} = "fr_img";
+        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
+    } elsif ($widgets->{'firstrun'}->get_current_page == 5) {
+        # Special items
+        $header=gettext("Most-used items");
+        $widgets->{'firstrunxml'}->get_widget('entryFRSong')->set_text($config->{'SpecialSong'});
+        $widgets->{'firstrunxml'}->get_widget('entryFRImage')->set_text($config->{'SpecialImage'});
+        $widgets->{'firstrunxml'}->get_widget('entryFRBack')->set_text($config->{'SpecialBack'});
+        my $bibles = $config->{'Bibles'};
+        $widgets->{'firstrunxml'}->get_widget('comboFRBible')->remove_text(0);
+        foreach (sort keys %$bibles) {
+            $widgets->{'firstrunxml'}->get_widget('comboFRBible')->append_text($config->{'Bibles'}->{$_});
+        }
+        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
+    } elsif ($widgets->{'firstrun'}->get_current_page == 6) {
+        # Confirm
+        $header=gettext("Confirm");
+        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
+    }
+
+    my $layout = $page->create_pango_layout ($header);
+    my $desc = Gtk2::Pango::FontDescription->from_string($font);
+    $layout->set_font_description($desc);
+    my ($text_width, $text_height) = $layout->get_pixel_size;
+    my $pixmap = Gtk2::Gdk::Pixmap->new(undef, $text_width, $text_height,  24);
+    $pixmap->draw_rectangle($page->get_style->white_gc,TRUE,0,0,$text_width,$text_height);
+    $pixmap->draw_layout ($page->get_style->text_gc ($page->state), 0,0, $layout);
+    my $pixbuf = Gtk2::Gdk::Pixbuf->get_from_drawable($pixmap, undef, 0,0,0,0,$text_width,$text_height);
+    $widgets->{'firstrun'}->set_page_header_image($page, $pixbuf);
+}
+
+sub firstrun_pw_changed {
+    debug("Firstrun login changed");
+    reset_timer($globals->{'nav_update_timer'});
+    $globals->{'fr_update_timer'} =
+      Glib::Timeout->add(500, \&firstrun_pw_check);
+}
+
+sub firstrun_pw_check {
+    debug("Checking login");
+    reset_timer($globals->{'fr_update_timer'});
+    $globals->{'db_adminuser'}=$widgets->{'firstrunxml'}->get_widget('entryFRUsername')->get_text();
+    $globals->{'db_adminpassword'}=$widgets->{'firstrunxml'}->get_widget('entryFRPassword')->get_text();
+    my $page = $widgets->{'firstrun'}->get_nth_page($widgets->{'firstrun'}->get_current_page);
+my ($dbh);
+    eval {
+        $dbh = DBI->connect(
+            "DBI:"
+              . $config->{'DatabaseType'}
+              . ":mysql:"
+              . $globals->{'mysqlhost'},
+            $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
+        );
+    };
+    if ($dbh) {
+        debug("Login accepted");
+        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
+        $widgets->{'firstrunxml'}->get_widget('labelFRDBCheck')->set_markup(gettext("<i>Username/Password accepted</i>"));
+    } else {
+        debug("Login failed");
+        $widgets->{'firstrun'}->set_page_complete($page, FALSE);
+        $widgets->{'firstrunxml'}->get_widget('labelFRDBCheck')->set_markup(gettext("<i>Username/Password failed</i>"));
+    }
+}
+
+sub firstrun_apply {
+    debug("Apply Wizard");
+    # Confirmed changes - so save them
+
+    $config->{'Main'} = $widgets->{'firstrunxml'}->get_widget('fontFRMain')->get_font_name();
+    $config->{'Header'} = $widgets->{'firstrunxml'}->get_widget('fontFRHeader')->get_font_name();
+    $config->{'Footer'} = $widgets->{'firstrunxml'}->get_widget('fontFRFooter')->get_font_name();
+    $config->{'Height'} = $widgets->{'firstrunxml'}->get_widget('spinFRHeight')->get_value();
+    $config->{'Width'} = $widgets->{'firstrunxml'}->get_widget('spinFRWidth')->get_value();
+    my $set = "";
+    foreach my $value ( "Top", "Bottom","Centre") {
+        if (fromutf(gettext($value)) eq ucfirst($widgets->{'firstrunxml'}->get_widget('comboFRVertical')->get_active_text())) {
+            $set = $value;
+        }
+    }
+    if ($set eq "") {
+        $set = $widgets->{'firstrunxml'}->get_widget('comboFRVertical')->get_active_text();
+    }
+    $config->{'VerticalLocation'} = $set;
+    $set = "";
+    my $set2 = "";
+    foreach my $value ( "Left", "Right","Centre") {
+        if (fromutf(gettext($value)) eq ucfirst($widgets->{'firstrunxml'}->get_widget('comboFRHorizontal')->get_active_text())) {
+            $set = $value;
+        }
+        if (fromutf(gettext($value)) eq ucfirst($widgets->{'firstrunxml'}->get_widget('comboFRJustification')->get_active_text())) {
+            $set2 = $value;
+        }
+    }
+    if ($set eq "") {
+        $set = $widgets->{'firstrunxml'}->get_widget('comboFRHorizontal')->get_active_text();
+    }
+    if ($set2 eq "") {
+        $set2 = $widgets->{'firstrunxml'}->get_widget('comboFRJustification')->get_active_text();
+    }
+    $config->{'HorizontalLocation'} = $set;
+    $config->{'Justification'} = $set2;
+
+    #$config->{'BGImage'} = $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
+    $config->{'SpecialSong'} = $widgets->{'firstrunxml'}->get_widget('entryFRSong')->get_text();
+    $config->{'SpecialImage'} = $widgets->{'firstrunxml'}->get_widget('entryFRImage')->get_text();
+    $config->{'SpecialBack'} = $widgets->{'firstrunxml'}->get_widget('entryFRBack')->get_text();
+    $config->{'DefBible'} = $widgets->{'firstrunxml'}->get_widget('comboFRBible')->get_active_text;
+    $config->{'ImageDirectory'} = $widgets->{'firstrunxml'}->get_widget('fileFRImagedir')->get_label();
+    $config->{'BGDirectory'} = $widgets->{'firstrunxml'}->get_widget('fileFRBGdir')->get_label();
+
+    write_config();
+    
+    if (! $globals->{'firstrun'}) {
+        init_preview();
+        init_miniview();
+
+        preview_display("reconfig", "", "");
+        update_display("reconfig", "", "");
+        preview_display("display", "current", "");
+        update_display("display", "current", "");
+    }
+}
+
+sub firstrun_bible {
 }

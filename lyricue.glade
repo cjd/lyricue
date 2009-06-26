@@ -166,6 +166,14 @@
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="menuwizard">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Configuration Wizard</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="firstrun_wizard"/>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkImageMenuItem" id="user_administration1">
                         <property name="label">_User Administration</property>
                         <property name="visible">True</property>
@@ -7821,6 +7829,726 @@ http://www.adebenham.com/lyricue/bibles.html</property>
           </packing>
         </child>
       </widget>
+    </child>
+  </widget>
+  <widget class="GtkAssistant" id="assistantFirstRun">
+    <property name="modal">True</property>
+    <property name="window_position">center</property>
+    <property name="type_hint">dialog</property>
+    <property name="deletable">False</property>
+    <signal name="apply" handler="firstrun_apply"/>
+    <signal name="prepare" handler="firstrun_prepare"/>
+    <signal name="cancel" handler="firstrun_cancel"/>
+    <signal name="close" handler="firstrun_close"/>
+    <child>
+      <widget class="GtkLabel" id="labelFRIntro">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">As this is the first time you have run Lyricue we now walk through some initial settings</property>
+        <property name="wrap">True</property>
+      </widget>
+      <packing>
+        <property name="page_type">intro</property>
+        <property name="title">Welcome to Lyricue</property>
+        <property name="sidebar_image">/usr/share/lyricue/Lyricue-first-run-sidebar.png</property>
+      </packing>
+    </child>
+    <child>
+      <widget class="GtkTable" id="tableFRDB">
+        <property name="visible">True</property>
+        <property name="n_rows">5</property>
+        <property name="n_columns">2</property>
+        <child>
+          <widget class="GtkLabel" id="label2">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Lyricue uses MySQL to store its data.
+To access MySQL I will create a special user 'lyric'
+To do this I need your mysql root users password.
+&lt;i&gt;Note: This password is not stored anywhere&lt;/i&gt;</property>
+            <property name="use_markup">True</property>
+            <property name="wrap">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label4">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Username:</property>
+            <property name="justify">right</property>
+          </widget>
+          <packing>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label5">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Password:</property>
+            <property name="justify">right</property>
+          </widget>
+          <packing>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkEntry" id="entryFRUsername">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">root</property>
+            <signal name="changed" handler="firstrun_pw_changed"/>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkEntry" id="entryFRPassword">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="visibility">False</property>
+            <property name="activates_default">True</property>
+            <signal name="changed" handler="firstrun_pw_changed"/>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHSeparator" id="hseparator1">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="labelFRDBCheck">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">&lt;i&gt;Username/Password failed&lt;/i&gt;</property>
+            <property name="use_markup">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+          </packing>
+        </child>
+      </widget>
+      <packing>
+        <property name="title">Database Access</property>
+        <property name="sidebar_image">/usr/share/lyricue/Lyricue-first-run-sidebar.png</property>
+      </packing>
+    </child>
+    <child>
+      <widget class="GtkTable" id="tableFRServer">
+        <property name="visible">True</property>
+        <property name="n_rows">7</property>
+        <property name="n_columns">2</property>
+        <child>
+          <widget class="GtkLabel" id="labelFRWidth">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Width</property>
+          </widget>
+          <packing>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="labelFRHeight">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Height</property>
+          </widget>
+          <packing>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkSpinButton" id="spinFRWidth">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="adjustment">1024 640 1920 10 100 100</property>
+            <property name="climb_rate">1</property>
+            <property name="numeric">True</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkSpinButton" id="spinFRHeight">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="adjustment">768 480 1200 10 100 100</property>
+            <property name="climb_rate">10</property>
+            <property name="numeric">True</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label101">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Vertical Text Location</property>
+          </widget>
+          <packing>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkComboBox" id="comboFRVertical">
+            <property name="visible">True</property>
+            <property name="items" translatable="yes">Top
+Centre
+Bottom</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label121">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Text Justification</property>
+          </widget>
+          <packing>
+            <property name="top_attach">6</property>
+            <property name="bottom_attach">7</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label135">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Horizontal Text Location</property>
+          </widget>
+          <packing>
+            <property name="top_attach">5</property>
+            <property name="bottom_attach">6</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkComboBox" id="comboFRHorizontal">
+            <property name="visible">True</property>
+            <property name="items" translatable="yes">Left
+Centre
+Right</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">5</property>
+            <property name="bottom_attach">6</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkComboBox" id="comboFRJustification">
+            <property name="visible">True</property>
+            <property name="items" translatable="yes">Left
+Centre
+Right</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">6</property>
+            <property name="bottom_attach">7</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHSeparator" id="hseparator2">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="labelFRServer">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Lyricue is designed to run on a dual-head machine with the second display connected to a projector.
+Here you can tell me what resolution your projector runs at and where you want the text to display on the screen</property>
+            <property name="wrap">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+          </packing>
+        </child>
+      </widget>
+      <packing>
+        <property name="title">Server settings</property>
+        <property name="sidebar_image">/usr/share/lyricue/Lyricue-first-run-sidebar.png</property>
+      </packing>
+    </child>
+    <child>
+      <widget class="GtkTable" id="tableFRFonts;f">
+        <property name="visible">True</property>
+        <property name="n_rows">5</property>
+        <property name="n_columns">2</property>
+        <child>
+          <widget class="GtkHSeparator" id="hseparator5">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label10">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Select the fonts that you want to use on the projector from here</property>
+            <property name="wrap">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label11">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Header</property>
+          </widget>
+          <packing>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label12">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Main</property>
+          </widget>
+          <packing>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label13">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Footer</property>
+          </widget>
+          <packing>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkFontButton" id="fontFRHeader">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="font_name">Sans 20</property>
+            <property name="use_font">True</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkFontButton" id="fontFRMain">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="font_name">Sans 30</property>
+            <property name="use_font">True</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkFontButton" id="fontFRFooter">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="font_name">Sans 20</property>
+            <property name="use_font">True</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+          </packing>
+        </child>
+      </widget>
+      <packing>
+        <property name="title">Fonts</property>
+        <property name="sidebar_image">/usr/share/lyricue/Lyricue-first-run-sidebar.png</property>
+      </packing>
+    </child>
+    <child>
+      <widget class="GtkTable" id="tableFRDirs">
+        <property name="visible">True</property>
+        <property name="n_rows">4</property>
+        <property name="n_columns">2</property>
+        <child>
+          <widget class="GtkLabel" id="label133">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Image Directory</property>
+          </widget>
+          <packing>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label134">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Backgrounds Directory</property>
+          </widget>
+          <packing>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="fileFRImagedir">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="open_dirchooser"/>
+            <child>
+              <widget class="GtkAlignment" id="alignment39">
+                <property name="visible">True</property>
+                <property name="xscale">0</property>
+                <property name="yscale">0</property>
+                <child>
+                  <widget class="GtkHBox" id="hbox65">
+                    <property name="visible">True</property>
+                    <property name="spacing">2</property>
+                    <child>
+                      <widget class="GtkImage" id="image1402">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-directory</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="label138">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Folder</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+            </child>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="fileFRBGdir">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="open_dirchooser"/>
+            <child>
+              <widget class="GtkAlignment" id="alignment40">
+                <property name="visible">True</property>
+                <property name="xscale">0</property>
+                <property name="yscale">0</property>
+                <child>
+                  <widget class="GtkHBox" id="hbox66">
+                    <property name="visible">True</property>
+                    <property name="spacing">2</property>
+                    <child>
+                      <widget class="GtkImage" id="image1403">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-directory</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="label139">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Folder</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+            </child>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label8">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Lyricue requires somewhere to load it's images and backdrops from.
+The Image and Backgrounds directory can be the same or you can keep them seperate.
+Please select a suitable directory for each.</property>
+            <property name="wrap">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHSeparator" id="hseparator3">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+            <property name="y_options">GTK_FILL</property>
+          </packing>
+        </child>
+      </widget>
+      <packing>
+        <property name="title">Directories</property>
+        <property name="sidebar_image">/usr/share/lyricue/Lyricue-first-run-sidebar.png</property>
+      </packing>
+    </child>
+    <child>
+      <widget class="GtkTable" id="tableFRCommon">
+        <property name="visible">True</property>
+        <property name="n_rows">6</property>
+        <property name="n_columns">2</property>
+        <child>
+          <widget class="GtkLabel" id="label1">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Available songs</property>
+          </widget>
+          <packing>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label3">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Images</property>
+          </widget>
+          <packing>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label6">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Backgrounds</property>
+          </widget>
+          <packing>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_options">GTK_FILL</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkEntry" id="entryFRSong">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">Today's Announcements</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkEntry" id="entryFRImage">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">Main</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkEntry" id="entryFRBack">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">Main</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHSeparator" id="hseparator4">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label9">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Here you can choose some of your most commonly used items
+The selected categories will always appear at the top of the list.
+The selected song will appear at the top of the available songs. This is often used for your most-used item (such as for announcements)
+You can also choose your default Bible translation</property>
+            <property name="wrap">True</property>
+          </widget>
+          <packing>
+            <property name="right_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label7">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">Bible</property>
+          </widget>
+          <packing>
+            <property name="top_attach">5</property>
+            <property name="bottom_attach">6</property>
+            <property name="x_options">GTK_FILL</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkComboBox" id="comboFRBible">
+            <property name="visible">True</property>
+            <property name="items" translatable="yes">None selected</property>
+            <signal name="changed" handler="firstrun_bible"/>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">5</property>
+            <property name="bottom_attach">6</property>
+          </packing>
+        </child>
+      </widget>
+      <packing>
+        <property name="title">Common Items</property>
+        <property name="sidebar_image">/usr/share/lyricue/Lyricue-first-run-sidebar.png</property>
+      </packing>
+    </child>
+    <child>
+      <widget class="GtkLabel" id="labelFRConfirm">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Lyricue is now configured.
+If you need to make any changes, or for more options, select Preferences from the Edit menu</property>
+        <property name="wrap">True</property>
+      </widget>
+      <packing>
+        <property name="page_type">confirm</property>
+        <property name="title">Confirm settings</property>
+        <property name="sidebar_image">/usr/share/lyricue/Lyricue-first-run-sidebar.png</property>
+      </packing>
     </child>
   </widget>
 </glade-interface>
