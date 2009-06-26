@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.294 2009/06/26 06:24:53 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.295 2009/06/26 08:12:07 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -9474,10 +9474,15 @@ sub firstrun_prepare {
         $widgets->{'firstrunxml'}->get_widget('entryFRImage')->set_text($config->{'SpecialImage'});
         $widgets->{'firstrunxml'}->get_widget('entryFRBack')->set_text($config->{'SpecialBack'});
         my $bibles = $config->{'Bibles'};
+        my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
         $widgets->{'firstrunxml'}->get_widget('comboFRBible')->remove_text(0);
+        my $iter;
         foreach (sort keys %$bibles) {
-            $widgets->{'firstrunxml'}->get_widget('comboFRBible')->append_text($config->{'Bibles'}->{$_});
+            my ($type, $bible) = split(/;/,$config->{'Bibles'}->{$_});
+            $iter = $store->append;
+            $store->set($iter, 0, $bible, 1, $_.":".$config->{'Bibles'}->{$_});
         }
+        $widgets->{'firstrunxml'}->get_widget('comboFRBible')->set_model($store);
         $widgets->{'firstrun'}->set_page_complete($page, TRUE);
     } elsif ($widgets->{'firstrun'}->get_current_page == 6) {
         # Confirm
@@ -9572,7 +9577,8 @@ sub firstrun_apply {
     $config->{'SpecialSong'} = $widgets->{'firstrunxml'}->get_widget('entryFRSong')->get_text();
     $config->{'SpecialImage'} = $widgets->{'firstrunxml'}->get_widget('entryFRImage')->get_text();
     $config->{'SpecialBack'} = $widgets->{'firstrunxml'}->get_widget('entryFRBack')->get_text();
-    $config->{'DefBible'} = $widgets->{'firstrunxml'}->get_widget('comboFRBible')->get_active_text;
+    my $iter = $widgets->{'firstrunxml'}->get_widget('comboFRBible')->get_active_iter;
+    $config->{'DefBible'} = $widgets->{'firstrunxml'}->get_widget('comboFRBible')->get_model->get($iter,1);
     $config->{'ImageDirectory'} = $widgets->{'firstrunxml'}->get_widget('fileFRImagedir')->get_label();
     $config->{'BGDirectory'} = $widgets->{'firstrunxml'}->get_widget('fileFRBGdir')->get_label();
 
