@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.295 2009/06/26 08:12:07 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.296 2009/06/26 08:57:24 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -9578,7 +9578,9 @@ sub firstrun_apply {
     $config->{'SpecialImage'} = $widgets->{'firstrunxml'}->get_widget('entryFRImage')->get_text();
     $config->{'SpecialBack'} = $widgets->{'firstrunxml'}->get_widget('entryFRBack')->get_text();
     my $iter = $widgets->{'firstrunxml'}->get_widget('comboFRBible')->get_active_iter;
-    $config->{'DefBible'} = $widgets->{'firstrunxml'}->get_widget('comboFRBible')->get_model->get($iter,1);
+    if ($iter) {
+        $config->{'DefBible'} = $widgets->{'firstrunxml'}->get_widget('comboFRBible')->get_model->get($iter,1);
+    }
     $config->{'ImageDirectory'} = $widgets->{'firstrunxml'}->get_widget('fileFRImagedir')->get_label();
     $config->{'BGDirectory'} = $widgets->{'firstrunxml'}->get_widget('fileFRBGdir')->get_label();
 
