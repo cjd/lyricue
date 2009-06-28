@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.296 2009/06/26 08:57:24 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.297 2009/06/28 05:01:35 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6557,12 +6557,13 @@ debug ($item.":".$playlist.":".$selected);
 }
 
 sub display_message {
-    my ($message) = @_;
+    my ($message, $details) = @_;
     debug($message);
     my $errorxml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
     $errorxml->signal_autoconnect_from_package('');
     $errorxml->get_widget('labelError')->set_text($message);
+    $errorxml->get_widget('labelErrorDetails')->set_text($details);
     my $confirm = $errorxml->get_widget('dialogError')->run();
     close_dialog($errorxml->get_widget('dialogError'));
 }
@@ -7954,7 +7955,7 @@ sub navigator_update {
             ($newbook, undef) = split(/\s\d/, $command_out, 2);
         }
         my $text = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
-        $text =~ s/$book/$newbook/i;
+        $text =~ s/$book[ :\-]/$newbook /i;
         $widgets->{'main'}->get_widget('entryNavVerse')->set_text($text);
         $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
         biblebrowser_verse(NULL, 0 ,"entry");
@@ -9083,6 +9084,7 @@ sub do_install_bible {
     my $donexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
     $donexml->signal_autoconnect_from_package('');
     $donexml->get_widget('labelError')->set_text($message);
+    $donexml->get_widget('labelErrorDetails')->set_text("");
     my $confirm = $donexml->get_widget('dialogError')->run();
     close_dialog($donexml->get_widget('dialogError'));
 
@@ -9305,15 +9307,16 @@ sub biblebrowser_chapter {
 
 sub biblebrowser_verse {
     my ($widget, $chapter, $source) = @_;
+    debug("biblebrowser_verse called from ".$source.":".$chapter);
     my $book = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
     $book =~ s/ *$//g;
     if ($chapter == 0) {
         $chapter = $book;
-        $chapter =~ s/^.* ([0-9:\-]*)/$1/;
+        $chapter =~ s/^.*( [0-9:\-]*)/$1/;
         my $verse="";
         ($chapter,$verse) = split( /:/, $chapter);
         $book =~ s/ [0-9:\-]*$//;
-        if ($verse eq "") {
+        if ((!defined $verse) || (( defined $verse) && ($verse eq ""))) {
             $globals->{'verseStart'} = 0;
             $globals->{'verseEnd'}   = 0;
         }
@@ -9337,8 +9340,8 @@ sub biblebrowser_verse {
         my $query =
             "SELECT MAX(versenum) FROM verse WHERE book=\""
           . toutf($book)
-          . "\" AND chapternum="
-          . $chapter;
+          . "\" AND chapternum=\""
+          . $chapter."\"";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
