@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.192 2009/06/29 02:02:32 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.193 2009/06/29 05:28:41 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2798,9 +2798,19 @@ sub create_window {
         if ($globals->{'window_offset'}) { }
         $globals->{'window'}
           ->set_default_size($config->{'Width'}, $config->{'Height'});
-        $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
         if ($globals->{'run_windowed'} == FALSE) {
-            $globals->{'window'}->fullscreen();
+            if ($config->{'Xinerama'}) {
+                # If xinerama then run on second display
+                my $geom = "+".($globals->{'window'}->get_screen->get_width -100)."+100";
+                $globals->{'window'}->parse_geometry($geom);
+                $globals->{'window'}->fullscreen();
+            } else {
+                my $display = Gtk2::Gdk::Display->open(":0.1");
+                $globals->{'window'}->set_screen($display->get_screen(0));
+            }
+            debug ("Running on display ".$globals->{'window'}->get_screen->get_display->get_name." monitor ".$globals->{'window'}->get_screen->get_monitor_at_window($globals->{'window'}->window));
+        } else {
+            $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
         }
         debug("Running in SERVER (normal) mode");
     }
