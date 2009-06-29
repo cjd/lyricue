@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.191 2009/06/24 01:17:26 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.192 2009/06/29 02:02:32 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1337,6 +1337,9 @@ sub change_backdrop {
             use GStreamer;
             my $pipeline = GStreamer::Pipeline->new("");
             my $src = GStreamer::ElementFactory->make("v4l2src", "src");
+            #my $fade =
+            #  GStreamer::ElementFactory->make("videobalance", "filter");
+            #$fade->set(saturation=>0.5 ,brightness=>0.1, contrast=>0.5);
             my $colorspace =
               GStreamer::ElementFactory->make("ffmpegcolorspace", "colorspace");
             my $sink = Clutter::Gst::VideoSink->new($globals->{'background'});
@@ -1724,7 +1727,6 @@ sub debug {
     chomp($text);
     if ($text) {
         my ($sec, $min, $hour, undef) = localtime(time);
-        $text = $hour . ":" . $min . ":" . $sec . "|" . $text . "\n";
         $text = sprintf("%02d:%02d:%02d|SERVER: %s\n",$hour, $min, $sec, $text);
         if ($DEBUG) {
             print STDERR $text;
