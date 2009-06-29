@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.297 2009/06/28 05:01:35 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.298 2009/06/29 02:44:42 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4285,6 +4285,11 @@ sub select_bible_db {
         debug("Changing bible to $bibledb");
         my @line = split(/;/, $bibledb, 2);
         do_change_bible($line[0], $line[1]);
+        if ((!defined $config->{'DefBible'}) || ($config->{'DefBible'} eq "")) {
+            $config->{'DefBible'} = $line[1].":".$line[0].";".$widget->get('label');
+            debug("No default bible set previously, setting to ".$config->{'DefBible'});
+            write_config();
+        }
     }
 }
 
@@ -6563,7 +6568,11 @@ sub display_message {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
     $errorxml->signal_autoconnect_from_package('');
     $errorxml->get_widget('labelError')->set_text($message);
-    $errorxml->get_widget('labelErrorDetails')->set_text($details);
+    if ((!defined $details) || ($details eq "" )) {
+        $errorxml->get_widget('expanderDetails')->hide();
+    } else {
+        $errorxml->get_widget('labelErrorDetails')->set_text($details);
+    }
     my $confirm = $errorxml->get_widget('dialogError')->run();
     close_dialog($errorxml->get_widget('dialogError'));
 }
@@ -6580,7 +6589,11 @@ sub display_fatal {
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
     $errorxml->signal_autoconnect_from_package('');
     $errorxml->get_widget('labelError')->set_text($message);
-    $errorxml->get_widget('labelErrorDetails')->set_text($error);
+    if ($error eq "") {
+        $errorxml->get_widget('expanderDetails')->hide();
+    } else {
+        $errorxml->get_widget('labelErrorDetails')->set_text($error);
+    }
     my $confirm = $errorxml->get_widget('dialogError')->run();
     close_dialog($errorxml->get_widget('dialogError'));
     print STDERR "Full error message\n";
@@ -9084,7 +9097,7 @@ sub do_install_bible {
     my $donexml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogError', 'lyricue');
     $donexml->signal_autoconnect_from_package('');
     $donexml->get_widget('labelError')->set_text($message);
-    $donexml->get_widget('labelErrorDetails')->set_text("");
+    $donexml->get_widget('expanderDetails')->hide();
     my $confirm = $donexml->get_widget('dialogError')->run();
     close_dialog($donexml->get_widget('dialogError'));
 
@@ -9465,7 +9478,7 @@ sub firstrun_prepare {
     } elsif ($widgets->{'firstrun'}->get_current_page == 4) {
         # Directories
         $header=gettext("Image Directories");
-        $widgets->{'firstrunxml'}->get_widget('fileFRBGdir')->set_label($config->{'ImageDirectory'});
+        $widgets->{'firstrunxml'}->get_widget('fileFRBGdir')->set_label($config->{'BGDirectory'});
         $widgets->{'firstrunxml'}->get_widget('fileFRBGdir')->{'user_data'} = "fr_bg";
         $widgets->{'firstrunxml'}->get_widget('fileFRImagedir')->set_label($config->{'ImageDirectory'});
         $widgets->{'firstrunxml'}->get_widget('fileFRImagedir')->{'user_data'} = "fr_img";
@@ -9479,13 +9492,19 @@ sub firstrun_prepare {
         my $bibles = $config->{'Bibles'};
         my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
         $widgets->{'firstrunxml'}->get_widget('comboFRBible')->remove_text(0);
-        my $iter;
+        my ($iter, $activeiter);
         foreach (sort keys %$bibles) {
             my ($type, $bible) = split(/;/,$config->{'Bibles'}->{$_});
             $iter = $store->append;
             $store->set($iter, 0, $bible, 1, $_.":".$config->{'Bibles'}->{$_});
+            if ($config->{'DefBible'} eq $_.":".$config->{'Bibles'}->{$_}) {
+                $activeiter = $iter;
+            }
         }
         $widgets->{'firstrunxml'}->get_widget('comboFRBible')->set_model($store);
+        if (defined $activeiter) {
+            $widgets->{'firstrunxml'}->get_widget('comboFRBible')->set_active_iter($activeiter);
+        }
         $widgets->{'firstrun'}->set_page_complete($page, TRUE);
     } elsif ($widgets->{'firstrun'}->get_current_page == 6) {
         # Confirm
