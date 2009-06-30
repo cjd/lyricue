@@ -1,6 +1,13 @@
 #!/bin/bash
 
-VERSION=`head -1 debian/changelog |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
+if [ "$1" = "release" ] 
+then echo Making release
+CHANGELOG="debian/changelog-release"
+else CHANGELOG="debian/changelog-release"
+fi
+
+PACKAGE=`head -1 ${CHANGELOG} | cut -f1 -d" "`
+VERSION=`head -1 ${CHANGELOG} |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
 LC_ALL=C;export LC_ALL
 BUILD_DIR=~/source/Lyricue/dist
 
@@ -20,6 +27,17 @@ CONV="s/##VERSION##/${VERSION}/g"
 for F in import_media lyricue lyricue.1 lyricue_server lyricue.glade
 do sed --in-place -e $CONV $F
 done
+
+if [ "$1" = "release" ] 
+then mv debian/changelog-release debian/changelog
+else rm debian/changelog-release
+  CONV="s/lyricue-cvs/${PACKAGE}/g"
+  for F in debian/control debian/menu debian/rules
+  do sed --in-place -e $CONV $F
+  done
+fi
+
+
 rm images/*.svg
 find . -name CVS -type d -exec rm -r \{} \; 2>/dev/null
 make
