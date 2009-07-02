@@ -6543,37 +6543,9 @@ http://www.adebenham.com/lyricue/bibles.html</property>
                     <property name="visible">True</property>
                     <property name="resize_mode">queue</property>
                     <child>
-                      <widget class="GtkTable" id="tableSelectSongs">
+                      <widget class="GtkTreeView" id="treeSongImport">
                         <property name="visible">True</property>
-                        <property name="n_rows">3</property>
-                        <property name="n_columns">3</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
+                        <property name="can_focus">True</property>
                       </widget>
                     </child>
                   </widget>
@@ -8404,7 +8376,6 @@ Please select a suitable directory for each.</property>
         <property name="n_columns">2</property>
         <child>
           <widget class="GtkLabel" id="label1">
-            <property name="visible">True</property>
             <property name="xalign">0</property>
             <property name="label" translatable="yes">Available songs</property>
           </widget>
@@ -8417,7 +8388,6 @@ Please select a suitable directory for each.</property>
         </child>
         <child>
           <widget class="GtkLabel" id="label3">
-            <property name="visible">True</property>
             <property name="xalign">0</property>
             <property name="label" translatable="yes">Images</property>
           </widget>
@@ -8430,7 +8400,6 @@ Please select a suitable directory for each.</property>
         </child>
         <child>
           <widget class="GtkLabel" id="label6">
-            <property name="visible">True</property>
             <property name="xalign">0</property>
             <property name="label" translatable="yes">Backgrounds</property>
           </widget>
@@ -8443,7 +8412,6 @@ Please select a suitable directory for each.</property>
         </child>
         <child>
           <widget class="GtkEntry" id="entryFRSong">
-            <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="text" translatable="yes">Today's Announcements</property>
           </widget>
@@ -8457,7 +8425,6 @@ Please select a suitable directory for each.</property>
         </child>
         <child>
           <widget class="GtkEntry" id="entryFRImage">
-            <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="text" translatable="yes">Main</property>
           </widget>
@@ -8471,7 +8438,6 @@ Please select a suitable directory for each.</property>
         </child>
         <child>
           <widget class="GtkEntry" id="entryFRBack">
-            <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="text" translatable="yes">Main</property>
           </widget>
@@ -8496,10 +8462,8 @@ Please select a suitable directory for each.</property>
         <child>
           <widget class="GtkLabel" id="label9">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Here you can choose some of your most commonly used items
-The selected categories will always appear at the top of the list.
-The selected song will appear at the top of the available songs. This is often used for your most-used item (such as for announcements)
-You can also choose your default Bible translation</property>
+            <property name="label" translatable="yes">Choose your default Bible translation.
+You can install other bibles frm within Lyricue later.</property>
             <property name="wrap">True</property>
           </widget>
           <packing>

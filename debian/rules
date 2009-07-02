@@ -43,8 +43,8 @@ binary: binary-indep binary-arch
 .PHONY: mkdist
 mkdist:
 	./mkdist $(DEB_VERSION)
-	cd dist && tar xvzf lyricue-$(DEB_VERSION).tar.gz
-	cp debian dist/lyricue-$(DEB_VERSION) -R
+	cd ../dist && tar xvzf lyricue-$(DEB_VERSION).tar.gz
+	cp debian ../dist/lyricue-$(DEB_VERSION) -R
 
 checkroot:
 	$(checkdir)
