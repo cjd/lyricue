@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.194 2009/06/30 23:19:40 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.195 2009/07/06 02:19:57 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1249,7 +1249,8 @@ sub HandleKey {
     {
         update_display("display", "prev_page", $config->{'Loop'});
     } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Up})
-        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Up}))
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Up})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{Prior}))
     {
         update_display("display", "prev_song", 0);
     } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Right})
@@ -1258,7 +1259,8 @@ sub HandleKey {
     {
         update_display("display", "next_page", $config->{'Loop'});
     } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{Down})
-        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Down}))
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{KP_Down})
+        || ($data->keyval == $Gtk2::Gdk::Keysyms{Next}))
     {
         update_display("display", "next_song", 0);
     } elsif (($data->keyval == $Gtk2::Gdk::Keysyms{KP_0})
@@ -1770,6 +1772,8 @@ sub change_to_db {
     $globals->{'biblename'} =~ s/^.*?;//g;
     $globals->{'biblename'} =~ s/_//g;
 } ## end sub debug
+
+#***
 
 #****f* lyricue_server/check_socket
 # NAME

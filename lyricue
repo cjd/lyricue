@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.299 2009/07/02 23:37:38 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.300 2009/07/06 02:19:57 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -558,6 +558,7 @@ sub close_main {
 # FUNCTION
 #   Clear the playlist area and redisplay with updated info
 # INPUTS
+#   $selectedid - Currently selected item
 # OUTPUT
 #   refreshed playlist
 # SOURCE
@@ -621,6 +622,8 @@ sub update_playlist {
 #   $playlist - Playlist to add
 #   $iter - Where to add it in the playlist area
 #   $model - The playlist tree model
+#   $selectedid - The currently selected item
+#   $expanded - A lookup of all items saying which are expanded
 # OUTPUT
 #   A bigger playlist
 # SOURCE
@@ -832,7 +835,20 @@ sub add_playlist {
 
 #***
 
-# Save the expanded state
+#****m* lyricue/save_expanded
+# NAME
+#   save_expanded -- Save the expanded state
+# SYNOPSIS
+#   save_expanded ()
+# FUNCTION
+#   Save the expanded state of the treeview item
+# INPUTS
+#   $tree - Treeview to save state of
+#   $part - Item to check
+#   $expanded - state lookup
+# OUTPUT
+#   $expanded is updated
+# SOURCE
 sub save_expanded {
     debug("Save expanded");
     my ($tree, $path, $expanded) = @_;
@@ -840,6 +856,8 @@ sub save_expanded {
     $$expanded->{$tree->get_model->get($iter, 2)} = TRUE;
     return FALSE;
 }
+
+#***
 
 #****m* lyricue/change_sort_order
 # NAME
@@ -849,6 +867,7 @@ sub save_expanded {
 # FUNCTION
 #   Change the order by which the available songs are displayed
 # INPUTS
+#   undef - not used
 #   $column - which column to order by
 # OUTPUT
 #   Calls update_available to redisplay available songs
@@ -1024,7 +1043,7 @@ sub update_available {
 #   popup a menu when available songs right-clicked
 # INPUTS
 #   $widget - Calling widget
-#   $event - calling event
+#   $event - Calling event
 # OUTPUT
 #   Displays the right-click menu
 # SOURCE
@@ -1095,10 +1114,11 @@ sub popup_avail_menu {
 # NAME
 #   popup_play_menu --
 # SYNOPSIS
-#   popup_play_menu ()
+#   popup_play_menu ($event)
 # FUNCTION
 #   popup a menu when playlist item right-clicked
 # INPUTS
+#   $event - the calling event
 # OUTPUT
 #   Displays the right-click menu
 # SOURCE
@@ -1842,6 +1862,23 @@ sub do_add_verse {
     close_dialog($widget);
 }
 
+#***
+
+#****m* lyricue/insert_verse
+# NAME
+#   insert_verse -- Insert a verse into the playlist
+# SYNOPSIS
+#   insert_verse ( $book, $chapter, $start, $end)
+# FUNCTION
+#   Add the passed verse to the playlist
+# INPUTS
+#   $book - Book
+#   $chaper - Chapter
+#   $start - Start verse
+#   $end - End verse
+# OUTPUT
+#   Closes the interface
+# SOURCE
 sub insert_verse {
     my ($book, $chapter, $start, $end) = @_;
     debug("insert verse");
@@ -1941,11 +1978,10 @@ sub insert_verse {
 # NAME
 #   import_song --
 # SYNOPSIS
-#   import_song ($widget)
+#   import_song ()
 # FUNCTION
 #   Import a song into the add song dialog
 # INPUTS
-#   $widget - Calling widget
 # OUTPUT
 #   A dialog to open song to import
 # SOURCE
@@ -1965,12 +2001,12 @@ sub import_song {
 # NAME
 #   do_import_song --
 # SYNOPSIS
-#   do_import_song ($widget, $file_dialog)
+#   do_import_song ($widget, $filexml)
 # FUNCTION
 #   Actually import the song into the add song dialog
 # INPUTS
 #   $widget - Calling widget
-#   $file_dialog - Dialog containing selected filename
+#   $filexml - Dialog containing selected filename
 # OUTPUT
 #   Filled in add song dialog
 # SOURCE
@@ -1996,6 +2032,20 @@ sub do_import_song {
     close_dialog($widget);
 }
 
+#***
+
+#****m* lyricue/import_song_text
+# NAME
+#   import_song_text -- import text song
+# SYNOPSIS
+#   import_song_text ()
+# FUNCTION
+#   
+# INPUTS
+#   $filename - File to import
+# OUTPUT
+#   Closes the interface
+# SOURCE
 sub import_song_text {
     my ($filename) = @_;
     debug("import text song");
@@ -2076,6 +2126,8 @@ sub import_song_text {
     }
     close SONG;
 }
+
+#***
 
 #****m* lyricue/import_song_songbeamer
 # NAME
@@ -2851,6 +2903,8 @@ sub blank_page {
     update_display("blank", $config->{'BGImage'}, "");
 }
 
+#***
+
 #****m* lyricue/clear_text
 # NAME
 #   clear_text --
@@ -2869,6 +2923,8 @@ sub clear_text {
     reset_timer($globals->{'timer'});
     update_display("blank", "", "");
 }
+
+#***
 
 #****m* lyricue/next_point
 # NAME
