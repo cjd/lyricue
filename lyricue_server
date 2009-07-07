@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.195 2009/07/06 02:19:57 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.196 2009/07/07 02:38:17 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -390,7 +390,21 @@ system('xset s off -dpms');
 debug("Main program running");
 Glib::Timeout->add(200, \&check_net);
 Gtk2->main();
+#***
 
+#****f* lyricue_server/loop_background
+# NAME
+#   loop_background
+# SYNOPSIS
+#   loop_background($widget, $id)
+# FUNCTION
+#   Video ended - Looping
+# INPUTS
+#   $widget - 
+#    $id - 
+# OUTPUT
+# SOURCE
+#
 sub loop_background {
     my ($widget, $id) = @_;
     debug("Video ended - Looping");
@@ -398,6 +412,19 @@ sub loop_background {
     return FALSE;
 }
 
+#***
+
+#****f* lyricue_server/check_net
+# NAME
+#   check_net
+# SYNOPSIS
+#   check_net()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub check_net {
     my @ready = $s->can_read(0);
     foreach $h (@ready) {
@@ -1693,6 +1720,20 @@ sub update_display {
     }
 } ## end sub update_display
 
+#***
+
+#****f* lyricue_server/update_miniview
+# NAME
+#   update_miniview
+# SYNOPSIS
+#   update_miniview($command)
+# FUNCTION
+#   
+# INPUTS
+#   $command - 
+# OUTPUT
+# SOURCE
+#
 sub update_miniview {
     my ($command) = @_;
 
@@ -1811,6 +1852,19 @@ sub check_socket {
 
 #***
 
+#***
+
+#****f* lyricue_server/load_config
+# NAME
+#   load_config
+# SYNOPSIS
+#   load_config()
+# FUNCTION
+#   Loading Preferences from 
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub load_config {
     my ($conf);
     debug("Loading Preferences from " . $globals->{'configfile'});
@@ -1853,6 +1907,22 @@ sub load_config {
     return $conf;
 }
 
+#***
+
+#****f* lyricue_server/set_maintext
+# NAME
+#   set_maintext
+# SYNOPSIS
+#   set_maintext($text, $transition, $wrap)
+# FUNCTION
+#   
+# INPUTS
+#   $text - 
+#    $transition - 
+#    $wrap - 
+# OUTPUT
+# SOURCE
+#
 sub set_maintext {
     my ($text, $transition, $wrap) = @_;
     if (!defined $text) { $text = " "; }
@@ -1867,6 +1937,22 @@ sub set_maintext {
     }
 }
 
+#***
+
+#****f* lyricue_server/set_maintext_clutter
+# NAME
+#   set_maintext_clutter
+# SYNOPSIS
+#   set_maintext_clutter($text, $transition, $wrap)
+# FUNCTION
+#   Setting maintext -clutter
+# INPUTS
+#   $text - 
+#    $transition - 
+#    $wrap - 
+# OUTPUT
+# SOURCE
+#
 sub set_maintext_clutter {
     my ($text, $transition, $wrap) = @_;
     debug("Setting maintext -clutter");
@@ -2070,6 +2156,23 @@ sub set_maintext_clutter {
     $globals->{'timeline'}->start();
 }
 
+#***
+
+#****f* lyricue_server/create_outlined_text
+# NAME
+#   create_outlined_text
+# SYNOPSIS
+#   create_outlined_text($text, $font, $text_colour, $shadow_colour)
+# FUNCTION
+#   
+# INPUTS
+#   $text - 
+#    $font - 
+#    $text_colour - 
+#    $shadow_colour - 
+# OUTPUT
+# SOURCE
+#
 sub create_outlined_text {
     my ($text, $font, $text_colour, $shadow_colour) = @_;
     my $group = Clutter::Group->new;
@@ -2108,6 +2211,22 @@ sub create_outlined_text {
     return $group;
 }
 
+#***
+
+#****f* lyricue_server/set_maintext_simple
+# NAME
+#   set_maintext_simple
+# SYNOPSIS
+#   set_maintext_simple($text, $transition, $wrap)
+# FUNCTION
+#   Set maintext simple
+# INPUTS
+#   $text - 
+#    $transition - 
+#    $wrap - 
+# OUTPUT
+# SOURCE
+#
 sub set_maintext_simple {
     my ($text, $transition, $wrap) = @_;
     debug("Set maintext simple");
@@ -2129,6 +2248,22 @@ sub set_maintext_simple {
     }
 }
 
+#***
+
+#****f* lyricue_server/set_maintext_canvas
+# NAME
+#   set_maintext_canvas
+# SYNOPSIS
+#   set_maintext_canvas($text, $transition, $wrap)
+# FUNCTION
+#   Set maintext canvas
+# INPUTS
+#   $text - 
+#    $transition - 
+#    $wrap - 
+# OUTPUT
+# SOURCE
+#
 sub set_maintext_canvas {
     my ($text, $transition, $wrap) = @_;
     debug("Set maintext canvas");
@@ -2393,6 +2528,21 @@ sub set_maintext_canvas {
     }
 }
 
+#***
+
+#****f* lyricue_server/Configure_event
+# NAME
+#   Configure_event
+# SYNOPSIS
+#   Configure_event($widget, $event)
+# FUNCTION
+#       debug ($width."x".$height."-". $MINISCALE);
+# INPUTS
+#   $widget - 
+#    $event - 
+# OUTPUT
+# SOURCE
+#
 sub Configure_event {
     my ($widget, $event) = @_;
     my ($width, $height) = $globals->{'window'}->get_size();
@@ -2406,6 +2556,19 @@ sub Configure_event {
     return FALSE;
 }
 
+#***
+
+#****f* lyricue_server/refresh_display
+# NAME
+#   refresh_display
+# SYNOPSIS
+#   refresh_display()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub refresh_display {
     # Refresh Display
     my $id = $globals->{'bgid'};
@@ -2422,17 +2585,21 @@ sub refresh_display {
     }
     reset_timer($globals->{'update_timer'});
 }
+#***
 
-sub reset_timer {
-    my ($timer) = @_;
-    if ($timer) {
-        debug("Cancelling timer");
-        Glib::Source->remove($timer);
-        $timer = FALSE;
-    }
-}
-
-
+#****f* lyricue_server/display_fatal
+# NAME
+#   display_fatal
+# SYNOPSIS
+#   display_fatal($message, $error)
+# FUNCTION
+#   
+# INPUTS
+#   $message - 
+#    $error - 
+# OUTPUT
+# SOURCE
+#
 sub display_fatal {
     my ($message, $error) = @_;
     print STDERR "\n\n-------------\n";
@@ -2454,18 +2621,61 @@ sub display_fatal {
     die($error);
 }
 
+#***
+
+#****f* lyricue_server/close_dialog
+# NAME
+#   close_dialog
+# SYNOPSIS
+#   close_dialog($widget)
+# FUNCTION
+#   Close dialog
+# INPUTS
+#   $widget - 
+# OUTPUT
+# SOURCE
+#
 sub close_dialog {
     my ($widget) = @_;
     debug("Close dialog");
     $widget->get_toplevel->destroy;
 }
 
+#***
+
+#****f* lyricue_server/mod
+# NAME
+#   mod
+# SYNOPSIS
+#   mod($inp, $div)
+# FUNCTION
+#   
+# INPUTS
+#   $inp - 
+#    $div - 
+# OUTPUT
+# SOURCE
+#
 sub mod {
     my ($inp, $div) = @_;
     my $rem = (($inp / $div) - (int($inp / $div))) * $div;
     return $rem;
 }
 
+#***
+
+#****f* lyricue_server/set_footer
+# NAME
+#   set_footer
+# SYNOPSIS
+#   set_footer($text)
+# FUNCTION
+#   
+# INPUTS
+#   $text - 
+# OUTPUT
+# SOURCE
+#
 sub set_footer {
     my ($text) = @_;
     if (!defined $text) { $text = " "; }
@@ -2479,6 +2689,20 @@ sub set_footer {
     }
 }
 
+#***
+
+#****f* lyricue_server/set_footer_clutter
+# NAME
+#   set_footer_clutter
+# SYNOPSIS
+#   set_footer_clutter($text)
+# FUNCTION
+#   
+# INPUTS
+#   $text - 
+# OUTPUT
+# SOURCE
+#
 sub set_footer_clutter {
     my ($text) = @_;
     if (defined $globals->{'footer'}) {
@@ -2503,6 +2727,20 @@ sub set_footer_clutter {
     );
 }
 
+#***
+
+#****f* lyricue_server/set_footer_simple
+# NAME
+#   set_footer_simple
+# SYNOPSIS
+#   set_footer_simple($text)
+# FUNCTION
+#   
+# INPUTS
+#   $text - 
+# OUTPUT
+# SOURCE
+#
 sub set_footer_simple {
     my ($text) = @_;
     my $font_desc =
@@ -2516,6 +2754,20 @@ sub set_footer_simple {
     $globals->{'footerText'}->set_text($text);
 }
 
+#***
+
+#****f* lyricue_server/set_footer_canvas
+# NAME
+#   set_footer_canvas
+# SYNOPSIS
+#   set_footer_canvas($text)
+# FUNCTION
+#   
+# INPUTS
+#   $text - 
+# OUTPUT
+# SOURCE
+#
 sub set_footer_canvas {
     my ($text) = @_;
     my $widget = Gtk2::Label->new();
@@ -2562,6 +2814,20 @@ sub set_footer_canvas {
     $buffer->apply_tag_by_name("Footer", $buffer->get_bounds);
 }
 
+#***
+
+#****f* lyricue_server/set_header
+# NAME
+#   set_header
+# SYNOPSIS
+#   set_header($text)
+# FUNCTION
+#   
+# INPUTS
+#   $text - 
+# OUTPUT
+# SOURCE
+#
 sub set_header {
     my ($text) = @_;
     if (!defined $text) { $text = " "; }
@@ -2575,6 +2841,20 @@ sub set_header {
     }
 }
 
+#***
+
+#****f* lyricue_server/set_header_clutter
+# NAME
+#   set_header_clutter
+# SYNOPSIS
+#   set_header_clutter($text)
+# FUNCTION
+#   Setting header
+# INPUTS
+#   $text - 
+# OUTPUT
+# SOURCE
+#
 sub set_header_clutter {
     my ($text) = @_;
     debug("Setting header");
@@ -2600,6 +2880,20 @@ sub set_header_clutter {
     );
 }
 
+#***
+
+#****f* lyricue_server/set_header_simple
+# NAME
+#   set_header_simple
+# SYNOPSIS
+#   set_header_simple($text)
+# FUNCTION
+#   
+# INPUTS
+#   $text - 
+# OUTPUT
+# SOURCE
+#
 sub set_header_simple {
     my ($text) = @_;
     my $font_desc =
@@ -2613,6 +2907,20 @@ sub set_header_simple {
     $globals->{'headerText'}->set_text($text);
 }
 
+#***
+
+#****f* lyricue_server/set_header_canvas
+# NAME
+#   set_header_canvas
+# SYNOPSIS
+#   set_header_canvas($text)
+# FUNCTION
+#   
+# INPUTS
+#   $text - 
+# OUTPUT
+# SOURCE
+#
 sub set_header_canvas {
     my ($text) = @_;
 
@@ -2661,6 +2969,19 @@ sub set_header_canvas {
     $buffer->apply_tag_by_name("Header", $buffer->get_bounds);
 }
 
+#***
+
+#****f* lyricue_server/get_bibles
+# NAME
+#   get_bibles
+# SYNOPSIS
+#   get_bibles()
+# FUNCTION
+#   Getting available bibles
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub get_bibles {
     my $bibles;
     debug("Getting available bibles");
@@ -2733,6 +3054,19 @@ sub get_bibles {
     return $bibles;
 }
 
+#***
+
+#****f* lyricue_server/update_snapshot
+# NAME
+#   update_snapshot
+# SYNOPSIS
+#   update_snapshot()
+# FUNCTION
+#   Updating snapshot
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub update_snapshot {
     debug("Updating snapshot");
 
@@ -2759,7 +3093,20 @@ sub update_snapshot {
     #}
     reset_timer($globals->{'snapshot_timer'});
 }
+#***
 
+#****f* lyricue_server/reset_timer
+# NAME
+#   reset_timer
+# SYNOPSIS
+#   reset_timer($timer)
+# FUNCTION
+#   Cancelling timer
+# INPUTS
+#   $timer - 
+# OUTPUT
+# SOURCE
+#
 sub reset_timer {
     my ($timer) = @_;
     if ($timer) {
@@ -2769,6 +3116,19 @@ sub reset_timer {
     }
 }
 
+#***
+
+#****f* lyricue_server/create_window
+# NAME
+#   create_window
+# SYNOPSIS
+#   create_window()
+# FUNCTION
+#   Running in MINISERV (preview window) mode
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub create_window {
     my ($pixmap, $textcol);
 
@@ -2992,18 +3352,57 @@ sub create_window {
     debug("Done");
 }
 
+#***
+
+#****f* lyricue_server/refresh_screen
+# NAME
+#   refresh_screen
+# SYNOPSIS
+#   refresh_screen()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub refresh_screen {
     if ($globals->{'server_type'} != CLUTTER) {
         $globals->{'window'}->show_all();
     }
 }
 
+#***
+
+#****f* lyricue_server/do_pending
+# NAME
+#   do_pending
+# SYNOPSIS
+#   do_pending()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub do_pending {
     while (Gtk2->events_pending) {
         Gtk2->main_iteration;
     }
 }
 
+#***
+
+#****f* lyricue_server/get_playlists
+# NAME
+#   get_playlists
+# SYNOPSIS
+#   get_playlists()
+# FUNCTION
+#       debug($query);
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub get_playlists {
     my $data = "";
     my $query =
@@ -3019,6 +3418,21 @@ sub get_playlists {
     return $data;
 }
 
+#***
+
+#****f* lyricue_server/get_playlist
+# NAME
+#   get_playlist
+# SYNOPSIS
+#   get_playlist($playlist, $pre)
+# FUNCTION
+#       debug($query);
+# INPUTS
+#   $playlist - 
+#    $pre - 
+# OUTPUT
+# SOURCE
+#
 sub get_playlist {
     my ($playlist, $pre) = @_;
     my $data = "";
@@ -3121,6 +3535,19 @@ sub get_playlist {
     return $data;
 }
 
+#***
+
+#****f* lyricue_server/update_tracker
+# NAME
+#   update_tracker
+# SYNOPSIS
+#   update_tracker()
+# FUNCTION
+#   Updating tracker
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub update_tracker {
     debug("Updating tracker");
 
@@ -3139,6 +3566,19 @@ sub update_tracker {
     }
 }
 
+#***
+
+#****f* lyricue_server/check_tracker
+# NAME
+#   check_tracker
+# SYNOPSIS
+#   check_tracker()
+# FUNCTION
+#   Checking tracker
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub check_tracker {
     debug("Checking tracker");
     my $query = "SELECT ref FROM playlists WHERE id=-1";
@@ -3159,6 +3599,19 @@ sub check_tracker {
     }
 }
 
+#***
+
+#****f* lyricue_server/db_check_app
+# NAME
+#   db_check_app
+# SYNOPSIS
+#   db_check_app()
+# FUNCTION
+#   Checking for database servers
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_check_app {
     debug("Checking for database servers");
     if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
@@ -3189,6 +3642,21 @@ sub db_check_app {
     }
 }
 
+#***
+
+#****f* lyricue_server/db_connect
+# NAME
+#   db_connect
+# SYNOPSIS
+#   db_connect($dbname, $dberror)
+# FUNCTION
+#   
+# INPUTS
+#   $dbname - 
+#    $dberror - 
+# OUTPUT
+# SOURCE
+#
 sub db_connect {
     my ($dbname, $dberror) = @_;
     my ($dbh);
@@ -3206,6 +3674,21 @@ sub db_connect {
     return $dbh;
 }
 
+#***
+
+#****f* lyricue_server/HandleMouse
+# NAME
+#   HandleMouse
+# SYNOPSIS
+#   HandleMouse($widget, $data)
+# FUNCTION
+#   Handle Mouse click
+# INPUTS
+#   $widget - 
+#    $data - 
+# OUTPUT
+# SOURCE
+#
 sub HandleMouse {
     my ($widget, $data) = @_;
     debug("Handle Mouse click");
@@ -3218,13 +3701,42 @@ sub HandleMouse {
     }
 }
 
+#***
+
+#****f* lyricue_server/fromutf
+# NAME
+#   fromutf
+# SYNOPSIS
+#   fromutf($line)
+# FUNCTION
+#   
+# INPUTS
+#   $line - 
+# OUTPUT
+# SOURCE
+#
 sub fromutf {
     my ($line) = @_;
     return Encode::decode("utf8", $line);
 }
 
+#***
+
+#****f* lyricue_server/toutf
+# NAME
+# SYNOPSIS
+#   toutf($line)
+# FUNCTION
+#   
+# INPUTS
+#   $line - 
+# OUTPUT
+# SOURCE
+#
 sub toutf {
     my ($line) = @_;
     return Encode::encode("utf8", $line);
 }
+
+#***
 

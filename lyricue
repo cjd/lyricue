@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.300 2009/07/06 02:19:57 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.301 2009/07/07 02:38:17 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -495,9 +495,9 @@ exit(0);
 
 #***
 
-#****m* lyricue/close_main
+#****f* lyricue/close_main
 # NAME
-#   close_main -- close the main window
+#   close_main
 # SYNOPSIS
 #   close_main ()
 # FUNCTION
@@ -507,6 +507,7 @@ exit(0);
 # OUTPUT
 #   Closes the interface
 # SOURCE
+#
 sub close_main {
     debug("Quitting");
     do_pending();
@@ -547,14 +548,13 @@ sub close_main {
     exit();
     return FALSE;
 }
-
 #***
 
-#****m* lyricue/update_playlist
+#****f* lyricue/update_playlist
 # NAME
-#   update_playlist -- update the playlist
+#   update_playlist
 # SYNOPSIS
-#   update_playlist ()
+#   update_playlist($selectedid)
 # FUNCTION
 #   Clear the playlist area and redisplay with updated info
 # INPUTS
@@ -562,6 +562,7 @@ sub close_main {
 # OUTPUT
 #   refreshed playlist
 # SOURCE
+#
 sub update_playlist {
     my ($selectedid) = @_;
     debug("Updating playlist");
@@ -608,14 +609,13 @@ sub update_playlist {
     add_playlist($playlist, undef, $model, $selectedid, \$expanded);
     $globals->{'current_item'} = 0;
 }
-
 #***
 
-#****m* lyricue/add_playlist
+#****f* lyricue/add_playlist
 # NAME
 #   add_playlist - Add a playlist to the playlist area
 # SYNOPSIS
-#   add_playlist ($playlist, $iter, $model, $selectedid)
+#   add_playlist ($playlist, $iter, $model, $selectedid, $expanded)
 # FUNCTION
 #   Add a playlist to the playlist area
 # INPUTS
@@ -627,6 +627,7 @@ sub update_playlist {
 # OUTPUT
 #   A bigger playlist
 # SOURCE
+#
 sub add_playlist {
     my ($playlist, $iter, $model, $selectedid, $expanded) = @_;
     debug("Add playlist");
@@ -832,14 +833,13 @@ sub add_playlist {
         }
     }
 }
-
 #***
 
-#****m* lyricue/save_expanded
+#****f* lyricue/save_expanded
 # NAME
-#   save_expanded -- Save the expanded state
+#   save_expanded
 # SYNOPSIS
-#   save_expanded ()
+#   save_expanded($tree, $path, $expanded)
 # FUNCTION
 #   Save the expanded state of the treeview item
 # INPUTS
@@ -849,6 +849,7 @@ sub add_playlist {
 # OUTPUT
 #   $expanded is updated
 # SOURCE
+#
 sub save_expanded {
     debug("Save expanded");
     my ($tree, $path, $expanded) = @_;
@@ -856,12 +857,11 @@ sub save_expanded {
     $$expanded->{$tree->get_model->get($iter, 2)} = TRUE;
     return FALSE;
 }
-
 #***
 
-#****m* lyricue/change_sort_order
+#****f* lyricue/change_sort_order
 # NAME
-#   change_sort_order -- Change the sort order
+#   change_sort_order
 # SYNOPSIS
 #   change_sort_order (undef,$column)
 # FUNCTION
@@ -872,6 +872,7 @@ sub save_expanded {
 # OUTPUT
 #   Calls update_available to redisplay available songs
 # SOURCE
+#
 sub change_sort_order {
     debug("change sort order");
     my (undef, $column) = @_;
@@ -891,20 +892,19 @@ sub change_sort_order {
     debug("Changing sort order to " . $globals->{'sortby'});
     update_available();
 }
-
 #***
 
-#****m* lyricue/update_available
+#****f* lyricue/update_available
 # NAME
-#   update_available -- Display list of available songs
+#   update_available
 # SYNOPSIS
 #   update_available ()
 # FUNCTION
 #   Update the list of available songs, limited by keyword and sorted by orderby
-# INPUTS
 # OUTPUT
 #   updated list of available songs
 # SOURCE
+#
 sub update_available {
     debug("update available");
     reset_timer($globals->{'update_timer'});
@@ -1031,12 +1031,11 @@ sub update_available {
     debug("Avail updated");
     return FALSE;
 }
-
 #***
 
-#****m* lyricue/popup_avail_menu
+#****f* lyricue/popup_avail_menu
 # NAME
-#   popup_avail_menu --
+#   popup_avail_menu
 # SYNOPSIS
 #   popup_avail_menu ($widget, $event)
 # FUNCTION
@@ -1107,12 +1106,11 @@ sub popup_avail_menu {
     # Tell calling code that we have not handled this event; pass it on.
     return (FALSE);
 }
-
 #***
 
-#****m* lyricue/popup_play_menu
+#****f* lyricue/popup_play_menu
 # NAME
-#   popup_play_menu --
+#   popup_play_menu
 # SYNOPSIS
 #   popup_play_menu ($event)
 # FUNCTION
@@ -1196,12 +1194,11 @@ sub popup_play_menu {
     $factory->create_items(undef, @items);
     $factory->popup($event->x_root, $event->y_root, 0, $event->time);
 }
-
 #***
 
-#****m* lyricue/add_song
+#****f* lyricue/add_song
 # NAME
-#   add_song --
+#   add_song
 # SYNOPSIS
 #   add_song ()
 # FUNCTION
@@ -1232,12 +1229,11 @@ sub add_song {
     $widgets->{'add'}->get_widget('buttonEditRemovePage')->set_sensitive(FALSE);
     $widgets->{'add'}->get_widget('remove_page1')->set_sensitive(FALSE);
 }
-
 #***
 
-#****m* lyricue/delete_song
+#****f* lyricue/delete_song
 # NAME
-#   delete_song --
+#   delete_song
 # SYNOPSIS
 #   delete_song ()
 # FUNCTION
@@ -1290,9 +1286,9 @@ sub delete_song {
 
 #***
 
-#****m* lyricue/do_delete_song
+#****f* lyricue/do_delete_song
 # NAME
-#   do_delete_song --
+#   do_delete_song
 # SYNOPSIS
 #   do_delete_song ($songid)
 # FUNCTION
@@ -1351,12 +1347,11 @@ sub do_delete_song {
     }
 
 }
-
 #***
 
-#****m* lyricue/do_save_song
+#****f* lyricue/do_save_song
 # NAME
-#   do_save_song --
+#   do_save_song
 # SYNOPSIS
 #   do_save_song ()
 # FUNCTION
@@ -1561,12 +1556,11 @@ sub do_save_song {
     }
     return $songid;
 }
-
 #***
 
-#****m* lyricue/save_song
+#****f* lyricue/save_song
 # NAME
-#   save_song --
+#   save_song
 # SYNOPSIS
 #   save_song ()
 # FUNCTION
@@ -1582,12 +1576,11 @@ sub save_song {
     close_add_window();
     update_available();
 }
-
 #***
 
-#****m* lyricue/add_page
+#****f* lyricue/add_page
 # NAME
-#   add_page --
+#   add_page
 # SYNOPSIS
 #   add_page ()
 # FUNCTION
@@ -1647,12 +1640,11 @@ sub add_page {
 
     return $hashnum;
 }
-
 #***
 
-#****m* lyricue/renumber_pages
+#****f* lyricue/renumber_pages
 # NAME
-#   renumber_pages --
+#   renumber_pages
 # SYNOPSIS
 #   renumber_pages ($pagenum, $newitem)
 # FUNCTION
@@ -1689,12 +1681,11 @@ sub renumber_pages {
         $widgets->{'labelAPage'}{$i}->show();
     }
 }
-
 #***
 
-#****m* lyricue/remove_page
+#****f* lyricue/remove_page
 # NAME
-#   remove_page --
+#   remove_page
 # SYNOPSIS
 #   remove_page ()
 # FUNCTION
@@ -1739,12 +1730,11 @@ sub remove_page {
         $widgets->{'add'}->get_widget('remove_page1')->set_sensitive(FALSE);
     }
 }
-
 #***
 
-#****m* lyricue/close_add_window
+#****f* lyricue/close_add_window
 # NAME
-#   close_add_window --
+#   close_add_window
 # SYNOPSIS
 #   close_add_window ()
 # FUNCTION
@@ -1759,12 +1749,11 @@ sub close_add_window {
     $widgets->{'add'}->get_widget('windowEditSong')->destroy();
     undef $widgets->{'add'};
 }
-
 #***
 
-#****m* lyricue/close_dialog
+#****f* lyricue/close_dialog
 # NAME
-#   close_dialog --
+#   close_dialog
 # SYNOPSIS
 #   close_dialog ($widget)
 # FUNCTION
@@ -1782,12 +1771,11 @@ sub close_dialog {
         $widget->get_toplevel->destroy;
     }
 }
-
 #***
 
-#****m* lyricue/edit_song
+#****f* lyricue/edit_song
 # NAME
-#   edit_song --
+#   edit_song
 # SYNOPSIS
 #   edit_song ()
 # FUNCTION
@@ -1832,12 +1820,11 @@ sub edit_song {
         }
     }
 }
-
 #***
 
-#****m* lyricue/do_add_verse
+#****f* lyricue/do_add_verse
 # NAME
-#   do_add_verse --
+#   do_add_verse
 # SYNOPSIS
 #   do_add_verse ($widget)
 # FUNCTION
@@ -1861,12 +1848,11 @@ sub do_add_verse {
     insert_verse($book, $chapter, $globals->{'verses'}, $globals->{'verseEnd'});
     close_dialog($widget);
 }
-
 #***
 
-#****m* lyricue/insert_verse
+#****f* lyricue/insert_verse
 # NAME
-#   insert_verse -- Insert a verse into the playlist
+#   insert_verse
 # SYNOPSIS
 #   insert_verse ( $book, $chapter, $start, $end)
 # FUNCTION
@@ -1971,12 +1957,11 @@ sub insert_verse {
 
     update_playlist();
 }
-
 #***
 
-#****m* lyricue/import_song
+#****f* lyricue/import_song
 # NAME
-#   import_song --
+#   import_song
 # SYNOPSIS
 #   import_song ()
 # FUNCTION
@@ -1994,12 +1979,11 @@ sub import_song {
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "do_import_song", $filexml);
 }
-
 #***
 
-#****m* lyricue/do_import_song
+#****f* lyricue/do_import_song
 # NAME
-#   do_import_song --
+#   do_import_song
 # SYNOPSIS
 #   do_import_song ($widget, $filexml)
 # FUNCTION
@@ -2031,16 +2015,15 @@ sub do_import_song {
 
     close_dialog($widget);
 }
-
 #***
 
-#****m* lyricue/import_song_text
+#****f* lyricue/import_song_text
 # NAME
-#   import_song_text -- import text song
+#   import_song_text
 # SYNOPSIS
 #   import_song_text ()
 # FUNCTION
-#   
+#   Import a shog which was stored as a text file
 # INPUTS
 #   $filename - File to import
 # OUTPUT
@@ -2126,12 +2109,11 @@ sub import_song_text {
     }
     close SONG;
 }
-
 #***
 
-#****m* lyricue/import_song_songbeamer
+#****f* lyricue/import_song_songbeamer
 # NAME
-#   import_song_songbeamer --
+#   import_song_songbeamer
 # SYNOPSIS
 #   import_song_songbeamer ($filename)
 # FUNCTION
@@ -2237,12 +2219,11 @@ sub import_song_songbeamer {
     }
     close SONG;
 }
-
 #***
 
-#****m* lyricue/update_songinfo
+#****f* lyricue/update_songinfo
 # NAME
-#   update_songinfo --
+#   update_songinfo
 # SYNOPSIS
 #   update_songinfo ($songid)
 # FUNCTION
@@ -2310,15 +2291,13 @@ sub update_songinfo {
 
 #***
 
-#****m* lyricue/add_to_playlist
+#****f* lyricue/add_to_playlist
 # NAME
-#   add_to_playlist --
+#   add_to_playlist
 # SYNOPSIS
-#   add_to_playlist ($widget)
+#   add_to_playlist ()
 # FUNCTION
 #   Add the chosen songs to the playlist
-# INPUTS
-#   $widget - Calling widget
 # OUTPUT
 #   More songs in the playlist
 # SOURCE
@@ -2335,12 +2314,11 @@ sub add_to_playlist {
 
     update_playlist();
 }
-
 #***
 
-#****m* lyricue/add_single_song
+#****f* lyricue/add_single_song
 # NAME
-#   add_single_song --
+#   add_single_song
 # SYNOPSIS
 #   add_single_song ($availableSelection)
 # FUNCTION
@@ -2459,17 +2437,15 @@ sub add_single_song {
         $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
     }
 }
-
 #***
 
-#****m* lyricue/remove_from_playlist
+#****f* lyricue/remove_from_playlist
 # NAME
-#   remove_from_playlist --
+#   remove_from_playlist
 # SYNOPSIS
 #   remove_from_playlist ()
 # FUNCTION
 #   Remove selected songs from the playlist
-# INPUTS
 # OUTPUT
 #   Less songs in the playlist
 # SOURCE
@@ -2484,8 +2460,6 @@ sub remove_from_playlist {
     #
     reset_timer($globals->{'timer'});
 
-    #
-
     my $selection =
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
     debug("Remove from playlist clicked");
@@ -2495,12 +2469,11 @@ sub remove_from_playlist {
         update_playlist();
     }
 }
-
 #***
 
-#****m* lyricue/remove_single_item
+#****f* lyricue/remove_single_item
 # NAME
-#   remove_single_item --
+#   remove_single_item
 # SYNOPSIS
 #   remove_single_item ($item)
 # FUNCTION
@@ -2594,12 +2567,11 @@ sub remove_single_item {
         }
     }
 }
-
 #***
 
-#****m* lyricue/clear_playlist
+#****f* lyricue/clear_playlist
 # NAME
-#   clear_playlist --
+#   clear_playlist
 # SYNOPSIS
 #   clear_playlist ($widget)
 # FUNCTION
@@ -2640,12 +2612,11 @@ sub clear_playlist {
     }
     close_dialog($deletexml->get_widget('dialogConfirm'));
 }
-
 #***
 
-#****m* lyricue/display_song
+#****f* lyricue/display_song
 # NAME
-#   Display_song --
+#   Display_song
 # SYNOPSIS
 #   display_song (undef, $event)
 # FUNCTION
@@ -2768,12 +2739,11 @@ sub display_song {
     }
     return FALSE;
 }
-
 #***
 
-#****m* lyricue/display_now
+#****f* lyricue/display_now
 # NAME
-#   display_now --
+#   display_now
 # SYNOPSIS
 #   display_now ($widget)
 # FUNCTION
@@ -2800,9 +2770,9 @@ sub display_now {
 
 #***
 
-#****m* lyricue/prev_page
+#****f* lyricue/prev_page
 # NAME
-#   prev_page --
+#   prev_page
 # SYNOPSIS
 #   prev_page ()
 # FUNCTION
@@ -2818,12 +2788,11 @@ sub prev_page {
     reset_timer($globals->{'timer'});
     update_display("display", "prev_page", $config->{'LoopText'});
 }
-
 #***
 
-#****m* lyricue/next_page
+#****f* lyricue/next_page
 # NAME
-#   next_page --
+#   next_page
 # SYNOPSIS
 #   next_page ()
 # FUNCTION
@@ -2842,9 +2811,9 @@ sub next_page {
 
 #***
 
-#****m* lyricue/prev_song
+#****f* lyricue/prev_song
 # NAME
-#   prev_song --
+#   prev_song
 # SYNOPSIS
 #   prev_song ()
 # FUNCTION
@@ -2863,9 +2832,9 @@ sub prev_song {
 
 #***
 
-#****m* lyricue/next_song
+#****f* lyricue/next_song
 # NAME
-#   next_song --
+#   next_song
 # SYNOPSIS
 #   next_song ()
 # FUNCTION
@@ -2881,12 +2850,11 @@ sub next_song {
     reset_timer($globals->{'timer'});
     update_display("display", "next_song", $config->{'LoopText'});
 }
-
 #***
 
-#****m* lyricue/blank_page
+#****f* lyricue/blank_page
 # NAME
-#   blank_page --
+#   blank_page
 # SYNOPSIS
 #   blank_page ()
 # FUNCTION
@@ -2902,12 +2870,11 @@ sub blank_page {
     reset_timer($globals->{'timer'});
     update_display("blank", $config->{'BGImage'}, "");
 }
-
 #***
 
-#****m* lyricue/clear_text
+#****f* lyricue/clear_text
 # NAME
-#   clear_text --
+#   clear_text
 # SYNOPSIS
 #   clear_text ()
 # FUNCTION
@@ -2923,12 +2890,11 @@ sub clear_text {
     reset_timer($globals->{'timer'});
     update_display("blank", "", "");
 }
-
 #***
 
-#****m* lyricue/next_point
+#****f* lyricue/next_point
 # NAME
-#   next_point --
+#   next_point
 # SYNOPSIS
 #   next_point ()
 # FUNCTION
@@ -2947,9 +2913,9 @@ sub next_point {
 
 #***
 
-#****m* lyricue/preview_page
+#****f* lyricue/preview_page
 # NAME
-#   preview_page --
+#   preview_page
 # SYNOPSIS
 #   preview_page ($widget)
 # FUNCTION
@@ -2997,12 +2963,11 @@ sub preview_page {
     }
     preview_display("preview", $titledata, $songtext);
 }
-
 #***
 
-#****m* lyricue/add_verse
+#****f* lyricue/add_verse
 # NAME
-#   add_verse --
+#   add_verse
 # SYNOPSIS
 #   add_verse ($widget)
 # FUNCTION
@@ -3028,6 +2993,18 @@ sub add_verse {
 
 #***
 
+#****f* lyricue/add_image_pl
+# NAME
+#   add_image_pl
+# SYNOPSIS
+#   add_image_pl()
+# FUNCTION
+#   Add an image to the playlist
+# INPUTS
+# OUTPUT
+#   New item on playlist
+# SOURCE
+#
 sub add_image_pl {
     debug ("Add image to playlist clicked");
     my $widget = $widgets->{'main'}->get_widget('iconviewImage');
@@ -3045,17 +3022,18 @@ sub add_image_pl {
         update_playlist();
     }
 }
+#***
 
-#****m* lyricue/add_image
+#****f* lyricue/add_image
 # NAME
-#   add_image --
+#   add_image
 # SYNOPSIS
-#   add_image ($widget)
+#   add_image ()
 # FUNCTION
-#   Add image clicked
+#   Load the image dialog
 # INPUTS
-#   $widget - Calling widget
 # OUTPUT
+#   dialogImage loaded
 # SOURCE
 #
 sub add_image {
@@ -3133,7 +3111,22 @@ sub add_image {
 
     update_imagedir("img", "");
 }
+#***
 
+#****f* lyricue/update_imagedir
+# NAME
+#   update_imagedir
+# SYNOPSIS
+#   update_imagedir($type, $data)
+# FUNCTION
+#   Update the view of an category
+# INPUTS
+#   $type - 'img' or 'bg'
+#   $data - Category/type to load
+# OUTPUT
+#   Updated list of images
+# SOURCE
+#
 sub update_imagedir {
     my ($type, $data) = @_;
     my ($access, $category);
@@ -3265,6 +3258,19 @@ sub update_imagedir {
       ->set_color(Gtk2::Gdk::Color->parse($config->{'ShadowColour'}));
 }
 
+#***
+
+#****f* lyricue/change_image_category
+# NAME
+#   change_image_category
+# SYNOPSIS
+#   change_image_category()
+# FUNCTION
+#   change image category
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub change_image_category {
     debug("change image category");
     my $category =
@@ -3285,9 +3291,9 @@ sub change_image_category {
 
 #***
 
-#****m* lyricue/update_display
+#****f* lyricue/update_display
 # NAME
-#   update_display --
+#   update_display
 # SYNOPSIS
 #   update_display ($command, $primary, $secondary)
 # FUNCTION
@@ -3379,8 +3385,19 @@ sub update_display {
 
 #***
 
-#   1. Set bg in preview window to current bg in server
-#   2. Send command to show playlist item to server
+#****f* lyricue/preview_playlist_item
+# NAME
+#   preview_playlist_item
+# SYNOPSIS
+#   preview_playlist_item()
+# FUNCTION
+#   Preview a playlist item
+# INPUTS
+#   
+# OUTPUT
+#   Updated preview
+# SOURCE
+#
 sub preview_playlist_item {
     debug("Previewing a playlist item...");
 
@@ -3389,7 +3406,7 @@ sub preview_playlist_item {
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
 
-        # set the preview window bg to current bg
+        # set the preview window bg to current bg (is this still needed?)
         my $current = $widgets->{'buttonCurr'}->{user_data};
         preview_display("backdrop", $current, undef);
 
@@ -3397,10 +3414,11 @@ sub preview_playlist_item {
         preview_display("display", $model->get($iter, 2), undef);
     }
 }
+#***
 
-#****m* lyricue/preview_display
+#****f* lyricue/preview_display
 # NAME
-#   preview_display --
+#   preview_display
 # SYNOPSIS
 #   preview_display ()
 # FUNCTION
@@ -3472,6 +3490,21 @@ sub preview_display {
 
 #***
 
+#****f* lyricue/open_dialogColour
+# NAME
+#   open_dialogColour
+# SYNOPSIS
+#   open_dialogColour($widget, $event, $item)
+# FUNCTION
+#   Load a new dialog to select a colour
+# INPUTS
+#   $widget - Calling widget
+#   $event - how we where called
+#   $item - What we want to set the colour for
+# OUTPUT
+#   
+# SOURCE
+#
 sub open_dialogColour {
     my ($widget, $event, $item) = @_;
     debug("Opening Colour dialog");
@@ -3518,7 +3551,23 @@ sub open_dialogColour {
       ->signal_connect("clicked", "close_dialog");
     my $response = $colourxml->get_widget('dialogColour')->run();
 }
+#***
 
+#****f* lyricue/open_dialogFont
+# NAME
+#   open_dialogFont
+# SYNOPSIS
+#   open_dialogFont ($widget, $event, $font)
+# FUNCTION
+#   Load a new dialog to select a colour
+# INPUTS
+#   $widget - Calling widget
+#   $event - how we where called
+#   $font - What we want to set the colour for
+# OUTPUT
+#   
+# SOURCE
+#
 sub open_dialogFont {
     my ($widget, $event, $font) = @_;
     debug("Opening Font dialog");
@@ -3532,10 +3581,11 @@ sub open_dialogFont {
     $widgets->{'font'}->get_widget('dialogFont')->show;
     return TRUE;
 }
+#***
 
-#****m* lyricue/change_font_colour
+#****f* lyricue/change_font_colour
 # NAME
-#   change_font_colour --
+#   change_font_colour
 # SYNOPSIS
 #   change_font_colour ($widget, $colourxml)
 # FUNCTION
@@ -3580,12 +3630,11 @@ sub change_font_colour {
     }
     close_dialog($widget);
 }
-
 #***
 
-#****m* lyricue/apply_font
+#****f* lyricue/apply_font
 # NAME
-#   apply_font --
+#   apply_font
 # SYNOPSIS
 #   apply_font ()
 # FUNCTION
@@ -3603,12 +3652,11 @@ sub apply_font {
       ->set_text($widgets->{'font'}->get_widget('selectFont')->get_font_name);
     close_dialog($widget);
 }
-
 #***
 
-#****m* lyricue/changeVerseStatus
+#****f* lyricue/changeVerseStatus
 # NAME
-#   changeVerseStatus --
+#   changeVerseStatus
 # SYNOPSIS
 #   changeVerseStatus ($widget, $section, $row, $col, $rows, $max)
 # FUNCTION
@@ -3681,9 +3729,9 @@ sub changeVerseStatus {
 
 #***
 
-#****m* lyricue/change_preview
+#****f* lyricue/change_preview
 # NAME
-#   change_preview --
+#   change_preview
 # SYNOPSIS
 #   change_preview ($widget)
 # FUNCTION
@@ -3795,9 +3843,9 @@ sub change_preview {
 
 #***
 
-#****m* lyricue/set_default_backdrop
+#****f* lyricue/set_default_backdrop
 # NAME
-#   set_default_backdrop --
+#   set_default_backdrop
 # SYNOPSIS
 #   set_default_backdrop ($widget)
 # FUNCTION
@@ -3826,15 +3874,13 @@ sub set_default_backdrop {
 
 #***
 
-#****m* lyricue/print_songs
+#****f* lyricue/print_songs
 # NAME
-#   print_songs --
+#   print_songs
 # SYNOPSIS
 #   print_songs ()
 # FUNCTION
 #   Print a html formatted list of available songs
-# INPUTS
-#   None
 # OUTPUT
 #   HTML list of songs to standard out
 # SOURCE
@@ -3879,12 +3925,11 @@ sub print_songs {
     $lyricDbh->disconnect;
     exit;
 }
-
 #***
 
-#****m* lyricue/backdrop_clicked
+#****f* lyricue/backdrop_clicked
 # NAME
-#   backdrop_clicked --
+#   backdrop_clicked
 # SYNOPSIS
 #   backdrop_clicked ($widget)
 # FUNCTION
@@ -3939,6 +3984,20 @@ sub backdrop_clicked {
     }
 }
 
+#***
+
+#****f* lyricue/backdrop_preview_clicked
+# NAME
+#   backdrop_preview_clicked
+# SYNOPSIS
+#   backdrop_preview_clicked($widget)
+# FUNCTION
+#   Changing backdrop to 
+# INPUTS
+#   $widget - 
+# OUTPUT
+# SOURCE
+#
 sub backdrop_preview_clicked {
     my ($widget) = @_;
     my $selected = $widget->{user_data};
@@ -3965,14 +4024,13 @@ sub backdrop_preview_clicked {
 }
 #***
 
-#****m* lyricue/do_add_image
+#****f* lyricue/do_add_image
 # NAME
-#   do_add_image --
+#   do_add_image
 # SYNOPSIS
 #   do_add_image ()
 # FUNCTION
 #   Add an image to the playlist
-# INPUTS
 # OUTPUT
 #   Image added to playlist
 # SOURCE
@@ -3994,6 +4052,21 @@ sub do_add_image {
     update_playlist();
 }
 
+#***
+
+#****f* lyricue/add_image_item
+# NAME
+#   add_image_item
+# SYNOPSIS
+#   add_image_item($playlist, $image)
+# FUNCTION
+#           debug($image);
+# INPUTS
+#   $playlist - 
+#    $image - 
+# OUTPUT
+# SOURCE
+#
 sub add_image_item {
     my ($playlist, $image) = @_;
     my $playorder = 1;
@@ -4024,9 +4097,19 @@ sub add_image_item {
         $playorder++;
 
 }
-
 #***
 
+#****f* lyricue/show_about
+# NAME
+#   show_about
+# SYNOPSIS
+#   chose_about()
+# FUNCTION
+#   Open the About dialog
+# OUTPUT
+#   About dialog
+# SOURCE
+#
 sub show_about {
     debug("Showing About dialog");
     my $xml =
@@ -4034,22 +4117,19 @@ sub show_about {
     $xml->signal_autoconnect_from_package('');
     $xml->get_widget('windowAbout')->show();
 }
-
 #***
 
-#****m* lyricue/choose_playlist
+#****f* lyricue/choose_playlist
 # NAME
-#   choose_playlist --
+#   choose_playlist
 # SYNOPSIS
 #   choose_playlist ( )
 # FUNCTION
 #   Open a dialog to choose your main playlist
-# INPUTS
 # OUTPUT
 #   Search dialog
 # SOURCE
 #
-
 sub choose_playlist {
     debug("Choose playlist");
     $widgets->{'choose'} = Gtk2::GladeXML->new($globals->{'gladefile'},
@@ -4058,9 +4138,19 @@ sub choose_playlist {
     $widgets->{'choose'}->get_widget('windowChoosePlay')->show;
     update_cplayclist();
 }
-
 #***
 
+#****f* lyricue/create_dialog_prefs
+# NAME
+#   create_dialog_prefs
+# SYNOPSIS
+#   create_dialog_prefs()
+# FUNCTION
+#   Open the preferences dialog
+# OUTPUT
+#   preferences dialog
+# SOURCE
+#
 sub create_dialog_prefs {
     debug("Creating preferences dialog");
     $config = load_config();
@@ -4187,10 +4277,11 @@ sub create_dialog_prefs {
     $widgets->{'prefs'}->get_widget('entryPrefShadowColour')
       ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
 }
+#***
 
-#****m* lyricue/execute_app
+#****f* lyricue/execute_app
 # NAME
-#   execute_app --
+#   execute_app
 # SYNOPSIS
 #   execute_app ($widget, $app)
 # FUNCTION
@@ -4213,12 +4304,11 @@ sub execute_app {
         system("DISPLAY=:0.1 " . $command . " &");
     }
 }
-
 #***
 
-#****m* lyricue/quote
+#****f* lyricue/quote
 # NAME
-#   quote --
+#   quote
 # SYNOPSIS
 #   quote ()
 # FUNCTION
@@ -4232,12 +4322,11 @@ sub execute_app {
 sub quote {
     return $lyricDbh->quote(@_);
 }
-
 #***
 
-#****m* lyricue/honourise_song_lyrics
+#****f* lyricue/honourise_song_lyrics
 # NAME
-#   honourise_song_lyrics --
+#   honourise_song_lyrics
 # SYNOPSIS
 #   honourise_song_lyrics ($widget)
 # FUNCTION
@@ -4318,12 +4407,11 @@ sub honourise_song_lyrics {
 
     debug("End of honourising lyrics...");
 }
-
 #***
 
-#****m* lyricue/select_bible_db
+#****f* lyricue/select_bible_db
 # NAME
-#   select_bible_db --
+#   select_bible_db
 # SYNOPSIS
 #   select_bible_db ($bible_database)
 # FUNCTION
@@ -4348,7 +4436,22 @@ sub select_bible_db {
         }
     }
 }
+#***
 
+#****f* lyricue/do_change_bible
+# NAME
+#   do_change_bible
+# SYNOPSIS
+#   do_change_bible ($type, $bibledb)
+# FUNCTION
+#   Change currently used bible
+# INPUTS
+#   $type - bible type (sword/db)
+#   $bibledb - Bible name
+# OUTPUT
+#   Calls update_playlist
+# SOURCE
+#
 sub do_change_bible {
     my ($type, $bibledb) = @_;
     debug("Change bible");
@@ -4366,12 +4469,11 @@ sub do_change_bible {
     }
     update_display("change_to_db", $bibledb, $type);
 }
-
 #***
 
-#****m* lyricue/invert_lines
+#****f* lyricue/invert_lines
 # NAME
-#   invert_lines --
+#   invert_lines
 # SYNOPSIS
 #   invert_lines ()
 # FUNCTION
@@ -4386,18 +4488,15 @@ sub invert_lines {
     $globals->{'invert'} = !$globals->{'invert'};
     update_playlist();
 }
-
 #***
 
-#****m* lyricue/export_song
+#****f* lyricue/export_song
 # NAME
-#   export_song --
+#   export_song
 # SYNOPSIS
-#   export_song ($widget)
+#   export_song ()
 # FUNCTION
 #   Show a dialog to choose where to save an exported song to
-# INPUTS
-#   $widget - Calling widget
 # OUTPUT
 #   File dialog displayed
 # SOURCE
@@ -4410,19 +4509,18 @@ sub export_song {
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "complete_export_song", $filexml);
 }
-
 #***
 
-#****m* lyricue/complete_export_song
+#****f* lyricue/complete_export_song
 # NAME
-#   complete_export_song --
+#   complete_export_song
 # SYNOPSIS
 #   complete_export_song ($widget, $filexml)
 # FUNCTION
 #   Export a song to the chosen filename
 # INPUTS
 #   $widget - Calling widget
-#   $file_dialog - File dialog
+#   $filexml - File dialog
 # OUTPUT
 #   File containing song
 # SOURCE
@@ -4475,18 +4573,15 @@ sub complete_export_song {
     close EXPORT;
 
 }
-
 #***
 
-#****m* lyricue/do_adv_search
+#****f* lyricue/do_adv_search
 # NAME
-#   do_adv_search --
+#   do_adv_search
 # SYNOPSIS
-#   do_adv_search ($widget)
+#   do_adv_search ()
 # FUNCTION
 #   Do an advanced search where it searchs lyrics instead of song titles
-# INPUTS
-#   $widget - Calling widget
 # OUTPUT
 #   List of suitable songs
 # SOURCE
@@ -4539,12 +4634,11 @@ sub do_adv_search {
         }
     }
 }
-
 #***
 
-#****m* lyricue/update_adv_search
+#****f* lyricue/update_adv_search
 # NAME
-#   update_adv_search --
+#   update_adv_search
 # SYNOPSIS
 #   update_adv_search ($widget)
 # FUNCTION
@@ -4579,59 +4673,9 @@ sub update_adv_search {
           ->get_buffer->set_text($lyrics);
     }
 }
-
 #***
 
-#****m* lyricue/add_presentation
-# NAME
-#   add_presentation --
-# SYNOPSIS
-#   add_presentation ($widget)
-# FUNCTION
-#   Add a presentation to the playlist
-# INPUTS
-#   $widget - Calling widget
-# OUTPUT
-#   Presentation added to playlist
-# SOURCE
-#
-sub add_presentation {
-    my ($widget) = @_;
-    debug("Add presentation selected");
-
-    my $filexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
-    $filexml->signal_autoconnect_from_package('');
-    $filexml->get_widget('buttonFileOK')
-      ->signal_connect("clicked", "present_ok", $filexml);
-}
-
-#***
-
-#****m* lyricue/present_ok
-# NAME
-#   present_ok --
-# SYNOPSIS
-#   present_ok ($widget, $filexml)
-# FUNCTION
-#   Presentation selected so add it to the playlist
-# INPUTS
-#   $widget - Calling widget
-#   $filexml - File selection dialog
-# OUTPUT
-#   Presentation added to playlist
-# SOURCE
-#
-sub present_ok {
-    my ($widget, $filexml) = @_;
-    debug("Presentation Selected");
-    debug("present_ok not done yet");
-    close_dialog($widget);
-}
-
-#***
-
-#****m* lyricue/move_item
+#****f* lyricue/move_item
 # NAME
 #   move_item
 # SYNOPSIS
@@ -4716,18 +4760,41 @@ sub move_item {
         }
     }
 }
+#***
 
+#****f* lyricue/move_item_up
+# NAME
+#   move_item_up
+# SYNOPSIS
+#   move_item_up ()
+# FUNCTION
+#   Move item in the playlist up
+# OUTPUT
+#   Calls move_item to do it
+# SOURCE
+#
 sub move_item_up {
     move_item(-1);
 }
+#***
 
+#****f* lyricue/move_item_down
+# NAME
+#   move_item_down
+# SYNOPSIS
+#   move_item_down ()
+# FUNCTION
+#   Move item in the playlist down
+# OUTPUT
+#   Calls move_item to do it
+# SOURCE
+#
 sub move_item_down {
     move_item(1);
 }
-
 #***
 
-#****m* lyricue/renumber_item
+#****f* lyricue/renumber_item
 # NAME
 #   renumber_item
 # SYNOPSIS
@@ -4766,10 +4833,9 @@ sub renumber_item {
       || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
     $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
 }
-
 #***
 
-#****m* lyricue/add_copyright_preset
+#****f* lyricue/add_copyright_preset
 # NAME
 #   add_copyright_preset
 # SYNOPSIS
@@ -4789,20 +4855,20 @@ sub add_copyright_preset {
     $widgets->{'add'}->get_widget('entryEditCopyright')
       ->set_text("Preset:" . $preset);
 }
-
 #***
 
-#****m* lyricue/debug
+#****f* lyricue/debug
 # NAME
-#   debug -- output debugging text
+#   debug
 # SYNOPSIS
 #   debug ($text)
 # FUNCTION
+#   Always write to logfile
 #   Print $text if $globals->{'debugging'} is set
 # INPUTS
 #   $text - the text to output
 # OUTPUT
-#   Text to STDOUT or nothing
+#   Text to Logfile and possible STDERR
 # SOURCE
 #
 sub debug {
@@ -4818,27 +4884,41 @@ sub debug {
     }
     return TRUE;
 }
+#***
 
+#****f* lyricue/qdebug
+# NAME
+#   qdebug
+# SYNOPSIS
+#   qdebug ($text)
+# FUNCTION
+#   Debug data
+# INPUTS
+#   $text - the text to output
+# OUTPUT
+#   Call to debug
+# SOURCE
+#
 sub qdebug {
     if ($globals->{'debugging'} == 2) {
         debug(@_);
     }
 }
-
 #***
 
-#****m* lyricue/select_playlist
+#****f* lyricue/select_playlist
 # NAME
-#   select_playlist --
+#   select_playlist
 # SYNOPSIS
-#   select_playlist ()
+#   select_playlist ($widget)
 # FUNCTION
 #   Select the main playlist
 # INPUTS
+#   $widget - calling widget
 # OUTPUT
-#   Closed
+#   Closed selection dialog
 # SOURCE
-
+#
 sub select_playlist {
     my ($widget) = @_;
     debug("Selecting a main playlist");
@@ -4859,19 +4939,33 @@ sub select_playlist {
         close_dialog($widget);
     }
 }
+#***
 
+#****f* lyricue/select_playlist_click
+# NAME
+#   select_playlist_click
+# SYNOPSIS
+#   select_playlist_click ($widget, $event)
+# FUNCTION
+#   Select the main playlist on double-click
+# INPUTS
+#   $widget - calling widget
+#   $event - calling event
+# OUTPUT
+#   Closed selection dialog
+# SOURCE
+#
 sub select_playlist_click {
     my ($widget, $event) = @_;
     if ($event->type eq '2button-press') {
         select_playlist($widget);
     }
 }
-
 #***
 
-#****m* lyricue/new_playlist
+#****f* lyricue/new_playlist
 # NAME
-#   new_playlist --
+#   new_playlist
 # SYNOPSIS
 #   new_playlist ($widget)
 # FUNCTION
@@ -4881,7 +4975,7 @@ sub select_playlist_click {
 # OUTPUT
 #   Closed
 # SOURCE
-
+#
 sub new_playlist {
     my ($widget) = @_;
     debug("Creating a new playlist");
@@ -4903,12 +4997,11 @@ sub new_playlist {
         select_playlist($widget);
     }
 }
-
 #***
 
-#****m* lyricue/rename_playlist
+#****f* lyricue/rename_playlist
 # NAME
-#   rename_playlist --
+#   rename_playlist
 # SYNOPSIS
 #   rename_playlist ($widget)
 # FUNCTION
@@ -4950,12 +5043,11 @@ sub rename_playlist {
         }
     }
 }
-
 #***
 
-#****m* lyricue/do_rename_playlist
+#****f* lyricue/do_rename_playlist
 # NAME
-#   do_rename_playlist --
+#   do_rename_playlist
 # SYNOPSIS
 #   do_rename_playlist ($widget, $renamexml)
 # FUNCTION
@@ -4966,6 +5058,7 @@ sub rename_playlist {
 # OUTPUT
 #   Closed
 # SOURCE
+#
 sub do_rename_playlist {
     my ($widget, $renamexml) = @_;
     debug("Do rename playlist");
@@ -4982,19 +5075,17 @@ sub do_rename_playlist {
     update_cplayclist();
     close_dialog($widget);
 }
-
 #***
 
-#****m* lyricue/delete_playlist
+#****f* lyricue/delete_playlist
 # NAME
-#   delete_playlist --
+#   delete_playlist
 # SYNOPSIS
 #   delete_playlist ($widget)
 # FUNCTION
 #   Delete a playlist
 # INPUTS
 #   $widget - Calling widget
-#   $widget - Global widgets
 # OUTPUT
 #   Closed
 # SOURCE
@@ -5031,12 +5122,11 @@ sub delete_playlist {
 
     update_cplayclist();
 }
-
 #***
 
-#****m* lyricue/update_cplay
+#****f* lyricue/update_cplay
 # NAME
-#   update_cplay --
+#   update_cplay
 # SYNOPSIS
 #   update_cplay ($selection)
 # FUNCTION
@@ -5044,9 +5134,8 @@ sub delete_playlist {
 # INPUTS
 #   $selection - the selection
 # OUTPUT
-#   Closed
 # SOURCE
-
+#
 sub update_cplay {
     my ($selection) = @_;
     debug("Selected a playlist");
@@ -5057,12 +5146,11 @@ sub update_cplay {
           ->set_text($model->get($iter, 0));
     }
 }
-
 #***
 
-#****m* lyricue/update_cplayclist
+#****f* lyricue/update_cplayclist
 # NAME
-#   update_cplayclist --
+#   update_cplayclist
 # SYNOPSIS
 #   update_cplayclist ($widget)
 # FUNCTION
@@ -5070,8 +5158,8 @@ sub update_cplay {
 # INPUTS
 #   $widget - The clist to update
 # OUTPUT
-#   Closed
 # SOURCE
+#
 sub update_cplayclist {
     my ($selection, $renderer, $column);
     debug("Update Choose playlist");
@@ -5105,17 +5193,15 @@ sub update_cplayclist {
         $store->set($iter, 0, fromutf($row[0]));
     }
 }
-
 #***
 
-#****m* lyricue/copy_item
+#****f* lyricue/copy_item
 # NAME
-#   copy_item --
+#   copy_item
 # SYNOPSIS
 #   copy_item ()
 # FUNCTION
 #   Copy the selected item in the playlist
-# INPUTS
 # OUTPUT
 #   Extra item in the playlist
 # SOURCE
@@ -5161,17 +5247,15 @@ sub copy_item {
         update_playlist();
     }
 }
-
 #***
 
-#****m* lyricue/begin_loop
+#****f* lyricue/begin_loop
 # NAME
-#   begin_loop --
+#   begin_loop
 # SYNOPSIS
 #   begin_loop ()
 # FUNCTION
 #   Initialise the automatic page looping
-# INPUTS
 # OUTPUT
 #   Gtk timer set
 # SOURCE
@@ -5191,9 +5275,19 @@ sub begin_loop {
           ->signal_connect('clicked', "establish_timer", $loopxml);
     }
 }
-
 #***
 
+#****f* lyricue/establish_timer
+# NAME
+#   establish_timer
+# SYNOPSIS
+#   establish_timer ($widget, $loopxml)
+# FUNCTION
+#   Create a new timer
+# OUTPUT
+#   Gtk timer set
+# SOURCE
+#
 sub establish_timer {
     my ($widget, $loopxml) = @_;
 
@@ -5232,7 +5326,23 @@ sub establish_timer {
     debug("Set loop advance timer to " . $interval . " milliseconds.");
     close_dialog($widget);
 }
+#***
 
+### FIXME ###
+#***
+
+#****f* lyricue/update_loop
+# NAME
+#   update_loop
+# SYNOPSIS
+#   update_loop($data)
+# FUNCTION
+#   Loop triggered
+# INPUTS
+#   $data - 
+# OUTPUT
+# SOURCE
+#
 sub update_loop {
     my ($data) = @_;
     debug("Loop triggered");
@@ -5242,6 +5352,17 @@ sub update_loop {
 
 #***
 
+#****f* lyricue/load_config
+# NAME
+#   load_config
+# SYNOPSIS
+#   load_config()
+# FUNCTION
+#   Loading Preferences
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub load_config {
     my ($conf);
     debug("Loading Preferences");
@@ -5327,6 +5448,19 @@ sub load_config {
 
 #***
 
+#***
+
+#****f* lyricue/save_state
+# NAME
+#   save_state
+# SYNOPSIS
+#   save_state()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub save_state {
     $config->{'FrameLeft'} = $widgets->{'main'}->get_widget('hpanedMainLeft')->get_position();
     $config->{'FrameRight'} = $widgets->{'main'}->get_widget('hpanedMainRight')->get_position();
@@ -5337,6 +5471,19 @@ sub save_state {
     }
 }
 
+#***
+
+#****f* lyricue/save_and_close_prefs
+# NAME
+#   save_and_close_prefs
+# SYNOPSIS
+#   save_and_close_prefs()
+# FUNCTION
+#   Save and close preferences
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub save_and_close_prefs {
     debug("Save and close preferences");
     save_preferences();
@@ -5344,6 +5491,19 @@ sub save_and_close_prefs {
     close_dialog($widgets->{'prefs'}->get_widget('dialogPrefs'));
 }
 
+#***
+
+#****f* lyricue/save_preferences
+# NAME
+#   save_preferences
+# SYNOPSIS
+#   save_preferences()
+# FUNCTION
+#   Saving preferences
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub save_preferences {
     debug("Saving preferences");
     $config->{'Main'} = $widgets->{'prefs'}->get_widget('entryPrefMain')->get_text();
@@ -5439,6 +5599,19 @@ sub save_preferences {
     update_display("display", "current", "");
 }
 
+#***
+
+#****f* lyricue/write_config
+# NAME
+#   write_config
+# SYNOPSIS
+#   write_config()
+# FUNCTION
+#   Writing preferences
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub write_config {
     debug("Writing preferences");
     unlink $globals->{'configfile'} . ".bak";
@@ -5459,6 +5632,21 @@ sub write_config {
 #***
 
 # Add the filename to the playlist
+#***
+
+#****f* lyricue/file_ok_sel
+# NAME
+#   file_ok_sel
+# SYNOPSIS
+#   file_ok_sel($widget, $filexml)
+# FUNCTION
+#   Add filename to playlist
+# INPUTS
+#   $widget - 
+#    $filexml - 
+# OUTPUT
+# SOURCE
+#
 sub file_ok_sel {
     my ($widget, $filexml) = @_;
     debug("Add filename to playlist");
@@ -5472,6 +5660,21 @@ sub file_ok_sel {
 #***
 
 #  Add the filename to the playlist
+#***
+
+#****f* lyricue/do_add_file
+# NAME
+#   do_add_file
+# SYNOPSIS
+#   do_add_file($file, $playlist)
+# FUNCTION
+#   do_add_file: file=
+# INPUTS
+#   $file - 
+#    $playlist - 
+# OUTPUT
+# SOURCE
+#
 sub do_add_file {
     my ($file, $playlist) = @_;
     debug("do_add_file: file=" . $file);
@@ -5608,9 +5811,9 @@ debug($filename);
 
 #***
 
-#****m* lyricue/create_sublist
+#****f* lyricue/create_sublist
 # NAME
-#   create_sublist --
+#   create_sublist
 # SYNOPSIS
 #   create_sublist ()
 # FUNCTION
@@ -5628,14 +5831,30 @@ sub create_sublist {
 
 #***
 
+#***
+
+#****f* lyricue/new_sublist_from_xml
+# NAME
+#   new_sublist_from_xml
+# SYNOPSIS
+#   new_sublist_from_xml($widget, $sublistxml)
+# FUNCTION
+#   
+# INPUTS
+#   $widget - 
+#    $sublistxml - 
+# OUTPUT
+# SOURCE
+#
 sub new_sublist_from_xml {
     my ($widget, $sublistxml) = @_;
     new_sublist($sublistxml->get_widget('entryPromptE')->get_text());
 }
+#***
 
-#****m* lyricue/new_sublist
+#****f* lyricue/new_sublist
 # NAME
-#   new_sublist --
+#   new_sublist
 # SYNOPSIS
 #   new_sublist ()
 # FUNCTION
@@ -5708,9 +5927,9 @@ sub new_sublist {
 
 #***
 
-#****m* lyricue/move_item_to_sublist
+#****f* lyricue/move_item_to_sublist
 # NAME
-#   move_item_to_sublist --
+#   move_item_to_sublist
 # SYNOPSIS
 #   move_item_to_sublist ($item, $sublistid)
 # FUNCTION
@@ -5750,9 +5969,9 @@ sub move_item_to_sublist {
 
 #***
 
-#****m* lyricue/find_more_children
+#****f* lyricue/find_more_children
 # NAME
-#   find_more_children --
+#   find_more_children
 # SYNOPSIS
 #   find_more_children ($parentid)
 # FUNCTION
@@ -5788,9 +6007,9 @@ sub find_more_children {
 
 #***
 
-#****m* lyricue/associate_bg
+#****f* lyricue/associate_bg
 # NAME
-#   associate_bg --
+#   associate_bg
 # SYNOPSIS
 #   associate_bg ($imagefile)
 # FUNCTION
@@ -5826,9 +6045,9 @@ sub associate_bg {
 
 #***
 
-#****m* lyricue/prepare_for_association
+#****f* lyricue/prepare_for_association
 # NAME
-#   prepare_for_association  --
+#   prepare_for_association 
 # SYNOPSIS
 #   prepare_for_association  ()
 # FUNCTION
@@ -5859,9 +6078,9 @@ sub prepare_for_association {
 
 #***
 
-#****m* lyricue/disassociate_bg
+#****f* lyricue/disassociate_bg
 # NAME
-#   disassociate_bg --
+#   disassociate_bg
 # SYNOPSIS
 #   disassociate_bg ()
 # FUNCTION
@@ -5892,9 +6111,9 @@ sub disassociate_bg {
 
 #***
 
-#****m* lyricue/clear_associations
+#****f* lyricue/clear_associations
 # NAME
-#   clear_associations --
+#   clear_associations
 # SYNOPSIS
 #   clear_associations ()
 # FUNCTION
@@ -5918,9 +6137,21 @@ sub clear_associations {
 
     update_playlist();
 }
+#***
 
 #***
 
+#****f* lyricue/init_mainWindow
+# NAME
+#   init_mainWindow
+# SYNOPSIS
+#   init_mainWindow()
+# FUNCTION
+#   Initializing main window
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub init_mainWindow {
     debug("Initializing main window");
 
@@ -6052,6 +6283,20 @@ sub init_mainWindow {
     $globals->{'text_cursor'} = Gtk2::Gdk::Cursor->new('xterm');
 }
 
+#***
+
+#****f* lyricue/bgdir_list
+# NAME
+#   bgdir_list
+# SYNOPSIS
+#   bgdir_list($type)
+# FUNCTION
+#   Loading ".$type." directory list
+# INPUTS
+#   $type - 
+# OUTPUT
+# SOURCE
+#
 sub bgdir_list {
     my ($type) = @_;
     debug("Loading ".$type." directory list");
@@ -6133,10 +6378,11 @@ sub bgdir_list {
     }
     $combo->set_active(0);
 }
+#***
 
-#****m* lyricue/bgdir_change
+#****f* lyricue/bgdir_change
 # NAME
-#   bgdir_change --
+#   bgdir_change
 # SYNOPSIS
 #   bgdir_change ($directory)
 # FUNCTION
@@ -6164,9 +6410,9 @@ sub bgdir_change {
 }
 
 #***
-#****m* lyricue/imgdir_change
+#****f* lyricue/imgdir_change
 # NAME
-#   imgdir_change --
+#   imgdir_change
 # SYNOPSIS
 #   imgdir_change ($directory)
 # FUNCTION
@@ -6195,9 +6441,9 @@ sub imgdir_change {
 
 #***
 
-#****m* lyricue/imgdir_load
+#****f* lyricue/imgdir_load
 # NAME
-#   imgdir_load --
+#   imgdir_load
 # SYNOPSIS
 #   imgdir_load ($category)
 # FUNCTION
@@ -6284,9 +6530,9 @@ sub imgdir_load {
 
 #***
 
-#****m* lyricue/spell_check
+#****f* lyricue/spell_check
 # NAME
-#   spell_check --
+#   spell_check
 # SYNOPSIS
 #   spell_check ()
 # FUNCTION
@@ -6319,9 +6565,9 @@ sub spell_check {
 
 #***
 
-#****m* lyricue/create_search
+#****f* lyricue/create_search
 # NAME
-#   create_search --
+#   create_search
 # SYNOPSIS
 #   create_search ($topwidgets)
 # FUNCTION
@@ -6350,6 +6596,19 @@ sub create_search {
 
 #***
 
+#***
+
+#****f* lyricue/add_file
+# NAME
+#   add_file
+# SYNOPSIS
+#   add_file()
+# FUNCTION
+#   Open a file dialog
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub add_file {
     debug("Open a file dialog");
     my $filexml =
@@ -6359,6 +6618,19 @@ sub add_file {
       ->signal_connect("clicked", "file_ok_sel", $filexml);
 }
 
+#***
+
+#****f* lyricue/add_directory
+# NAME
+#   add_directory
+# SYNOPSIS
+#   add_directory()
+# FUNCTION
+#   Add a directory to the playlist
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub add_directory {
     debug("Add a directory to the playlist");
     my $d = Gtk2::FileChooserDialog->new(
@@ -6377,6 +6649,21 @@ sub add_directory {
     do_add_directory($dirname,"");
 }
 
+#***
+
+#****f* lyricue/do_add_directory
+# NAME
+#   do_add_directory
+# SYNOPSIS
+#   do_add_directory($dirname,$sublist)
+# FUNCTION
+#   Sublist name: 
+# INPUTS
+#   $dirname - 
+#   $sublist - 
+# OUTPUT
+# SOURCE
+#
 sub do_add_directory {
     my ($dirname,$sublist) = @_;
 
@@ -6421,12 +6708,40 @@ sub do_add_directory {
     update_playlist();
 }
 
+#***
+
+#****f* lyricue/add_background
+# NAME
+#   add_background
+# SYNOPSIS
+#   add_background($widget)
+# FUNCTION
+#   add background
+# INPUTS
+#   $widget - 
+# OUTPUT
+# SOURCE
+#
 sub add_background {
     debug("add background");
     my ($widget) = @_;
     change_bgimage($widget);
 }
 
+#***
+
+#****f* lyricue/change_bgimage
+# NAME
+#   change_bgimage
+# SYNOPSIS
+#   change_bgimage($widget)
+# FUNCTION
+#   Change backdrop dialog opened
+# INPUTS
+#   $widget - 
+# OUTPUT
+# SOURCE
+#
 sub change_bgimage {
     my ($widget) = @_;
     my $bgimage = "";
@@ -6487,10 +6802,11 @@ sub change_bgimage {
     update_imagedir("bg", "");
     return TRUE;
 }
+#***
 
-#****m* lyricue/create_dialogSublist
+#****f* lyricue/create_dialogSublist
 # NAME
-#   create_dialogSublist --
+#   create_dialogSublist
 # SYNOPSIS
 #   create_dialogSublist ($widgets)
 # FUNCTION
@@ -6515,11 +6831,43 @@ sub create_dialogSublist {
 
 #***
 
+#***
+
+#****f* lyricue/get_buffer_text
+# NAME
+#   get_buffer_text
+# SYNOPSIS
+#   get_buffer_text($widget)
+# FUNCTION
+#   
+# INPUTS
+#   $widget - 
+# OUTPUT
+# SOURCE
+#
 sub get_buffer_text {
     my ($widget) = @_;
     return $widget->get_text($widget->get_bounds, FALSE);
 }
 
+#***
+
+#****f* lyricue/on_treeAvailable_drag_data_get
+# NAME
+#   on_treeAvailable_drag_data_get
+# SYNOPSIS
+#   on_treeAvailable_drag_data_get($widget, $context, $data, $info, $time)
+# FUNCTION
+#   Dragged from available songs
+# INPUTS
+#   $widget - 
+#    $context - 
+#    $data - 
+#    $info - 
+#    $time - 
+# OUTPUT
+# SOURCE
+#
 sub on_treeAvailable_drag_data_get {
     my ($widget, $context, $data, $info, $time) = @_;
     debug("Dragged from available songs");
@@ -6530,6 +6878,24 @@ sub on_treeAvailable_drag_data_get {
     }
 }
 
+#***
+
+#****f* lyricue/on_iconviewBack_drag_data_get
+# NAME
+#   on_iconviewBack_drag_data_get
+# SYNOPSIS
+#   on_iconviewBack_drag_data_get($widget, $context, $data, $info, $time)
+# FUNCTION
+#   Dragged from Backgrounds
+# INPUTS
+#   $widget - 
+#    $context - 
+#    $data - 
+#    $info - 
+#    $time - 
+# OUTPUT
+# SOURCE
+#
 sub on_iconviewBack_drag_data_get {
     my ($widget, $context, $data, $info, $time) = @_;
     debug("Dragged from Backgrounds");
@@ -6545,6 +6911,24 @@ sub on_iconviewBack_drag_data_get {
     }
 }
 
+#***
+
+#****f* lyricue/on_iconviewImage_drag_data_get
+# NAME
+#   on_iconviewImage_drag_data_get
+# SYNOPSIS
+#   on_iconviewImage_drag_data_get($widget, $context, $data, $info, $time)
+# FUNCTION
+#   Dragged from Images
+# INPUTS
+#   $widget - 
+#    $context - 
+#    $data - 
+#    $info - 
+#    $time - 
+# OUTPUT
+# SOURCE
+#
 sub on_iconviewImage_drag_data_get {
     my ($widget, $context, $data, $info, $time) = @_;
     debug("Dragged from Images");
@@ -6560,6 +6944,24 @@ sub on_iconviewImage_drag_data_get {
     }
 }
 
+#***
+
+#****f* lyricue/on_treeSearch_drag_data_get
+# NAME
+#   on_treeSearch_drag_data_get
+# SYNOPSIS
+#   on_treeSearch_drag_data_get($widget, $context, $data, $info, $time)
+# FUNCTION
+#   Dragged from advanced search
+# INPUTS
+#   $widget - 
+#    $context - 
+#    $data - 
+#    $info - 
+#    $time - 
+# OUTPUT
+# SOURCE
+#
 sub on_treeSearch_drag_data_get {
     my ($widget, $context, $data, $info, $time) = @_;
     debug("Dragged from advanced search");
@@ -6570,6 +6972,26 @@ sub on_treeSearch_drag_data_get {
     }
 }
 
+#***
+
+#****f* lyricue/on_treePlaylist_drag_data_received
+# NAME
+#   on_treePlaylist_drag_data_received
+# SYNOPSIS
+#   on_treePlaylist_drag_data_received($widget, $context, $x, $y, $data, $info, $time)
+# FUNCTION
+#   Dropped on playlist
+# INPUTS
+#   $widget - 
+#    $context - 
+#    $x - 
+#    $y - 
+#    $data - 
+#    $info - 
+#    $time - 
+# OUTPUT
+# SOURCE
+#
 sub on_treePlaylist_drag_data_received {
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
     my ($u1, $file);
@@ -6617,6 +7039,21 @@ debug ($item.":".$playlist.":".$selected);
     $context->finish(0, 0, $time);
 }
 
+#***
+
+#****f* lyricue/display_message
+# NAME
+#   display_message
+# SYNOPSIS
+#   display_message($message, $details)
+# FUNCTION
+#       debug($message);
+# INPUTS
+#   $message - 
+#    $details - 
+# OUTPUT
+# SOURCE
+#
 sub display_message {
     my ($message, $details) = @_;
     debug($message);
@@ -6633,6 +7070,21 @@ sub display_message {
     close_dialog($errorxml->get_widget('dialogError'));
 }
 
+#***
+
+#****f* lyricue/display_fatal
+# NAME
+#   display_fatal
+# SYNOPSIS
+#   display_fatal($message, $error)
+# FUNCTION
+#   
+# INPUTS
+#   $message - 
+#    $error - 
+# OUTPUT
+# SOURCE
+#
 sub display_fatal {
     my ($message, $error) = @_;
     print STDERR "\n\n-------------\n";
@@ -6657,6 +7109,19 @@ sub display_fatal {
     die($error);
 }
 
+#***
+
+#****f* lyricue/select_transitions
+# NAME
+#   select_transitions
+# SYNOPSIS
+#   select_transitions()
+# FUNCTION
+#   Selecting transitions
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub select_transitions {
     debug("Selecting transitions");
     $widgets->{'transitions'} = Gtk2::GladeXML->new($globals->{'gladefile'},
@@ -6665,6 +7130,19 @@ sub select_transitions {
     $widgets->{'transitions'}->get_widget('windowTransitions')->show();
 }
 
+#***
+
+#****f* lyricue/apply_transition_selected
+# NAME
+#   apply_transition_selected
+# SYNOPSIS
+#   apply_transition_selected()
+# FUNCTION
+#   Apply transition to selected items
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub apply_transition_selected {
     debug("Apply transition to selected items");
     my $trans_type = calculate_transition();
@@ -6679,6 +7157,19 @@ sub apply_transition_selected {
     }
 }
 
+#***
+
+#****f* lyricue/apply_transition_playlist
+# NAME
+#   apply_transition_playlist
+# SYNOPSIS
+#   apply_transition_playlist()
+# FUNCTION
+#   Apply transition to playlist
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub apply_transition_playlist {
     debug("Apply transition to playlist");
     my $trans_type = calculate_transition();
@@ -6695,6 +7186,19 @@ sub apply_transition_playlist {
     }
 }
 
+#***
+
+#****f* lyricue/calculate_transition
+# NAME
+#   calculate_transition
+# SYNOPSIS
+#   calculate_transition()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub calculate_transition {
     my $trans_type = NORMAL;
     if ($widgets->{'transitions'}->get_widget('radioTransWipe')->get_active()) {
@@ -6755,6 +7259,21 @@ sub calculate_transition {
     return $trans_type;
 }
 
+#***
+
+#****f* lyricue/apply_transition
+# NAME
+#   apply_transition
+# SYNOPSIS
+#   apply_transition($item, $trans_type)
+# FUNCTION
+#   Applying transition to 
+# INPUTS
+#   $item - 
+#    $trans_type - 
+# OUTPUT
+# SOURCE
+#
 sub apply_transition {
     my ($item, $trans_type) = @_;
     debug("Applying transition to " . $item);
@@ -6788,12 +7307,40 @@ sub apply_transition {
       || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
 }
 
+#***
+
+#****f* lyricue/mod
+# NAME
+#   mod
+# SYNOPSIS
+#   mod($inp, $div)
+# FUNCTION
+#   
+# INPUTS
+#   $inp - 
+#    $div - 
+# OUTPUT
+# SOURCE
+#
 sub mod {
     my ($inp, $div) = @_;
     my $rem = (($inp / $div) - (int($inp / $div))) * $div;
     return $rem;
 }
 
+#***
+
+#****f* lyricue/user_admin
+# NAME
+#   user_admin
+# SYNOPSIS
+#   user_admin()
+# FUNCTION
+#   User access administration
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub user_admin {
     debug("User access administration");
     $widgets->{'admin'} =
@@ -6890,6 +7437,19 @@ sub user_admin {
 
 }
 
+#***
+
+#****f* lyricue/load_access
+# NAME
+#   load_access
+# SYNOPSIS
+#   load_access()
+# FUNCTION
+#   Loading access settings
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub load_access {
     debug("Loading access settings");
     my $access = "blank";
@@ -6982,6 +7542,19 @@ sub load_access {
     return $access;
 }
 
+#***
+
+#****f* lyricue/add_user
+# NAME
+#   add_user
+# SYNOPSIS
+#   add_user()
+# FUNCTION
+#   Adding a user
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub add_user {
     debug("Adding a user");
     my $userxml = Gtk2::GladeXML->new($globals->{'gladefile'},
@@ -7026,12 +7599,38 @@ sub add_user {
     close_dialog($userxml->get_widget('dialogPromptEntry'));
 }
 
+#***
+
+#****f* lyricue/search_changed
+# NAME
+#   search_changed
+# SYNOPSIS
+#   search_changed()
+# FUNCTION
+#   Search changed
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub search_changed {
     debug("Search changed");
     reset_timer($globals->{'update_timer'});
     $globals->{'update_timer'} = Glib::Timeout->add(500, \&update_available);
 }
 
+#***
+
+#****f* lyricue/init_preview
+# NAME
+#   init_preview
+# SYNOPSIS
+#   init_preview()
+# FUNCTION
+#   init preview
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub init_preview {
     debug("init preview");
 
@@ -7098,6 +7697,19 @@ sub init_preview {
     }
 }
 
+#***
+
+#****f* lyricue/init_miniview
+# NAME
+#   init_miniview
+# SYNOPSIS
+#   init_miniview()
+# FUNCTION
+#   init miniview
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub init_miniview {
     debug("init miniview");
 
@@ -7162,6 +7774,19 @@ sub init_miniview {
     }
 }
 
+#***
+
+#****f* lyricue/quick_save
+# NAME
+#   quick_save
+# SYNOPSIS
+#   quick_save()
+# FUNCTION
+#   Quick Save
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub quick_save {
     debug("Quick Save");
     my $buffer    = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
@@ -7201,6 +7826,19 @@ sub quick_save {
 }
 
 # Just put the text in the quickview section onto the screen
+#***
+
+#****f* lyricue/quick_show
+# NAME
+#   quick_show
+# SYNOPSIS
+#   quick_show()
+# FUNCTION
+#   Quickshow textarea
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub quick_show {
     debug("Quickshow textarea");
     my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
@@ -7211,6 +7849,21 @@ sub quick_show {
 }
 
 # Called when the preview windows are resized
+#***
+
+#****f* lyricue/resize_preview
+# NAME
+#   resize_preview
+# SYNOPSIS
+#   resize_preview($widget, $event)
+# FUNCTION
+#   
+# INPUTS
+#   $widget - 
+#    $event - 
+# OUTPUT
+# SOURCE
+#
 sub resize_preview {
     my ($widget, $event) = @_;
 
@@ -7223,6 +7876,22 @@ sub resize_preview {
 }
 
 # Return a Gdk::Pixbuf of the given media at the given res
+#***
+
+#****f* lyricue/create_pixbuf
+# NAME
+#   create_pixbuf
+# SYNOPSIS
+#   create_pixbuf($data, $width, $height)
+# FUNCTION
+#   
+# INPUTS
+#   $data - 
+#    $width - 
+#    $height - 
+# OUTPUT
+# SOURCE
+#
 sub create_pixbuf {
     my ($data, $width, $height) = @_;
     my ($pixbuf);
@@ -7269,14 +7938,54 @@ sub create_pixbuf {
     }
 }
 
+#***
+
+#****f* lyricue/import_image
+# NAME
+#   import_image
+# SYNOPSIS
+#   import_image()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub import_image {
     import_media("img");
 }
 
+#***
+
+#****f* lyricue/import_background
+# NAME
+#   import_background
+# SYNOPSIS
+#   import_background()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub import_background {
     import_media("bg");
 }
 
+#***
+
+#****f* lyricue/import_media
+# NAME
+#   import_media
+# SYNOPSIS
+#   import_media($type)
+# FUNCTION
+#   Import media 
+# INPUTS
+#   $type - 
+# OUTPUT
+# SOURCE
+#
 sub import_media {
     my ($type) = @_;
     debug("Import media " . $type);
@@ -7289,6 +7998,21 @@ sub import_media {
     $filexml->get_widget('dialogFile')->set_select_multiple(TRUE);
 }
 
+#***
+
+#****f* lyricue/select_category
+# NAME
+#   select_category
+# SYNOPSIS
+#   select_category($widget, $filexml)
+# FUNCTION
+#   select category
+# INPUTS
+#   $widget - 
+#    $filexml - 
+# OUTPUT
+# SOURCE
+#
 sub select_category {
     my ($widget, $filexml) = @_;
     debug("select category");
@@ -7348,6 +8072,21 @@ sub select_category {
     close_dialog($widget);
 }
 
+#***
+
+#****f* lyricue/do_import_media
+# NAME
+#   do_import_media
+# SYNOPSIS
+#   do_import_media($widget, $choosexml)
+# FUNCTION
+#   Importing media
+# INPUTS
+#   $widget - 
+#    $choosexml - 
+# OUTPUT
+# SOURCE
+#
 sub do_import_media {
     my ($widget, $choosexml) = @_;
     debug("Importing media");
@@ -7390,6 +8129,21 @@ q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate,
         $category);
 }
 
+#***
+
+#****f* lyricue/update_category
+# NAME
+#   update_category
+# SYNOPSIS
+#   update_category($selection, $choosexml)
+# FUNCTION
+#   Selected a category
+# INPUTS
+#   $selection - 
+#    $choosexml - 
+# OUTPUT
+# SOURCE
+#
 sub update_category {
     my ($selection, $choosexml) = @_;
     debug("Selected a category");
@@ -7401,6 +8155,19 @@ sub update_category {
     }
 }
 
+#***
+
+#****f* lyricue/update_quickedit
+# NAME
+#   update_quickedit
+# SYNOPSIS
+#   update_quickedit()
+# FUNCTION
+#   Updating Quick edit
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub update_quickedit {
     debug("Updating Quick edit");
     my $selection =
@@ -7533,6 +8300,19 @@ sub update_quickedit {
     }
 }
 
+#***
+
+#****f* lyricue/media_move
+# NAME
+#   media_move
+# SYNOPSIS
+#   media_move()
+# FUNCTION
+#   Moving media
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub media_move {
     debug("Moving media");
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
@@ -7601,6 +8381,21 @@ sub media_move {
     }
 }
 
+#***
+
+#****f* lyricue/do_move_media
+# NAME
+#   do_move_media
+# SYNOPSIS
+#   do_move_media($widget, $choosexml)
+# FUNCTION
+#   Moving media
+# INPUTS
+#   $widget - 
+#    $choosexml - 
+# OUTPUT
+# SOURCE
+#
 sub do_move_media {
     my ($widget, $choosexml) = @_;
     debug("Moving media");
@@ -7630,6 +8425,19 @@ sub do_move_media {
         $category);
 }
 
+#***
+
+#****f* lyricue/media_delete
+# NAME
+#   media_delete
+# SYNOPSIS
+#   media_delete()
+# FUNCTION
+#   Deleting media
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub media_delete {
     debug("Deleting media");
     my $selection = $widgets->{'image'}->get_widget('treeImage')->get_selection;
@@ -7688,6 +8496,22 @@ sub media_delete {
 
 }
 
+#***
+
+#****f* lyricue/rename_media
+# NAME
+#   rename_media
+# SYNOPSIS
+#   rename_media($widget, $id, $newname)
+# FUNCTION
+#   rename media
+# INPUTS
+#   $widget - 
+#    $id - 
+#    $newname - 
+# OUTPUT
+# SOURCE
+#
 sub rename_media {
     my ($widget, $id, $newname) = @_;
     debug("rename media");
@@ -7715,6 +8539,20 @@ sub rename_media {
     }
 }
 
+#***
+
+#****f* lyricue/change_colour_media
+# NAME
+#   change_colour_media
+# SYNOPSIS
+#   change_colour_media($widget)
+# FUNCTION
+#   change colour media
+# INPUTS
+#   $widget - 
+# OUTPUT
+# SOURCE
+#
 sub change_colour_media {
     my ($widget) = @_;
     debug("change colour media");
@@ -7750,6 +8588,19 @@ sub change_colour_media {
     }
 }
 
+#***
+
+#****f* lyricue/restore_db
+# NAME
+#   restore_db
+# SYNOPSIS
+#   restore_db()
+# FUNCTION
+#   Restoring DB
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub restore_db {
     debug("Restoring DB");
 
@@ -7822,6 +8673,19 @@ sub restore_db {
     }
 }
 
+#***
+
+#****f* lyricue/backup_db
+# NAME
+#   backup_db
+# SYNOPSIS
+#   backup_db()
+# FUNCTION
+#   Backup DB selected
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub backup_db {
     debug("Backup DB selected");
     $widgets->{'backupdb'} =
@@ -7867,6 +8731,19 @@ sub backup_db {
     close_dialog($widgets->{'backupdb'}->get_widget('dialogDatabase'));
 }
 
+#***
+
+#****f* lyricue/backup_db_browse
+# NAME
+#   backup_db_browse
+# SYNOPSIS
+#   backup_db_browse()
+# FUNCTION
+#   Browsing for BackupDB filename
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub backup_db_browse {
     debug("Browsing for BackupDB filename");
     my $fileDialog =
@@ -7886,6 +8763,19 @@ sub backup_db_browse {
     close_dialog($fileDialog->get_widget('dialogFile'));
 }
 
+#***
+
+#****f* lyricue/get_bibles
+# NAME
+#   get_bibles
+# SYNOPSIS
+#   get_bibles()
+# FUNCTION
+#   Getting available bibles
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub get_bibles {
     my $bibles;
     debug("Getting available bibles");
@@ -7942,6 +8832,19 @@ sub get_bibles {
     return $bibles;
 }
 
+#***
+
+#****f* lyricue/navigator_changed
+# NAME
+#   navigator_changed
+# SYNOPSIS
+#   navigator_changed()
+# FUNCTION
+#   Navigator changed
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub navigator_changed {
     debug("Navigator changed");
     reset_timer($globals->{'nav_update_timer'});
@@ -7949,6 +8852,19 @@ sub navigator_changed {
       Glib::Timeout->add(500, \&navigator_update);
 }
 
+#***
+
+#****f* lyricue/navigator_update
+# NAME
+#   navigator_update
+# SYNOPSIS
+#   navigator_update()
+# FUNCTION
+#   Updating navigator
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub navigator_update {
     debug("Updating navigator");
     reset_timer($globals->{'nav_update_timer'});
@@ -8112,11 +9028,37 @@ sub navigator_update {
     }
 }
 
+#***
+
+#****f* lyricue/navigator_enter
+# NAME
+#   navigator_enter
+# SYNOPSIS
+#   navigator_enter()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub navigator_enter {
     navigator_update();
     navigator_show();
 }
 
+#***
+
+#****f* lyricue/navigator_show
+# NAME
+#   navigator_show
+# SYNOPSIS
+#   navigator_show()
+# FUNCTION
+#   Bible navigator showing on server
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub navigator_show {
     debug("Bible navigator showing on server");
     my $buffer = $widgets->{'main'}->get_widget('textNavView')->get_buffer();
@@ -8131,6 +9073,19 @@ sub navigator_show {
     update_display("preview", $verse, $songtext);
 }
 
+#***
+
+#****f* lyricue/navigator_add
+# NAME
+#   navigator_add
+# SYNOPSIS
+#   navigator_add()
+# FUNCTION
+#   Adding verses from Bible navigator to playlist
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub navigator_add {
     debug("Adding verses from Bible navigator to playlist");
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
@@ -8141,6 +9096,19 @@ sub navigator_add {
     insert_verse($book, $chapter, $startverse, $endverse);
 }
 
+#***
+
+#****f* lyricue/navigator_next
+# NAME
+#   navigator_next
+# SYNOPSIS
+#   navigator_next()
+# FUNCTION
+#   Showing next verse
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub navigator_next {
     debug("Showing next verse");
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
@@ -8164,6 +9132,19 @@ sub navigator_next {
     navigator_show();
 }
 
+#***
+
+#****f* lyricue/navigator_prev
+# NAME
+#   navigator_prev
+# SYNOPSIS
+#   navigator_prev()
+# FUNCTION
+#   Showing next verse
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub navigator_prev {
     debug("Showing next verse");
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
@@ -8180,6 +9161,20 @@ sub navigator_prev {
     navigator_show();
 }
 
+#***
+
+#****f* lyricue/reset_timer
+# NAME
+#   reset_timer
+# SYNOPSIS
+#   reset_timer($timer)
+# FUNCTION
+#   Cancelling timer
+# INPUTS
+#   $timer - 
+# OUTPUT
+# SOURCE
+#
 sub reset_timer {
     my ($timer) = @_;
     if ($timer) {
@@ -8189,12 +9184,42 @@ sub reset_timer {
     }
 }
 
+#***
+
+#****f* lyricue/do_pending
+# NAME
+#   do_pending
+# SYNOPSIS
+#   do_pending()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub do_pending {
     while (Gtk2->events_pending) {
         Gtk2->main_iteration;
     }
 }
 
+#***
+
+#****f* lyricue/get_max_verse
+# NAME
+#   get_max_verse
+# SYNOPSIS
+#   get_max_verse($book, $chapter, $startverse, $endverse)
+# FUNCTION
+#   
+# INPUTS
+#   $book - 
+#    $chapter - 
+#    $startverse - 
+#    $endverse - 
+# OUTPUT
+# SOURCE
+#
 sub get_max_verse {
     my ($book, $chapter, $startverse, $endverse) = @_;
 
@@ -8286,6 +9311,23 @@ sub get_max_verse {
 # Additionally, attaches some data on the tag, to make it recognizable
 # as a link.
 #
+#***
+
+#****f* lyricue/insert_link
+# NAME
+#   insert_link
+# SYNOPSIS
+#   insert_link($buffer, $iter, $mark, $verse)
+# FUNCTION
+#   
+# INPUTS
+#   $buffer - 
+#    $iter - 
+#    $mark - 
+#    $verse - 
+# OUTPUT
+# SOURCE
+#
 sub insert_link {
     my ($buffer, $iter, $mark, $verse) = @_;
     my $tag = $buffer->create_tag(
@@ -8305,6 +9347,21 @@ sub insert_link {
 # Looks at all tags covering the position of iter in the text view,
 # and if one of them is a link, follow it by showing the page identified
 # by the data attached to it.
+#
+#***
+
+#****f* lyricue/follow_if_link
+# NAME
+#   follow_if_link
+# SYNOPSIS
+#   follow_if_link($text_view, $iter)
+# FUNCTION
+#   Showing $book $verse
+# INPUTS
+#   $text_view - 
+#    $iter - 
+# OUTPUT
+# SOURCE
 #
 sub follow_if_link {
     my ($text_view, $iter) = @_;
@@ -8328,6 +9385,21 @@ sub follow_if_link {
     }
 }
 
+#***
+
+#****f* lyricue/navigator_event_after
+# NAME
+#   navigator_event_after
+# SYNOPSIS
+#   navigator_event_after($text_view, $event)
+# FUNCTION
+#   Navigator text clicked
+# INPUTS
+#   $text_view - 
+#    $event - 
+# OUTPUT
+# SOURCE
+#
 sub navigator_event_after {
     my ($text_view, $event) = @_;
     debug("Navigator text clicked");
@@ -8345,6 +9417,22 @@ sub navigator_event_after {
     return FALSE;
 }
 
+#***
+
+#****f* lyricue/text_set_cursor_if_appropriate
+# NAME
+#   text_set_cursor_if_appropriate
+# SYNOPSIS
+#   text_set_cursor_if_appropriate($text_view, $x, $y)
+# FUNCTION
+#   
+# INPUTS
+#   $text_view - 
+#    $x - 
+#    $y - 
+# OUTPUT
+# SOURCE
+#
 sub text_set_cursor_if_appropriate {
     my ($text_view, $x, $y) = @_;
     $globals->{'hovering'} = FALSE;
@@ -8369,6 +9457,21 @@ sub text_set_cursor_if_appropriate {
 
 # Update the cursor image if the pointer moved.
 #
+#***
+
+#****f* lyricue/text_motion_notify_event
+# NAME
+#   text_motion_notify_event
+# SYNOPSIS
+#   text_motion_notify_event($text_view, $event)
+# FUNCTION
+#   
+# INPUTS
+#   $text_view - 
+#    $event - 
+# OUTPUT
+# SOURCE
+#
 sub text_motion_notify_event {
     my ($text_view, $event) = @_;
     my ($x, $y) =
@@ -8381,6 +9484,21 @@ sub text_motion_notify_event {
 # Also update the cursor image if the window becomes visible
 # (e.g. when a window covering it got iconified).
 #
+#***
+
+#****f* lyricue/text_visibility_notify_event
+# NAME
+#   text_visibility_notify_event
+# SYNOPSIS
+#   text_visibility_notify_event($text_view, $event)
+# FUNCTION
+#   
+# INPUTS
+#   $text_view - 
+#    $event - 
+# OUTPUT
+# SOURCE
+#
 sub text_visibility_notify_event {
     my ($text_view, $event) = @_;
     my (undef, $wx, $wy, undef) = $text_view->window->get_pointer;
@@ -8389,11 +9507,39 @@ sub text_visibility_notify_event {
     return FALSE;
 }
 
+#***
+
+#****f* lyricue/import_song_from_file
+# NAME
+#   import_song_from_file
+# SYNOPSIS
+#   import_song_from_file($filename)
+# FUNCTION
+#   
+# INPUTS
+#   $filename - 
+# OUTPUT
+# SOURCE
+#
 sub import_song_from_file {
     my ($filename) = @_;
     import_song_opw($filename);
 }
 
+#***
+
+#****f* lyricue/import_song_songselect
+# NAME
+#   import_song_songselect
+# SYNOPSIS
+#   import_song_songselect($filename)
+# FUNCTION
+#   import songselect song
+# INPUTS
+#   $filename - 
+# OUTPUT
+# SOURCE
+#
 sub import_song_songselect {
     my ($filename) = @_;
     debug("import songselect song");
@@ -8438,6 +9584,20 @@ sub import_song_songselect {
 
 }
 
+#***
+
+#****f* lyricue/import_song_opw
+# NAME
+#   import_song_opw
+# SYNOPSIS
+#   import_song_opw($filename)
+# FUNCTION
+#   import opw song
+# INPUTS
+#   $filename - 
+# OUTPUT
+# SOURCE
+#
 sub import_song_opw {
     my ($filename) = @_;
     debug("import opw song");
@@ -8486,6 +9646,20 @@ sub import_song_opw {
     }
 }
 
+#***
+
+#****f* lyricue/import_song_html
+# NAME
+#   import_song_html
+# SYNOPSIS
+#   import_song_html($filename)
+# FUNCTION
+#   import HTML/Opensong song
+# INPUTS
+#   $filename - 
+# OUTPUT
+# SOURCE
+#
 sub import_song_html {
     my ($filename) = @_;
     debug("import HTML/Opensong song");
@@ -8536,6 +9710,19 @@ sub import_song_html {
 ####
 # Install database functions
 ####
+#***
+
+#****f* lyricue/db_check_app
+# NAME
+#   db_check_app
+# SYNOPSIS
+#   db_check_app()
+# FUNCTION
+#   Checking for database servers
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_check_app {
     debug("Checking for database servers");
     if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
@@ -8562,6 +9749,19 @@ sub db_check_app {
     }
 }
 
+#***
+
+#****f* lyricue/db_get_admin
+# NAME
+#   db_get_admin
+# SYNOPSIS
+#   db_get_admin()
+# FUNCTION
+#   Get the db admin login information
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_get_admin {
     debug("Get the db admin login information");
     if ($config->{'DatabaseType'} eq "mysql") {
@@ -8581,6 +9781,19 @@ sub db_get_admin {
     }
 }
 
+#***
+
+#****f* lyricue/db_install_user
+# NAME
+#   db_install_user
+# SYNOPSIS
+#   db_install_user()
+# FUNCTION
+#   Install lyric database user
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_install_user {
     debug("Install lyric database user");
     my ($dbh);
@@ -8640,6 +9853,19 @@ sub db_install_user {
     db_check_databases();
 }
 
+#***
+
+#****f* lyricue/db_check_databases
+# NAME
+#   db_check_databases
+# SYNOPSIS
+#   db_check_databases()
+# FUNCTION
+#   Update/install databases
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_check_databases {
     debug("Update/install databases");
     if ($config->{'DatabaseType'} eq "mysql") {
@@ -8685,6 +9911,19 @@ sub db_check_databases {
     }
 }
 
+#***
+
+#****f* lyricue/db_reload
+# NAME
+#   db_reload
+# SYNOPSIS
+#   db_reload()
+# FUNCTION
+#   Reload db
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_reload {
     debug("Reload db");
     if ($globals->{'db_adminuser'} eq "") {
@@ -8703,6 +9942,21 @@ sub db_reload {
     }
 }
 
+#***
+
+#****f* lyricue/db_installdb
+# NAME
+#   db_installdb
+# SYNOPSIS
+#   db_installdb($db_file, $db_name)
+# FUNCTION
+#   Install db from 
+# INPUTS
+#   $db_file - 
+#    $db_name - 
+# OUTPUT
+# SOURCE
+#
 sub db_installdb {
     my ($db_file, $db_name) = @_;
     debug("Install db from " . $db_file);
@@ -8753,6 +10007,19 @@ sub db_installdb {
     }
 }
 
+#***
+
+#****f* lyricue/db_updatedb_mediaDb
+# NAME
+#   db_updatedb_mediaDb
+# SYNOPSIS
+#   db_updatedb_mediaDb()
+# FUNCTION
+#   Update the mediaDb table if needed
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_updatedb_mediaDb {
     debug("Update the mediaDb table if needed");
     my $dbh = db_connect($globals->{'mediadb'}, "");
@@ -8772,6 +10039,19 @@ sub db_updatedb_mediaDb {
     }
 }
 
+#***
+
+#****f* lyricue/db_updatedb_lyricDb
+# NAME
+#   db_updatedb_lyricDb
+# SYNOPSIS
+#   db_updatedb_lyricDb()
+# FUNCTION
+#   Update the lyricDb table if needed
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_updatedb_lyricDb {
     debug("Update the lyricDb table if needed");
     my $dbh = db_connect($globals->{'lyricdb'}, "");
@@ -8818,6 +10098,19 @@ sub db_updatedb_lyricDb {
     }
 }
 
+#***
+
+#****f* lyricue/check_tracker
+# NAME
+#   check_tracker
+# SYNOPSIS
+#   check_tracker()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub check_tracker {
 
     #debug("Check tracker");
@@ -8855,6 +10148,22 @@ sub check_tracker {
     return TRUE;
 }
 
+#***
+
+#****f* lyricue/update_current
+# NAME
+#   update_current
+# SYNOPSIS
+#   update_current($store, $path, $iter)
+# FUNCTION
+#   
+# INPUTS
+#   $store - 
+#    $path - 
+#    $iter - 
+# OUTPUT
+# SOURCE
+#
 sub update_current {
     my ($store, $path, $iter) = @_;
     my $playlistid = $store->get($iter, 2);
@@ -8880,12 +10189,40 @@ sub update_current {
     return FALSE;
 }
 
+#***
+
+#****f* lyricue/clear_search
+# NAME
+#   clear_search
+# SYNOPSIS
+#   clear_search()
+# FUNCTION
+#   Clear search entry
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub clear_search {
     debug("Clear search entry");
     $widgets->{'main'}->get_widget('entrySearch')->set_text("");
     $widgets->{'main'}->get_widget('entrySearch')->grab_focus();
 }
 
+#***
+
+#****f* lyricue/db_connect
+# NAME
+#   db_connect
+# SYNOPSIS
+#   db_connect($dbname, $dberror)
+# FUNCTION
+#   
+# INPUTS
+#   $dbname - 
+#    $dberror - 
+# OUTPUT
+# SOURCE
+#
 sub db_connect {
     my ($dbname, $dberror) = @_;
     my ($dbh);
@@ -8907,6 +10244,19 @@ sub db_connect {
     return $dbh;
 }
 
+#***
+
+#****f* lyricue/prefs_select_mysql
+# NAME
+#   prefs_select_mysql
+# SYNOPSIS
+#   prefs_select_mysql()
+# FUNCTION
+#   Selecting MySQL DB
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub prefs_select_mysql {
     if ($config->{'DatabaseType'} ne "mysql") {
         debug("Selecting MySQL DB");
@@ -8915,6 +10265,19 @@ sub prefs_select_mysql {
     }
 }
 
+#***
+
+#****f* lyricue/prefs_select_sqlite
+# NAME
+#   prefs_select_sqlite
+# SYNOPSIS
+#   prefs_select_sqlite()
+# FUNCTION
+#   Selecting SQLite DB
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub prefs_select_sqlite {
     if ($config->{'DatabaseType'} ne "SQLite") {
         debug("Selecting SQLite DB");
@@ -8923,6 +10286,19 @@ sub prefs_select_sqlite {
     }
 }
 
+#***
+
+#****f* lyricue/db_restart
+# NAME
+#   db_restart
+# SYNOPSIS
+#   db_restart()
+# FUNCTION
+#   Reconnecting to DBs
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_restart {
     debug("Reconnecting to DBs");
     $lyricDbh->disconnect();
@@ -8937,6 +10313,19 @@ sub db_restart {
     choose_playlist();
 }
 
+#***
+
+#****f* lyricue/db_select
+# NAME
+#   db_select
+# SYNOPSIS
+#   db_select()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub db_select {
 
     # Open lyricDB, bibleDB and mediaDb
@@ -8963,6 +10352,20 @@ sub db_select {
     $config->{'Bibles'} = get_bibles();
 }
 
+#***
+
+#****f* lyricue/add_to_playlist_search
+# NAME
+#   add_to_playlist_search
+# SYNOPSIS
+#   add_to_playlist_search($widget)
+# FUNCTION
+#   Songid \"" . $songid . "\" selected
+# INPUTS
+#   $widget - 
+# OUTPUT
+# SOURCE
+#
 sub add_to_playlist_search {
     my ($widget) = @_;
     my $selection =
@@ -8976,6 +10379,26 @@ sub add_to_playlist_search {
     }
 }
 
+#***
+
+#****f* lyricue/on_hboxBackImage_drag_data_received
+# NAME
+#   on_hboxBackImage_drag_data_received
+# SYNOPSIS
+#   on_hboxBackImage_drag_data_received($widget, $context, $x, $y, $data, $info, $time)
+# FUNCTION
+#   Dropped on backgrounds
+# INPUTS
+#   $widget - 
+#    $context - 
+#    $x - 
+#    $y - 
+#    $data - 
+#    $info - 
+#    $time - 
+# OUTPUT
+# SOURCE
+#
 sub on_hboxBackImage_drag_data_received {
     debug("Dropped on backgrounds");
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
@@ -9028,6 +10451,19 @@ q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate,
     }
 }
 
+#***
+
+#****f* lyricue/alphanum
+# NAME
+#   alphanum
+# SYNOPSIS
+#   alphanum()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub alphanum {
 
     # $a and $b are automagically passed to alphanum.
@@ -9074,26 +10510,93 @@ sub alphanum {
     return $n;
 }
 
+#***
+
+#****f* lyricue/fromutf
+# NAME
+#   fromutf
+# SYNOPSIS
+#   fromutf($line)
+# FUNCTION
+#   
+# INPUTS
+#   $line - 
+# OUTPUT
+# SOURCE
+#
 sub fromutf {
     my ($line) = @_;
     return Encode::decode("utf8", $line);
 }
 
+#***
+
+#****f* lyricue/toutf
+# NAME
+#   toutf
+# SYNOPSIS
+#   toutf($line)
+# FUNCTION
+#   
+# INPUTS
+#   $line - 
+# OUTPUT
+# SOURCE
+#
 sub toutf {
     my ($line) = @_;
     return Encode::encode("utf8", $line);
 }
 
+#***
+
+#****f* lyricue/pause_media
+# NAME
+#   pause_media
+# SYNOPSIS
+#   pause_media()
+# FUNCTION
+#   Play/Pause media
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub pause_media {
     debug("Play/Pause media");
     update_display("media", "pause", "");
 }
 
+#***
+
+#****f* lyricue/media_v4l
+# NAME
+#   media_v4l
+# SYNOPSIS
+#   media_v4l()
+# FUNCTION
+#   Starting Live Video
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub media_v4l {
     debug("Starting Live Video");
     update_display("backdrop","special;v4l","");
 }
 
+#***
+
+#****f* lyricue/install_bibles
+# NAME
+#   install_bibles
+# SYNOPSIS
+#   install_bibles()
+# FUNCTION
+#   Loading bible install window
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub install_bibles {
     debug("Loading bible install window");
     $widgets->{'bible'} = Gtk2::GladeXML->new($globals->{'gladefile'},
@@ -9104,6 +10607,19 @@ sub install_bibles {
     $widgets->{'bible'}->get_widget('windowBibleManager')->show_all();
 }
 
+#***
+
+#****f* lyricue/do_install_bible
+# NAME
+#   do_install_bible
+# SYNOPSIS
+#   do_install_bible()
+# FUNCTION
+#   No file selected
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub do_install_bible {
     my $dbfilename = $widgets->{'bible'}->get_widget('fileBibleInstall')->get_filename();
     close_dialog($widgets->{'bible'}->get_widget('windowBibleManager'));
@@ -9160,6 +10676,20 @@ sub do_install_bible {
     load_biblemenu();
 }
 
+#***
+
+#****f* lyricue/load_link
+# NAME
+#   load_link
+# SYNOPSIS
+#   load_link($widget)
+# FUNCTION
+#   Load URL:
+# INPUTS
+#   $widget - 
+# OUTPUT
+# SOURCE
+#
 sub load_link {
     my ($widget) = @_;
     debug("Load URL:".$widget->{'user_data'});
@@ -9167,6 +10697,19 @@ sub load_link {
     system($command);
 } 
 
+#***
+
+#****f* lyricue/load_biblemenu
+# NAME
+#   load_biblemenu
+# SYNOPSIS
+#   load_biblemenu()
+# FUNCTION
+#   Populate biblemenu
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub load_biblemenu {
     debug("Populate biblemenu");
     my $menutop = Gtk2::Menu->new();
@@ -9200,6 +10743,20 @@ sub load_biblemenu {
     $widgets->{'main'}->get_widget('bible1')->set_submenu($menutop);
 }
 
+#***
+
+#****f* lyricue/open_dirchooser
+# NAME
+#   open_dirchooser
+# SYNOPSIS
+#   open_dirchooser($widget)
+# FUNCTION
+#   Opening Directory chooser
+# INPUTS
+#   $widget - 
+# OUTPUT
+# SOURCE
+#
 sub open_dirchooser {
     my ($widget) = @_;
     debug("Opening Directory chooser");
@@ -9225,6 +10782,19 @@ sub open_dirchooser {
     close_dialog($directoryxml->get_widget('dialogDirChooser'));
 }
 
+#***
+
+#****f* lyricue/import_db
+# NAME
+#   import_db
+# SYNOPSIS
+#   import_db()
+# FUNCTION
+#   Import DB selected
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub import_db {
     debug("Import DB selected");
     my $importxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogImportData', 'lyricue');
@@ -9240,6 +10810,20 @@ debug (":".$confirm);
     close_dialog($importxml->get_widget('dialogImportData'));
 }
 
+#***
+
+#****f* lyricue/do_import_db
+# NAME
+#   do_import_db
+# SYNOPSIS
+#   do_import_db($filename)
+# FUNCTION
+#       debug ("Importing ".$filename);
+# INPUTS
+#   $filename - 
+# OUTPUT
+# SOURCE
+#
 sub do_import_db {
     my ($filename) =@_;
     debug ("Importing ".$filename);
@@ -9299,11 +10883,37 @@ sub do_import_db {
     }
 }
 
+#***
+
+#****f* lyricue/biblebrowser_init
+# NAME
+#   biblebrowser_init
+# SYNOPSIS
+#   biblebrowser_init()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub biblebrowser_init {
     my @items = ('Old Testament', 'New Testament');
     biblebrowser_loaditems("book", \@items, 2);
 }
 	
+#***
+
+#****f* lyricue/biblebrowser_book
+# NAME
+#   biblebrowser_book
+# SYNOPSIS
+#   biblebrowser_book()
+# FUNCTION
+#   Looking up 
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub biblebrowser_book {
 	my ($widget, $section) = @_;
     debug("Looking up ".$section);
@@ -9316,6 +10926,22 @@ sub biblebrowser_book {
     biblebrowser_loaditems("chapter", \@items, 3);
 }
 
+#***
+
+#****f* lyricue/biblebrowser_chapter
+# NAME
+#   biblebrowser_chapter
+# SYNOPSIS
+#   biblebrowser_chapter($widget, $book, $source)
+# FUNCTION
+#   Looking up book 
+# INPUTS
+#   $widget - 
+#    $book - 
+#    $source - 
+# OUTPUT
+# SOURCE
+#
 sub biblebrowser_chapter {
     my ($widget, $book, $source) = @_;
     debug("Looking up book ".$book);
@@ -9375,6 +11001,22 @@ sub biblebrowser_chapter {
     }
 }
 
+#***
+
+#****f* lyricue/biblebrowser_verse
+# NAME
+#   biblebrowser_verse
+# SYNOPSIS
+#   biblebrowser_verse($widget, $chapter, $source)
+# FUNCTION
+#   biblebrowser_verse called from ".$source.":
+# INPUTS
+#   $widget - 
+#    $chapter - 
+#    $source - 
+# OUTPUT
+# SOURCE
+#
 sub biblebrowser_verse {
     my ($widget, $chapter, $source) = @_;
     debug("biblebrowser_verse called from ".$source.":".$chapter);
@@ -9435,6 +11077,22 @@ sub biblebrowser_verse {
     }
 }
 
+#***
+
+#****f* lyricue/biblebrowser_loaditems
+# NAME
+#   biblebrowser_loaditems
+# SYNOPSIS
+#   biblebrowser_loaditems($section, $items, $cols)
+# FUNCTION
+#   Filling bible section
+# INPUTS
+#   $section - 
+#    $items - 
+#    $cols - 
+# OUTPUT
+# SOURCE
+#
 sub biblebrowser_loaditems {
     my ($section, $items, $cols) = @_;
     debug("Filling bible section");
@@ -9466,6 +11124,19 @@ sub biblebrowser_loaditems {
 	$widgets->{'main'}->get_widget('textBible')->show_all();
 }
 
+#***
+
+#****f* lyricue/firstrun_wizard
+# NAME
+#   firstrun_wizard
+# SYNOPSIS
+#   firstrun_wizard()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub firstrun_wizard {
         $config = load_config();
         $widgets->{'firstrunxml'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'assistantFirstRun', 'lyricue');
@@ -9474,11 +11145,37 @@ sub firstrun_wizard {
         $widgets->{'firstrun'}->show_all();
 }
 
+#***
+
+#****f* lyricue/firstrun_cancel
+# NAME
+#   firstrun_cancel
+# SYNOPSIS
+#   firstrun_cancel()
+# FUNCTION
+#   Cancelled Wizard
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub firstrun_cancel {
     debug("Cancelled Wizard");
     firstrun_close();
 }
 
+#***
+
+#****f* lyricue/firstrun_close
+# NAME
+#   firstrun_close
+# SYNOPSIS
+#   firstrun_close()
+# FUNCTION
+#   Closing Wizard
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub firstrun_close {
     debug("Closing Wizard");
     close_dialog($widgets->{'firstrun'});
@@ -9487,6 +11184,19 @@ sub firstrun_close {
     }
 }
 
+#***
+
+#****f* lyricue/firstrun_prepare
+# NAME
+#   firstrun_prepare
+# SYNOPSIS
+#   firstrun_prepare()
+# FUNCTION
+#   prepare page:
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub firstrun_prepare {
     debug("prepare page:".$widgets->{'firstrun'}->get_current_page);
     my $page = $widgets->{'firstrun'}->get_nth_page($widgets->{'firstrun'}->get_current_page);
@@ -9580,6 +11290,19 @@ sub firstrun_prepare {
     $widgets->{'firstrun'}->set_page_header_image($page, $pixbuf);
 }
 
+#***
+
+#****f* lyricue/firstrun_pw_changed
+# NAME
+#   firstrun_pw_changed
+# SYNOPSIS
+#   firstrun_pw_changed()
+# FUNCTION
+#   Firstrun login changed
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub firstrun_pw_changed {
     debug("Firstrun login changed");
     reset_timer($globals->{'nav_update_timer'});
@@ -9587,6 +11310,19 @@ sub firstrun_pw_changed {
       Glib::Timeout->add(500, \&firstrun_pw_check);
 }
 
+#***
+
+#****f* lyricue/firstrun_pw_check
+# NAME
+#   firstrun_pw_check
+# SYNOPSIS
+#   firstrun_pw_check()
+# FUNCTION
+#   Checking login
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub firstrun_pw_check {
     debug("Checking login");
     reset_timer($globals->{'fr_update_timer'});
@@ -9614,6 +11350,19 @@ my ($dbh);
     }
 }
 
+#***
+
+#****f* lyricue/firstrun_apply
+# NAME
+#   firstrun_apply
+# SYNOPSIS
+#   firstrun_apply()
+# FUNCTION
+#   Apply Wizard
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub firstrun_apply {
     debug("Apply Wizard");
     # Confirmed changes - so save them
@@ -9676,5 +11425,19 @@ sub firstrun_apply {
     }
 }
 
+#***
+
+#****f* lyricue/firstrun_bible
+# NAME
+# SYNOPSIS
+#   firstrun_bible()
+# FUNCTION
+#   
+# INPUTS
+# OUTPUT
+# SOURCE
+#
 sub firstrun_bible {
 }
+#***
+
