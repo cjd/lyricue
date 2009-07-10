@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: lyricue 2.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-06-17 07:49+1000\n"
-"PO-Revision-Date: 2009-06-18 14:37+1000\n"
+"PO-Revision-Date: 2009-07-10 07:14+1000\n"
 "Last-Translator: Chris Debenham <chris@adebenham.com>\n"
 "Language-Team: de <lds-devel@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -23,7 +23,7 @@ msgid ""
 "Please confirm that Lyricue is installed correctly and MySQL is running"
 msgstr ""
 "Es tut mir leid, aber ich konnte die Liedtext-Datenbank nicht öffnen.\n"
-"Bitte überprüfen sie, ob Lyricue korrekt installiert ist und MySQL läuft."
+"Bitte überprüfen sie, ob Lyricue korrekt installiert ist und ob MySQL läuft."
 
 #: lyricue:240
 #: lyricue_server:206
@@ -33,7 +33,7 @@ msgid ""
 "The requested database was named "
 msgstr ""
 "Es tut mir leid, aber ich konnte die Bibel-Datenbank nicht öffnen.\n"
-"Bitte überprüfen sie, ob Lyricue korrekt installiert ist und die aktuelle Bibel-Datenbank existiert.\n"
+"Bitte überprüfen sie, ob Lyricue korrekt installiert ist und ob die aktuelle Bibel-Datenbank existiert.\n"
 "Die angeforderte Datenbank heißt "
 
 #: lyricue:245
@@ -42,7 +42,7 @@ msgid ""
 "Please confirm that Lyricue is installed correctly and MySQL is running"
 msgstr ""
 "Es tut mir leid, aber ich konnte die Medien-Datenbank nicht öffnen.\n"
-"Bitte überprüfen sie, ob Lyricue korrekt installiert ist und MySQL läuft."
+"Bitte überprüfen sie, ob Lyricue korrekt installiert ist und ob MySQL läuft."
 
 #: lyricue:249
 #: lyricue_server:210
@@ -68,25 +68,27 @@ msgid ""
 "Sorry, I was unable to listen on the network.\n"
 "Please make sure I am not already running"
 msgstr ""
-"Sorry, Ich konnte nicht auf dem Netzwerk lauschen.\n"
-"Bitte sorgen sie dafür, dass ich nicht bereits laufe"
+"Es tut mir leid, ich konnte nicht auf dem Netzwerk lauschen.\n"
+"Bitte sorgen Sie dafür, dass ich nicht bereits laufe"
 
 #: lyricue:257
 msgid "Could not open "
-msgstr "Konnte nicht öffnen"
+msgstr "Konnte nicht öffnen "
 
 #: lyricue:260
 msgid ""
 "Unable to read the file, are you sure it exists?\n"
 "The file asked for was "
-msgstr "Die Datei kann nicht gelesen werden, sind sie sicher, dass sie existiert?Die angeforderte Datei heißt "
+msgstr ""
+"Die Datei kann nicht gelesen werden; sind Sie sicher, dass sie existiert?\n"
+"Die angeforderte Datei heißt "
 
 #: lyricue:265
 msgid ""
 "Unable to write to the file, you may not have sufficent permissions.\n"
 "Please check the permissions for "
 msgstr ""
-"Die Datei kann nicht geschrieben werden, sie haben wahrscheinlich nicht genügend Rechte.\n"
+"Auf die Datei kann nicht geschrieben werden, Sie haben wahrscheinlich nicht genügend Rechte.\n"
 "Bitte überprüfen sie die Rechte für "
 
 #: lyricue:270
@@ -103,12 +105,25 @@ msgid ""
 "\t-w:  Don't maximize on startup\n"
 "\n"
 msgstr ""
+"\n"
+"Verwendung: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n"
+"\n"
+"\t-v:  Versionsinformationen ausgeben und beenden\n"
+"\t-l:  Outputs song list in HTML & exits\n"
+"\t-b:  Loads Lyricue without background previews\n"
+"\t-s:  Host angeben, auf dem sich der Liedtext-Server befindet\n"
+"\t-r:  Host angeben, auf dem sich der MySQL-Server befindet\n"
+"\t-d:  Debugging-Nachrichten ausgeben\n"
+"\t-w:  Nicht maximieren beim Start\n"
+"\n"
 
 #: lyricue:283
 msgid ""
 "No bible has been selected\n"
 "Please select one from the menu"
 msgstr ""
+"Keine Bibel wurde ausgewählt\n"
+"Bitte wählen Sie eine aus dem Menü aus"
 
 #: lyricue:398
 msgid ""
@@ -116,6 +131,9 @@ msgid ""
 "It is now ~/.local/share/lyricue\n"
 "If you do not wish to do this press Cancel and Lyricue will exit"
 msgstr ""
+"Das Verzeichnis der Konfigurationsdateien wurde geändert.\n"
+"Es ist jetzt ~/.local/share/lyricue\n"
+"Wenn Sie das nicht möchten, drücken Sie bitte Abbrechen, und Lyricue wird beendet."
 
 #: lyricue:905
 #: lyricue:4418
@@ -142,7 +160,7 @@ msgstr "/Lösche Lied"
 
 #: lyricue:1053
 msgid "/Refresh List"
-msgstr "/Liste auffrischen"
+msgstr "/Liste neu laden"
 
 #: lyricue:1057
 msgid "/Order - Songbook -> No."
@@ -166,7 +184,7 @@ msgstr "/Aus Playlist entfernen"
 
 #: lyricue:1148
 msgid "/Refresh Playlist"
-msgstr "/Playliste auffrischen"
+msgstr "/Playliste neu laden"
 
 #: lyricue:1149
 msgid "/Add Verse"
@@ -186,7 +204,7 @@ msgstr "/Hintergrund zuordnen"
 
 #: lyricue:1157
 msgid "/Dis-associate background"
-msgstr "/Hintergrund entfernen"
+msgstr "/Hintergrundzuordnung entfernen"
 
 #: lyricue:1161
 msgid "/Preview this item"
@@ -203,7 +221,7 @@ msgstr "/In Unterliste verschieben/"
 #: lyricue:1244
 #: lyricue:7596
 msgid "Are you sure you wish to delete "
-msgstr "Sind sie sicher, daß sie folgendes Lied löschen wollen?"
+msgstr "Sind sie sicher, dass sie folgendes Lied löschen wollen? "
 
 #: lyricue:1249
 msgid "from the book \""
@@ -222,10 +240,9 @@ msgstr "Seite "
 
 #: lyricue:2567
 msgid "Are you sure you wish to clear the current playlist?"
-msgstr "Sind sie sicher, daß sie die aktuelle Playliste löschen wollen? "
+msgstr "Sind sie sicher, dass sie die aktuelle Playliste löschen wollen? "
 
 #: lyricue:2570
-#, fuzzy
 msgid "Confirm Clear Playlist"
 msgstr "Playliste löschen bestätigen"
 
@@ -252,7 +269,6 @@ msgid "Previewed "
 msgstr "Vorschau von "
 
 #: lyricue:3427
-#, fuzzy
 msgid "Select "
 msgstr "Wähle "
 
@@ -261,24 +277,21 @@ msgid " Colour"
 msgstr " Farbe"
 
 #: lyricue:4428
-#, fuzzy
 msgid "Song No"
 msgstr "Liederbuch"
 
 #: lyricue:4847
-#, fuzzy
 msgid "Renaming "
-msgstr "Umbenennen"
+msgstr "Umbenennen "
 
 #: lyricue:5432
 #: lyricue:5475
 msgid "Importing presentation"
-msgstr ""
+msgstr "Importiere Präsentation"
 
 #: lyricue:6012
 #: lyricue:7243
 #: lyricue:7498
-#, fuzzy
 msgid "Select Category"
 msgstr "Kategorie auswählen"
 
@@ -289,18 +302,16 @@ msgstr "Neue Unterliste anlegen"
 
 #: lyricue:6351
 #: lyricue:6461
-#, fuzzy
 msgid "Name of sublist"
 msgstr "/In Unterliste verschieben/"
 
 #: lyricue:6388
-#, fuzzy
 msgid "Choose a Background"
-msgstr "Standard Hintergrund"
+msgstr "Hintergrund auswählen"
 
 #: lyricue:6404
 msgid "Set as Default"
-msgstr "Als Vorgabe setzen"
+msgstr "Als Standard setzen"
 
 #: lyricue:6861
 msgid ""
@@ -309,21 +320,22 @@ msgid ""
 "To fix please edit /etc/lyricue/access.conf and add an entry for this user.\n"
 "Click OK to continue anyway or Cancel to Exit"
 msgstr ""
+"Dieser Benutzer hat kein Zugriffseintrag.\n"
+"Standardmäßig wird er vollen Zugriff haben.\n"
+"Um das zu beheben, editieren Sie bitte /etc/lyricue/access.conf und fügen Sie einen Eintrag für diesen Benutzer hinzu.\n"
+"Klicken Sie auf OK, um trotzdem fortzufahren, oder auf Abbrechen, um das Programm zu beenden."
 
 #: lyricue:6932
-#, fuzzy
 msgid "Add a user"
 msgstr "Benutzer hinzufügen"
 
 #: lyricue:6933
-#, fuzzy
 msgid "Enter username"
-msgstr "Nutzernamen eingeben"
+msgstr "Benutzernamen eingeben"
 
 #: lyricue:7603
-#, fuzzy
 msgid "Confirm Delete Image"
-msgstr "Bestätige Lied löschen"
+msgstr "Bestätige Bild löschen"
 
 #: lyricue:7693
 msgid "Select Database Backup file"
@@ -335,38 +347,35 @@ msgstr "Datenbank- Wiederherstellung bestätigen"
 
 #: lyricue:7706
 msgid "WARNING: Restoring this database will overwrite your current database"
-msgstr ""
+msgstr "WARNUNG: Das Wiederherstellen dieser Datenbank wird Ihre momentane Datenbank überschreiben"
 
 #: lyricue:8535
 msgid ""
 "Unable to login to database as admin, maybe the database is down.\n"
 "Please re-enter your database admin login and retry"
 msgstr ""
-"Kann mich nicht als Admin bei der Datenbank anmelden, vielleicht ist sie abgestürzt.\n"
+"Anmeldung bei der Datenbank als Admin nicht erfolgreich, vielleicht ist die Datenbank abgestürzt.\n"
 "Bitte Anmeldedaten erneut eingeben und nochmal versuchen"
 
 #: lyricue:8542
-#, fuzzy
 msgid "Login Error"
-msgstr "Lyricue Fehler"
+msgstr "Login-Fehler"
 
 #: lyricue:9074
-#, fuzzy
 msgid "Bible installed from "
-msgstr "Neuer Bibeltext"
+msgstr "Bibel installiert von"
 
 #: lyricue:9076
 msgid "Unable to load from "
-msgstr ""
+msgstr "Konnte nicht laden von "
 
 #: lyricue_server:201
-#, fuzzy
 msgid ""
 "I'm sorry but I could not open the lyric database.\n"
 "Please confirm that Lyricue is installed correctly and MySql is running"
 msgstr ""
 "Es tut mir leid, aber ich konnte die Liedtext-Datenbank nicht öffnen.\n"
-"Bitte überprüfen sie, ob Lyricue korrekt installiert ist und MySQL läuft."
+"Bitte überprüfen sie, ob Lyricue korrekt installiert ist und ob MySQL läuft."
 
 #: lyricue_server:463
 msgid "Configuration reloaded"
@@ -405,10 +414,9 @@ msgstr "_Datei"
 
 #: lyricue.glade:55
 msgid "Import Songlist"
-msgstr ""
+msgstr "Songliste importieren"
 
 #: lyricue.glade:76
-#, fuzzy
 msgid "_Edit"
 msgstr "_Bearbeiten"
 
@@ -418,22 +426,19 @@ msgstr "_Playliste"
 
 #: lyricue.glade:277
 msgid "Playlist _Item"
-msgstr "Playliste _Item"
+msgstr "Playlisten_element"
 
 #: lyricue.glade:379
-#, fuzzy
 msgid "_Display"
-msgstr "Anzeige"
+msgstr "_Anzeige"
 
 #: lyricue.glade:480
-#, fuzzy
 msgid "_Applications"
-msgstr "Anwendungen"
+msgstr "An_wendungen"
 
 #: lyricue.glade:487
-#, fuzzy
 msgid "_Bible"
-msgstr "Bibel"
+msgstr "_Bibel"
 
 #: lyricue.glade:494
 #: lyricue.glade:2004
@@ -451,23 +456,21 @@ msgstr "Nächste Seite"
 
 #: lyricue.glade:551
 msgid "Next Point"
-msgstr "Nächster Punkt"
+msgstr "Nächstes Element"
 
 #: lyricue.glade:564
 msgid "Blank Screen"
 msgstr "Bildschirm löschen"
 
 #: lyricue.glade:577
-#, fuzzy
 msgid "Clear Text"
 msgstr "Text löschen"
 
 #: lyricue.glade:590
 msgid "Pause Media"
-msgstr ""
+msgstr "Medium anhalten"
 
 #: lyricue.glade:603
-#, fuzzy
 msgid "Add File"
 msgstr "Datei hinzufügen"
 
@@ -482,18 +485,16 @@ msgid "Advanced Search"
 msgstr "Erweiterte Suche"
 
 #: lyricue.glade:665
-#, fuzzy
 msgid "Search the songlist directly"
-msgstr "Liederliste durchsuchen"
+msgstr "Songliste durchsuchen"
 
 #: lyricue.glade:674
 msgid "gtk-clear"
-msgstr ""
+msgstr "Löschen"
 
 #: lyricue.glade:679
-#, fuzzy
 msgid "Clear Search Field"
-msgstr "Bildschirm löschen"
+msgstr "Suchfeld löschen"
 
 #: lyricue.glade:723
 #: lyricue.glade:1719
@@ -515,7 +516,6 @@ msgid "Add to playlist"
 msgstr "Zur Playliste hinzufügen"
 
 #: lyricue.glade:775
-#, fuzzy
 msgid "Songs"
 msgstr "Liederbuch"
 
@@ -529,15 +529,13 @@ msgid "Previous"
 msgstr "Vorherige"
 
 #: lyricue.glade:879
-#, fuzzy
 msgid "Background preview"
-msgstr "Hintergrund"
+msgstr "Hintergrund-Vorschau"
 
 #: lyricue.glade:899
 #: lyricue.glade:5417
-#, fuzzy
 msgid "Backgrounds"
-msgstr "Hintergrund"
+msgstr "Hintergründe"
 
 #: lyricue.glade:952
 #: lyricue.glade:1161
@@ -546,12 +544,10 @@ msgstr "Zur Playliste hinzufügen"
 
 #: lyricue.glade:976
 #: lyricue.glade:5404
-#, fuzzy
 msgid "Images"
 msgstr "Bilder"
 
 #: lyricue.glade:1012
-#, fuzzy
 msgid "Files"
 msgstr "Dateien"
 
@@ -560,22 +556,18 @@ msgid "Enter Verse to display"
 msgstr "Anzuzeigenden Vers eingeben"
 
 #: lyricue.glade:1040
-#, fuzzy
 msgid "<"
 msgstr "<"
 
 #: lyricue.glade:1066
-#, fuzzy
 msgid ">"
 msgstr ">"
 
 #: lyricue.glade:1159
-#, fuzzy
 msgid "Add these verses to the playlist"
-msgstr "Einen Vers zur Playliste hinzufügen"
+msgstr "Diese Verse zur Playliste hinzufügen"
 
 #: lyricue.glade:1175
-#, fuzzy
 msgid "Show Now"
 msgstr "Zeigen"
 
@@ -586,7 +578,7 @@ msgstr "Zeigen"
 
 #: lyricue.glade:1191
 msgid "Autoshow"
-msgstr ""
+msgstr "Automatisch anzeigen"
 
 #: lyricue.glade:1214
 #: lyricue.glade:5301
@@ -604,19 +596,19 @@ msgstr "Keine Playliste geladen"
 
 #: lyricue.glade:1333
 msgid "Move the current item down"
-msgstr "Das aktuelle Element nach unten bewegen"
+msgstr "Das aktuelle Element nach unten schieben"
 
 #: lyricue.glade:1334
 msgid "Move Down"
-msgstr "Nach unten bewegen"
+msgstr "Nach unten schieben"
 
 #: lyricue.glade:1348
 msgid "Move the current item up"
-msgstr "Das aktuelle Element nach oben bewegen"
+msgstr "Das aktuelle Element nach oben schieben"
 
 #: lyricue.glade:1349
 msgid "Move Up"
-msgstr "Nach oben bewegen"
+msgstr "Nach oben schieben"
 
 #: lyricue.glade:1363
 msgid "Remove the current item from the playlist"
@@ -645,7 +637,7 @@ msgstr "Speichern"
 
 #: lyricue.glade:1596
 msgid "Choose Your Playlist"
-msgstr "Wähle Deine Playliste aus"
+msgstr "Playliste auswählen"
 
 #: lyricue.glade:1669
 msgid "Load"
@@ -677,7 +669,7 @@ msgstr "Seite"
 
 #: lyricue.glade:1996
 msgid "Insert preset copyright"
-msgstr "Standard Copyright einfügen"
+msgstr "Standard-Copyright einfügen"
 
 #: lyricue.glade:2038
 msgid "Song Book"
@@ -713,12 +705,11 @@ msgstr "Themen des Liedes"
 
 #: lyricue.glade:2161
 msgid "Any copyright information"
-msgstr "Jegliche Copyright Information"
+msgstr "Jegliche Copyright-Information"
 
 #: lyricue.glade:2173
-#, fuzzy
 msgid "Audit Song"
-msgstr "Lieder prüfen"
+msgstr "Lied prüfen"
 
 #: lyricue.glade:2195
 msgid "Artist"
@@ -816,7 +807,6 @@ msgid "Sublist"
 msgstr "Unterliste"
 
 #: lyricue.glade:2948
-#, fuzzy
 msgid "Move"
 msgstr "Verschieben"
 
@@ -859,21 +849,18 @@ msgid "You should never read this"
 msgstr "Sie sollten dies nie lesen"
 
 #: lyricue.glade:3751
-#, fuzzy
 msgid "Previous Song"
-msgstr "Vorherige Seite"
+msgstr "Vorheriges Lied"
 
 #: lyricue.glade:3765
-#, fuzzy
 msgid "Next Song"
-msgstr "Nächster Punkt"
+msgstr "Nächstes Lied"
 
 #: lyricue.glade:3779
 msgid "Previous Page"
 msgstr "Vorherige Seite"
 
 #: lyricue.glade:3807
-#, fuzzy
 msgid "Clear Screen"
 msgstr "Bildschirm löschen"
 
@@ -882,14 +869,12 @@ msgid "Lyricue Error"
 msgstr "Lyricue Fehler"
 
 #: lyricue.glade:3849
-#, fuzzy
 msgid "label"
 msgstr "Beschriftung"
 
 #: lyricue.glade:3855
-#, fuzzy
 msgid "Details"
-msgstr "Details"
+msgstr ""
 
 #: lyricue.glade:3898
 msgid "Lyricue Administration"
@@ -916,13 +901,12 @@ msgid "Transition"
 msgstr "Übergang"
 
 #: lyricue.glade:4089
-#, fuzzy
 msgid "Fade"
 msgstr "Übergang"
 
 #: lyricue.glade:4104
 msgid "Wipe to Black"
-msgstr "Nach schwarz wischen"
+msgstr "Übergang nach schwarz"
 
 #: lyricue.glade:4121
 msgid "Slide Text"
@@ -930,7 +914,7 @@ msgstr "Gleittext"
 
 #: lyricue.glade:4137
 msgid "Rotate Text"
-msgstr ""
+msgstr "Text rotieren"
 
 #: lyricue.glade:4168
 msgid "Out Direction"
@@ -986,17 +970,17 @@ msgstr "Nach unten + Rechts"
 #: lyricue.glade:4267
 #: lyricue.glade:4422
 msgid "X-Axis"
-msgstr ""
+msgstr "X-Achse"
 
 #: lyricue.glade:4274
 #: lyricue.glade:4429
 msgid "Y-Axis"
-msgstr ""
+msgstr "Y-Achse"
 
 #: lyricue.glade:4281
 #: lyricue.glade:4436
 msgid "Z-Axis"
-msgstr ""
+msgstr "Z-Achse"
 
 #: lyricue.glade:4293
 #: lyricue.glade:4448
@@ -1008,14 +992,12 @@ msgid "In Direction"
 msgstr "In Richtung"
 
 #: lyricue.glade:4484
-#, fuzzy
 msgid "Apply to Selected"
 msgstr "Anwenden auf Auswahl"
 
 #: lyricue.glade:4500
-#, fuzzy
 msgid "Apply to Playlist"
-msgstr "Zur Playliste hinzufügen"
+msgstr "Anwenden auf Playliste"
 
 #: lyricue.glade:4516
 msgid "Close"
@@ -1027,7 +1009,7 @@ msgstr "Einstellungen"
 
 #: lyricue.glade:4558
 msgid "Fonts used for projector"
-msgstr "Schriftart für den Projektor"
+msgstr "Schriftart für den Beamer"
 
 #: lyricue.glade:4597
 #: lyricue.glade:5820
@@ -1047,7 +1029,7 @@ msgstr "Kopfzeile"
 
 #: lyricue.glade:4701
 msgid "Shadow Offset"
-msgstr "Schatten Offset"
+msgstr "Schatten-Offset"
 
 #: lyricue.glade:4750
 msgid "Fonts"
@@ -1055,7 +1037,7 @@ msgstr "Schriftarten"
 
 #: lyricue.glade:4763
 msgid "Settings for projector"
-msgstr ""
+msgstr "Beamer-Einstellungen"
 
 #: lyricue.glade:4789
 msgid "Width"
@@ -1078,9 +1060,8 @@ msgid "Xinerama"
 msgstr "Xinerama"
 
 #: lyricue.glade:4930
-#, fuzzy
 msgid "Vertical Text Location"
-msgstr "Vertikaler Overscan"
+msgstr "Vertikale Textposition"
 
 #: lyricue.glade:4942
 msgid ""
@@ -1093,9 +1074,8 @@ msgstr ""
 "Unten"
 
 #: lyricue.glade:4959
-#, fuzzy
 msgid "Server Type"
-msgstr "Server"
+msgstr "Serverart"
 
 #: lyricue.glade:4973
 msgid "OpenGL"
@@ -1103,20 +1083,19 @@ msgstr ""
 
 #: lyricue.glade:4988
 msgid "Canvas - depreciated"
-msgstr ""
+msgstr "Leinwand - veraltet"
 
 #: lyricue.glade:5005
 msgid "Simple - depreciated"
-msgstr ""
+msgstr "Einfach - veraltet"
 
 #: lyricue.glade:5033
 msgid "Text Justification"
 msgstr "Textausrichtung"
 
 #: lyricue.glade:5046
-#, fuzzy
 msgid "Horizontal Text Location"
-msgstr "Vertikaler Overscan"
+msgstr "Horizontale Textposition"
 
 #: lyricue.glade:5058
 #: lyricue.glade:5074
@@ -1125,6 +1104,9 @@ msgid ""
 "Centre\n"
 "Right"
 msgstr ""
+"Links\n"
+"Mitte\n"
+"Rechts"
 
 #: lyricue.glade:5092
 msgid "Top"
@@ -1132,7 +1114,7 @@ msgstr "Oben"
 
 #: lyricue.glade:5101
 msgid "Centre"
-msgstr "Aktuell"
+msgstr "Mitte"
 
 #: lyricue.glade:5110
 msgid "Bottom"
@@ -1144,18 +1126,16 @@ msgstr "Server"
 
 #: lyricue.glade:5154
 #: lyricue.glade:5176
-#, fuzzy
 msgid "Select the Default Background"
-msgstr "Standard Hintergrund"
+msgstr "Standard-Hintergrund auswählen"
 
 #: lyricue.glade:5198
 msgid "Background"
 msgstr "Hintergrund"
 
 #: lyricue.glade:5212
-#, fuzzy
 msgid "Various defaults"
-msgstr "Als Default setzen"
+msgstr "Als Standard setzen"
 
 #: lyricue.glade:5231
 msgid "Loop pages"
@@ -1187,42 +1167,36 @@ msgstr "Optionen"
 
 #: lyricue.glade:5367
 msgid "Special items that will be first in lists"
-msgstr ""
+msgstr "Besondere Elemente, die als erste in Listen erscheinen"
 
 #: lyricue.glade:5393
-#, fuzzy
 msgid "Available songs"
 msgstr "Verfügbare Lieder"
 
 #: lyricue.glade:5430
 msgid "Today's Announcements"
-msgstr "Bekanntgaben"
+msgstr "Heutige Bekanntmachungen"
 
 #: lyricue.glade:5470
-#, fuzzy
 msgid "Image Directory"
 msgstr "Bildverzeichnis"
 
 #: lyricue.glade:5483
-#, fuzzy
 msgid "Backgrounds Directory"
-msgstr "Hintergrund"
+msgstr "Hintergrundverzeichnis"
 
 #: lyricue.glade:5521
 #: lyricue.glade:5573
-#, fuzzy
 msgid "Folder"
 msgstr "Ordner"
 
 #: lyricue.glade:5609
-#, fuzzy
 msgid "Specials"
-msgstr "Besondere Zeichen"
+msgstr "Besonderes"
 
 #: lyricue.glade:5623
-#, fuzzy
 msgid "Recovery Options"
-msgstr "Offenbarung"
+msgstr "Optionen zur Datenwiederherstellung"
 
 #: lyricue.glade:5642
 msgid "Backup Database"
@@ -1230,36 +1204,35 @@ msgstr "Sicherung der Datenbank"
 
 #: lyricue.glade:5657
 msgid "Restore Database"
-msgstr ""
+msgstr "Datenbank wiederherstellen"
 
 #: lyricue.glade:5673
 msgid ""
 "Database Server\n"
 "<i>Note: You will need to backup/restore your database when changing</i>"
 msgstr ""
+"Datenbank-Server\n"
+"<i>Beachten Sie: Für eine Änderung ist es notwendig, Ihre Datenbank zu sichern/wiederherzustellen</i>"
 
 #: lyricue.glade:5686
 msgid "Use MySQL"
-msgstr ""
+msgstr "MySQL benutzen"
 
 #: lyricue.glade:5701
 msgid "Use SQLite"
-msgstr ""
+msgstr "SQLite benutzen"
 
 #: lyricue.glade:5723
-#, fuzzy
 msgid "Advanced"
-msgstr "Komplex"
+msgstr "Erweitert"
 
 #: lyricue.glade:5754
-#, fuzzy
 msgid "Layout"
 msgstr "Anordnung"
 
 #: lyricue.glade:5786
-#, fuzzy
 msgid "Main text"
-msgstr "Haupteinstellungen"
+msgstr "Hauptbereich"
 
 #: lyricue.glade:5853
 msgid "Customize"
@@ -1268,17 +1241,15 @@ msgstr "Anpassen"
 #: lyricue.glade:5916
 #: lyricue.glade:5927
 msgid "Select Databases to backup"
-msgstr "Zu sichernde Datenbank auswählen"
+msgstr "Zu sichernde Datenbanken auswählen"
 
 #: lyricue.glade:5940
-#, fuzzy
 msgid "Songs, Playlists, Usage"
-msgstr "Keine Playliste geladen"
+msgstr "Lieder, Playlisten, Benutzung"
 
 #: lyricue.glade:5956
-#, fuzzy
 msgid "Images, Backgrounds, Media"
-msgstr "Hintergrund importieren"
+msgstr "Bilder, Hintergründe, Medien"
 
 #: lyricue.glade:5987
 msgid "File to save as"
@@ -1293,32 +1264,28 @@ msgid "Enter Login details"
 msgstr "Anmeldedetails eingeben"
 
 #: lyricue.glade:6098
-#, fuzzy
 msgid "Login name"
-msgstr "Loginname: "
+msgstr ""
 
 #: lyricue.glade:6111
-#, fuzzy
 msgid "Password"
-msgstr "Paßwort"
+msgstr "Kennwort"
 
 #: lyricue.glade:6124
-#, fuzzy
 msgid "root"
-msgstr "Anfang"
+msgstr ""
 
 #: lyricue.glade:6154
 msgid ""
 "Enter the login name and password\n"
 "of your MySQL Administration user"
 msgstr ""
-"Geben Sie Name und Passwort\n"
-"des MySQL- Administrators ein"
+"Geben Sie Name und Kennwort\n"
+"Ihres MySQL- Administration-Benutzers ein"
 
 #: lyricue.glade:6200
-#, fuzzy
 msgid "Bible Installer"
-msgstr "Bibelvers"
+msgstr "Bibel-Installationsassistent"
 
 #: lyricue.glade:6207
 msgid ""
@@ -1327,69 +1294,70 @@ msgid ""
 "Click the relevant button to load that site in your browser.\n"
 "Once downloaded come back here to install."
 msgstr ""
+"Wählen Sie die Datei aus, die die Bibel enthält, die Sie importieren möchten\n"
+"Neue Bibeln können von den unten angegebenen Websites heruntergeladen werden.\n"
+"Klicken Sie auf den entsprechenden Button, um diese Website in ihrem Browser zu laden.\n"
+"Kommen Sie bitte hierher wieder zurück, nachdem der Download abgeschlossen ist."
 
 #: lyricue.glade:6221
 msgid ""
 "Sword bibles\n"
 "http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles"
 msgstr ""
+"Sword-Bibeln\n"
+"http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles"
 
 #: lyricue.glade:6236
 msgid ""
 "LyricueDB bibles\n"
 "http://www.adebenham.com/lyricue/bibles.html"
 msgstr ""
+"LyricueDB-Bibeln\n"
+"http://www.adebenham.com/lyricue/bibles.html"
 
 #: lyricue.glade:6255
-#, fuzzy
 msgid "Select file to install"
-msgstr "Datei auswählen"
+msgstr "Datei zum Installieren auswählen"
 
 #: lyricue.glade:6325
-#, fuzzy
 msgid "Select Directory"
 msgstr "Verzeichnis wählen"
 
 #: lyricue.glade:6385
 msgid "Import Data from File"
-msgstr ""
+msgstr "Daten von Datei importieren"
 
 #: lyricue.glade:6400
 msgid "Use this dialog to import a songlist"
-msgstr ""
+msgstr "Diesen Dialog benutzen, um eine Songliste zu importieren"
 
 #: lyricue.glade:6408
-#, fuzzy
 msgid "Sample songlist"
-msgstr "/In Unterliste verschieben/"
+msgstr "Beispiel-Songliste"
 
 #: lyricue.glade:6423
 msgid "Note: This is not working yet"
-msgstr ""
+msgstr "Beachten Sie: Das funktioniert derzeit noch nicht"
 
 #: lyricue.glade:6435
-#, fuzzy
 msgid "Select file to import"
-msgstr "Datei auswählen"
+msgstr "Datei zum Importieren auswählen"
 
 #: lyricue.glade:6466
 #: lyricue.glade:6600
-#, fuzzy
 msgid "gtk-cancel"
 msgstr "Abbrechen"
 
 #: lyricue.glade:6481
 #: lyricue.glade:6614
 msgid "gtk-ok"
-msgstr ""
+msgstr "OK"
 
 #: lyricue.glade:6519
-#, fuzzy
 msgid "Select songs to import"
-msgstr "Schriftart wählen"
+msgstr "Lieder zum Importieren auswählen"
 
 #: lyricue.glade:6579
-#, fuzzy
 msgid "Select All"
 msgstr "Alles markieren"
 
