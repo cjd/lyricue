@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.196 2009/07/07 02:38:17 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.197 2009/07/13 05:05:18 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1926,7 +1926,7 @@ sub load_config {
 sub set_maintext {
     my ($text, $transition, $wrap) = @_;
     if (!defined $text) { $text = " "; }
-    $text = fromutf($text);
+    #$text = fromutf($text);
 
     if ($globals->{'server_type'} == SIMPLE) {
         set_maintext_simple($text, $transition, $wrap);
@@ -3668,7 +3668,7 @@ sub db_connect {
     } else {
         $dbh = DBI->connect(
             "DBI:" . $globals->{'db_type'} . ":$dbname:$globals->{'host'}",
-            "lyric", "")
+            "lyric", "" , {mysql_enable_utf8 => 1})
           || display_fatal($dberror, $DBI::errstr);
     }
     return $dbh;
@@ -3717,7 +3717,8 @@ sub HandleMouse {
 #
 sub fromutf {
     my ($line) = @_;
-    return Encode::decode("utf8", $line);
+    utf8::decode($line) unless utf8::is_utf8( $line );
+    return $line;
 }
 
 #***

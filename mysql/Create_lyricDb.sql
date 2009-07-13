@@ -8,7 +8,7 @@ CREATE TABLE `associations` (
   `imagename` varchar(255) NOT NULL default '',
   `absoluteparent` int(11) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-); 
+) DEFAULT CHARSET=utf8; 
 
 -- Table structure for table `audit`
 CREATE TABLE `audit` (
@@ -16,7 +16,7 @@ CREATE TABLE `audit` (
   `songid` int(11) NOT NULL default '0',
   `playdate` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`)
-);
+) DEFAULT CHARSET=utf8;
 
 -- Table structure for table `lyricMain`
 CREATE TABLE `lyricMain` (
@@ -30,7 +30,7 @@ CREATE TABLE `lyricMain` (
   `entered` timestamp NOT NULL default '0000-00-00 00:00:00',
   `copyright` varchar(100) default '',
   PRIMARY KEY  (`id`)
-);
+) DEFAULT CHARSET=utf8;
 
 -- Table structure for table `page`
 CREATE TABLE `page` (
@@ -39,7 +39,7 @@ CREATE TABLE `page` (
   `pagenum` int(11) NOT NULL default '0',
   `lyrics` text,
   PRIMARY KEY  (`pageid`)
-);
+) DEFAULT CHARSET=utf8;
 
 -- Table structure for table `playlist`
 CREATE TABLE `playlist` (
@@ -49,7 +49,7 @@ CREATE TABLE `playlist` (
   `type` varchar(4) default 'song',
   `transition` int(11) default '0',
   PRIMARY KEY  (`playorder`)
-);
+) DEFAULT CHARSET=utf8;
 
 -- Table structure for table `playlists`
 CREATE TABLE `playlists` (
@@ -57,7 +57,7 @@ CREATE TABLE `playlists` (
   `title` varchar(50) NOT NULL default '',
   `ref` varchar(50) NOT NULL default '',
   PRIMARY KEY  (`id`)
-);
+) DEFAULT CHARSET=utf8;
 
 
 -- Baseline Data

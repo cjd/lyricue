@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.301 2009/07/07 02:38:17 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.302 2009/07/13 05:05:17 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -630,7 +630,7 @@ sub update_playlist {
 #
 sub add_playlist {
     my ($playlist, $iter, $model, $selectedid, $expanded) = @_;
-    debug("Add playlist");
+    debug("Add playlist ".$playlist);
     my $query =
         "SELECT * FROM playlist WHERE playlist="
       . $playlist
@@ -692,7 +692,7 @@ sub add_playlist {
         } elsif ($row->{'type'} eq "song") {
             my $query2 =
               "SELECT lyrics FROM page WHERE pageid=" . $row->{'data'};
-            #qdebug($query2);
+            qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
             my $rv2 = $sth2->execute
@@ -754,7 +754,7 @@ sub add_playlist {
         my $newiter   = $model->append($iter);
         $model->set(
             $newiter,
-            0 => fromutf($title),
+            0 => $title,
             1 => undef,
             2 => $row->{'playorder'},
             3 => $row->{'transition'}
@@ -7801,7 +7801,7 @@ sub quick_save {
 
     if ($row[1] eq "play") {
         $query =
-          "SELECT data,type FROM playlist WHERE playlist=5 ORDER BY playorder";
+          "SELECT data,type FROM playlist WHERE playlist=".$row[0]. " ORDER BY playorder";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
@@ -8206,7 +8206,7 @@ sub update_quickedit {
                     $loop      = 1;
                     $widgets->{'main'}->get_widget('textQuick')
                       ->set_wrap_mode('none');
-                    $quicktext = fromutf($quicktext);
+                    $quicktext = $quicktext;
                 } elsif ($row[0] eq "play") {
                     $query =
                         "SELECT playorder FROM playlist WHERE playlist="
@@ -8806,7 +8806,7 @@ sub get_bibles {
     my $dbs = $globals->{'db_available_db'};
     foreach (keys %$dbs) {
         my $dbname = $_;
-        my $db     = db_connect($dbname, "");
+        my $db     = db_connect($dbname, $errorcodes->{'bibledbopen'});
         my @tables = $db->tables;
         my $table;
         foreach (@tables) {
@@ -9764,6 +9764,23 @@ sub db_check_app {
 #
 sub db_get_admin {
     debug("Get the db admin login information");
+    
+    my $dbh;
+    eval {
+        $dbh = DBI->connect(
+            "DBI:"
+              . $config->{'DatabaseType'}
+              . ":mysql:"
+              . $globals->{'mysqlhost'},
+            "root", ""
+        );
+    };
+    if ($dbh) {
+        $globals->{'db_adminuser'} = "root";
+        $globals->{'db_adminpassword'} = "";
+        return;
+    }
+
     if ($config->{'DatabaseType'} eq "mysql") {
         my $adminxml = Gtk2::GladeXML->new($globals->{'gladefile'},
             'dialogAdminLogin', 'lyricue');
@@ -9972,7 +9989,7 @@ sub db_installdb {
               . " --password="
               . $globals->{'db_adminpassword'});
     } else {
-        my $dbh = db_connect($db_name, "");
+        my $dbh = db_connect($db_name, "Unable to create DB:".$db_name );
         open(DB, $db_file);
         my $query = "";
         while (<DB>) {
@@ -10054,7 +10071,7 @@ sub db_updatedb_mediaDb {
 #
 sub db_updatedb_lyricDb {
     debug("Update the lyricDb table if needed");
-    my $dbh = db_connect($globals->{'lyricdb'}, "");
+    my $dbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
     my @tables = $dbh->tables;
     my $table;
     foreach (@tables) {
@@ -10096,6 +10113,39 @@ sub db_updatedb_lyricDb {
                 "lyricDb");
         }
     }
+
+    # Ensure all tables are in UTF8 characterset
+    my @toconvert = ();
+    foreach my $tname (keys %$table) {
+        my $fields = $dbh->selectall_arrayref("show create table ".$tname);
+        foreach (@$fields) {
+            if (! ($_->[1] =~ /CHARSET=utf8/) ) {
+                push @toconvert, $tname;
+            }
+        }
+        
+    }
+    if (@toconvert > 0) {
+        if ($globals->{'db_adminuser'} eq "") {
+            db_get_admin();
+        }
+        eval {
+            $dbh = DBI->connect(
+                "DBI:"
+                  . $config->{'DatabaseType'}
+                  . ":mysql:"
+                  . $globals->{'mysqlhost'},
+                  $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
+            );
+        };
+        if ($dbh) {
+            foreach (@toconvert) {
+                debug("Converting ".$_." to utf8");
+                $dbh->do("ALTER TABLE lyricDb.".$_." CONVERT TO CHARACTER SET utf8");
+            }
+        }
+    }
+    
 }
 
 #***
@@ -10236,10 +10286,9 @@ sub db_connect {
             "DBI:"
               . $config->{'DatabaseType'}
               . ":database=$dbname;host=$globals->{'mysqlhost'}",
-            "lyric", ""
+            "lyric",  "", {mysql_enable_utf8 => 1}
         ) || display_fatal($dberror, $DBI::errstr);
-        #my $sth = $dbh->prepare("SET NAMES utf8");
-        #$sth->execute();
+        $dbh->do('SET NAMES utf8');
     }
     return $dbh;
 }
@@ -10526,7 +10575,8 @@ sub alphanum {
 #
 sub fromutf {
     my ($line) = @_;
-    return Encode::decode("utf8", $line);
+    utf8::decode($line) unless utf8::is_utf8( $line );
+    return $line;
 }
 
 #***
