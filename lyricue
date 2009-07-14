@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.302 2009/07/13 05:05:17 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.303 2009/07/14 01:12:32 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -85,6 +85,7 @@ use strict;
 use warnings;
 use DBI;
 use POSIX;
+use locale;
 use IO::Socket::INET;
 use Encode;
 die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
@@ -105,6 +106,8 @@ if ($@) {
     }
 } else {
     import Locale::gettext;
+    #my $old_locale = setlocale(LC_ALL);
+    #setlocale(LC_ALL,"sv_SE.UTF-8");
     textdomain('lyricue');
 
     bind_textdomain_codeset('lyricue', "UTF-8");
