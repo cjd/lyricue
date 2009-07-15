@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.304 2009/07/14 02:17:30 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.305 2009/07/15 10:45:42 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -94,6 +94,7 @@ use Gtk2::GladeXML;
 use Gtk2::Pango;
 use Gtk2::Gdk::Keysyms;
 use URI::file;
+use XML::Simple;
 use File::Temp qw/tempdir/;
 
 eval { require Locale::gettext };
@@ -2004,7 +2005,9 @@ sub do_import_song {
     my $filename   = $filexml->get_widget('dialogFile')->get_filename;
     my $lcfilename = lc($filename);
 
-    if ($lcfilename =~ /txt$/) {
+    if ($lcfilename =~ /xml$/) {
+        import_song_xml($filename);
+    } elsif ($lcfilename =~ /txt$/) {
         import_song_text($filename);
     } elsif ($lcfilename =~ /sng$/) {
         import_song_songbeamer($filename);
@@ -2026,7 +2029,7 @@ sub do_import_song {
 # SYNOPSIS
 #   import_song_text ()
 # FUNCTION
-#   Import a shog which was stored as a text file
+#   Import a song which was stored as a text file
 # INPUTS
 #   $filename - File to import
 # OUTPUT
@@ -2111,6 +2114,44 @@ sub import_song_text {
         }
     }
     close SONG;
+}
+#***
+
+#****f* lyricue/import_song_xml
+# NAME
+#   import_song_xml
+# SYNOPSIS
+#   import_song_xml ($filename)
+# FUNCTION
+#   Import a song which was stored as an xml file
+# INPUTS
+#   $filename - File to import
+# OUTPUT
+#   Closes the interface
+# SOURCE
+sub import_song_xml {
+    my ($filename) = @_;
+    debug("import xml song");
+
+    my $xml = XMLin($filename, ForceArray=> ['page'], SuppressEmpty => '');
+    $widgets->{'add'}->get_widget('entryEditName')->set_text($xml->{'song'}->{'name'});
+    $widgets->{'add'}->get_widget('entryEditBook')->set_text($xml->{'song'}->{'book'});
+    $widgets->{'add'}->get_widget('entryEditNumber')->set_text($xml->{'song'}->{'number'});
+    $widgets->{'add'}->get_widget('entryEditArtist')->set_text($xml->{'song'}->{'artist'});
+    $widgets->{'add'}->get_widget('entryEditKeywords')->set_text($xml->{'song'}->{'keywords'});
+    $widgets->{'add'}->get_widget('entryEditCopyright')->set_text($xml->{'song'}->{'copyright'});
+    my $pages = $xml->{'song'}->{'page'};
+    my $firstpage=TRUE;
+    foreach (@$pages) {
+        debug("add page");
+        if ($firstpage) {
+            $firstpage=FALSE;
+            $widgets->{'textAPageB'}{0}->set_text($_);
+        } else {
+            my $hashnum = add_page();
+            $widgets->{'textAPageB'}{$hashnum}->set_text($_);
+        }
+    }
 }
 #***
 
@@ -4534,24 +4575,8 @@ sub complete_export_song {
     debug("Exporting song");
     my $export = $filexml->get_widget('dialogFile')->get_filename;
     close_dialog($widget);
-
-    my $name   = $widgets->{'add'}->get_widget('entryEditName')->get_text();
-    my $number = $widgets->{'add'}->get_widget('entryEditNumber')->get_text();
-    my $book   = $widgets->{'add'}->get_widget('entryEditBook')->get_text();
-    my $artist = $widgets->{'add'}->get_widget('entryEditArtist')->get_text();
-    my $keywords =
-      $widgets->{'add'}->get_widget('entryEditKeywords')->get_text();
-    my $copyright =
-      $widgets->{'add'}->get_widget('entryEditCopyright')->get_text();
-
     debug(" to file: " . $export);
-    open(EXPORT, ">$export") || return 0;
-    print(EXPORT "Name: " . $name . "\n");
-    print(EXPORT "Number: " . $number . "\n");
-    print(EXPORT "Book: " . $book . "\n");
-    print(EXPORT "Artist: " . $artist . "\n");
-    print(EXPORT "Keywords: " . $keywords . "\n");
-    print(EXPORT "Copyright: " . $copyright . "\n");
+
 
     # Find maximum number of pages
     my $maxpages = 1;
@@ -4562,18 +4587,30 @@ sub complete_export_song {
     #decrement maxpages so export works properly
     $maxpages = $maxpages - 1;
 
+    my @pages = ();
     foreach $page (sort { $pageOrder{$a} cmp $pageOrder{$b} } keys %pageOrder) {
         my $tmppage = get_buffer_text($widgets->{'textAPageB'}{$page});
 
-        if ($maxpages > 0) {
-            print(EXPORT $tmppage . "\n---\n");
-        } else {
-            print(EXPORT $tmppage);
-        }
-        $maxpages--;
+        push @pages, $tmppage;
     }
+    my $song = {
+                    'name' => [$widgets->{'add'}->get_widget('entryEditName')->get_text()],
+                    'number' => [$widgets->{'add'}->get_widget('entryEditNumber')->get_text()],
+                    'book' => [$widgets->{'add'}->get_widget('entryEditBook')->get_text()],
+                    'artist' => [$widgets->{'add'}->get_widget('entryEditArtist')->get_text()],
+                    'keywords' => [$widgets->{'add'}->get_widget('entryEditKeywords')->get_text()],
+                    'copyright' => [$widgets->{'add'}->get_widget('entryEditCopyright')->get_text()],
+                    'page' => \@pages
+                };
 
-    close EXPORT;
+
+    my $out = { 'song' => [$song] };
+
+    my $writer = XML::Simple->new();
+    open my $fh, ">".$export;
+    $writer->XMLout($out, OutputFile => $fh, RootName => 'lyricue');
+    close $fh;
+    
 
 }
 #***
@@ -9898,7 +9935,7 @@ sub db_check_databases {
         }
     } else {
         opendir(DIR, $globals->{'basedir'});
-        while ($_ = sort readdir(DIR)) {
+        while (sort readdir(DIR)) {
             if (/.db$/) {
                 $_ =~ s/.db$//g;
                 $globals->{'db_available_db'}{$_} = TRUE;

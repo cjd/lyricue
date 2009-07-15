@@ -1,4 +1,4 @@
-CREATE DATABASE lyricDb;
+CREATE DATABASE lyricDb CHARSET=utf8;
 USE lyricDb;
 
 -- Table structure for table `associations`
