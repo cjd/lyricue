@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.305 2009/07/15 10:45:42 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.306 2009/07/17 05:03:09 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -8653,6 +8653,8 @@ sub restore_db {
     if ($response eq "ok") {
         my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
         close_dialog($fileDialog->get_widget('dialogFile'));
+        import_songs($filename);
+        return;
 
         my $confirmDialog = Gtk2::GladeXML->new($globals->{'gladefile'},
             'dialogConfirm', 'lyricue');
@@ -8712,7 +8714,111 @@ sub restore_db {
         close_dialog($fileDialog->get_widget('dialogFile'));
     }
 }
+#***
 
+#****f* lyricue/import_songs
+# NAME
+#   import_songs
+# SYNOPSIS
+#   import_songs($filename)
+# FUNCTION
+#   Import the songs from a single xml file
+# INPUTS
+#   $filename - file to import songs from
+# OUTPUT
+# SOURCE
+#
+sub import_songs {
+    my ($filename) = @_;
+
+    open my $fh, "gzip -dc ".$filename."|";
+    my $xml = XMLin($fh, ForceArray=> ['song','page'], SuppressEmpty => '', NoAttr => 1, KeyAttr=>[]);
+    close $fh;
+    my $songs = $xml->{'song'};
+    foreach my $song (@$songs) {
+        # Find next id
+        my $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
+        my $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
+        my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
+        my @row = $sth->fetchrow_array;
+        my $songid = $row[0];
+        debug("Song number: " . $songid);
+        $query = "INSERT INTO lyricMain ( id, title, songnum, book, artist, keywords, copyright, entered, written ) VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
+        $rv = $sth->execute($songid, $song->{'name'}, $song->{'number'}, $song->{'book'}, $song->{'artist'}, $song->{'keywords'}, $song->{'copyright'}) || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
+
+        my $pages = $song->{'page'};
+        my $pagenum = 0;
+        foreach (@$pages) {
+            $pagenum++;
+            debug("Page Add : ".$pagenum);
+            $query =
+                "INSERT INTO page (songid,pagenum,lyrics) VALUES (" 
+              . $songid . ", "
+              . $pagenum . ", "
+              . quote($_)
+              . ")";
+            qdebug($query);
+            $sth = $lyricDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
+            $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
+        }
+    }
+}
+#***
+
+#****f* lyricue/export_songs
+# NAME
+#   export_songs
+# SYNOPSIS
+#   export_songs($filename)
+# FUNCTION
+#   Export the songs into a single xml file
+# INPUTS
+#   $filename - file to save songs as
+# OUTPUT
+# SOURCE
+#
+sub export_songs {
+    my ($filename) = @_;
+
+    my @songs = ();
+
+    my $query =  "SELECT * FROM lyricMain";
+    qdebug ($query);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
+    my $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
+    while (my $row = $sth->fetchrow_hashref()) {
+        my $query2 = "SELECT lyrics FROM page WHERE songid=".$row->{'id'}." ORDER BY pagenum";
+        my $sth2 = $lyricDbh->prepare($query2)
+           || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query2);
+        my $rv2 = $sth2->execute || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query2);
+        my @pages = ();
+        while (my $row2 = $sth2->fetchrow_hashref()) {
+            push @pages, $row2->{'lyrics'};
+        }
+
+        my $song = {
+            'name' => [$row->{'title'}],
+            'number' => [$row->{'songnum'}],
+            'book' => [$row->{'book'}],
+            'artist' => [$row->{'artist'}],
+            'keywords' => [$row->{'keywords'}],
+            'copyright' => [$row->{'copyright'}],
+            'page' => \@pages
+        };
+        push @songs, $song;
+    }
+    my $out = {'song' => \@songs};
+    my $writer = XML::Simple->new();
+    open my $fh, "| gzip -c - >".$filename;
+    $writer->XMLout($out, OutputFile => $fh, RootName => 'lyricue');
+    close $fh;
+    
+}
 #***
 
 #****f* lyricue/backup_db
@@ -8737,6 +8843,9 @@ sub backup_db {
     if ($response eq "ok") {
         my $filename =
           $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->get_text();
+        export_songs($filename);
+    close_dialog($widgets->{'backupdb'}->get_widget('dialogDatabase'));
+        return;
         if (!($filename =~ /\.gz$/)) {
             $filename .= ".gz";
         }
@@ -8748,13 +8857,6 @@ sub backup_db {
             $databases .= "mediaDb ";
         }
 
-        # This will need to be written to support sqlite
-        #foreach (split(/ /,$databases)){
-        #my $db= db_connect($_,"");
-        #my @tables=$db->tables;
-        #foreach (@tables) {
-        #}
-        #}
         my $command =
 "mysqldump --skip-extended-insert --no-create-db --no-create-info --user=lyric --password='' --databases "
           . $databases
@@ -9935,7 +10037,7 @@ sub db_check_databases {
         }
     } else {
         opendir(DIR, $globals->{'basedir'});
-        while (sort readdir(DIR)) {
+        while (readdir(DIR)) {
             if (/.db$/) {
                 $_ =~ s/.db$//g;
                 $globals->{'db_available_db'}{$_} = TRUE;
