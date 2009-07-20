@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.306 2009/07/17 05:03:09 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.307 2009/07/20 02:00:33 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -2703,10 +2703,6 @@ sub display_song {
                 popup_play_menu($event);
                 return TRUE;
             } else {
-                if (   $widgets->{'transitions'}
-                    && $widgets->{'transitions'}
-                    ->get_widget('windowTransitions'))
-                {
                     my $selection =
                       $widgets->{'main'}->get_widget('treePlaylist')
                       ->get_selection;
@@ -2720,28 +2716,28 @@ sub display_song {
                         $transition = $transition >> NUM_TRANS;
                         my $new_direction = mod($transition, 2**NUM_TRANS);
                         my $effect = $transition >> NUM_TRANS;
-                        $widgets->{'transitions'}->get_widget('radioTransNone')
+                        $widgets->{'main'}->get_widget('radioTransNone')
                           ->set_active(TRUE);
                         if ($effect == WIPE) {
-                            $widgets->{'transitions'}
+                            $widgets->{'main'}
                               ->get_widget('radioTransWipe')->set_active(TRUE);
                         }
                         if ($effect == SLIDE_TEXT) {
-                            $widgets->{'transitions'}
+                            $widgets->{'main'}
                               ->get_widget('radioTransSlide')->set_active(TRUE);
                         }
                         if ($effect == ROTATE_TEXT) {
-                            $widgets->{'transitions'}
+                            $widgets->{'main'}
                               ->get_widget('radioTransRotate')
                               ->set_active(TRUE);
                         }
                         if ($old_direction & WAIT) {
-                            $widgets->{'transitions'}
+                            $widgets->{'main'}
                               ->get_widget('checkTransOld')->set_active(TRUE);
                             $old_direction = $old_direction - WAIT;
                         }
                         if ($new_direction & WAIT) {
-                            $widgets->{'transitions'}
+                            $widgets->{'main'}
                               ->get_widget('checkTransNew')->set_active(TRUE);
                             $new_direction = $new_direction - WAIT;
                         }
@@ -2767,11 +2763,10 @@ sub display_song {
                         $newdir =~ s/ \+ $//g;
                         if ($newdir eq "") { $newdir = "None" }
 
-                        $widgets->{'transitions'}->get_widget('entryTransOld')
+                        $widgets->{'main'}->get_widget('entryTransOld')
                           ->set_text($olddir);
-                        $widgets->{'transitions'}->get_widget('entryTransNew')
+                        $widgets->{'main'}->get_widget('entryTransNew')
                           ->set_text($newdir);
-                    }
                 } else {
                     update_quickedit();
                     if ($config->{'DynamicPreview'}) {
@@ -7148,28 +7143,6 @@ sub display_fatal {
     print STDERR "------------------\n";
     die($error);
 }
-
-#***
-
-#****f* lyricue/select_transitions
-# NAME
-#   select_transitions
-# SYNOPSIS
-#   select_transitions()
-# FUNCTION
-#   Selecting transitions
-# INPUTS
-# OUTPUT
-# SOURCE
-#
-sub select_transitions {
-    debug("Selecting transitions");
-    $widgets->{'transitions'} = Gtk2::GladeXML->new($globals->{'gladefile'},
-        'windowTransitions', 'lyricue');
-    $widgets->{'transitions'}->signal_autoconnect_from_package('');
-    $widgets->{'transitions'}->get_widget('windowTransitions')->show();
-}
-
 #***
 
 #****f* lyricue/apply_transition_selected
@@ -7241,21 +7214,21 @@ sub apply_transition_playlist {
 #
 sub calculate_transition {
     my $trans_type = NORMAL;
-    if ($widgets->{'transitions'}->get_widget('radioTransWipe')->get_active()) {
+    if ($widgets->{'main'}->get_widget('radioTransWipe')->get_active()) {
         $trans_type = WIPE;
     } elsif (
-        $widgets->{'transitions'}->get_widget('radioTransSlide')->get_active())
+        $widgets->{'main'}->get_widget('radioTransSlide')->get_active())
     {
         $trans_type = SLIDE_TEXT;
     } elsif (
-        $widgets->{'transitions'}->get_widget('radioTransRotate')->get_active())
+        $widgets->{'main'}->get_widget('radioTransRotate')->get_active())
     {
         $trans_type = ROTATE_TEXT;
     }
 
     # Set new direction
     $trans_type = $trans_type << 8;
-    $_ = $widgets->{'transitions'}->get_widget('entryTransNew')->get_text();
+    $_ = $widgets->{'main'}->get_widget('entryTransNew')->get_text();
     if (/Up/) {
         $trans_type = $trans_type + UP;
     } elsif (/Down/) {
@@ -7267,7 +7240,7 @@ sub calculate_transition {
     } elsif (/Right/) {
         $trans_type = $trans_type + RIGHT;
     }
-    if ($widgets->{'transitions'}->get_widget('checkTransNew')->get_active()) {
+    if ($widgets->{'main'}->get_widget('checkTransNew')->get_active()) {
         $trans_type = $trans_type + WAIT;
     }
 
@@ -7277,7 +7250,7 @@ sub calculate_transition {
 
     # Set old direction
     $trans_type = $trans_type << 8;
-    $_ = $widgets->{'transitions'}->get_widget('entryTransOld')->get_text();
+    $_ = $widgets->{'main'}->get_widget('entryTransOld')->get_text();
     if (/Up/) {
         $trans_type = $trans_type + UP;
     } elsif (/Down/) {
@@ -7289,7 +7262,7 @@ sub calculate_transition {
     } elsif (/Right/) {
         $trans_type = $trans_type + RIGHT;
     }
-    if ($widgets->{'transitions'}->get_widget('checkTransOld')->get_active()) {
+    if ($widgets->{'main'}->get_widget('checkTransOld')->get_active()) {
         $trans_type = $trans_type + WAIT;
     }
 
@@ -10997,83 +10970,10 @@ debug (":".$confirm);
     if ($confirm == 0 ) {
         my $filename = $importxml->get_widget('fileImportData')->get_filename();
         if (defined $filename) {
-            do_import_db($filename);
+            import_songs($filename);
         }
     }
     close_dialog($importxml->get_widget('dialogImportData'));
-}
-
-#***
-
-#****f* lyricue/do_import_db
-# NAME
-#   do_import_db
-# SYNOPSIS
-#   do_import_db($filename)
-# FUNCTION
-#       debug ("Importing ".$filename);
-# INPUTS
-#   $filename - 
-# OUTPUT
-# SOURCE
-#
-sub do_import_db {
-    my ($filename) =@_;
-    debug ("Importing ".$filename);
-    my $importxml = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSelectSongs', 'lyricue');
-    # Import database that was made from existing database via:
-    #   mysqldump --skip-extended-insert --no-create-db --no-create-info
-    #     -ulyric --compact --databases lyricDb -c
-    #     --ignore-table=lyricDb.playlist --ignore-table=lyricDb.playlists
-    #     --ignore-table=lyricDb.audit --ignore-table=lyricDb.associations
-
-    my %lookup;
-    open (SQL, "gzip -dc " . $filename . "|");
-    while (<SQL>) {
-        chomp;
-        if (/^INSERT /) {
-            $_ = fromutf($_);
-            $_ = ~ /^INSERT INTO `(.*?)` \((.*)\) VALUES \((.*)\).*$/;
-            my $table = $1;
-            my $fields = $2;
-            my $values = $3;
-            if ($table eq "lyricMain") {
-                my $oldid = $values;
-                $oldid =~ s/,.*$//g;
-                if (! defined $lookup{$oldid}) {
-                    my $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
-                    qdebug($query);
-                    my $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
-                    my $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
-                    my @row = $sth->fetchrow_array;
-                    my $newid = $row[0];
-                    $lookup{$oldid} = $newid;
-                    $values =~ s/^$oldid/$lookup{$oldid}/;
-                    my $sql = "INSERT INTO `".$table."` (".$fields.") VALUES (".$values.");";
-                    qdebug($sql);
-                    $sth = $lyricDbh->prepare($sql)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
-                    $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
-                }
-            } elsif ( $table eq "page") {
-                my $oldid = $values;
-                $oldid =~ s/^\d*,(\d*),.*$/$1/;
-                if (defined $lookup{$oldid}) {
-                    $values =~ s/^(\d*),$oldid,/$lookup{$oldid},/;
-                    $fields =~ s/^`pageid`,//;
-                    my $sql = "INSERT INTO `".$table."` (".$fields.") VALUES (".$values.");";
-                    qdebug($sql);
-                    my $sth = $lyricDbh->prepare($sql)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!."\nSQL: ".$query);
-                    my $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!."\nSQL: ".$query);
-                }
-            }
-        }
-    }
 }
 
 #***

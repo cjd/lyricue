@@ -5,7 +5,6 @@
   <widget class="GtkWindow" id="windowMain">
     <property name="title" translatable="yes">Lyricue</property>
     <property name="icon">lyricue-icon.png</property>
-    <signal name="delete_event" handler="close_main"/>
     <child>
       <widget class="GtkVBox" id="vboxMain">
         <property name="visible">True</property>
@@ -52,6 +51,7 @@
                     </child>
                     <child>
                       <widget class="GtkMenuItem" id="import1">
+                        <property name="visible">True</property>
                         <property name="label" translatable="yes">Import Songlist</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="import_db"/>
@@ -343,21 +343,6 @@
                           <widget class="GtkImage" id="image18">
                             <property name="visible">True</property>
                             <property name="stock">gtk-directory</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkImageMenuItem" id="select_transitions">
-                        <property name="label" translatable="yes">_Edit Transitions</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">False</property>
-                        <signal name="activate" handler="select_transitions"/>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="image20">
-                            <property name="visible">True</property>
-                            <property name="stock">gtk-jump-to</property>
                           </widget>
                         </child>
                       </widget>
@@ -776,6 +761,9 @@
                           </packing>
                         </child>
                       </widget>
+                      <packing>
+                        <property name="menu_label">Songs</property>
+                      </packing>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label1">
@@ -898,6 +886,7 @@
                         </child>
                       </widget>
                       <packing>
+                        <property name="menu_label">Backgrounds</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -975,6 +964,7 @@
                         </child>
                       </widget>
                       <packing>
+                        <property name="menu_label">Images</property>
                         <property name="position">2</property>
                       </packing>
                     </child>
@@ -999,8 +989,8 @@
                           <widget class="GtkFileChooserWidget" id="fileAddFile">
                             <property name="visible">True</property>
                             <property name="orientation">vertical</property>
-                            <property name="use_preview_label">False</property>
                             <property name="preview_widget_active">False</property>
+                            <property name="use_preview_label">False</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -1011,6 +1001,7 @@
                         </child>
                       </widget>
                       <packing>
+                        <property name="menu_label">Files</property>
                         <property name="position">3</property>
                       </packing>
                     </child>
@@ -1213,6 +1204,7 @@
                         </child>
                       </widget>
                       <packing>
+                        <property name="menu_label">Bible</property>
                         <property name="position">4</property>
                       </packing>
                     </child>
@@ -1223,6 +1215,468 @@
                       </widget>
                       <packing>
                         <property name="position">4</property>
+                        <property name="tab_fill">False</property>
+                        <property name="type">tab</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkVBox" id="vboxTransitions">
+                        <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <widget class="GtkVBox" id="vboxTransTypes">
+                            <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
+                            <property name="homogeneous">True</property>
+                            <child>
+                              <widget class="GtkRadioButton" id="radioTransNone">
+                                <property name="label" translatable="yes">Fade</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioButton" id="radioTransWipe">
+                                <property name="label" translatable="yes">Wipe to Black</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="use_underline">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">radioTransNone</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioButton" id="radioTransSlide">
+                                <property name="label" translatable="yes">Slide Text</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="use_underline">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">radioTransNone</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">2</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkRadioButton" id="radioTransRotate">
+                                <property name="label" translatable="yes">Rotate Text</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="use_underline">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">radioTransNone</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">3</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkHSeparator" id="hseparator6">
+                            <property name="visible">True</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkLabel" id="label68">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Out Direction</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkHBox" id="hbox45">
+                            <property name="visible">True</property>
+                            <child>
+                              <widget class="GtkCombo" id="comboTransOld">
+                                <property name="visible">True</property>
+                                <property name="enable_arrows_always">False</property>
+                                <property name="allow_empty">False</property>
+                                <property name="value_in_list">True</property>
+                                <child internal-child="entry">
+                                  <widget class="GtkEntry" id="entryTransOld">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="editable">False</property>
+                                    <property name="invisible_char">&#x25CF;</property>
+                                    <property name="text" translatable="yes">None</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child internal-child="list">
+                                  <widget class="GtkList" id="combo-list5">
+                                    <property name="visible">True</property>
+                                    <property name="selection_mode">browse</property>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem627">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">None</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem628">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Up</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem629">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Down</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem630">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Left</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem631">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Right</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem632">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Up + Left</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem633">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Up + Right</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem634">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Down + Left</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem635">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Down + Right</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem636">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">X-Axis</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem637">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Y-Axis</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem638">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Z-Axis</property>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                              <packing>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckButton" id="checkTransOld">
+                                <property name="label" translatable="yes">Wait?</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="use_underline">True</property>
+                                <property name="draw_indicator">True</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkHSeparator" id="hseparator7">
+                            <property name="visible">True</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">4</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkLabel" id="label69">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">In Direction</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">5</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkHBox" id="hbox46">
+                            <property name="visible">True</property>
+                            <child>
+                              <widget class="GtkCombo" id="comboTransNew">
+                                <property name="visible">True</property>
+                                <property name="enable_arrows_always">False</property>
+                                <child internal-child="entry">
+                                  <widget class="GtkEntry" id="entryTransNew">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="editable">False</property>
+                                    <property name="invisible_char">&#x25CF;</property>
+                                    <property name="text" translatable="yes">None</property>
+                                  </widget>
+                                  <packing>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child internal-child="list">
+                                  <widget class="GtkList" id="combo-list6">
+                                    <property name="visible">True</property>
+                                    <property name="selection_mode">browse</property>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem849">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">None</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem850">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Up</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem851">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Down</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem852">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Left</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem853">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Right</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem854">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Up + Left</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem855">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Up + Right</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem856">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Down + Left</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem857">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Down + Right</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem858">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">X-Axis</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem859">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Y-Axis</property>
+                                      </widget>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkListItem" id="listitem860">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="label" translatable="yes">Z-Axis</property>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                              <packing>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckButton" id="checkTransNew">
+                                <property name="label" translatable="yes">Wait?</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">6</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkHSeparator" id="hseparator8">
+                            <property name="visible">True</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">7</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkHButtonBox" id="hbuttonbox1">
+                            <property name="visible">True</property>
+                            <property name="layout_style">end</property>
+                            <child>
+                              <widget class="GtkButton" id="buttonTransApply">
+                                <property name="label" translatable="yes">Apply to Selected</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="can_default">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_underline">True</property>
+                                <signal name="clicked" handler="apply_transition_selected"/>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkButton" id="buttonTransAll">
+                                <property name="label" translatable="yes">Apply to Playlist</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="can_default">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_underline">True</property>
+                                <signal name="clicked" handler="apply_transition_playlist"/>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">8</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="menu_label">Transitions</property>
+                        <property name="position">5</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="labelTabTrans">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Transitions</property>
+                      </widget>
+                      <packing>
+                        <property name="position">5</property>
                         <property name="tab_fill">False</property>
                         <property name="type">tab</property>
                       </packing>
@@ -2607,7 +3061,7 @@
         <child>
           <widget class="GtkLabel" id="labelAbout">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Version ##VERSION##
+            <property name="label" translatable="yes">Version 2.0.0cvs20090714
 Written By:
 Chris Debenham &amp; Clint Turner
 Website:
@@ -4096,472 +4550,7 @@ http://www.adebenham.com/lyricue</property>
     <property name="title" translatable="yes">Select Screen Transition</property>
     <property name="icon">lyricue-icon.png</property>
     <child>
-      <widget class="GtkVBox" id="vbox2">
-        <property name="visible">True</property>
-        <property name="orientation">vertical</property>
-        <child>
-          <widget class="GtkLabel" id="label67">
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">Transition</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox44">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkRadioButton" id="radioTransNone">
-                <property name="label" translatable="yes">Fade</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <property name="draw_indicator">True</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkRadioButton" id="radioTransWipe">
-                <property name="label" translatable="yes">Wipe to Black</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <property name="active">True</property>
-                <property name="draw_indicator">True</property>
-                <property name="group">radioTransNone</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkRadioButton" id="radioTransSlide">
-                <property name="label" translatable="yes">Slide Text</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <property name="draw_indicator">True</property>
-                <property name="group">radioTransNone</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkRadioButton" id="radioTransRotate">
-                <property name="label" translatable="yes">Rotate Text</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <property name="draw_indicator">True</property>
-                <property name="group">radioTransNone</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">3</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHSeparator" id="hseparator6">
-            <property name="visible">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkLabel" id="label68">
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">Out Direction</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox45">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkCombo" id="comboTransOld">
-                <property name="visible">True</property>
-                <property name="enable_arrows_always">False</property>
-                <property name="allow_empty">False</property>
-                <property name="value_in_list">True</property>
-                <child internal-child="entry">
-                  <widget class="GtkEntry" id="entryTransOld">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="editable">False</property>
-                    <property name="text" translatable="yes">None</property>
-                  </widget>
-                  <packing>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child internal-child="list">
-                  <widget class="GtkList" id="combolistTransOld">
-                    <property name="visible">True</property>
-                    <property name="selection_mode">browse</property>
-                    <child>
-                      <widget class="GtkListItem" id="listitem627">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">None</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem628">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Up</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem629">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Down</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem630">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Left</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem631">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Right</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem632">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Up + Left</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem633">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Up + Right</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem634">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Down + Left</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem635">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Down + Right</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem636">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">X-Axis</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem637">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Y-Axis</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem638">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Z-Axis</property>
-                      </widget>
-                    </child>
-                  </widget>
-                </child>
-              </widget>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkCheckButton" id="checkTransOld">
-                <property name="label" translatable="yes">Wait?</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <property name="draw_indicator">True</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">4</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHSeparator" id="hseparator7">
-            <property name="visible">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">5</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkLabel" id="label69">
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">In Direction</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">6</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHBox" id="hbox46">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkCombo" id="comboTransNew">
-                <property name="visible">True</property>
-                <property name="enable_arrows_always">False</property>
-                <child internal-child="entry">
-                  <widget class="GtkEntry" id="entryTransNew">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="editable">False</property>
-                    <property name="text" translatable="yes">None</property>
-                  </widget>
-                  <packing>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child internal-child="list">
-                  <widget class="GtkList" id="combolistTransNew">
-                    <property name="visible">True</property>
-                    <property name="selection_mode">browse</property>
-                    <child>
-                      <widget class="GtkListItem" id="listitem849">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">None</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem850">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Up</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem851">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Down</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem852">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Left</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem853">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Right</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem854">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Up + Left</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem855">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Up + Right</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem856">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Down + Left</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem857">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Down + Right</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem858">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">X-Axis</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem859">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Y-Axis</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkListItem" id="listitem860">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="label" translatable="yes">Z-Axis</property>
-                      </widget>
-                    </child>
-                  </widget>
-                </child>
-              </widget>
-              <packing>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkCheckButton" id="checkTransNew">
-                <property name="label" translatable="yes">Wait?</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <property name="active">True</property>
-                <property name="draw_indicator">True</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">7</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHSeparator" id="hseparator8">
-            <property name="visible">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">8</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkHButtonBox" id="hbuttonbox1">
-            <property name="visible">True</property>
-            <property name="layout_style">end</property>
-            <child>
-              <widget class="GtkButton" id="buttonTransApply">
-                <property name="label" translatable="yes">Apply to Selected</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="apply_transition_selected"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="buttonTransAll">
-                <property name="label" translatable="yes">Apply to Playlist</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="apply_transition_playlist"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="buttonTransClose">
-                <property name="label" translatable="yes">Close</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="close_dialog"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="position">9</property>
-          </packing>
-        </child>
-      </widget>
+      <placeholder/>
     </child>
   </widget>
   <widget class="GtkDialog" id="dialogPrefs">
@@ -7851,10 +7840,6 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="window_position">center</property>
     <property name="type_hint">dialog</property>
     <property name="deletable">False</property>
-    <signal name="apply" handler="firstrun_apply"/>
-    <signal name="prepare" handler="firstrun_prepare"/>
-    <signal name="cancel" handler="firstrun_cancel"/>
-    <signal name="close" handler="firstrun_close"/>
     <child>
       <placeholder/>
     </child>
