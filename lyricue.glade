@@ -614,7 +614,7 @@
           <widget class="GtkHPaned" id="hpanedMainLeft">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="position">300</property>
+            <property name="position">200</property>
             <child>
               <widget class="GtkFrame" id="frameMainLeft">
                 <property name="visible">True</property>
@@ -1623,9 +1623,8 @@
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkHButtonBox" id="hbuttonbox1">
+                          <widget class="GtkVButtonBox" id="vbuttonbox1">
                             <property name="visible">True</property>
-                            <property name="layout_style">end</property>
                             <child>
                               <widget class="GtkButton" id="buttonTransApply">
                                 <property name="label" translatable="yes">Apply to Selected</property>
@@ -1694,7 +1693,7 @@
                 <property name="width_request">505</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="position">300</property>
+                <property name="position">200</property>
                 <signal name="event" handler="resize_preview"/>
                 <child>
                   <widget class="GtkFrame" id="frameMainCentre">
@@ -4133,7 +4132,7 @@ http://www.adebenham.com/lyricue</property>
               <widget class="GtkSpinButton" id="spinLoopSeconds">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="adjustment">5 0 100 1 10 10</property>
+                <property name="adjustment">5 0 100 1 10 0</property>
                 <property name="climb_rate">1</property>
               </widget>
               <packing>
@@ -4155,7 +4154,7 @@ http://www.adebenham.com/lyricue</property>
               <widget class="GtkSpinButton" id="spinLoopMilliseconds">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="adjustment">0 0 1000 10 100 100</property>
+                <property name="adjustment">0 0 1000 10 100 0</property>
                 <property name="climb_rate">1</property>
               </widget>
               <packing>
@@ -4545,14 +4544,6 @@ http://www.adebenham.com/lyricue</property>
       </widget>
     </child>
   </widget>
-  <widget class="GtkWindow" id="windowTransitions">
-    <property name="visible">True</property>
-    <property name="title" translatable="yes">Select Screen Transition</property>
-    <property name="icon">lyricue-icon.png</property>
-    <child>
-      <placeholder/>
-    </child>
-  </widget>
   <widget class="GtkDialog" id="dialogPrefs">
     <property name="visible">True</property>
     <property name="title" translatable="yes">Preferences</property>
@@ -4744,7 +4735,7 @@ http://www.adebenham.com/lyricue</property>
                       <widget class="GtkSpinButton" id="spinPrefShadow">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="adjustment">0 0 10 1 10 10</property>
+                        <property name="adjustment">0 0 10 1 10 0</property>
                         <property name="climb_rate">1</property>
                         <property name="numeric">True</property>
                         <property name="wrap">True</property>
@@ -4831,7 +4822,7 @@ http://www.adebenham.com/lyricue</property>
                       <widget class="GtkSpinButton" id="spinPrefWidth">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="adjustment">640 640 1920 10 100 100</property>
+                        <property name="adjustment">640 640 1920 10 100 0</property>
                         <property name="climb_rate">1</property>
                         <property name="numeric">True</property>
                       </widget>
@@ -4845,7 +4836,7 @@ http://www.adebenham.com/lyricue</property>
                       <widget class="GtkSpinButton" id="spinPrefHeight">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="adjustment">480 480 1200 10 100 100</property>
+                        <property name="adjustment">480 480 1200 10 100 0</property>
                         <property name="climb_rate">10</property>
                         <property name="numeric">True</property>
                       </widget>
@@ -4891,7 +4882,7 @@ http://www.adebenham.com/lyricue</property>
                       <widget class="GtkSpinButton" id="spinPrefOverscanV">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="adjustment">2 0 100 1 10 10</property>
+                        <property name="adjustment">2 0 100 1 10 0</property>
                         <property name="climb_rate">1</property>
                         <property name="numeric">True</property>
                       </widget>
@@ -4920,7 +4911,7 @@ http://www.adebenham.com/lyricue</property>
                       <widget class="GtkSpinButton" id="spinPrefOverscanH">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="adjustment">2 0 100 1 10 10</property>
+                        <property name="adjustment">2 0 100 1 10 0</property>
                         <property name="climb_rate">1</property>
                       </widget>
                       <packing>
@@ -6449,13 +6440,7 @@ http://www.adebenham.com/lyricue/bibles.html</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label13">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Note: This is not working yet</property>
-              </widget>
-              <packing>
-                <property name="position">2</property>
-              </packing>
+              <placeholder/>
             </child>
             <child>
               <widget class="GtkHBox" id="hbox3">
@@ -7997,7 +7982,7 @@ To do this I need your mysql root users password.
           <widget class="GtkSpinButton" id="spinFRWidth">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="adjustment">1024 640 1920 10 100 100</property>
+            <property name="adjustment">1024 640 1920 10 100 0</property>
             <property name="climb_rate">1</property>
             <property name="numeric">True</property>
           </widget>
@@ -8013,7 +7998,7 @@ To do this I need your mysql root users password.
           <widget class="GtkSpinButton" id="spinFRHeight">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="adjustment">768 480 1200 10 100 100</property>
+            <property name="adjustment">768 480 1200 10 100 0</property>
             <property name="climb_rate">10</property>
             <property name="numeric">True</property>
           </widget>
