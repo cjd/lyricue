@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.307 2009/07/20 02:00:33 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.308 2009/07/23 05:02:08 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -214,15 +214,15 @@ use constant CLIP        => 3;
 use constant ROTATE_TEXT => 4;
 
 # Transition directions
-use constant NONE      => 2**0;
-use constant WAIT      => 2**1;
-use constant UP        => 2**2;
-use constant DOWN      => 2**3;
-use constant RIGHT     => 2**4;
-use constant LEFT      => 2**5;
-use constant X_AXIS    => 2**6;
-use constant Y_AXIS    => 2**7;
-use constant Z_AXIS    => 2**8;
+use constant NONE      => 0;
+use constant WAIT      => 2**0;
+use constant UP        => 2**1;
+use constant DOWN      => 2**2;
+use constant RIGHT     => 2**3;
+use constant LEFT      => 2**4;
+use constant X_AXIS    => 2**5;
+use constant Y_AXIS    => 2**6;
+use constant Z_AXIS    => 2**7;
 use constant NUM_TRANS => 8;
 
 # Quick globals
@@ -2709,64 +2709,44 @@ sub display_song {
                     my ($model, $iter) = $selection->get_selected;
                     if ($iter) {
                         my $transition = $model->get($iter, 3);
-                        print $transition;
 
                         # Set the transition values
-                        my $old_direction = mod($transition, 2**NUM_TRANS);
+                        my $out_direction = mod($transition, 2**NUM_TRANS);
                         $transition = $transition >> NUM_TRANS;
-                        my $new_direction = mod($transition, 2**NUM_TRANS);
+                        my $in_direction = mod($transition, 2**NUM_TRANS);
                         my $effect = $transition >> NUM_TRANS;
-                        $widgets->{'main'}->get_widget('radioTransNone')
-                          ->set_active(TRUE);
                         if ($effect == WIPE) {
                             $widgets->{'main'}
                               ->get_widget('radioTransWipe')->set_active(TRUE);
-                        }
-                        if ($effect == SLIDE_TEXT) {
+                        } elsif ($effect == SLIDE_TEXT) {
                             $widgets->{'main'}
                               ->get_widget('radioTransSlide')->set_active(TRUE);
-                        }
-                        if ($effect == ROTATE_TEXT) {
+                        } elsif ($effect == ROTATE_TEXT) {
                             $widgets->{'main'}
                               ->get_widget('radioTransRotate')
                               ->set_active(TRUE);
+                        } else {
+                            $widgets->{'main'}->get_widget('radioTransFade')
+                              ->set_active(TRUE);
                         }
-                        if ($old_direction & WAIT) {
-                            $widgets->{'main'}
-                              ->get_widget('checkTransOld')->set_active(TRUE);
-                            $old_direction = $old_direction - WAIT;
-                        }
-                        if ($new_direction & WAIT) {
-                            $widgets->{'main'}
-                              ->get_widget('checkTransNew')->set_active(TRUE);
-                            $new_direction = $new_direction - WAIT;
-                        }
-                        my $olddir = "";
-                        if ($old_direction & UP)     { $olddir .= "Up + " }
-                        if ($old_direction & DOWN)   { $olddir .= "Down + " }
-                        if ($old_direction & LEFT)   { $olddir .= "Left + " }
-                        if ($old_direction & RIGHT)  { $olddir .= "Right + " }
-                        if ($old_direction & X_AXIS) { $olddir .= "X-Axis + " }
-                        if ($old_direction & Y_AXIS) { $olddir .= "Y-Axis + " }
-                        if ($old_direction & Z_AXIS) { $olddir .= "Z-Axis + " }
-                        $olddir =~ s/ \+ $//g;
-                        if ($olddir eq "") { $olddir = "None" }
+                        my $indir = "";
+                        if ($in_direction & UP)     { $indir .= "Up" }
+                        if ($in_direction & DOWN)   { $indir .= "Down" }
+                        if ($in_direction & LEFT)   { $indir .= "Left" }
+                        if ($in_direction & RIGHT)  { $indir .= "Right" }
+                        if ($indir eq "") { $indir = "None" }
+                        $widgets->{'main'}->get_widget("toggleIn".$indir)->set_active(TRUE);
+                        $widgets->{'main'}->get_widget("toggleRotX")->set_active($in_direction & X_AXIS);
+                        $widgets->{'main'}->get_widget("toggleRotY")->set_active($in_direction & Y_AXIS);
+                        $widgets->{'main'}->get_widget("toggleRotZ")->set_active($in_direction & Z_AXIS);
 
-                        my $newdir = "";
-                        if ($new_direction & UP)     { $newdir .= "Up + " }
-                        if ($new_direction & DOWN)   { $newdir .= "Down + " }
-                        if ($new_direction & LEFT)   { $newdir .= "Left + " }
-                        if ($new_direction & RIGHT)  { $newdir .= "Right + " }
-                        if ($new_direction & X_AXIS) { $newdir .= "X-Axis + " }
-                        if ($new_direction & Y_AXIS) { $newdir .= "Y-Axis + " }
-                        if ($new_direction & Z_AXIS) { $newdir .= "Z-Axis + " }
-                        $newdir =~ s/ \+ $//g;
-                        if ($newdir eq "") { $newdir = "None" }
-
-                        $widgets->{'main'}->get_widget('entryTransOld')
-                          ->set_text($olddir);
-                        $widgets->{'main'}->get_widget('entryTransNew')
-                          ->set_text($newdir);
+                        my $outdir = "";
+                        if ($out_direction & UP)     { $outdir .= "Up" }
+                        if ($out_direction & DOWN)   { $outdir .= "Down" }
+                        if ($out_direction & LEFT)   { $outdir .= "Left" }
+                        if ($out_direction & RIGHT)  { $outdir .= "Right" }
+                        if ($outdir eq "") { $outdir = "None" }
+                        $widgets->{'main'}->get_widget("toggleOut".$outdir)->set_active(TRUE);
                 } else {
                     update_quickedit();
                     if ($config->{'DynamicPreview'}) {
@@ -6669,7 +6649,7 @@ sub add_file {
 sub add_directory {
     debug("Add a directory to the playlist");
     my $d = Gtk2::FileChooserDialog->new(
-        'Choose a Directory',
+        gettext('Choose a Directory'),
         $widgets->{'main'}->get_widget('windowMain'), 'select-folder',
         "Cancel" => "cancel",
         "OK"     => "accept",
@@ -7145,6 +7125,66 @@ sub display_fatal {
 }
 #***
 
+#****f* lyricue/transition_type_changed
+# NAME
+#   transition_type_changed
+# SYNOPSIS
+#   transition_type_changed()
+# FUNCTION
+#   Change the list of transition options
+# INPUTS
+# OUTPUT
+# SOURCE
+sub transition_type_changed {
+    my ($widget) = @_;
+    debug("Transition type changed");
+    my $item = $widget->get_name;
+    if ($item eq "radioTransFade") {
+    } elsif ($item eq "radioTransWipe") {
+    } elsif ($item eq "radioTransSlide") {
+        if ($widget->get_active) {
+            $widgets->{'main'}->get_widget('tableTransDir')->show_all();
+        } else {
+            $widgets->{'main'}->get_widget('tableTransDir')->hide();
+        }
+    } elsif ($item eq "radioTransRotate") {
+        if ($widget->get_active) {
+            $widgets->{'main'}->get_widget('tableTransRot')->show_all();
+        } else {
+            $widgets->{'main'}->get_widget('tableTransRot')->hide();
+        }
+    }
+}
+
+sub transition_dir_changed {
+    my ($widget) = @_;
+    debug("Direction changed");
+    if ($widget->get_active == FALSE) {
+        return;
+    }
+    my @dirs = ('UpLeft','Up','UpRight','Left','None','Right','DownLeft','Down','DownRight');
+    if ($widget->get_name() =~ /^toggleIn/) {
+        foreach (@dirs) {
+            my $w = "toggleIn".$_;
+            if ($widget->get_name eq $w) {
+                $widgets->{'main'}->get_widget($w)->set_active(TRUE);
+            } else {
+                $widgets->{'main'}->get_widget($w)->set_active(FALSE);
+            }
+        }
+    } elsif ($widget->get_name =~ /^toggleOut/) {
+        foreach (@dirs) {
+            my $w = "toggleOut".$_;
+            if ($widget->get_name eq $w) {
+                $widgets->{'main'}->get_widget($w)->set_active(TRUE);
+            } else {
+                $widgets->{'main'}->get_widget($w)->set_active(FALSE);
+            }
+        }
+    }
+}
+#***
+
 #****f* lyricue/apply_transition_selected
 # NAME
 #   apply_transition_selected
@@ -7168,6 +7208,7 @@ sub apply_transition_selected {
             apply_transition($model->get($model->get_iter($_), 2), $trans_type);
         }
     }
+    update_playlist();
 }
 
 #***
@@ -7197,6 +7238,7 @@ sub apply_transition_playlist {
     while (my @row = $sth->fetchrow_array()) {
         apply_transition($row[0], $trans_type);
     }
+    update_playlist();
 }
 
 #***
@@ -7213,6 +7255,7 @@ sub apply_transition_playlist {
 # SOURCE
 #
 sub calculate_transition {
+    debug("Calculating transition code");
     my $trans_type = NORMAL;
     if ($widgets->{'main'}->get_widget('radioTransWipe')->get_active()) {
         $trans_type = WIPE;
@@ -7226,49 +7269,53 @@ sub calculate_transition {
         $trans_type = ROTATE_TEXT;
     }
 
-    # Set new direction
-    $trans_type = $trans_type << 8;
-    $_ = $widgets->{'main'}->get_widget('entryTransNew')->get_text();
+    my @dirs = ('UpLeft','Up','UpRight','Left','None','Right','DownLeft','Down','DownRight');
+    my $indir = "";
+    my $outdir = "";
+    foreach (@dirs) {
+        if ($widgets->{'main'}->get_widget("toggleIn".$_)->get_active()) {
+            $indir=$_;
+        }
+        if ($widgets->{'main'}->get_widget("toggleOut".$_)->get_active()) {
+            $outdir=$_;
+        }
+    }
+
+    # Set in direction
+    $trans_type = $trans_type << NUM_TRANS;
+    $_ = $indir;
     if (/Up/) {
         $trans_type = $trans_type + UP;
     } elsif (/Down/) {
         $trans_type = $trans_type + DOWN;
     }
-
     if (/Left/) {
         $trans_type = $trans_type + LEFT;
     } elsif (/Right/) {
         $trans_type = $trans_type + RIGHT;
     }
-    if ($widgets->{'main'}->get_widget('checkTransNew')->get_active()) {
-        $trans_type = $trans_type + WAIT;
-    }
 
-    if (/X/) { $trans_type = $trans_type + X_AXIS; }
-    if (/Y/) { $trans_type = $trans_type + Y_AXIS; }
-    if (/Z/) { $trans_type = $trans_type + Z_AXIS; }
+    if ($widgets->{'main'}->get_widget('toggleRotX')->get_active()) { $trans_type = $trans_type + X_AXIS; }
+    if ($widgets->{'main'}->get_widget('toggleRotY')->get_active()) { $trans_type = $trans_type + Y_AXIS; }
+    if ($widgets->{'main'}->get_widget('toggleRotZ')->get_active()) { $trans_type = $trans_type + Z_AXIS; }
 
-    # Set old direction
-    $trans_type = $trans_type << 8;
-    $_ = $widgets->{'main'}->get_widget('entryTransOld')->get_text();
+    # Set out direction
+    $trans_type = $trans_type << NUM_TRANS;
+    $_ = $outdir;
     if (/Up/) {
         $trans_type = $trans_type + UP;
     } elsif (/Down/) {
         $trans_type = $trans_type + DOWN;
     }
-
     if (/Left/) {
         $trans_type = $trans_type + LEFT;
     } elsif (/Right/) {
         $trans_type = $trans_type + RIGHT;
     }
-    if ($widgets->{'main'}->get_widget('checkTransOld')->get_active()) {
-        $trans_type = $trans_type + WAIT;
-    }
 
-    if (/X/) { $trans_type = $trans_type + X_AXIS; }
-    if (/Y/) { $trans_type = $trans_type + Y_AXIS; }
-    if (/Z/) { $trans_type = $trans_type + Z_AXIS; }
+    if ($widgets->{'main'}->get_widget('toggleRotX')->get_active()) { $trans_type = $trans_type + X_AXIS; }
+    if ($widgets->{'main'}->get_widget('toggleRotY')->get_active()) { $trans_type = $trans_type + Y_AXIS; }
+    if ($widgets->{'main'}->get_widget('toggleRotY')->get_active()) { $trans_type = $trans_type + Z_AXIS; }
     return $trans_type;
 }
 
@@ -10881,7 +10928,7 @@ sub load_biblemenu {
     my $menutop = Gtk2::Menu->new();
     my $group = -1;
 
-    my $bibleMenuAdd = Gtk2::MenuItem->new_with_label("Install new bibles");
+    my $bibleMenuAdd = Gtk2::MenuItem->new_with_label(gettext("Install new bibles"));
     $bibleMenuAdd->signal_connect("activate", "install_bibles");
     $bibleMenuAdd->show();
     $menutop->append($bibleMenuAdd);
@@ -11231,11 +11278,12 @@ sub biblebrowser_loaditems {
 # SOURCE
 #
 sub firstrun_wizard {
-        $config = load_config();
-        $widgets->{'firstrunxml'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'assistantFirstRun', 'lyricue');
-        $widgets->{'firstrunxml'}->signal_autoconnect_from_package('');
-        $widgets->{'firstrun'} = $widgets->{'firstrunxml'}->get_widget('assistantFirstRun');
-        $widgets->{'firstrun'}->show_all();
+    debug("First Run Wizard");
+    $config = load_config();
+    $widgets->{'firstrunxml'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'assistantFirstRun', 'lyricue');
+    $widgets->{'firstrunxml'}->signal_autoconnect_from_package('');
+    $widgets->{'firstrun'} = $widgets->{'firstrunxml'}->get_widget('assistantFirstRun');
+    $widgets->{'firstrun'}->show_all();
 }
 
 #***
@@ -11291,7 +11339,7 @@ sub firstrun_close {
 # SOURCE
 #
 sub firstrun_prepare {
-    debug("prepare page:".$widgets->{'firstrun'}->get_current_page);
+    debug("Firstrun prepare page:".$widgets->{'firstrun'}->get_current_page);
     my $page = $widgets->{'firstrun'}->get_nth_page($widgets->{'firstrun'}->get_current_page);
     my $font = "Serif 30";
     my $header=gettext("First-run wizard");
@@ -11372,6 +11420,7 @@ sub firstrun_prepare {
         $widgets->{'firstrun'}->set_page_complete($page, TRUE);
     }
 
+    $header = fromutf($header);
     my $layout = $page->create_pango_layout ($header);
     my $desc = Gtk2::Pango::FontDescription->from_string($font);
     $layout->set_font_description($desc);
