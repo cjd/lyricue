@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.198 2009/07/23 05:02:08 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.199 2009/07/23 05:03:47 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -232,7 +232,6 @@ $errorcodes->{'socketopen'} = fromutf(
 # SOURCE
 #
 
-
 # Parse command line arguments
 if ($ARGV[0]) {
     foreach (0 .. (@ARGV - 1)) {
@@ -289,7 +288,8 @@ if (!-w $globals->{'configfile'}) {
     }
     system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
 }
-open (LOG, ">".$globals->{'basedir'}."/server-".$globals->{'use_port'}.".log");
+open(LOG,
+    ">" . $globals->{'basedir'} . "/server-" . $globals->{'use_port'} . ".log");
 
 my $config = load_config();
 db_check_app();
@@ -390,6 +390,7 @@ system('xset s off -dpms');
 debug("Main program running");
 Glib::Timeout->add(200, \&check_net);
 Gtk2->main();
+
 #***
 
 #****f* lyricue_server/loop_background
@@ -400,15 +401,15 @@ Gtk2->main();
 # FUNCTION
 #   Video ended - Looping
 # INPUTS
-#   $widget - 
-#    $id - 
+#   $widget -
+#    $id -
 # OUTPUT
 # SOURCE
 #
 sub loop_background {
     my ($widget, $id) = @_;
     debug("Video ended - Looping");
-    Clutter::Media::set_position($globals->{'background'},0);
+    Clutter::Media::set_position($globals->{'background'}, 0);
     return FALSE;
 }
 
@@ -420,7 +421,7 @@ sub loop_background {
 # SYNOPSIS
 #   check_net()
 # FUNCTION
-#   
+#
 # INPUTS
 # OUTPUT
 # SOURCE
@@ -1366,6 +1367,7 @@ sub change_backdrop {
             use GStreamer;
             my $pipeline = GStreamer::Pipeline->new("");
             my $src = GStreamer::ElementFactory->make("v4l2src", "src");
+
             #my $fade =
             #  GStreamer::ElementFactory->make("videobalance", "filter");
             #$fade->set(saturation=>0.5 ,brightness=>0.1, contrast=>0.5);
@@ -1728,9 +1730,9 @@ sub update_display {
 # SYNOPSIS
 #   update_miniview($command)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $command - 
+#   $command -
 # OUTPUT
 # SOURCE
 #
@@ -1770,12 +1772,13 @@ sub debug {
     chomp($text);
     if ($text) {
         my ($sec, $min, $hour, undef) = localtime(time);
-        $text = sprintf("%02d:%02d:%02d|SERVER: %s\n",$hour, $min, $sec, $text);
+        $text =
+          sprintf("%02d:%02d:%02d|SERVER: %s\n", $hour, $min, $sec, $text);
         if ($DEBUG) {
             print STDERR $text;
         }
         print LOG $text;
-    } 
+    }
 } ## end sub debug
 
 #***
@@ -1860,7 +1863,7 @@ sub check_socket {
 # SYNOPSIS
 #   load_config()
 # FUNCTION
-#   Loading Preferences from 
+#   Loading Preferences from
 # INPUTS
 # OUTPUT
 # SOURCE
@@ -1915,17 +1918,18 @@ sub load_config {
 # SYNOPSIS
 #   set_maintext($text, $transition, $wrap)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $text - 
-#    $transition - 
-#    $wrap - 
+#   $text -
+#    $transition -
+#    $wrap -
 # OUTPUT
 # SOURCE
 #
 sub set_maintext {
     my ($text, $transition, $wrap) = @_;
     if (!defined $text) { $text = " "; }
+
     #$text = fromutf($text);
 
     if ($globals->{'server_type'} == SIMPLE) {
@@ -1947,9 +1951,9 @@ sub set_maintext {
 # FUNCTION
 #   Setting maintext -clutter
 # INPUTS
-#   $text - 
-#    $transition - 
-#    $wrap - 
+#   $text -
+#    $transition -
+#    $wrap -
 # OUTPUT
 # SOURCE
 #
@@ -1979,16 +1983,18 @@ sub set_maintext_clutter {
         if ($globals->{'header'}) {
             $final_y =
               ($globals->{'header'}->get_height() +
-              ($globals->{'maintext'}->get_height / 2 )) / $MINISCALE;
+                  ($globals->{'maintext'}->get_height / 2)) / $MINISCALE;
         } else {
             $final_y = $globals->{'maintext'}->get_height / 2;
         }
     } elsif ($config->{'VerticalLocation'} =~ /^B/) {
         if ($globals->{'footer'}) {
-            $final_y =
-              $globals->{'stage'}->get_height() -
-              ((($globals->{'maintext'}->get_height / 2) +
-              $globals->{'footer'}->get_height()) / $MINISCALE);
+            $final_y = $globals->{'stage'}->get_height() - (
+                (
+                    ($globals->{'maintext'}->get_height / 2) +
+                      $globals->{'footer'}->get_height()
+                ) / $MINISCALE
+            );
         } else {
             $final_y =
               $globals->{'stage'}->get_height() -
@@ -2003,7 +2009,7 @@ sub set_maintext_clutter {
           (($globals->{'maintext'}->get_width / 2) / $MINISCALE);
     }
     $globals->{'maintext'}->set_position($final_x, $final_y);
-    debug($final_x.":". $final_y);
+    debug($final_x . ":" . $final_y);
 
     $globals->{'timeline'} = Clutter::Timeline->new_for_duration(100);
     $globals->{'timeline'}->set_speed(15);
@@ -2166,12 +2172,12 @@ sub set_maintext_clutter {
 # SYNOPSIS
 #   create_outlined_text($text, $font, $text_colour, $shadow_colour)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $text - 
-#    $font - 
-#    $text_colour - 
-#    $shadow_colour - 
+#   $text -
+#    $font -
+#    $text_colour -
+#    $shadow_colour -
 # OUTPUT
 # SOURCE
 #
@@ -2223,9 +2229,9 @@ sub create_outlined_text {
 # FUNCTION
 #   Set maintext simple
 # INPUTS
-#   $text - 
-#    $transition - 
-#    $wrap - 
+#   $text -
+#    $transition -
+#    $wrap -
 # OUTPUT
 # SOURCE
 #
@@ -2260,9 +2266,9 @@ sub set_maintext_simple {
 # FUNCTION
 #   Set maintext canvas
 # INPUTS
-#   $text - 
-#    $transition - 
-#    $wrap - 
+#   $text -
+#    $transition -
+#    $wrap -
 # OUTPUT
 # SOURCE
 #
@@ -2540,17 +2546,17 @@ sub set_maintext_canvas {
 # FUNCTION
 #       debug ($width."x".$height."-". $MINISCALE);
 # INPUTS
-#   $widget - 
-#    $event - 
+#   $widget -
+#    $event -
 # OUTPUT
 # SOURCE
 #
 sub Configure_event {
-    my ($widget, $event) = @_;
-    my ($width, $height) = $globals->{'window'}->get_size();
+    my ($widget, $event)  = @_;
+    my ($width,  $height) = $globals->{'window'}->get_size();
     my $old = $MINISCALE;
     $MINISCALE = $config->{'Height'} / $height;
-    debug ($width."x".$height."-". $MINISCALE);
+    debug($width . "x" . $height . "-" . $MINISCALE);
     if ($MINISCALE != $old) {
         reset_timer($globals->{'update_timer'});
         $globals->{'update_timer'} = Glib::Timeout->add(200, \&refresh_display);
@@ -2566,16 +2572,17 @@ sub Configure_event {
 # SYNOPSIS
 #   refresh_display()
 # FUNCTION
-#   
+#
 # INPUTS
 # OUTPUT
 # SOURCE
 #
 sub refresh_display {
+
     # Refresh Display
     my $id = $globals->{'bgid'};
     change_backdrop($config->{'BGImage'}, TRUE);
-    change_backdrop($id, TRUE);
+    change_backdrop($id,                  TRUE);
     if (defined $globals->{'header'}) {
         set_header($globals->{'header'}->{user_data});
     }
@@ -2583,10 +2590,11 @@ sub refresh_display {
         set_footer($globals->{'footer'}->{user_data});
     }
     if (defined $globals->{'maintext'}) {
-        set_maintext($globals->{'maintext'}->{user_data},NONE,TRUE);
+        set_maintext($globals->{'maintext'}->{user_data}, NONE, TRUE);
     }
     reset_timer($globals->{'update_timer'});
 }
+
 #***
 
 #****f* lyricue_server/display_fatal
@@ -2595,10 +2603,10 @@ sub refresh_display {
 # SYNOPSIS
 #   display_fatal($message, $error)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $message - 
-#    $error - 
+#   $message -
+#    $error -
 # OUTPUT
 # SOURCE
 #
@@ -2633,7 +2641,7 @@ sub display_fatal {
 # FUNCTION
 #   Close dialog
 # INPUTS
-#   $widget - 
+#   $widget -
 # OUTPUT
 # SOURCE
 #
@@ -2651,10 +2659,10 @@ sub close_dialog {
 # SYNOPSIS
 #   mod($inp, $div)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $inp - 
-#    $div - 
+#   $inp -
+#    $div -
 # OUTPUT
 # SOURCE
 #
@@ -2672,9 +2680,9 @@ sub mod {
 # SYNOPSIS
 #   set_footer($text)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $text - 
+#   $text -
 # OUTPUT
 # SOURCE
 #
@@ -2699,9 +2707,9 @@ sub set_footer {
 # SYNOPSIS
 #   set_footer_clutter($text)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $text - 
+#   $text -
 # OUTPUT
 # SOURCE
 #
@@ -2737,9 +2745,9 @@ sub set_footer_clutter {
 # SYNOPSIS
 #   set_footer_simple($text)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $text - 
+#   $text -
 # OUTPUT
 # SOURCE
 #
@@ -2764,9 +2772,9 @@ sub set_footer_simple {
 # SYNOPSIS
 #   set_footer_canvas($text)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $text - 
+#   $text -
 # OUTPUT
 # SOURCE
 #
@@ -2824,9 +2832,9 @@ sub set_footer_canvas {
 # SYNOPSIS
 #   set_header($text)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $text - 
+#   $text -
 # OUTPUT
 # SOURCE
 #
@@ -2853,7 +2861,7 @@ sub set_header {
 # FUNCTION
 #   Setting header
 # INPUTS
-#   $text - 
+#   $text -
 # OUTPUT
 # SOURCE
 #
@@ -2876,10 +2884,8 @@ sub set_header_clutter {
         $globals->{'stage'}->get_height() / 2
     );
     $globals->{'stage'}->add($globals->{'header'});
-    $globals->{'header'}->set_position(
-        $globals->{'stage'}->get_width() / 2,
-        $globals->{'header'}->get_height() / 2 / $MINISCALE
-    );
+    $globals->{'header'}->set_position($globals->{'stage'}->get_width() / 2,
+        $globals->{'header'}->get_height() / 2 / $MINISCALE);
 }
 
 #***
@@ -2890,9 +2896,9 @@ sub set_header_clutter {
 # SYNOPSIS
 #   set_header_simple($text)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $text - 
+#   $text -
 # OUTPUT
 # SOURCE
 #
@@ -2917,9 +2923,9 @@ sub set_header_simple {
 # SYNOPSIS
 #   set_header_canvas($text)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $text - 
+#   $text -
 # OUTPUT
 # SOURCE
 #
@@ -3095,6 +3101,7 @@ sub update_snapshot {
     #}
     reset_timer($globals->{'snapshot_timer'});
 }
+
 #***
 
 #****f* lyricue_server/reset_timer
@@ -3105,7 +3112,7 @@ sub update_snapshot {
 # FUNCTION
 #   Cancelling timer
 # INPUTS
-#   $timer - 
+#   $timer -
 # OUTPUT
 # SOURCE
 #
@@ -3136,7 +3143,7 @@ sub create_window {
 
     if ($MINISERV > 0) {
         $globals->{'window'} = Gtk2::Plug->new($MINISERV);
-        $globals->{'window'}->set_default_size(246,185);
+        $globals->{'window'}->set_default_size(246, 185);
     } else {
         $globals->{'window'} = Gtk2::Window->new('toplevel');
     }
@@ -3166,17 +3173,29 @@ sub create_window {
           ->set_default_size($config->{'Width'}, $config->{'Height'});
         if ($globals->{'run_windowed'} == FALSE) {
             if ($config->{'Xinerama'}) {
+
                 # If xinerama then run on second display
-                my $geom = "+".($globals->{'window'}->get_screen->get_width -100)."+100";
+                my $geom = "+"
+                  . ($globals->{'window'}->get_screen->get_width - 100)
+                  . "+100";
                 $globals->{'window'}->parse_geometry($geom);
             } else {
                 my $display = Gtk2::Gdk::Display->open(":0.1");
+
                 #$globals->{'window'}->set_screen($display->get_screen(0));
             }
             $globals->{'window'}->fullscreen();
-            debug ("Running on display ".$globals->{'window'}->get_screen->get_display->get_name." monitor ".$globals->{'window'}->get_screen->get_monitor_at_window($globals->{'window'}->window));
+            debug(
+                    "Running on display "
+                  . $globals->{'window'}->get_screen->get_display->get_name
+                  . " monitor "
+                  . $globals->{'window'}->get_screen->get_monitor_at_window(
+                    $globals->{'window'}->window
+                  )
+            );
         } else {
-            $globals->{'window'}->resize($config->{'Width'}, $config->{'Height'});
+            $globals->{'window'}
+              ->resize($config->{'Width'}, $config->{'Height'});
         }
         debug("Running in SERVER (normal) mode");
     }
@@ -3362,7 +3381,7 @@ sub create_window {
 # SYNOPSIS
 #   refresh_screen()
 # FUNCTION
-#   
+#
 # INPUTS
 # OUTPUT
 # SOURCE
@@ -3381,7 +3400,7 @@ sub refresh_screen {
 # SYNOPSIS
 #   do_pending()
 # FUNCTION
-#   
+#
 # INPUTS
 # OUTPUT
 # SOURCE
@@ -3430,8 +3449,8 @@ sub get_playlists {
 # FUNCTION
 #       debug($query);
 # INPUTS
-#   $playlist - 
-#    $pre - 
+#   $playlist -
+#    $pre -
 # OUTPUT
 # SOURCE
 #
@@ -3652,10 +3671,10 @@ sub db_check_app {
 # SYNOPSIS
 #   db_connect($dbname, $dberror)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $dbname - 
-#    $dberror - 
+#   $dbname -
+#    $dberror -
 # OUTPUT
 # SOURCE
 #
@@ -3670,7 +3689,7 @@ sub db_connect {
     } else {
         $dbh = DBI->connect(
             "DBI:" . $globals->{'db_type'} . ":$dbname:$globals->{'host'}",
-            "lyric", "" , {mysql_enable_utf8 => 1})
+            "lyric", "", {mysql_enable_utf8 => 1})
           || display_fatal($dberror, $DBI::errstr);
     }
     return $dbh;
@@ -3686,8 +3705,8 @@ sub db_connect {
 # FUNCTION
 #   Handle Mouse click
 # INPUTS
-#   $widget - 
-#    $data - 
+#   $widget -
+#    $data -
 # OUTPUT
 # SOURCE
 #
@@ -3711,15 +3730,15 @@ sub HandleMouse {
 # SYNOPSIS
 #   fromutf($line)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $line - 
+#   $line -
 # OUTPUT
 # SOURCE
 #
 sub fromutf {
     my ($line) = @_;
-    utf8::decode($line) unless utf8::is_utf8( $line );
+    utf8::decode($line) unless utf8::is_utf8($line);
     return $line;
 }
 
@@ -3730,9 +3749,9 @@ sub fromutf {
 # SYNOPSIS
 #   toutf($line)
 # FUNCTION
-#   
+#
 # INPUTS
-#   $line - 
+#   $line -
 # OUTPUT
 # SOURCE
 #
