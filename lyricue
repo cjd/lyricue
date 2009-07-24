@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.311 2009/07/23 23:41:38 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.312 2009/07/24 00:15:16 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7018,10 +7018,10 @@ sub add_file {
 sub add_directory {
     debug("Add a directory to the playlist");
     my $d = Gtk2::FileChooserDialog->new(
-        gettext('Choose a Directory'),
+        fromutf(gettext("Choose a Directory")),
         $widgets->{'main'}->get_widget('windowMain'), 'select-folder',
-        gettext("Cancel") => "cancel",
-        gettext("OK")     => "accept",
+        fromutf(gettext("Cancel")) => "cancel",
+        fromutf(gettext("OK"))     => "accept",
     );
 
     my $response = $d->run();
