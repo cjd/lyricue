@@ -55,6 +55,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
+                        <signal name="activate" handler="import_db"/>
                         <child internal-child="image">
                           <widget class="GtkImage" id="image3">
                             <property name="visible">True</property>
@@ -69,6 +70,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
+                        <signal name="activate" handler="export_db"/>
                         <child internal-child="image">
                           <widget class="GtkImage" id="image4">
                             <property name="visible">True</property>
@@ -362,6 +364,7 @@
                       <widget class="GtkImageMenuItem" id="add_directory1">
                         <property name="label" translatable="yes">Add _Directory</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_directory"/>
                         <child internal-child="image">
@@ -402,6 +405,7 @@
                       <widget class="GtkImageMenuItem" id="previous_page1">
                         <property name="label" translatable="yes">_Previous Page</property>
                         <property name="visible">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="prev_page"/>
                         <child internal-child="image">
@@ -1012,8 +1016,8 @@
                         <child>
                           <widget class="GtkFileChooserWidget" id="fileAddFile">
                             <property name="visible">True</property>
-                            <property name="preview_widget_active">False</property>
                             <property name="use_preview_label">False</property>
+                            <property name="preview_widget_active">False</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -2595,7 +2599,7 @@
                   <widget class="GtkMenu" id="menuitem4_menu">
                     <child>
                       <widget class="GtkImageMenuItem" id="about2">
-                        <property name="label" translatable="yes">_About</property>
+                        <property name="label">_About</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
@@ -6465,8 +6469,8 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -7946,6 +7950,9 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
