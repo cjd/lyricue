@@ -24,8 +24,14 @@
                         <property name="label" translatable="yes">Manage _Images</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_image"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image1">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-missing-image</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -33,24 +39,42 @@
                         <property name="label" translatable="yes">Manage _Background</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_background"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image2">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-missing-image</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="import1">
-                        <property name="visible">True</property>
+                      <widget class="GtkImageMenuItem" id="import1">
                         <property name="label" translatable="yes">Import Songlist</property>
+                        <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="import_db"/>
+                        <property name="use_stock">False</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image3">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-open</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="export2">
-                        <property name="visible">True</property>
+                      <widget class="GtkImageMenuItem" id="export2">
                         <property name="label" translatable="yes">Export Songlist</property>
+                        <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="export_db"/>
+                        <property name="use_stock">False</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image4">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-save-as</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -78,9 +102,15 @@
                         <property name="label" translatable="yes">_Add Song</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_song"/>
                         <accelerator key="A" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image5">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-add</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -88,9 +118,15 @@
                         <property name="label" translatable="yes">Advanced _Search</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="create_search"/>
                         <accelerator key="F" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image6">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-find</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -98,9 +134,15 @@
                         <property name="label" translatable="yes">_Edit Song</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="edit_song"/>
                         <accelerator key="E" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image7">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-edit</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -108,9 +150,15 @@
                         <property name="label" translatable="yes">_Delete Song</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="delete_song"/>
                         <accelerator key="D" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image9">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-delete</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -118,9 +166,15 @@
                         <property name="label" translatable="yes">_Refresh List</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="update_available"/>
                         <accelerator key="R" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image10">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-refresh</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -133,11 +187,17 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="menuwizard">
-                        <property name="visible">True</property>
+                      <widget class="GtkImageMenuItem" id="menuwizard">
                         <property name="label" translatable="yes">_Configuration Wizard</property>
+                        <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="firstrun_wizard"/>
+                        <property name="use_stock">False</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image11">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-preferences</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -145,8 +205,14 @@
                         <property name="label" translatable="yes">_User Administration</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="user_admin"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image12">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-dialog-authentication</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                   </widget>
@@ -165,8 +231,14 @@
                         <property name="label" translatable="yes">_Select Playlist</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="choose_playlist"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image13">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-convert</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -174,8 +246,14 @@
                         <property name="label" translatable="yes">_Clear Playlist</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="clear_playlist"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image14">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-clear</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -183,8 +261,14 @@
                         <property name="label" translatable="yes">_Refresh Playlist</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="update_playlist"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image15">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-refresh</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -192,8 +276,14 @@
                         <property name="label" translatable="yes">_Clear Image Associations</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="clear_associations"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image16">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-clear</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -201,8 +291,14 @@
                         <property name="label" translatable="yes">_Invert Line Display</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="invert_lines"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image17">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-sort-ascending</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                   </widget>
@@ -221,8 +317,14 @@
                         <property name="label" translatable="yes">_Add from Available</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_to_playlist"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image18">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-convert</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -230,9 +332,15 @@
                         <property name="label" translatable="yes">Add _Image</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_image"/>
                         <accelerator key="I" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image21">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-add</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -240,17 +348,28 @@
                         <property name="label" translatable="yes">Add _File</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_file"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image22">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-new</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
                       <widget class="GtkImageMenuItem" id="add_directory1">
                         <property name="label" translatable="yes">Add _Directory</property>
                         <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_directory"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image23">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-open</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -258,8 +377,14 @@
                         <property name="label" translatable="yes">_Remove from Playlist</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="remove_from_playlist"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image24">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-remove</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                   </widget>
@@ -277,9 +402,14 @@
                       <widget class="GtkImageMenuItem" id="previous_page1">
                         <property name="label" translatable="yes">_Previous Page</property>
                         <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="prev_page"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image25">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-media-previous</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -287,8 +417,14 @@
                         <property name="label" translatable="yes">_Next Page</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="next_page"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image26">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-media-next</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -296,8 +432,14 @@
                         <property name="label" translatable="yes">_Display Now</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="display_now"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image27">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-ok</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -305,8 +447,14 @@
                         <property name="label" translatable="yes">_Blank Display</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="blank_page"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image36">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-media-stop</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -314,8 +462,14 @@
                         <property name="label" translatable="yes">_Clear Text</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="clear_text"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image37">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-clear</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
@@ -323,8 +477,14 @@
                         <property name="label" translatable="yes">_Live Video</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="media_v4l"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image38">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-media-play</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                   </widget>
@@ -2345,7 +2505,7 @@
                         <property name="label" translatable="yes">Import</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="import_song"/>
                       </widget>
                     </child>
@@ -2354,7 +2514,7 @@
                         <property name="label" translatable="yes">Export</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="export_song"/>
                       </widget>
                     </child>
@@ -2363,7 +2523,7 @@
                         <property name="label" translatable="yes">Save</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="save_song"/>
                       </widget>
                     </child>
@@ -2372,7 +2532,7 @@
                         <property name="label" translatable="yes">Close</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="close_add_window"/>
                       </widget>
                     </child>
@@ -2392,7 +2552,7 @@
                         <property name="label" translatable="yes">Add Page</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_page"/>
                       </widget>
                     </child>
@@ -2401,7 +2561,7 @@
                         <property name="label" translatable="yes">Remove Page</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="remove_page"/>
                       </widget>
                     </child>
@@ -2410,7 +2570,7 @@
                         <property name="label" translatable="yes">Preview Page</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="preview_page"/>
                       </widget>
                     </child>
@@ -6305,8 +6465,8 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="action">select-folder</property>
     <property name="do_overwrite_confirmation">True</property>
+    <property name="action">select-folder</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -7786,6 +7946,12 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
