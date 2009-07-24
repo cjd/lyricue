@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.312 2009/07/24 00:15:16 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.313 2009/07/24 03:07:08 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -496,8 +496,8 @@ $0 = "Lyricue Interface";
 init_mainWindow();
 choose_playlist();
 
-# Don't let them cancel out of the playlist dialog yet
-$widgets->{'choose'}->get_widget('buttonCancel')->hide;
+# Don't let them cancel out of the playlist chooser yet
+$widgets->{'main'}->get_widget('toolbuttonPlayCancel')->hide;
 $globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
 
 Gtk2->main();
@@ -4358,13 +4358,28 @@ sub show_about {
 #
 sub choose_playlist {
     debug("Choose playlist");
-    $widgets->{'choose'} = Gtk2::GladeXML->new($globals->{'gladefile'},
-        'windowChoosePlay', 'lyricue');
-    $widgets->{'choose'}->signal_autoconnect_from_package('');
-    $widgets->{'choose'}->get_widget('windowChoosePlay')->show;
+    $widgets->{'main'}->get_widget('vboxChoosePlay')->show_all;
+    $widgets->{'main'}->get_widget('scrollPlaylist')->hide;
+    $widgets->{'main'}->get_widget('toolbarPlaylist')->hide;
     update_cplayclist();
 }
+#***
 
+#****f* lyricue/close_playlist_chooser
+# NAME
+#   close_playlist_chooser
+# SYNOPSIS
+#   close_playlist_chooser ( )
+# FUNCTION
+#   Close the playlist chooser
+# SOURCE
+#
+sub close_playlist_chooser {
+    debug("Close playlist chooser");
+    $widgets->{'main'}->get_widget('vboxChoosePlay')->hide;
+    $widgets->{'main'}->get_widget('scrollPlaylist')->show_all;
+    $widgets->{'main'}->get_widget('toolbarPlaylist')->show_all;
+}
 #***
 
 #****f* lyricue/create_dialog_prefs
@@ -5179,8 +5194,20 @@ sub select_playlist {
     my ($widget) = @_;
     debug("Selecting a main playlist");
 
+    my $playlist = "";
+    my $selection = $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
+    if ($selection) {
+        my ($m, $i) = $selection->get_selected;
+        if ($m) {
+            $playlist = $m->get($i, 0);
+        }
+    }
+
+    if ($playlist eq "") {
+        return;
+    }
     my $query = "SELECT id FROM playlists WHERE title LIKE \""
-      . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() . "\"";
+      . $playlist . "\"";
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
@@ -5188,12 +5215,11 @@ sub select_playlist {
     my @row = $sth->fetchrow_array();
     if ($row[0]) {
         $widgets->{'main'}->get_widget('labelCurrentPlaylist')
-          ->set_text(
-            $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text);
+          ->set_text($playlist);
         $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} =
           $row[0];
         update_playlist();
-        close_dialog($widget);
+        close_playlist_chooser();
     }
 }
 
@@ -5215,6 +5241,7 @@ sub select_playlist {
 #
 sub select_playlist_click {
     my ($widget, $event) = @_;
+    debug("select_playlist_click");
     if ($event->type eq '2button-press') {
         select_playlist($widget);
     }
@@ -5238,27 +5265,55 @@ sub select_playlist_click {
 sub new_playlist {
     my ($widget) = @_;
     debug("Creating a new playlist");
-    if ($widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() ne "") {
-        my $query = "SELECT MAX(id)+1 FROM playlists";
-        my $sth   = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
-        my @row = $sth->fetchrow_array();
-        $query =
-            "INSERT INTO playlists (id,title) VALUES ("
-          . $row[0] . ", \""
-          . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text()
-          . "\")";
-        $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
-        select_playlist($widget);
+    my $playlist = "";
+    my $newxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogPromptEntry', 'lyricue');
+    $newxml->signal_autoconnect_from_package('');
+    $newxml->get_widget('dialogPromptEntry')
+        ->set_title(fromutf(gettext("Create new playlist")));
+    $newxml->get_widget('labelPromptE')
+        ->set_text(fromutf(gettext("Name of playlist")));
+
+    my $response = $newxml->get_widget('dialogPromptEntry')->run();
+    if ($response eq "ok") {
+        $playlist = $newxml->get_widget('entryPromptE')->get_text();
+    }
+    close_dialog($newxml->get_widget('dialogPromptEntry'));
+    if ($playlist eq "") {
+        return;
+    }
+
+    my $query = "SELECT MAX(id)+1 FROM playlists";
+    my $sth   = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'},
+        $! . "\nSQL: " . $query);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'},
+        $! . "\nSQL: " . $query);
+    my @row = $sth->fetchrow_array();
+    $query =
+        "INSERT INTO playlists (id,title) VALUES ("
+      . $row[0] . ", \"" . $playlist . "\")";
+    $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'},
+        $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'},
+        $! . "\nSQL: " . $query);
+    $query = "SELECT id FROM playlists WHERE title LIKE \""
+      . $playlist . "\"";
+    $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    @row = $sth->fetchrow_array();
+    if ($row[0]) {
+        $widgets->{'main'}->get_widget('labelCurrentPlaylist')
+          ->set_text($playlist);
+        $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} =
+          $row[0];
+        update_playlist();
+        close_playlist_chooser();
     }
 }
 
@@ -5279,35 +5334,46 @@ sub new_playlist {
 sub rename_playlist {
     my ($widget) = @_;
     debug("Renaming playlist");
-    if ($widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() ne "") {
-        my $query =
-            "SELECT id FROM playlists WHERE title=\""
-          . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text()
-          . "\"";
-        my $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
-        my @row = $sth->fetchrow_array();
-        if ($row[0]) {
-            my $renamexml = Gtk2::GladeXML->new($globals->{'gladefile'},
-                'dialogPromptEntry', 'lyricue');
-            $renamexml->signal_autoconnect_from_package('');
-            my $labelText =
-              fromutf(gettext("Renaming "))
-              . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text();
-            $renamexml->get_widget('dialogPromptEntry')->set_title($labelText);
-            $renamexml->get_widget('labelPromptE')->set_text($labelText);
-            $renamexml->get_widget('labelPromptE')->{user_data} = $row[0];
-            $renamexml->get_widget('entryPromptE')
-              ->set_text(
-                $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text()
-              );
-            $renamexml->get_widget('buttonPromptEOK')
-              ->signal_connect("clicked", "do_rename_playlist", $renamexml);
+    my $playlist = "";
+    my $selection = $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
+    if ($selection) {
+        my ($m, $i) = $selection->get_selected;
+        if ($m) {
+            $playlist = $m->get($i, 0);
         }
+    }
+
+    if ($playlist eq "") {
+        return;
+    }
+
+    my $query =
+        "SELECT id FROM playlists WHERE title=\""
+      . $playlist
+      . "\"";
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'},
+        $! . "\nSQL: " . $query);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'},
+        $! . "\nSQL: " . $query);
+    my @row = $sth->fetchrow_array();
+    if ($row[0]) {
+        my $renamexml = Gtk2::GladeXML->new($globals->{'gladefile'},
+            'dialogPromptEntry', 'lyricue');
+        $renamexml->signal_autoconnect_from_package('');
+        my $labelText =
+          fromutf(gettext("Renaming "))
+          . $playlist;
+        $renamexml->get_widget('dialogPromptEntry')->set_title($labelText);
+        $renamexml->get_widget('labelPromptE')->set_text($labelText);
+        $renamexml->get_widget('labelPromptE')->{user_data} = $row[0];
+        $renamexml->get_widget('entryPromptE')
+          ->set_text(
+            $playlist
+          );
+        $renamexml->get_widget('buttonPromptEOK')
+          ->signal_connect("clicked", "do_rename_playlist", $renamexml);
     }
 }
 
@@ -5362,8 +5428,21 @@ sub delete_playlist {
     my ($widget) = @_;
     debug("Deleting a playlist");
 
+    my $playlist = "";
+    my $selection = $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
+    if ($selection) {
+        my ($m, $i) = $selection->get_selected;
+        if ($m) {
+            $playlist = $m->get($i, 0);
+        }
+    }
+
+    if ($playlist eq "") {
+        return;
+    }
+
     my $query = "SELECT id FROM playlists WHERE title=\""
-      . $widgets->{'choose'}->get_widget('entryChoosePlay')->get_text() . "\"";
+      . $playlist . "\"";
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
@@ -5397,31 +5476,6 @@ sub delete_playlist {
 
 #***
 
-#****f* lyricue/update_cplay
-# NAME
-#   update_cplay
-# SYNOPSIS
-#   update_cplay ($selection)
-# FUNCTION
-#   Update the text box with the chosen playlist
-# INPUTS
-#   $selection - the selection
-# OUTPUT
-# SOURCE
-#
-sub update_cplay {
-    my ($selection) = @_;
-    debug("Selected a playlist");
-
-    my ($model, $iter) = $selection->get_selected;
-    if ($iter) {
-        $widgets->{'choose'}->get_widget('entryChoosePlay')
-          ->set_text($model->get($iter, 0));
-    }
-}
-
-#***
-
 #****f* lyricue/update_cplayclist
 # NAME
 #   update_cplayclist
@@ -5437,20 +5491,19 @@ sub update_cplay {
 sub update_cplayclist {
     my ($selection, $renderer, $column);
     debug("Update Choose playlist");
-    my $store = $widgets->{'choose'}->get_widget('treeChoosePlay')->get_model();
+    my $store = $widgets->{'main'}->get_widget('treeChoosePlay')->get_model();
     if ($store) {
         $store->clear;
     } else {
         $store = Gtk2::ListStore->new('Glib::String');
-        $widgets->{'choose'}->get_widget('treeChoosePlay')->set_model($store);
+        $widgets->{'main'}->get_widget('treeChoosePlay')->set_model($store);
         $renderer = Gtk2::CellRendererText->new;
         $selection =
-          $widgets->{'choose'}->get_widget('treeChoosePlay')->get_selection;
-        $selection->signal_connect(changed => \&update_cplay);
+          $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
         $column =
           Gtk2::TreeViewColumn->new_with_attributes("Playlist", $renderer,
             text => 0);
-        $widgets->{'choose'}->get_widget('treeChoosePlay')
+        $widgets->{'main'}->get_widget('treeChoosePlay')
           ->append_column($column);
     }
 
