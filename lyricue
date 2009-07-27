@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.313 2009/07/24 03:07:08 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.314 2009/07/27 05:10:34 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -9260,7 +9260,102 @@ sub import_songs {
     );
     close $fh;
     my $songs = $xml->{'song'};
-    foreach my $song (@$songs) {
+
+    $widgets->{'select_songs'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSelectSongs', 'lyricue');
+    $widgets->{'select_songs'}->signal_autoconnect_from_package('');
+    
+    my $model = Gtk2::ListStore->new('Glib::Boolean', 'Glib::String', 'Glib::String','Glib::String','Glib::Uint', 'Glib::Uint');
+    my $renderer = Gtk2::CellRendererToggle->new;
+    $renderer->signal_connect(toggled => sub {
+                my ($cell, $path_str, $model) = @_;
+                my $path = Gtk2::TreePath->new_from_string ($path_str);
+                my $column = 0;
+                my $iter = $model->get_iter ($path);
+                my ($toggle_item) = $model->get ($iter, $column);
+                $toggle_item ^= 1;
+                debug 'setting '.$path_str.' to '.$toggle_item;
+                # set new value
+                $model->set ($iter, $column, $toggle_item);
+            }, $model);
+    my $column1 = Gtk2::TreeViewColumn->new_with_attributes("", $renderer, active=>0);
+    my $column2 = Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Title")), Gtk2::CellRendererText->new, text=>1);
+    my $column3 = Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Artist")), Gtk2::CellRendererText->new, text=>2);
+    my $column4 = Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Book")), Gtk2::CellRendererText->new, text=>3);
+    my $column5 = Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Song Number")), Gtk2::CellRendererText->new, text=>4);
+    $column1->set_resizable(TRUE);
+    $column2->set_resizable(TRUE);
+    $column3->set_resizable(TRUE);
+    $column4->set_resizable(TRUE);
+    $column5->set_resizable(TRUE);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column1);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column2);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column3);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column4);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column5);
+    foreach my $songnum (0 .. (@$songs-1)) {
+        debug ("Adding ".$songnum.":". @$songs[$songnum]->{'name'});
+        my $iter = $model->append;
+        $model->set(
+            $iter, 0, TRUE,
+            1, @$songs[$songnum]->{'name'},
+            2, @$songs[$songnum]->{'artist'},
+            3, @$songs[$songnum]->{'book'},
+            4, @$songs[$songnum]->{'number'},
+            5, $songnum
+        );
+    }
+    $widgets->{'select_songs'}->get_widget('treeSongImport')->set_model($model);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')->set_headers_clickable(TRUE);
+    my $confirm = $widgets->{'select_songs'}->get_widget('dialogSelectSongs')->run();
+    if ($confirm == 1) {
+        $model->foreach( \&do_import_songs, $songs);
+        update_available();
+    }
+    close_dialog($widgets->{'select_songs'}->get_widget('dialogSelectSongs'));
+}
+#***
+
+#****f* lyricue/import_selection
+# NAME
+#   import_selection
+# SYNOPSIS
+#   import_selection($filename)
+# FUNCTION
+#   Change the selection in the import dialog
+# OUTPUT
+sub import_selection {
+    my ($widget) = @_;
+    debug("Selection changing");
+    my $model = $widgets->{'select_songs'}->get_widget('treeSongImport')->get_model;
+    my $toggle = FALSE;
+    if ($widget->get_name() eq "buttonImportAll") {
+        $toggle = TRUE;
+    }
+    $model->foreach( sub { 
+        my ($store, $path, $iter, $toggle) = @_;
+        $store->set ($iter, 0, $toggle);}, $toggle );
+}
+#***
+
+#****f* lyricue/do_import_songs
+# NAME
+#   do_import_songs
+# SYNOPSIS
+#   do_import_songs($store, $path, $iter, $songs)
+# FUNCTION
+#   Import each individual song if marked for import
+# INPUTS
+#   $store - List store
+#   $path - Path of item being checked
+#   $iter - Iter of item
+#   $songs - Parsed xml input
+# OUTPUT
+sub do_import_songs {
+    my ($store, $path, $iter, $songs) = @_;
+    my $songnum = $store->get($iter,5);
+    if ($store->get($iter, 0)) {
+        my $song = @$songs[$songnum] ;
+        debug("Importing ".$song->{'name'});
 
         # Find next id
         my $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
@@ -9272,7 +9367,6 @@ sub import_songs {
             $! . "\nSQL: " . $query);
         my @row    = $sth->fetchrow_array;
         my $songid = $row[0];
-        debug("Song: " . $song->{'name'});
         $query =
 "INSERT INTO lyricMain ( id, title, songnum, book, artist, keywords, copyright, entered, written ) VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         $sth = $lyricDbh->prepare($query)
@@ -9304,7 +9398,6 @@ sub import_songs {
         }
     }
 }
-
 #***
 
 #****f* lyricue/export_songs
@@ -11571,7 +11664,9 @@ sub import_db {
     if ($confirm == 0) {
         my $filename = $importxml->get_widget('fileImportData')->get_filename();
         if (defined $filename) {
+            close_dialog($importxml->get_widget('dialogImportData'));
             import_songs($filename);
+            return;
         }
     }
     close_dialog($importxml->get_widget('dialogImportData'));

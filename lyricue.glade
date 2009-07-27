@@ -6289,8 +6289,8 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -6459,8 +6459,11 @@ http://www.adebenham.com/lyricue/bibles.html</property>
   </widget>
   <widget class="GtkDialog" id="dialogSelectSongs">
     <property name="border_width">5</property>
+    <property name="title" translatable="yes">Select Songs to Import</property>
+    <property name="window_position">center</property>
+    <property name="default_width">400</property>
+    <property name="default_height">300</property>
     <property name="type_hint">normal</property>
-    <property name="has_separator">False</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox13">
         <property name="visible">True</property>
@@ -6504,11 +6507,36 @@ http://www.adebenham.com/lyricue/bibles.html</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button3">
-                <property name="label" translatable="yes">Select All</property>
+              <widget class="GtkHButtonBox" id="hbuttonbox1">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <child>
+                  <widget class="GtkButton" id="buttonImportAll">
+                    <property name="label" translatable="yes">Select All</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="import_selection" object="all"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="buttonImportNone">
+                    <property name="label" translatable="yes">Unselect All</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="import_selection" object="none"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -6541,6 +6569,7 @@ http://www.adebenham.com/lyricue/bibles.html</property>
             <child>
               <widget class="GtkButton" id="button5">
                 <property name="label">gtk-ok</property>
+                <property name="response_id">1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -7770,6 +7799,18 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
