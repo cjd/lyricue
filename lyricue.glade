@@ -6368,13 +6368,13 @@ http://www.adebenham.com/lyricue/bibles.html</property>
             </child>
             <child>
               <widget class="GtkLinkButton" id="linkbutton1">
-                <property name="label" translatable="yes">Sample songlist</property>
+                <property name="label" translatable="yes">Sample songlists</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="relief">none</property>
-                <property name="uri">http://www.adebenham.com/lyricue/</property>
+                <property name="uri">http://www.adebenham.com/lyricue/songlists.html</property>
               </widget>
               <packing>
                 <property name="position">1</property>
@@ -7799,6 +7799,9 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
