@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.314 2009/07/27 05:10:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.315 2009/07/27 06:04:34 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -1009,7 +1009,7 @@ sub update_available {
 
     $query = "SELECT id,title,songnum,book FROM lyricMain WHERE id > 0";
 
-    if ($special_id > 0) {
+    if (defined $special_id && ($special_id > 0)) {
         $query .= " AND id != " . $special_id;
     }
 
@@ -1074,6 +1074,7 @@ sub update_available {
     $widgets->{'main'}->get_widget('treeAvailable')->set_model($store);
     $widgets->{'main'}->get_widget('treeAvailable')
       ->set_headers_clickable(TRUE);
+    $widgets->{'main'}->get_widget('treeAvailable')->get_selection->set_mode('multiple');
     debug("Avail updated");
     return FALSE;
 }
@@ -1298,8 +1299,10 @@ sub delete_song {
     debug("Delete song selected");
     my $selection =
       $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
-    my ($model, $iter) = $selection->get_selected;
-    if ($iter) {
+    my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
+    my @sel = $selection->get_selected_rows;
+    foreach my $path (@sel) {
+        my $iter = $model->get_iter($path);
         my $songid = $model->get($iter, 3);
         if (!($model->get($iter, 1) eq $config->{'SpecialSong'})) {
             $query = "SELECT title,songnum,book,artist FROM lyricMain WHERE id="
@@ -1332,10 +1335,10 @@ sub delete_song {
             if ($confirm eq "ok") {
                 do_delete_song($songid);
                 close_dialog($deletexml->get_widget('dialogConfirm'));
-                update_available();
             }
         }
     }
+    update_available();
 }
 
 #***
@@ -1857,7 +1860,7 @@ sub close_add_window {
 #
 sub close_dialog {
     my ($widget) = @_;
-    debug("Close dialog");
+    debug("Close dialog: ".$widget->get_name);
     if ($widget) {
         $widget->get_toplevel->destroy;
     }
@@ -1882,7 +1885,10 @@ sub edit_song {
     debug("Edit clicked");
     my $selection =
       $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
-    my ($model, $iter) = $selection->get_selected;
+    my @sel = $selection->get_selected_rows;
+    my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
+    my $iter = $model->get_iter($sel[0]);
+    
     if ($iter) {
         my $songid = $model->get($iter, 3);
         if (   $widgets->{'add'}
@@ -2462,13 +2468,13 @@ sub update_songinfo {
 # SOURCE
 #
 sub add_to_playlist {
-
     debug("Add to playlist clicked");
     my $selection =
       $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
-    my ($model, $iter) = $selection->get_selected;
-    if ($iter) {
-        add_single_song($model->get($iter, 3));
+    my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
+    my @sel = $selection->get_selected_rows;
+    foreach my $path (@sel) {
+        add_single_song($model->get($model->get_iter($path), 3));
     }
 
     update_playlist();
@@ -7312,7 +7318,9 @@ sub on_treeAvailable_drag_data_get {
     my ($widget, $context, $data, $info, $time) = @_;
     debug("Dragged from available songs");
     my $selection = $widget->get_selection;
-    my ($model, $iter) = $selection->get_selected;
+    my @sel = $selection->get_selected_rows;
+    my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
+    my $iter = $model->get_iter($sel[0]);
     if ($iter) {
         $data->set($data->target, 8, $model->get($iter, 3));
     }
@@ -11694,7 +11702,7 @@ sub export_db {
     if ($confirm eq 'ok') {
         my $filename = $exportxml->get_widget('dialogFile')->get_filename;
 
-        $filename =~ s/\..*?/.xml/g;
+        $filename =~ s/\..*?g/.xml/g;
         if (defined $filename) {
             export_songs($filename);
         }
