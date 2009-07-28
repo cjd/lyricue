@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.315 2009/07/27 06:04:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.316 2009/07/28 23:03:50 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -2109,7 +2109,7 @@ sub do_import_song {
     my $filename   = $filexml->get_widget('dialogFile')->get_filename;
     my $lcfilename = lc($filename);
 
-    if ($lcfilename =~ /xml$/) {
+    if ($lcfilename =~ /xmlz$/) {
         import_song_xml($filename);
     } elsif ($lcfilename =~ /txt$/) {
         import_song_text($filename);
@@ -11667,6 +11667,9 @@ sub import_db {
     my $importxml = Gtk2::GladeXML->new($globals->{'gladefile'},
         'dialogImportData', 'lyricue');
     $importxml->signal_autoconnect_from_package('');
+    my $filter = Gtk2::FileFilter->new();
+    $filter->add_pattern("*.xmlz");
+    $importxml->get_widget('fileImportData')->set_filter($filter);
     my $confirm = $importxml->get_widget('dialogImportData')->run();
     debug(":" . $confirm);
     if ($confirm == 0) {
@@ -11698,11 +11701,14 @@ sub export_db {
     my $exportxml = Gtk2::GladeXML->new($globals->{'gladefile'},
         'dialogFile', 'lyricue');
     $exportxml->signal_autoconnect_from_package('');
+    $exportxml->get_widget('dialogFile')->complete("*.xmlz");
+    $exportxml->get_widget('dialogFile')->set_filename("lyricue.xmlz");
     my $confirm = $exportxml->get_widget('dialogFile')->run();
     if ($confirm eq 'ok') {
         my $filename = $exportxml->get_widget('dialogFile')->get_filename;
 
-        $filename =~ s/\..*?g/.xml/g;
+        $filename =~ s/\..*?g//g;
+        $filename .= ".xmlz";
         if (defined $filename) {
             export_songs($filename);
         }
