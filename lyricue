@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.316 2009/07/28 23:03:50 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.317 2009/07/29 00:01:33 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -2109,7 +2109,7 @@ sub do_import_song {
     my $filename   = $filexml->get_widget('dialogFile')->get_filename;
     my $lcfilename = lc($filename);
 
-    if ($lcfilename =~ /xmlz$/) {
+    if (($lcfilename =~ /xmlz$/) || ($lcfilename =~ /xml$/)) {
         import_song_xml($filename);
     } elsif ($lcfilename =~ /txt$/) {
         import_song_text($filename);
@@ -2239,7 +2239,14 @@ sub import_song_xml {
     my ($filename) = @_;
     debug("import xml song");
 
-    my $xml = XMLin($filename, ForceArray => ['page'], SuppressEmpty => '');
+    my ($xml);
+    if ($filename =~ /[zZ]$/) {
+        open my $fh, "gzip -dc " . $filename . "|";
+        $xml = XMLin($fh, ForceArray => ['page'], SuppressEmpty => '');
+        close $fh;
+    } else {
+        $xml = XMLin($filename, ForceArray => ['page'], SuppressEmpty => '');
+    }
     $widgets->{'add'}->get_widget('entryEditName')
       ->set_text($xml->{'song'}->{'name'});
     $widgets->{'add'}->get_widget('entryEditBook')
@@ -9258,7 +9265,12 @@ sub import_songs {
     my ($filename) = @_;
     debug("Importing songs from xml file");
 
-    open my $fh, "gzip -dc " . $filename . "|";
+    my ($fh);
+    if ($filename =~ /[zZ]$/) {
+        open $fh, "gzip -dc " . $filename . "|";
+    } else {
+        open $fh, $filename;
+    }
     my $xml = XMLin(
         $fh,
         ForceArray    => ['song', 'page'],
@@ -11669,6 +11681,7 @@ sub import_db {
     $importxml->signal_autoconnect_from_package('');
     my $filter = Gtk2::FileFilter->new();
     $filter->add_pattern("*.xmlz");
+    $filter->add_pattern("*.xml");
     $importxml->get_widget('fileImportData')->set_filter($filter);
     my $confirm = $importxml->get_widget('dialogImportData')->run();
     debug(":" . $confirm);
