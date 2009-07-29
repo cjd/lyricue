@@ -195,6 +195,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
+                        <signal name="activate" handler="firstrun_wizard"/>
                         <child internal-child="image">
                           <widget class="GtkImage" id="image11">
                             <property name="visible">True</property>
@@ -1017,8 +1018,8 @@
                         <child>
                           <widget class="GtkFileChooserWidget" id="fileAddFile">
                             <property name="visible">True</property>
-                            <property name="use_preview_label">False</property>
                             <property name="preview_widget_active">False</property>
+                            <property name="use_preview_label">False</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -6289,8 +6290,8 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -7799,6 +7800,9 @@ http://www.adebenham.com/lyricue/bibles.html</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
