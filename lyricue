@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.318 2009/07/30 04:19:50 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.319 2009/07/30 23:21:29 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -12402,6 +12402,23 @@ sub firstrun_apply {
 # SOURCE
 #
 sub firstrun_bible {
+}
+
+#***
+
+#****f* lyricue/online-help
+# NAME
+#   online_help
+# SYNOPSIS
+#   online_help()
+# FUNCTION
+#   Load documentation in browser
+# SOURCE
+#
+sub online_help {
+    debug("Load Documentation");
+    my $command = "xdg-open http://www.lyricue.org/documentation";
+    system($command);
 }
 
 #***
