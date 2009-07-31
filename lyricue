@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.319 2009/07/30 23:21:29 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.320 2009/07/31 04:50:12 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -494,6 +494,7 @@ if ($globals->{'trayicon'}) {
 $0 = "Lyricue Interface";
 
 init_mainWindow();
+$widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data}=-1;
 choose_playlist();
 
 # Don't let them cancel out of the playlist chooser yet
@@ -1968,6 +1969,11 @@ sub do_add_verse {
 sub insert_verse {
     my ($book, $chapter, $start, $end) = @_;
     debug("insert verse");
+    my $main_playlist =
+      $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+    if ($main_playlist == -1) {
+        return;
+    }
     my $verse =
       $book . ":" . $chapter . ":" . $start . "-" . $chapter . ":" . $end;
     debug($verse);
@@ -2003,8 +2009,6 @@ sub insert_verse {
     $playlist = $row->{'MAX(id)'} + 1;
 
     # Add verse to main playlist
-    my $main_playlist =
-      $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
     $query =
         "INSERT INTO playlist (playorder,playlist,type,data) VALUES ("
       . $playorder . ", "
@@ -2506,6 +2510,10 @@ sub add_to_playlist {
 sub add_single_song {
     my ($availableSelection) = @_;
     debug("add single song");
+    # Drop out if no playlist selected
+    if ($widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} == -1) {
+        return;
+    }
     my ($playorder);
 
     my $query = "SELECT MAX(playorder) FROM playlist";
@@ -3211,8 +3219,10 @@ sub add_image_pl {
     if ($selected ne "") {
         my $playlist =
           $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
-        add_image_item($playlist, $selected);
-        update_playlist();
+        if ($playlist != -1) {
+            add_image_item($playlist, $selected);
+            update_playlist();
+        }
     }
 }
 
@@ -7648,6 +7658,9 @@ sub transition_dir_changed {
 #
 sub apply_transition_selected {
     debug("Apply transition to selected items");
+    if ($widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} == -1) {
+        return;
+    }
     my $trans_type = calculate_transition();
     my $selection =
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
@@ -7676,9 +7689,12 @@ sub apply_transition_selected {
 #
 sub apply_transition_playlist {
     debug("Apply transition to playlist");
-    my $trans_type = calculate_transition();
     my $playlist =
       $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+    if ($playlist == -1 ) {
+        return;
+    }
+    my $trans_type = calculate_transition();
     my $query = "SELECT playorder FROM playlist WHERE playlist=" . $playlist;
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
