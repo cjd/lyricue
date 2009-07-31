@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.199 2009/07/23 05:03:47 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.200 2009/07/31 04:39:30 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1089,7 +1089,7 @@ sub process_input {
                                 $line[4],               $line[0]
                             );
                             debug($command);
-                            my $command_out = `$command`;
+                            my $command_out = fromutf(`$command`);
                             ($line[0], undef) = split(/\s\d/, $command_out, 2);
                             my @command_lines =
                               split(/\#/,, $command_out);
