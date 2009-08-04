@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.320 2009/07/31 04:50:12 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.321 2009/08/04 04:45:09 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -1218,7 +1218,6 @@ sub popup_play_menu {
             'remove_from_playlist',                    1
         ],
         [fromutf(gettext("/Refresh Playlist")),    undef, 'update_playlist', 1],
-        [fromutf(gettext("/Add Verse")),           undef, 'add_verse',       1],
         [fromutf(gettext("/Invert Line Display")), undef, 'invert_lines',    1],
         [fromutf(gettext("/Loop this playlist item")), undef, 'begin_loop', 1],
         [
@@ -1228,10 +1227,6 @@ sub popup_play_menu {
         [
             fromutf(gettext("/Dis-associate background")), undef,
             'disassociate_bg',                             1
-        ],
-        [
-            fromutf(gettext("/Preview this item")), undef,
-            'preview_playlist_item',                1
         ],
         [
             fromutf(gettext("/Move to sublist/Main")), undef,
