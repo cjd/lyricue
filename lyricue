@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.322 2009/08/20 06:11:57 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.323 2009/08/20 22:17:20 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4017,9 +4017,15 @@ sub change_preview {
                       || display_fatal($errorcodes->{'sqlexecute'},
                         $! . "\nSQL: " . $query);
                     $row = $sth->fetchrow_hashref();
+                    $widgets->{'image'}->get_widget('buttonImageDelete')->set_sensitive(TRUE);
+                    $widgets->{'image'}->get_widget('buttonImageChange')->set_sensitive(TRUE);
+                    $widgets->{'image'}->get_widget('hboxImageColour')->show_all;
                 } else {
                     $row->{'textcolour'}   = "Default";
                     $row->{'shadowcolour'} = "Default";
+                    $widgets->{'image'}->get_widget('buttonImageDelete')->set_sensitive(FALSE);
+                    $widgets->{'image'}->get_widget('buttonImageChange')->set_sensitive(FALSE);
+                    $widgets->{'image'}->get_widget('hboxImageColour')->hide;
                 }
                 if (   ($row->{'textcolour'} ne "")
                     && ($row->{'textcolour'} ne "NULL")
@@ -6812,6 +6818,8 @@ sub bgdir_list {
         }
         closedir DIR;
     }
+    # Add a blank entry for files not in a subdirectory
+    push @dircategories, "/";
 
     foreach $cat (sort @dircategories) {
         $cat =~ s/^00000//g;
@@ -8533,7 +8541,7 @@ sub import_background {
 #
 sub import_media {
     my ($type) = @_;
-    debug("Import media " . $type);
+    debug("Import media to db of type:" . $type);
     my $filexml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
     $filexml->signal_autoconnect_from_package('');
@@ -10689,13 +10697,14 @@ sub db_check_databases {
         db_installdb($globals->{'sharedir'} . "mysql/Create_mediaDb.sql",
             "mediaDb");
         db_reload();
-        debug("Importing existing backgrounds/images\n");
+        # Don't do this anymore - leave stuff in their homes
+        #debug("Importing existing backgrounds/images\n");
 
         # NOTE FAILS WITH SQLITE
-        if ($config->{'DatabaseType'} eq "mysql") {
-            system("import_media img " . $globals->{'sharedir'} . "images");
-            system("import_media bg " . $globals->{'sharedir'} . "backgrounds");
-        }
+        #if ($config->{'DatabaseType'} eq "mysql") {
+        #    system("import_media img " . $globals->{'sharedir'} . "images");
+        #    system("import_media bg " . $globals->{'sharedir'} . "backgrounds");
+        #}
         debug("Done\n");
     }
 }

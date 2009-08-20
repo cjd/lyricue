@@ -3321,6 +3321,16 @@ http://www.lyricue.org/</property>
                   </packing>
                 </child>
                 <child>
+                  <widget class="GtkLabel" id="label1">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Database actions</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
                   <widget class="GtkHButtonBox" id="hboxImageActions">
                     <property name="visible">True</property>
                     <property name="layout_style">spread</property>
@@ -3408,7 +3418,7 @@ http://www.lyricue.org/</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="position">3</property>
+                    <property name="position">4</property>
                   </packing>
                 </child>
               </widget>
@@ -6304,8 +6314,8 @@ http://www.lyricue.org/bibles</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="action">select-folder</property>
     <property name="do_overwrite_confirmation">True</property>
+    <property name="action">select-folder</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -7814,6 +7824,9 @@ http://www.lyricue.org/bibles</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
