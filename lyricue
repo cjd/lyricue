@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.321 2009/08/04 04:45:09 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.322 2009/08/20 06:11:57 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6782,7 +6782,7 @@ sub bgdir_list {
 
     # Add categories from mediaDb
     my $query =
-      "SELECT DISTINCT category FROM media WHERE type=\"bg\" AND category !=\""
+      "SELECT DISTINCT category FROM media WHERE type=\"".$type."\" AND category !=\""
       . $special
       . "\" ORDER BY category";
     my $sth = $mediaDbh->prepare($query)
@@ -8565,38 +8565,10 @@ sub select_category {
     my @filenames = $filexml->get_widget('dialogFile')->get_selections;
     debug(@filenames);
     my $type = $filexml->get_widget('dialogFile')->{user_data};
+    close_dialog($filexml->get_widget('dialogFile'));
     my $choosexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowChoosePlay');
-    $choosexml->get_widget('windowChoosePlay')
-      ->set_title(fromutf(gettext("Select Category")));
-    $choosexml->get_widget('buttonLoad')->set_label("Select");
-    $choosexml->get_widget('buttonDelete')->hide();
-    $choosexml->get_widget('buttonRename')->hide();
-    $choosexml->get_widget('buttonLoad')
-      ->signal_connect("clicked", "do_import_media", $choosexml);
-    $choosexml->get_widget('buttonNew')
-      ->signal_connect("clicked", "do_import_media", $choosexml);
-    $choosexml->get_widget('buttonCancel')
-      ->signal_connect("clicked", "close_dialog");
-    $choosexml->get_widget('windowChoosePlay')->show;
-    $choosexml->get_widget('windowChoosePlay')->{'user_data'} = \@filenames;
-    $choosexml->get_widget('treeChoosePlay')->{'user_data'}   = $type;
-    my $store = $choosexml->get_widget('treeChoosePlay')->get_model();
-
-    if ($store) {
-        $store->clear;
-    } else {
-        $store = Gtk2::ListStore->new('Glib::String');
-        $choosexml->get_widget('treeChoosePlay')->set_model($store);
-        my $renderer  = Gtk2::CellRendererText->new;
-        my $selection = $choosexml->get_widget('treeChoosePlay')->get_selection;
-        $selection->signal_connect("changed", "update_category", $choosexml);
-        my $column =
-          Gtk2::TreeViewColumn->new_with_attributes("Category", $renderer,
-            text => 0);
-        $choosexml->get_widget('treeChoosePlay')->append_column($column);
-    }
-
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSelectCategory');
+    
     my $query =
         "SELECT DISTINCT category FROM media WHERE type=\"" 
       . $type
@@ -8607,41 +8579,20 @@ sub select_category {
     my $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row;
+    my $model = Gtk2::ListStore->new ('Glib::String');
+    $choosexml->get_widget('comboSelectCategory')->set_model($model);
     while (@row = $sth->fetchrow_array()) {
-        my $iter = $store->append;
-        $store->set($iter, 0, $row[0]);
+        $choosexml->get_widget('comboSelectCategory')->append_text($row[0]);
     }
-    $choosexml->get_widget('windowChoosePlay')
-      ->set_transient_for($widgets->{'image'}->get_widget('dialogImage'));
-
-    close_dialog($widget);
-}
-
-#***
-
-#****f* lyricue/do_import_media
-# NAME
-#   do_import_media
-# SYNOPSIS
-#   do_import_media($widget, $choosexml)
-# FUNCTION
-#   Importing media
-# INPUTS
-#   $widget -
-#    $choosexml -
-# OUTPUT
-# SOURCE
-#
-sub do_import_media {
-    my ($widget, $choosexml) = @_;
-    debug("Importing media");
-    if ($choosexml->get_widget('entryChoosePlay')->get_text() ne "") {
-        my $type     = $choosexml->get_widget('treeChoosePlay')->{'user_data'};
-        my $category = $choosexml->get_widget('entryChoosePlay')->get_text();
-        my $filenames =
-          $choosexml->get_widget('windowChoosePlay')->{'user_data'};
+    my $confirm = $choosexml->get_widget('dialogSelectCategory')->run;
+    if ($confirm == 1) {
+        if ($choosexml->get_widget('comboSelectCategory')->get_active_text() eq "") {
+            return;
+        }
+        debug("Importing media");
+        my $category = $choosexml->get_widget('comboSelectCategory')->get_active_text();
         my $filename = "";
-        foreach $filename (@$filenames) {
+        foreach $filename (@filenames) {
             my $format = $filename;
             $format =~ s/^.*\.//g;
             my $description = $filename;
@@ -8665,7 +8616,7 @@ q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate,
                 $data);
         }
     }
-    close_dialog($widget);
+    close_dialog($choosexml->get_widget('dialogSelectCategory'));
     my $category =
       $widgets->{'image'}->get_widget('optionImageCategory')
       ->get_menu->get_active->{user_data};
