@@ -555,10 +555,11 @@
         <child>
           <widget class="GtkToolbar" id="toolbarMain">
             <property name="visible">True</property>
-            <property name="toolbar_style">both</property>
             <child>
               <widget class="GtkToolButton" id="buttonMainPrev">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip" translatable="yes">Prev. Page</property>
                 <property name="label" translatable="yes">Prev. Page</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-go-back</property>
@@ -572,6 +573,8 @@
             <child>
               <widget class="GtkToolButton" id="buttonMainNext">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip" translatable="yes">Next Page</property>
                 <property name="label" translatable="yes">Next Page</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-go-forward</property>
@@ -585,6 +588,8 @@
             <child>
               <widget class="GtkToolButton" id="buttonMainPoint">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip" translatable="yes">Next Point</property>
                 <property name="label" translatable="yes">Next Point</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-go-down</property>
@@ -598,6 +603,8 @@
             <child>
               <widget class="GtkToolButton" id="buttonMainBlank">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip" translatable="yes">Blank Screen</property>
                 <property name="label" translatable="yes">Blank Screen</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-stop</property>
@@ -611,6 +618,8 @@
             <child>
               <widget class="GtkToolButton" id="buttonMainClear">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip" translatable="yes">Clear Text</property>
                 <property name="label" translatable="yes">Clear Text</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-clear</property>
@@ -624,6 +633,8 @@
             <child>
               <widget class="GtkToolButton" id="buttonMainPause">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip" translatable="yes">Pause Media</property>
                 <property name="label" translatable="yes">Pause Media</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-pause</property>
@@ -637,6 +648,8 @@
             <child>
               <widget class="GtkToolButton" id="buttonMainFile">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip" translatable="yes">Add File</property>
                 <property name="label" translatable="yes">Add File</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-file</property>
@@ -7824,6 +7837,9 @@ http://www.lyricue.org/bibles</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
