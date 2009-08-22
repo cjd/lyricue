@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.323 2009/08/20 22:17:20 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.324 2009/08/22 07:44:04 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4516,12 +4516,12 @@ sub create_dialog_prefs {
       ->set_text($config->{'SpecialImage'});
     $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')
       ->set_text($config->{'SpecialBack'});
-    $config->{'ImageDirectory'} =~ s/^\~/$ENV{HOME}/;
+    $config->{'ImageDirectory'} =~ s/^\~/$ENV{'HOME'}/;
     $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')
       ->set_label($config->{'ImageDirectory'});
     $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->{'user_data'} =
       "img";
-    $config->{'BGDirectory'} =~ s/^\~/$ENV{HOME}/;
+    $config->{'BGDirectory'} =~ s/^\~/$ENV{'HOME'}/;
     $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')
       ->set_label($config->{'BGDirectory'});
     $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->{'user_data'} =
@@ -5980,8 +5980,10 @@ sub save_preferences {
       $widgets->{'prefs'}->get_widget('entryPrefSpecialBack')->get_text();
     $config->{'ImageDirectory'} =
       $widgets->{'prefs'}->get_widget('filePrefSpecialImagedir')->get_label();
+    $config->{'ImageDirectory'} =~ s/^\~/$ENV{'HOME'}/;
     $config->{'BGDirectory'} =
       $widgets->{'prefs'}->get_widget('filePrefSpecialBGdir')->get_label();
+    $config->{'BGDirectory'} =~ s/^\~/$ENV{'HOME'}/;
     $config->{'TrayIcons'} = $config->{'TrayIcons'};
 
     my $db_changed = FALSE;
