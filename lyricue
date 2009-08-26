@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.324 2009/08/22 07:44:04 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.325 2009/08/26 05:43:26 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -613,7 +613,7 @@ sub update_playlist {
         my $column = Gtk2::TreeViewColumn->new_with_attributes(
             "",
             Gtk2::CellRendererText->new,
-            text       => 0,
+            markup => 0,
             background => 1
         );
         $widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
@@ -714,7 +714,7 @@ sub add_playlist {
             $title = "Verses " . $row->{'data'};
         } elsif ($row->{'type'} eq "song") {
             my $query2 =
-              "SELECT lyrics FROM page WHERE pageid=" . $row->{'data'};
+              "SELECT pagetitle, lyrics FROM page WHERE pageid=" . $row->{'data'};
             qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'},
@@ -729,6 +729,9 @@ sub add_playlist {
                 $title = $lyricl[@lyricl - 1];
             } else {
                 ($title, undef) = split(/\n/, $lyrics);
+            }
+            if ($row2->{'pagetitle'} ne '') {
+                $title = "<b>".$row2->{'pagetitle'}."</b>\n".$title;
             }
             if (!$title) {
                 $title = "";
@@ -1485,11 +1488,19 @@ sub do_save_song {
         }
 
         foreach $page (keys(%pageOrder)) {
+            my $text = fromutf(gettext("Page "));
+            if ($widgets->{'labelAPage'}{$page}->get_text =~ /^$text/) {
+                $text="";
+            } else {
+                $text= $widgets->{'labelAPage'}{$page}->get_text;
+            }
             if ($dbpages{$pageOrder{$page}}) {
                 $query =
                   "UPDATE page SET lyrics="
                   . $lyricDbh->quote(
                     get_buffer_text($widgets->{'textAPageB'}{$page}))
+                  . ", pagetitle="
+                  . $lyricDbh->quote($text)
                   . " WHERE songid="
                   . $songid
                   . " AND pagenum="
@@ -1503,9 +1514,10 @@ sub do_save_song {
                     $! . "\nSQL: " . $query);
             } else {
                 $query =
-                    "INSERT INTO page (songid,pagenum,lyrics) VALUES (" 
+                    "INSERT INTO page (songid,pagenum,pagetitle,lyrics) VALUES (" 
                   . $songid . ", "
                   . $pageOrder{$page} . ", "
+                  . $lyricDbh->quote($text) . ", "
                   . $lyricDbh->quote(
                     toutf(
 
@@ -1619,10 +1631,17 @@ sub do_save_song {
 
         my $pagenum = 0;
         foreach $page (keys(%pageOrder)) {
+            my $text = fromutf(gettext("Page "));
+            if ($widgets->{'labelAPage'}{$page}->get_text =~ /^$text/) {
+                $text="";
+            } else {
+                $text= $widgets->{'labelAPage'}{$page}->get_text;
+            }
             $query =
-                "INSERT INTO page (songid,pagenum,lyrics) VALUES (" 
+                "INSERT INTO page (songid,pagenum,pagetitle,lyrics) VALUES (" 
               . $songid . ", "
               . $pageOrder{$page} . ", "
+              . $lyricDbh->quote($text) . ", "
               . $lyricDbh->quote(
                 toutf(
 
@@ -1712,11 +1731,15 @@ sub add_page {
     $widgets->{'labelAPage'}{$hashnum}->set_line_wrap(0);
     $widgets->{'labelAPage'}{$hashnum}->show;
     $widgets->{'labelAPage'}{$hashnum}->set_alignment(0.5, 0.5);
+    $widgets->{'eventAPage'}{$hashnum} = Gtk2::EventBox->new;
+    $widgets->{'eventAPage'}{$hashnum}->{user_data} = $hashnum;
+    $widgets->{'eventAPage'}{$hashnum}->add($widgets->{'labelAPage'}{$hashnum});
+    $widgets->{'eventAPage'}{$hashnum}->signal_connect('button-press-event','update_pagename');
 
     $pageOrder{$hashnum} = $pagenum;
     $widgets->{'add'}->get_widget('notebookEditPages')
       ->insert_page($widgets->{'scrollAPage'}{$hashnum},
-        $widgets->{'labelAPage'}{$hashnum}, $pagenum);
+        $widgets->{'eventAPage'}{$hashnum}, $pagenum);
     renumber_pages($pagenum, $hashnum);
     $widgets->{'add'}->get_widget('notebookEditPages')
       ->set_current_page($pagenum);
@@ -1727,6 +1750,49 @@ sub add_page {
     return $hashnum;
 }
 
+#***
+
+#****f* lyricue/update_pagename
+# NAME
+#   update_pagename
+# SYNOPSIS
+#   update_pagename ()
+# FUNCTION
+#   Update the page name if double-clicked
+# SOURCE
+#
+sub update_pagename {
+    my ($widget, $event) = @_;
+    if ($event->type eq '2button-press') {
+        debug ("Changing page name");
+        my $hashnum = $widget->{user_data};
+        my $entry = Gtk2::Entry->new;
+        $entry->{user_data} = $hashnum;
+        $entry->set_text($widgets->{'labelAPage'}{$hashnum}->get_label);
+        $entry->signal_connect('activate','do_update_pagename');
+        $widgets->{'add'}->get_widget('notebookEditPages')->set_tab_label($widgets->{'scrollAPage'}{$hashnum}, $entry);
+    }
+}
+#***
+
+#****f* lyricue/do_update_pagename
+# NAME
+#   do_update_pagename
+# SYNOPSIS
+#   do_update_pagename ()
+# FUNCTION
+#   A newly named tab
+# INPUTS
+# SOURCE
+#
+sub do_update_pagename {
+    my ($widget, $event) = @_;
+    debug("Apply pagename change");
+    my $text = $widget->get_text;
+    my $hashnum = $widget->{user_data};
+    $widgets->{'labelAPage'}{$hashnum}->set_label($text);
+    $widgets->{'add'}->get_widget('notebookEditPages')->set_tab_label($widgets->{'scrollAPage'}{$hashnum}, $widgets->{'eventAPage'}{$hashnum});
+}
 #***
 
 #****f* lyricue/renumber_pages
@@ -1763,8 +1829,11 @@ sub renumber_pages {
             $pageOrder{$i}++;
         }
         debug("$i:$pageOrder{$i}");
-        $widgets->{'labelAPage'}{$i}
-          ->set_text(fromutf(gettext("Page ")) . $pageOrder{$i});
+        my $text = fromutf(gettext("Page "));
+        if ($widgets->{'labelAPage'}{$i}->get_text =~ /^$text/) {
+            $widgets->{'labelAPage'}{$i}
+              ->set_text($text . $pageOrder{$i});
+        }
         $widgets->{'labelAPage'}{$i}->show();
     }
 }
@@ -10893,6 +10962,19 @@ sub db_updatedb_lyricDb {
         }
         if ($pl->{'data'} ne "varchar(256)") {
             db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql",
+                "lyricDb");
+        }
+    }
+
+    # Add page title
+    if ($config->{'DatabaseType'} eq "mysql") {
+        my $fields = $dbh->selectall_arrayref("describe page");
+        my $page;
+        foreach (@$fields) {
+            $page->{$_->[0]} = $_->[1];
+        }
+        if (! defined $page->{'pagetitle'} ) {
+            db_installdb($globals->{'sharedir'} . "mysql/Update_2.1.0.sql",
                 "lyricDb");
         }
     }

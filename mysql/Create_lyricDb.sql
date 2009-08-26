@@ -37,6 +37,7 @@ CREATE TABLE `page` (
   `pageid` int(11) NOT NULL auto_increment,
   `songid` int(11) NOT NULL default '0',
   `pagenum` int(11) NOT NULL default '0',
+  `pagetitle` varchar(100) default '',
   `lyrics` text,
   PRIMARY KEY  (`pageid`)
 ) DEFAULT CHARSET=utf8;

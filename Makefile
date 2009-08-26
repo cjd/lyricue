@@ -1,6 +1,6 @@
 BINARIES = lyricue lyricue_remote lyricue_server import_media
 SHARE = lyricue.glade images/lyricue.png images/lyricue-icon.png
-SQL = mysql/Create_lyricDb.sql mysql/Create_mediaDb.sql mysql/Update_1.2.sql mysql/Update_1.9.sql mysql/Update_1.9.4.sql mysql/Update_1.9.7.sql
+SQL = mysql/Create_lyricDb.sql mysql/Create_mediaDb.sql mysql/Update_1.2.sql mysql/Update_1.9.sql mysql/Update_1.9.4.sql mysql/Update_1.9.7.sql mysql/Update_2.1.0.sql
 DESKTOP = lyricue.desktop lyricue_server.desktop
 ETC = default.conf access.conf.example
 DOCS = docs/Development.txt docs/sample_song.xml docs/AUTHORS docs/NEWS docs/README docs/song_template.txt docs/TODO
