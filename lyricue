@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.325 2009/08/26 05:43:26 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.326 2009/08/28 02:26:08 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -2476,7 +2476,7 @@ sub update_songinfo {
     if ($songid) {
         $widgets->{'add'}->get_widget('windowEditSong')->{user_data} = $songid;
         $query =
-            "SELECT lyrics FROM page WHERE songid=\"" 
+            "SELECT lyrics,pagetitle FROM page WHERE songid=\"" 
           . $songid
           . "\" ORDER BY pagenum";
         qdebug($query);
@@ -2491,6 +2491,10 @@ sub update_songinfo {
             $hashnum = add_page();
             $widgets->{'textAPageB'}{$hashnum}
               ->set_text(fromutf($row->{'lyrics'}));
+            if ($row->{'pagetitle'} ne "") {
+                $widgets->{'labelAPage'}{$hashnum}
+                  ->set_text(fromutf($row->{'pagetitle'}));
+            }
         }
 
         $query =
