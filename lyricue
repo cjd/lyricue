@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.327 2009/08/31 01:35:45 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.328 2009/08/31 02:15:13 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -429,6 +429,7 @@ if (-e $globals->{'basedir'}) {
 
 # Setup logging
 open(LOG, ">" . $globals->{'basedir'} . "/frontend.log");
+binmode LOG, ":utf8";
 $widgets->{'main'} =
   Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain', 'lyricue');
 $widgets->{'main'}->signal_autoconnect_from_package('');
@@ -3614,6 +3615,7 @@ sub update_display {
         )
       )
     {
+        binmode $server, ":utf8";
         print $server toutf(
             $command . ":" . $primary . ":" . $secondary . "\n");
         if (defined(my $status = <$server>)) {
