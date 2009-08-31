@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.326 2009/08/28 02:26:08 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.327 2009/08/31 01:35:45 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -10651,6 +10651,21 @@ sub db_get_admin {
         $globals->{'db_adminpassword'} = "";
 
     }
+    my ($dbh);
+    eval {
+        $dbh = DBI->connect(
+            "DBI:"
+              . $config->{'DatabaseType'}
+              . ":mysql:"
+              . $globals->{'mysqlhost'},
+            $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
+        );
+    };
+
+    if (!$dbh) {
+        debug("Password incorrect - retry");
+        db_get_admin();
+    }       
 }
 
 #***

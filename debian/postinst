@@ -36,7 +36,6 @@ case "$1" in
 	    echo "$USER = spade" >> $ACCESS.tmp
 	    mv $ACCESS.tmp $ACCESS
 	fi
-	PASS=`grep password /etc/mysql/debian.cnf | awk '{ print $3 }' | head -1`
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

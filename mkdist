@@ -20,6 +20,7 @@ cp -R * ${BUILD_DIR}/lyricue-${VERSION}
 rm -rf ${BUILD_DIR}/${BUILD_DIR}
 rm -rf ${BUILD_DIR}/lyricue-${VERSION}/bibles
 rm -rf ${BUILD_DIR}/lyricue-${VERSION}/${BUILD_DIR}
+rm ${BUILD_DIR}/lyricue-${VERSION}/ChangeLog.bak
 
 pushd ${BUILD_DIR}/lyricue-${VERSION}
 CONV="s/##VERSION##/${VERSION}/g"
