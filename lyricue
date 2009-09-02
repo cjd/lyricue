@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.329 2009/09/02 05:47:53 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.330 2009/09/02 23:45:27 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6791,6 +6791,7 @@ sub bgdir_list {
 
     # Add categories from directories
     my (@files, $file);
+    $dirname =~ s/^\~/$ENV{'HOME'}/;
     my $ret = opendir DIR, $dirname;
     if ($ret) {
         foreach $file (sort readdir(DIR)) {
