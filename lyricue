@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.328 2009/08/31 02:15:13 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.329 2009/09/02 05:47:53 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -1429,11 +1429,13 @@ sub do_save_song {
     my ($query, $sth, $page, $songid);
     debug("do save song");
     my $newitem = FALSE;
-
     $songid = $widgets->{'add'}->get_widget('windowEditSong')->{user_data};
+    my $numpages = $widgets->{'add'}->get_widget('notebookEditPages')->get_n_pages;
+
     if ($songid != 0) {
+        # Remove extra pages
         debug("Song number: " . $songid);
-        $query = "SELECT pagenum FROM page WHERE songid=" . $songid;
+        $query = "DELETE FROM page WHERE songid=" . $songid. " AND pagenum > " . $numpages;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
@@ -1441,100 +1443,17 @@ sub do_save_song {
         $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
-        my (%dbpages);
-        while (my @row = $sth->fetchrow_array) {
-            $dbpages{$row[0]} = 1;
-            my $tmp;
-            my $found = FALSE;
-            foreach $tmp (keys %pageOrder) {
-                if ($pageOrder{$tmp} == $row[0]) {
-                    $found = TRUE;
-                }
-            }
-            if (!$found) {
-                debug("Page Delete : " . $row[0] . "|" . $pageOrder{$row[0]});
-                $query =
-                    "SELECT pageid FROM page WHERE songid=" 
-                  . $songid
-                  . " AND pagenum="
-                  . $row[0];
-                qdebug($query);
-                my $sth2 = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'},
-                    $! . "\nSQL: " . $query);
-                $sth2->execute
-                  || display_fatal($errorcodes->{'sqlexecute'},
-                    $! . "\nSQL: " . $query);
-                my @tmpid = $sth2->fetchrow_array();
 
-                $query = "DELETE FROM page WHERE pageid=" . $tmpid[0];
-                qdebug($query);
-                $sth2 = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'},
-                    $! . "\nSQL: " . $query);
-                $sth2->execute
-                  || display_fatal($errorcodes->{'sqlexecute'},
-                    $! . "\nSQL: " . $query);
+        $query = "DELETE playlist FROM playlist LEFT JOIN page ON playlist.data=page.pageid WHERE page.songid=".$songid." AND page.pagenum > " . $numpages;
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
 
-                $query = "DELETE FROM playlist WHERE type='song' AND data="
-                  . $tmpid[0];
-                qdebug($query);
-                $sth2 = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'},
-                    $! . "\nSQL: " . $query);
-                $sth2->execute
-                  || display_fatal($errorcodes->{'sqlexecute'},
-                    $! . "\nSQL: " . $query);
-            }
-        }
-
-        foreach $page (keys(%pageOrder)) {
-            my $text = fromutf(gettext("Page "));
-            if ($widgets->{'labelAPage'}{$page}->get_text =~ /^$text/) {
-                $text="";
-            } else {
-                $text= $widgets->{'labelAPage'}{$page}->get_text;
-            }
-            if ($dbpages{$pageOrder{$page}}) {
-                $query =
-                  "UPDATE page SET lyrics="
-                  . $lyricDbh->quote(
-                    get_buffer_text($widgets->{'textAPageB'}{$page}))
-                  . ", pagetitle="
-                  . $lyricDbh->quote($text)
-                  . " WHERE songid="
-                  . $songid
-                  . " AND pagenum="
-                  . $pageOrder{$page};
-                qdebug($query);
-                $sth = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'},
-                    $! . "\nSQL: " . $query);
-                debug("Page Edit : " . $page . "|" . $pageOrder{$page});
-                $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
-                    $! . "\nSQL: " . $query);
-            } else {
-                $query =
-                    "INSERT INTO page (songid,pagenum,pagetitle,lyrics) VALUES (" 
-                  . $songid . ", "
-                  . $pageOrder{$page} . ", "
-                  . $lyricDbh->quote($text) . ", "
-                  . $lyricDbh->quote(
-                    toutf(
-
-                        get_buffer_text($widgets->{'textAPageB'}{$page})
-                    )
-                  ) . ")";
-                qdebug($query);
-                $sth = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'},
-                    $! . "\nSQL: " . $query);
-                debug("Page Add : " . $page . "|" . $pageOrder{$page});
-                $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
-                    $! . "\nSQL: " . $query);
-            }
-        }
-
+        # Update lyricMain with new info
         $query = "UPDATE lyricMain SET title="
           . quote($widgets->{'add'}->get_widget('entryEditName')->get_text());
         $query .= ", songnum="
@@ -1543,22 +1462,12 @@ sub do_save_song {
           . quote($widgets->{'add'}->get_widget('entryEditBook')->get_text());
         $query .= ", artist="
           . quote($widgets->{'add'}->get_widget('entryEditArtist')->get_text());
-        $query .=
-          ", copyright="
-          . quote(
-            $widgets->{'add'}->get_widget('entryEditCopyright')->get_text());
+        $query .= ", copyright=" . quote( $widgets->{'add'}->get_widget('entryEditCopyright')->get_text());
         my $noaudit = "";
         if (!$widgets->{'add'}->get_widget('checkEditAudit')->get_active()) {
             $noaudit = "NOAUDIT ";
         }
-        $query .= ", keywords=" . quote(
-            toutf(
-
-                $noaudit
-                  . $widgets->{'add'}->get_widget('entryEditKeywords')
-                  ->get_text()
-            )
-        );
+        $query .= ", keywords=" . quote( toutf( $noaudit . $widgets->{'add'}->get_widget('entryEditKeywords') ->get_text()));
         $query .= " WHERE id=" . $songid;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
@@ -1568,7 +1477,6 @@ sub do_save_song {
           || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     } else {
-
         # Find next id
         $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
         qdebug($query);
@@ -1586,42 +1494,12 @@ sub do_save_song {
         $query =
 "INSERT INTO lyricMain ( id, title, songnum, book, artist, keywords, copyright, entered, written ) VALUES ( "
           . $songid . ", ";
-        $query .= quote(
-            toutf(
-
-                $widgets->{'add'}->get_widget('entryEditName')->get_text()
-            )
-        ) . ",";
-        $query .= quote(
-            toutf(
-
-                $widgets->{'add'}->get_widget('entryEditNumber')->get_text()
-            )
-        ) . ",";
-        $query .= quote(
-            toutf(
-
-                $widgets->{'add'}->get_widget('entryEditBook')->get_text()
-            )
-        ) . ",";
-        $query .= quote(
-            toutf(
-
-                $widgets->{'add'}->get_widget('entryEditArtist')->get_text()
-            )
-        ) . ",";
-        $query .= quote(
-            toutf(
-
-                $widgets->{'add'}->get_widget('entryEditKeywords')->get_text()
-            )
-        ) . ",";
-        $query .= quote(
-            toutf(
-
-                $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
-            )
-        ) . ", NOW(), NOW() )";
+        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditName')->get_text())) . ",";
+        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditNumber')->get_text())) . ",";
+        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditBook')->get_text())) . ",";
+        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditArtist')->get_text())) . ",";
+        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditKeywords')->get_text())) . ",";
+        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditCopyright')->get_text())) . ", NOW(), NOW() )";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
@@ -1629,34 +1507,55 @@ sub do_save_song {
         $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
-
-        my $pagenum = 0;
-        foreach $page (keys(%pageOrder)) {
-            my $text = fromutf(gettext("Page "));
-            if ($widgets->{'labelAPage'}{$page}->get_text =~ /^$text/) {
-                $text="";
-            } else {
-                $text= $widgets->{'labelAPage'}{$page}->get_text;
-            }
-            $query =
-                "INSERT INTO page (songid,pagenum,pagetitle,lyrics) VALUES (" 
-              . $songid . ", "
-              . $pageOrder{$page} . ", "
-              . $lyricDbh->quote($text) . ", "
-              . $lyricDbh->quote(
-                toutf(
-
-                    get_buffer_text($widgets->{'textAPageB'}{$page})
-                )
-              ) . ")";
+    }
+    foreach my $pagenum (1 .. $numpages) {
+        my $page = $widgets->{'add'}->get_widget('notebookEditPages')->get_nth_page($pagenum-1);
+        my $title = $widgets->{'add'}->get_widget('notebookEditPages')->get_tab_label($page)->get_children->get_text;
+        my $text = fromutf(gettext("Page "));
+        my $lyrics = $lyricDbh->quote(get_buffer_text($page->get_children->get_buffer));
+        if ($title =~ /^$text/) {
+            $text=$lyricDbh->quote("");
+        } else {
+            $text= $lyricDbh->quote($title);
+        }
+        my $pagequery = "";
+        if ($songid != 0) {
+            $query = "SELECT pageid FROM page WHERE songid=".$songid." AND pagenum=".$pagenum;
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
-            debug("Page Add : " . $page . "|" . $pageOrder{$page});
-            $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
+            debug("Page Edit : " . $pagenum . "|". $title );
+            $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
+            my @row = $sth->fetchrow_array();
+            if (defined $row[0]) {
+                $pagequery =
+                  "UPDATE page SET lyrics="
+                  . $lyrics
+                  . ", pagetitle="
+                  . $text
+                  . " WHERE pageid="
+                  . $row[0];
+                debug("Page Edit : " . $pagenum . "|". $title );
+            }
         }
+        if ($pagequery eq "") {
+            $pagequery =
+               "INSERT INTO page (songid,pagenum,pagetitle,lyrics) VALUES (" 
+               . $songid . ", "
+               . $pagenum . ", "
+               . $text . ", "
+               . $lyrics
+               . ")";
+            debug("Page Add : " . $pagenum . "|" . $title);
+        }
+        qdebug($pagequery);
+        $sth = $lyricDbh->prepare($pagequery)
+          || display_fatal($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $pagequery);
+        $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
+          $! . "\nSQL: " . $pagequery);
     }
     return $songid;
 }
@@ -1741,6 +1640,7 @@ sub add_page {
     $widgets->{'add'}->get_widget('notebookEditPages')
       ->insert_page($widgets->{'scrollAPage'}{$hashnum},
         $widgets->{'eventAPage'}{$hashnum}, $pagenum);
+    $widgets->{'add'}->get_widget('notebookEditPages')->set_tab_reorderable($widgets->{'scrollAPage'}{$hashnum},TRUE);
     renumber_pages($pagenum, $hashnum);
     $widgets->{'add'}->get_widget('notebookEditPages')
       ->set_current_page($pagenum);
@@ -1862,13 +1762,16 @@ sub remove_page {
     my %newpageOrder;
 
     my $count = 0;
+    my $text = fromutf(gettext("Page "));
     foreach $i (keys(%pageOrder)) {
         $count++;
         debug("-$pagenum:$i:$pageOrder{$i}:");
         if ($pageOrder{$i} < $pagenum) {
             $newpageOrder{$i} = $pageOrder{$i};
-            $widgets->{'labelAPage'}{$i}
-              ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
+            if ($widgets->{'labelAPage'}{$i}->get_text =~ /^$text/) {
+              $widgets->{'labelAPage'}{$i}
+                ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
+            }
             debug("$newpageOrder{$i}");
         } elsif ($pageOrder{$i} == $pagenum) {
             $widgets->{'add'}->get_widget('notebookEditPages')
@@ -1877,8 +1780,10 @@ sub remove_page {
         } elsif ($pageOrder{$i} > $pagenum) {
             $newpageOrder{$i} = $pageOrder{$i} - 1;
             debug("$newpageOrder{$i}");
-            $widgets->{'labelAPage'}{$i}
-              ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
+            if ($widgets->{'labelAPage'}{$i}->get_text =~ /^$text/) {
+              $widgets->{'labelAPage'}{$i}
+                ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
+            }
         }
     }
     %pageOrder = %newpageOrder;
@@ -10653,7 +10558,6 @@ sub db_get_admin {
         $globals->{'db_adminpassword'} = "";
 
     }
-    my ($dbh);
     eval {
         $dbh = DBI->connect(
             "DBI:"
