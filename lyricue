@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.332 2009/10/07 05:33:01 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.333 2009/10/07 07:37:12 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4994,14 +4994,14 @@ debug($i."-".$items[$i]);
     }
 debug( $sourceitem.":".$destitem);
       
-    if ($source == $dest) {
+    #if ($source == $dest) {
         if ($placement eq "before") {
             $destitem--;
-        } else {
+        } elsif ($placement eq "after") {
             $destitem++;
         }
         $dest = $items[$destitem];
-    }
+    #}
 debug($source.":".$dest);
 
     while ($source != $dest) {
@@ -7507,6 +7507,7 @@ sub on_treePlaylist_drag_data_received {
                   $widgets->{'main'}->get_widget('labelCurrentPlaylist')
                   ->{user_data};
                 do_add_file($file, $main_playlist);
+                update_playlist();
             }
         } elsif ($data->data =~ /^img:/) {
             my $selected = $data->data;
@@ -7515,6 +7516,7 @@ sub on_treePlaylist_drag_data_received {
               $widgets->{'main'}->get_widget('labelCurrentPlaylist')
               ->{user_data};
             add_image_item($playlist, $selected);
+            update_playlist();
         } elsif ($data->data =~ /^bg:/) {
             my $selected = $data->data;
             $selected =~ s/^bg://g;
@@ -7530,6 +7532,7 @@ sub on_treePlaylist_drag_data_received {
                 @ASSOCIATE = ($item, $playlist);
                 debug($item . ":" . $playlist . ":" . $selected);
                 associate_bg($selected);
+                update_playlist();
             }
         } elsif ($data->data =~ /^song:/) {
             my $song = $data->data;
@@ -7542,9 +7545,9 @@ sub on_treePlaylist_drag_data_received {
         } else {
             if ($data->data != 0 ) {
                 add_single_song($data->data);
+                update_playlist();
             }
         }
-        update_playlist();
         $context->finish(1, 0, $time);
         return;
     }
