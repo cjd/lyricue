@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.333 2009/10/07 07:37:12 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.334 2009/10/07 08:19:16 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -495,7 +495,7 @@ if ($globals->{'trayicon'}) {
 $0 = "Lyricue Interface";
 
 init_mainWindow();
-$widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data}=-1;
+$widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} = -1;
 choose_playlist();
 
 # Don't let them cancel out of the playlist chooser yet
@@ -614,7 +614,7 @@ sub update_playlist {
         my $column = Gtk2::TreeViewColumn->new_with_attributes(
             "",
             Gtk2::CellRendererText->new,
-            markup => 0,
+            markup     => 0,
             background => 1
         );
         $widgets->{'main'}->get_widget('treePlaylist')->append_column($column);
@@ -714,8 +714,9 @@ sub add_playlist {
         } elsif ($row->{'type'} eq "vers") {
             $title = "Verses " . $row->{'data'};
         } elsif ($row->{'type'} eq "song") {
-            my $query2 =
-              "SELECT pagetitle, lyrics FROM page WHERE pageid=" . $row->{'data'};
+            my $query2 = "SELECT pagetitle, lyrics FROM page WHERE pageid="
+              . $row->{'data'};
+
             #qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'},
@@ -732,7 +733,7 @@ sub add_playlist {
                 ($title, undef) = split(/\n/, $lyrics);
             }
             if (defined $row2->{'pagetitle'} && ($row2->{'pagetitle'} ne '')) {
-                $title = "<b>".$row2->{'pagetitle'}."</b>\n".$title;
+                $title = "<b>" . $row2->{'pagetitle'} . "</b>\n" . $title;
             }
             if (!$title) {
                 $title = "";
@@ -1079,7 +1080,8 @@ sub update_available {
     $widgets->{'main'}->get_widget('treeAvailable')->set_model($store);
     $widgets->{'main'}->get_widget('treeAvailable')
       ->set_headers_clickable(TRUE);
-    $widgets->{'main'}->get_widget('treeAvailable')->get_selection->set_mode('multiple');
+    $widgets->{'main'}->get_widget('treeAvailable')
+      ->get_selection->set_mode('multiple');
     debug("Avail updated");
     return FALSE;
 }
@@ -1300,7 +1302,7 @@ sub delete_song {
     my $selection =
       $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
     my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
-    my @sel = $selection->get_selected_rows;
+    my @sel   = $selection->get_selected_rows;
     foreach my $path (@sel) {
         my $iter = $model->get_iter($path);
         my $songid = $model->get($iter, 3);
@@ -1430,12 +1432,18 @@ sub do_save_song {
     debug("do save song");
     my $newitem = FALSE;
     $songid = $widgets->{'add'}->get_widget('windowEditSong')->{user_data};
-    my $numpages = $widgets->{'add'}->get_widget('notebookEditPages')->get_n_pages;
+    my $numpages =
+      $widgets->{'add'}->get_widget('notebookEditPages')->get_n_pages;
 
     if ($songid != 0) {
+
         # Remove extra pages
         debug("Song number: " . $songid);
-        $query = "DELETE FROM page WHERE songid=" . $songid. " AND pagenum > " . $numpages;
+        $query =
+            "DELETE FROM page WHERE songid=" 
+          . $songid
+          . " AND pagenum > "
+          . $numpages;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
@@ -1444,7 +1452,11 @@ sub do_save_song {
           || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
-        $query = "DELETE playlist FROM playlist LEFT JOIN page ON playlist.data=page.pageid WHERE page.songid=".$songid." AND page.pagenum > " . $numpages;
+        $query =
+"DELETE playlist FROM playlist LEFT JOIN page ON playlist.data=page.pageid WHERE page.songid="
+          . $songid
+          . " AND page.pagenum > "
+          . $numpages;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
@@ -1462,12 +1474,22 @@ sub do_save_song {
           . quote($widgets->{'add'}->get_widget('entryEditBook')->get_text());
         $query .= ", artist="
           . quote($widgets->{'add'}->get_widget('entryEditArtist')->get_text());
-        $query .= ", copyright=" . quote( $widgets->{'add'}->get_widget('entryEditCopyright')->get_text());
+        $query .=
+          ", copyright="
+          . quote(
+            $widgets->{'add'}->get_widget('entryEditCopyright')->get_text());
         my $noaudit = "";
         if (!$widgets->{'add'}->get_widget('checkEditAudit')->get_active()) {
             $noaudit = "NOAUDIT ";
         }
-        $query .= ", keywords=" . quote( toutf( $noaudit . $widgets->{'add'}->get_widget('entryEditKeywords') ->get_text()));
+        $query .= ", keywords="
+          . quote(
+            toutf(
+                    $noaudit
+                  . $widgets->{'add'}->get_widget('entryEditKeywords')
+                  ->get_text()
+            )
+          );
         $query .= " WHERE id=" . $songid;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
@@ -1477,6 +1499,7 @@ sub do_save_song {
           || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     } else {
+
         # Find next id
         $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
         qdebug($query);
@@ -1494,12 +1517,32 @@ sub do_save_song {
         $query =
 "INSERT INTO lyricMain ( id, title, songnum, book, artist, keywords, copyright, entered, written ) VALUES ( "
           . $songid . ", ";
-        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditName')->get_text())) . ",";
-        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditNumber')->get_text())) . ",";
-        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditBook')->get_text())) . ",";
-        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditArtist')->get_text())) . ",";
-        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditKeywords')->get_text())) . ",";
-        $query .= quote( toutf( $widgets->{'add'}->get_widget('entryEditCopyright')->get_text())) . ", NOW(), NOW() )";
+        $query .=
+          quote(
+            toutf($widgets->{'add'}->get_widget('entryEditName')->get_text()))
+          . ",";
+        $query .=
+          quote(
+            toutf($widgets->{'add'}->get_widget('entryEditNumber')->get_text()))
+          . ",";
+        $query .=
+          quote(
+            toutf($widgets->{'add'}->get_widget('entryEditBook')->get_text()))
+          . ",";
+        $query .=
+          quote(
+            toutf($widgets->{'add'}->get_widget('entryEditArtist')->get_text()))
+          . ",";
+        $query .= quote(
+            toutf(
+                $widgets->{'add'}->get_widget('entryEditKeywords')->get_text()
+            )
+        ) . ",";
+        $query .= quote(
+            toutf(
+                $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
+            )
+        ) . ", NOW(), NOW() )";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
@@ -1509,45 +1552,53 @@ sub do_save_song {
             $! . "\nSQL: " . $query);
     }
     foreach my $pagenum (1 .. $numpages) {
-        my $page = $widgets->{'add'}->get_widget('notebookEditPages')->get_nth_page($pagenum-1);
-        my $title = $widgets->{'add'}->get_widget('notebookEditPages')->get_tab_label($page)->get_children->get_text;
+        my $page =
+          $widgets->{'add'}->get_widget('notebookEditPages')
+          ->get_nth_page($pagenum - 1);
+        my $title =
+          $widgets->{'add'}->get_widget('notebookEditPages')
+          ->get_tab_label($page)->get_children->get_text;
         my $text = fromutf(gettext("Page "));
-        my $lyrics = $lyricDbh->quote(get_buffer_text($page->get_children->get_buffer));
+        my $lyrics =
+          $lyricDbh->quote(get_buffer_text($page->get_children->get_buffer));
         if ($title =~ /^$text/) {
-            $text=$lyricDbh->quote("");
+            $text = $lyricDbh->quote("");
         } else {
-            $text= $lyricDbh->quote($title);
+            $text = $lyricDbh->quote($title);
         }
         my $pagequery = "";
         if ($songid != 0) {
-            $query = "SELECT pageid FROM page WHERE songid=".$songid." AND pagenum=".$pagenum;
+            $query =
+                "SELECT pageid FROM page WHERE songid=" 
+              . $songid
+              . " AND pagenum="
+              . $pagenum;
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
-            debug("Page Edit : " . $pagenum . "|". $title );
+            debug("Page Edit : " . $pagenum . "|" . $title);
             $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             my @row = $sth->fetchrow_array();
             if (defined $row[0]) {
                 $pagequery =
-                  "UPDATE page SET lyrics="
+                    "UPDATE page SET lyrics=" 
                   . $lyrics
                   . ", pagetitle="
                   . $text
                   . " WHERE pageid="
                   . $row[0];
-                debug("Page Edit : " . $pagenum . "|". $title );
+                debug("Page Edit : " . $pagenum . "|" . $title);
             }
         }
         if ($pagequery eq "") {
             $pagequery =
-               "INSERT INTO page (songid,pagenum,pagetitle,lyrics) VALUES (" 
-               . $songid . ", "
-               . $pagenum . ", "
-               . $text . ", "
-               . $lyrics
-               . ")";
+                "INSERT INTO page (songid,pagenum,pagetitle,lyrics) VALUES ("
+              . $songid . ", "
+              . $pagenum . ", "
+              . $text . ", "
+              . $lyrics . ")";
             debug("Page Add : " . $pagenum . "|" . $title);
         }
         qdebug($pagequery);
@@ -1555,7 +1606,7 @@ sub do_save_song {
           || display_fatal($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $pagequery);
         $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
-          $! . "\nSQL: " . $pagequery);
+            $! . "\nSQL: " . $pagequery);
     }
     return $songid;
 }
@@ -1638,13 +1689,15 @@ sub add_page {
     $widgets->{'eventAPage'}{$hashnum}->add($widgets->{'labelAPage'}{$hashnum});
     $widgets->{'eventAPage'}{$hashnum}->set_above_child(FALSE);
     $widgets->{'eventAPage'}{$hashnum}->set_visible_window(FALSE);
-    $widgets->{'eventAPage'}{$hashnum}->signal_connect('button-press-event','update_pagename');
+    $widgets->{'eventAPage'}{$hashnum}
+      ->signal_connect('button-press-event', 'update_pagename');
 
     $pageOrder{$hashnum} = $pagenum;
     $widgets->{'add'}->get_widget('notebookEditPages')
       ->insert_page($widgets->{'scrollAPage'}{$hashnum},
         $widgets->{'eventAPage'}{$hashnum}, $pagenum);
-    $widgets->{'add'}->get_widget('notebookEditPages')->set_tab_reorderable($widgets->{'scrollAPage'}{$hashnum},TRUE);
+    $widgets->{'add'}->get_widget('notebookEditPages')
+      ->set_tab_reorderable($widgets->{'scrollAPage'}{$hashnum}, TRUE);
     renumber_pages($pagenum, $hashnum);
     $widgets->{'add'}->get_widget('notebookEditPages')
       ->set_current_page($pagenum);
@@ -1669,15 +1722,17 @@ sub add_page {
 sub update_pagename {
     my ($widget, $event) = @_;
     if ($event->type eq '2button-press') {
-        debug ("Changing page name");
+        debug("Changing page name");
         my $hashnum = $widget->{user_data};
-        my $entry = Gtk2::Entry->new;
+        my $entry   = Gtk2::Entry->new;
         $entry->{user_data} = $hashnum;
         $entry->set_text($widgets->{'labelAPage'}{$hashnum}->get_label);
-        $entry->signal_connect('activate','do_update_pagename');
-        $widgets->{'add'}->get_widget('notebookEditPages')->set_tab_label($widgets->{'scrollAPage'}{$hashnum}, $entry);
+        $entry->signal_connect('activate', 'do_update_pagename');
+        $widgets->{'add'}->get_widget('notebookEditPages')
+          ->set_tab_label($widgets->{'scrollAPage'}{$hashnum}, $entry);
     }
 }
+
 #***
 
 #****f* lyricue/do_update_pagename
@@ -1693,11 +1748,15 @@ sub update_pagename {
 sub do_update_pagename {
     my ($widget, $event) = @_;
     debug("Apply pagename change");
-    my $text = $widget->get_text;
+    my $text    = $widget->get_text;
     my $hashnum = $widget->{user_data};
     $widgets->{'labelAPage'}{$hashnum}->set_label($text);
-    $widgets->{'add'}->get_widget('notebookEditPages')->set_tab_label($widgets->{'scrollAPage'}{$hashnum}, $widgets->{'eventAPage'}{$hashnum});
+    $widgets->{'add'}->get_widget('notebookEditPages')->set_tab_label(
+        $widgets->{'scrollAPage'}{$hashnum},
+        $widgets->{'eventAPage'}{$hashnum}
+    );
 }
+
 #***
 
 #****f* lyricue/renumber_pages
@@ -1736,8 +1795,7 @@ sub renumber_pages {
         debug("$i:$pageOrder{$i}");
         my $text = fromutf(gettext("Page "));
         if ($widgets->{'labelAPage'}{$i}->get_text =~ /^$text/) {
-            $widgets->{'labelAPage'}{$i}
-              ->set_text($text . $pageOrder{$i});
+            $widgets->{'labelAPage'}{$i}->set_text($text . $pageOrder{$i});
         }
         $widgets->{'labelAPage'}{$i}->show();
     }
@@ -1766,15 +1824,15 @@ sub remove_page {
     my %newpageOrder;
 
     my $count = 0;
-    my $text = fromutf(gettext("Page "));
+    my $text  = fromutf(gettext("Page "));
     foreach $i (keys(%pageOrder)) {
         $count++;
         debug("-$pagenum:$i:$pageOrder{$i}:");
         if ($pageOrder{$i} < $pagenum) {
             $newpageOrder{$i} = $pageOrder{$i};
             if ($widgets->{'labelAPage'}{$i}->get_text =~ /^$text/) {
-              $widgets->{'labelAPage'}{$i}
-                ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
+                $widgets->{'labelAPage'}{$i}
+                  ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
             }
             debug("$newpageOrder{$i}");
         } elsif ($pageOrder{$i} == $pagenum) {
@@ -1785,8 +1843,8 @@ sub remove_page {
             $newpageOrder{$i} = $pageOrder{$i} - 1;
             debug("$newpageOrder{$i}");
             if ($widgets->{'labelAPage'}{$i}->get_text =~ /^$text/) {
-              $widgets->{'labelAPage'}{$i}
-                ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
+                $widgets->{'labelAPage'}{$i}
+                  ->set_text(fromutf(gettext("Page ")) . $newpageOrder{$i});
             }
         }
     }
@@ -1835,7 +1893,7 @@ sub close_add_window {
 #
 sub close_dialog {
     my ($widget) = @_;
-    debug("Close dialog: ".$widget->get_name);
+    debug("Close dialog: " . $widget->get_name);
     if ($widget) {
         $widget->get_toplevel->destroy;
     }
@@ -1860,10 +1918,10 @@ sub edit_song {
     debug("Edit clicked");
     my $selection =
       $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
-    my @sel = $selection->get_selected_rows;
+    my @sel   = $selection->get_selected_rows;
     my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
-    my $iter = $model->get_iter($sel[0]);
-    
+    my $iter  = $model->get_iter($sel[0]);
+
     if ($iter) {
         my $songid = $model->get($iter, 3);
         if (   $widgets->{'add'}
@@ -2461,7 +2519,7 @@ sub add_to_playlist {
     my $selection =
       $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
     my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
-    my @sel = $selection->get_selected_rows;
+    my @sel   = $selection->get_selected_rows;
     foreach my $path (@sel) {
         add_single_song($model->get($model->get_iter($path), 3));
     }
@@ -2488,8 +2546,11 @@ sub add_to_playlist {
 sub add_single_song {
     my ($availableSelection) = @_;
     debug("add single song");
+
     # Drop out if no playlist selected
-    if ($widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} == -1) {
+    if ($widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} ==
+        -1)
+    {
         return;
     }
     my ($playorder);
@@ -4001,14 +4062,19 @@ sub change_preview {
                       || display_fatal($errorcodes->{'sqlexecute'},
                         $! . "\nSQL: " . $query);
                     $row = $sth->fetchrow_hashref();
-                    $widgets->{'image'}->get_widget('buttonImageDelete')->set_sensitive(TRUE);
-                    $widgets->{'image'}->get_widget('buttonImageChange')->set_sensitive(TRUE);
-                    $widgets->{'image'}->get_widget('hboxImageColour')->show_all;
+                    $widgets->{'image'}->get_widget('buttonImageDelete')
+                      ->set_sensitive(TRUE);
+                    $widgets->{'image'}->get_widget('buttonImageChange')
+                      ->set_sensitive(TRUE);
+                    $widgets->{'image'}->get_widget('hboxImageColour')
+                      ->show_all;
                 } else {
                     $row->{'textcolour'}   = "Default";
                     $row->{'shadowcolour'} = "Default";
-                    $widgets->{'image'}->get_widget('buttonImageDelete')->set_sensitive(FALSE);
-                    $widgets->{'image'}->get_widget('buttonImageChange')->set_sensitive(FALSE);
+                    $widgets->{'image'}->get_widget('buttonImageDelete')
+                      ->set_sensitive(FALSE);
+                    $widgets->{'image'}->get_widget('buttonImageChange')
+                      ->set_sensitive(FALSE);
                     $widgets->{'image'}->get_widget('hboxImageColour')->hide;
                 }
                 if (   ($row->{'textcolour'} ne "")
@@ -4371,6 +4437,7 @@ sub choose_playlist {
     $widgets->{'main'}->get_widget('toolbarPlaylist')->hide;
     update_cplayclist();
 }
+
 #***
 
 #****f* lyricue/close_playlist_chooser
@@ -4388,6 +4455,7 @@ sub close_playlist_chooser {
     $widgets->{'main'}->get_widget('scrollPlaylist')->show_all;
     $widgets->{'main'}->get_widget('toolbarPlaylist')->show_all;
 }
+
 #***
 
 #****f* lyricue/create_dialog_prefs
@@ -4955,69 +5023,66 @@ sub update_adv_search {
 # SOURCE
 #
 sub move_item {
-    my ($source,$placement,$dest) = @_;
-    debug("Moving ".$source." to ".$placement." ".$dest);
-    my $query = "SELECT playlist FROM playlist WHERE playorder=".$source;
+    my ($source, $placement, $dest) = @_;
+    debug("Moving " . $source . " to " . $placement . " " . $dest);
+    my $query = "SELECT playlist FROM playlist WHERE playorder=" . $source;
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
-        $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
-        $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @playlist = $sth->fetchrow_array;
-    
+
     # Get list of items in this playlist
-    $query = "SELECT playorder FROM playlist WHERE playlist=".$playlist[0]." ORDER BY playorder";
+    $query =
+        "SELECT playorder FROM playlist WHERE playlist="
+      . $playlist[0]
+      . " ORDER BY playorder";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
-        $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
-        $! . "\nSQL: " . $query);
-    my @items=();
-    while (my @row = $sth->fetchrow_array ) {
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    my @items = ();
+    while (my @row = $sth->fetchrow_array) {
         push @items, $row[0];
     }
 
-    my $sourceitem=0;
-    my $destitem=0;
-    foreach my $i ( 0 .. @items-1) {
-debug($i."-".$items[$i]);
+    my $sourceitem = 0;
+    my $destitem   = 0;
+    foreach my $i (0 .. @items - 1) {
+        debug($i . "-" . $items[$i]);
         if ($items[$i] == $source) {
-            $sourceitem=$i;
+            $sourceitem = $i;
         }
         if ($items[$i] == $dest) {
-            $destitem=$i;
-        } 
-    }
-debug( $sourceitem.":".$destitem);
-      
-    #if ($source == $dest) {
-        if ($placement eq "before") {
-            $destitem--;
-        } elsif ($placement eq "after") {
-            $destitem++;
+            $destitem = $i;
         }
-        $dest = $items[$destitem];
-    #}
-debug($source.":".$dest);
+    }
+    debug($sourceitem . ":" . $destitem);
+
+    if ($placement eq "before") {
+        $destitem--;
+    } elsif ($placement eq "after") {
+        $destitem++;
+    }
+    $dest = $items[$destitem];
+    debug($source . ":" . $dest);
 
     while ($source != $dest) {
-        debug("Moving ".$source." to ".$dest);
+        debug("Moving " . $source . " to " . $dest);
         if ($source < $dest) {
-            renumber_item($source, -1) ;
-            renumber_item($items[$sourceitem+1], $source);
-            renumber_item(-1, $items[$sourceitem+1]);
+            renumber_item($source,                 -1);
+            renumber_item($items[$sourceitem + 1], $source);
+            renumber_item(-1,                      $items[$sourceitem + 1]);
             $sourceitem++;
         } else {
-            renumber_item($source, -1) ;
-            renumber_item($items[$sourceitem-1], $source);
-            renumber_item(-1, $items[$sourceitem-1]);
+            renumber_item($source,                 -1);
+            renumber_item($items[$sourceitem - 1], $source);
+            renumber_item(-1,                      $items[$sourceitem - 1]);
             $sourceitem--;
         }
-        $source=$items[$sourceitem];
+        $source = $items[$sourceitem];
     }
     update_playlist($dest);
 }
@@ -5040,8 +5105,8 @@ sub move_item_up {
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
-        my $item  = $model->get($iter, 2);
-        move_item($item,'before',$item);
+        my $item = $model->get($iter, 2);
+        move_item($item, 'before', $item);
     }
 }
 
@@ -5063,8 +5128,8 @@ sub move_item_down {
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
-        my $item  = $model->get($iter, 2);
-        move_item($item,'after',$item);
+        my $item = $model->get($iter, 2);
+        move_item($item, 'after', $item);
     }
 }
 
@@ -5210,7 +5275,8 @@ sub select_playlist {
     debug("Selecting a main playlist");
 
     my $playlist = "";
-    my $selection = $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
+    my $selection =
+      $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
     if ($selection) {
         my ($m, $i) = $selection->get_selected;
         if ($m) {
@@ -5221,8 +5287,8 @@ sub select_playlist {
     if ($playlist eq "") {
         return;
     }
-    my $query = "SELECT id FROM playlists WHERE title LIKE \""
-      . $playlist . "\"";
+    my $query =
+      "SELECT id FROM playlists WHERE title LIKE \"" . $playlist . "\"";
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
@@ -5281,13 +5347,13 @@ sub new_playlist {
     my ($widget) = @_;
     debug("Creating a new playlist");
     my $playlist = "";
-    my $newxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+    my $newxml   = Gtk2::GladeXML->new($globals->{'gladefile'},
         'dialogPromptEntry', 'lyricue');
     $newxml->signal_autoconnect_from_package('');
     $newxml->get_widget('dialogPromptEntry')
-        ->set_title(fromutf(gettext("Create new playlist")));
+      ->set_title(fromutf(gettext("Create new playlist")));
     $newxml->get_widget('labelPromptE')
-        ->set_text(fromutf(gettext("Name of playlist")));
+      ->set_text(fromutf(gettext("Name of playlist")));
 
     my $response = $newxml->get_widget('dialogPromptEntry')->run();
     if ($response eq "ok") {
@@ -5300,28 +5366,25 @@ sub new_playlist {
 
     my $query = "SELECT MAX(id)+1 FROM playlists";
     my $sth   = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
-        $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
-        $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array();
     $query =
         "INSERT INTO playlists (id,title) VALUES ("
-      . $row[0] . ", \"" . $playlist . "\")";
-    $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
-        $! . "\nSQL: " . $query);
-    $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
-        $! . "\nSQL: " . $query);
-    $query = "SELECT id FROM playlists WHERE title LIKE \""
-      . $playlist . "\"";
+      . $row[0] . ", \""
+      . $playlist . "\")";
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    $query = "SELECT id FROM playlists WHERE title LIKE \"" . $playlist . "\"";
+    $sth   = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     @row = $sth->fetchrow_array();
+
     if ($row[0]) {
         $widgets->{'main'}->get_widget('labelCurrentPlaylist')
           ->set_text($playlist);
@@ -5350,7 +5413,8 @@ sub rename_playlist {
     my ($widget) = @_;
     debug("Renaming playlist");
     my $playlist = "";
-    my $selection = $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
+    my $selection =
+      $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
     if ($selection) {
         my ($m, $i) = $selection->get_selected;
         if ($m) {
@@ -5362,31 +5426,21 @@ sub rename_playlist {
         return;
     }
 
-    my $query =
-        "SELECT id FROM playlists WHERE title=\""
-      . $playlist
-      . "\"";
-    my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
-        $! . "\nSQL: " . $query);
+    my $query = "SELECT id FROM playlists WHERE title=\"" . $playlist . "\"";
+    my $sth   = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
-        $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array();
     if ($row[0]) {
         my $renamexml = Gtk2::GladeXML->new($globals->{'gladefile'},
             'dialogPromptEntry', 'lyricue');
         $renamexml->signal_autoconnect_from_package('');
-        my $labelText =
-          fromutf(gettext("Renaming "))
-          . $playlist;
+        my $labelText = fromutf(gettext("Renaming ")) . $playlist;
         $renamexml->get_widget('dialogPromptEntry')->set_title($labelText);
         $renamexml->get_widget('labelPromptE')->set_text($labelText);
         $renamexml->get_widget('labelPromptE')->{user_data} = $row[0];
-        $renamexml->get_widget('entryPromptE')
-          ->set_text(
-            $playlist
-          );
+        $renamexml->get_widget('entryPromptE')->set_text($playlist);
         $renamexml->get_widget('buttonPromptEOK')
           ->signal_connect("clicked", "do_rename_playlist", $renamexml);
     }
@@ -5444,7 +5498,8 @@ sub delete_playlist {
     debug("Deleting a playlist");
 
     my $playlist = "";
-    my $selection = $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
+    my $selection =
+      $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
     if ($selection) {
         my ($m, $i) = $selection->get_selected;
         if ($m) {
@@ -5456,9 +5511,8 @@ sub delete_playlist {
         return;
     }
 
-    my $query = "SELECT id FROM playlists WHERE title=\""
-      . $playlist . "\"";
-    my $sth = $lyricDbh->prepare($query)
+    my $query = "SELECT id FROM playlists WHERE title=\"" . $playlist . "\"";
+    my $sth   = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
@@ -6677,12 +6731,16 @@ sub init_mainWindow {
     $widgets->{'main'}->get_widget('iconviewImage')
       ->drag_source_set(['button1_mask'], ['copy'],
         {'target' => "STRING", 'flags' => [], 'info' => 0});
-    $widgets->{'main'}->get_widget('treePlaylist')
-      ->drag_source_set('button1_mask', ['move','copy'],
-        {'target' => "STRING", 'flags' => [], 'info' => 0});
-    $widgets->{'main'}->get_widget('treePlaylist')
-      ->drag_dest_set('all', ['copy','move'],
-        {'target' => "STRING", 'flags' => [], 'info' => 0});
+    $widgets->{'main'}->get_widget('treePlaylist')->drag_source_set(
+        'button1_mask',
+        ['move', 'copy'],
+        {'target' => "STRING", 'flags' => [], 'info' => 0}
+    );
+    $widgets->{'main'}->get_widget('treePlaylist')->drag_dest_set(
+        'all',
+        ['copy', 'move'],
+        {'target' => "STRING", 'flags' => [], 'info' => 0}
+    );
 
     init_preview();
     init_miniview();
@@ -6781,7 +6839,9 @@ sub bgdir_list {
 
     # Add categories from mediaDb
     my $query =
-      "SELECT DISTINCT category FROM media WHERE type=\"".$type."\" AND category !=\""
+        "SELECT DISTINCT category FROM media WHERE type=\"" 
+      . $type
+      . "\" AND category !=\""
       . $special
       . "\" ORDER BY category";
     my $sth = $mediaDbh->prepare($query)
@@ -6812,6 +6872,7 @@ sub bgdir_list {
         }
         closedir DIR;
     }
+
     # Add a blank entry for files not in a subdirectory
     push @dircategories, "/";
 
@@ -7332,9 +7393,9 @@ sub on_treeAvailable_drag_data_get {
     my ($widget, $context, $data, $info, $time) = @_;
     debug("Dragged from available songs");
     my $selection = $widget->get_selection;
-    my @sel = $selection->get_selected_rows;
-    my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
-    my $iter = $model->get_iter($sel[0]);
+    my @sel       = $selection->get_selected_rows;
+    my $model     = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
+    my $iter      = $model->get_iter($sel[0]);
     if ($iter) {
         $data->set($data->target, 8, $model->get($iter, 3));
     }
@@ -7458,7 +7519,7 @@ sub on_treePlaylist_drag_data_get {
     my $selection = $widget->get_selection;
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
-        $data->set($data->target, 8, "song:".$model->get($iter, 2));
+        $data->set($data->target, 8, "song:" . $model->get($iter, 2));
         return TRUE;
     }
     return FALSE;
@@ -7490,7 +7551,8 @@ sub on_treePlaylist_drag_data_received {
     debug("Dropped on playlist");
 
     # Catch duplicate events
-    if (defined ($globals->{'drop_time'}) && ($globals->{'drop_time'} == $time)) {
+    if (defined($globals->{'drop_time'}) && ($globals->{'drop_time'} == $time))
+    {
         return;
     }
     $globals->{'drop_time'} = $time;
@@ -7525,7 +7587,7 @@ sub on_treePlaylist_drag_data_received {
               ->{user_data};
             my ($path, $drop);
             ($path, $drop) = $widget->get_dest_row_at_pos($x, $y);
-            debug($path.":".$drop);
+            debug($path . ":" . $drop);
             if ($drop =~ /^into/) {
                 my $iter = $widget->get_model->get_iter($path);
                 my $item = $widget->get_model->get($iter, 2);
@@ -7537,13 +7599,13 @@ sub on_treePlaylist_drag_data_received {
         } elsif ($data->data =~ /^song:/) {
             my $song = $data->data;
             $song =~ s/^song://g;
-            my ($path,$drop) = $widget->get_dest_row_at_pos ($x, $y);
+            my ($path, $drop) = $widget->get_dest_row_at_pos($x, $y);
             my $iter = $widget->get_model->get_iter($path);
             my $item = $widget->get_model->get($iter, 2);
-            debug($song." - ".$drop . " - ". $item);
+            debug($song . " - " . $drop . " - " . $item);
             move_item($song, $drop, $item);
         } else {
-            if ($data->data != 0 ) {
+            if ($data->data != 0) {
                 add_single_song($data->data);
                 update_playlist();
             }
@@ -7704,7 +7766,9 @@ sub transition_dir_changed {
 #
 sub apply_transition_selected {
     debug("Apply transition to selected items");
-    if ($widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} == -1) {
+    if ($widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} ==
+        -1)
+    {
         return;
     }
     my $trans_type = calculate_transition();
@@ -7737,7 +7801,7 @@ sub apply_transition_playlist {
     debug("Apply transition to playlist");
     my $playlist =
       $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
-    if ($playlist == -1 ) {
+    if ($playlist == -1) {
         return;
     }
     my $trans_type = calculate_transition();
@@ -8619,7 +8683,7 @@ sub select_category {
     close_dialog($filexml->get_widget('dialogFile'));
     my $choosexml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSelectCategory');
-    
+
     my $query =
         "SELECT DISTINCT category FROM media WHERE type=\"" 
       . $type
@@ -8630,18 +8694,22 @@ sub select_category {
     my $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row;
-    my $model = Gtk2::ListStore->new ('Glib::String');
+    my $model = Gtk2::ListStore->new('Glib::String');
     $choosexml->get_widget('comboSelectCategory')->set_model($model);
+
     while (@row = $sth->fetchrow_array()) {
         $choosexml->get_widget('comboSelectCategory')->append_text($row[0]);
     }
     my $confirm = $choosexml->get_widget('dialogSelectCategory')->run;
     if ($confirm == 1) {
-        if ($choosexml->get_widget('comboSelectCategory')->get_active_text() eq "") {
+        if ($choosexml->get_widget('comboSelectCategory')->get_active_text() eq
+            "")
+        {
             return;
         }
         debug("Importing media");
-        my $category = $choosexml->get_widget('comboSelectCategory')->get_active_text();
+        my $category =
+          $choosexml->get_widget('comboSelectCategory')->get_active_text();
         my $filename = "";
         foreach $filename (@filenames) {
             my $format = $filename;
@@ -9294,58 +9362,85 @@ sub import_songs {
     close $fh;
     my $songs = $xml->{'song'};
 
-    $widgets->{'select_songs'} = Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSelectSongs', 'lyricue');
+    $widgets->{'select_songs'} = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogSelectSongs', 'lyricue');
     $widgets->{'select_songs'}->signal_autoconnect_from_package('');
-    
-    my $model = Gtk2::ListStore->new('Glib::Boolean', 'Glib::String', 'Glib::String','Glib::String','Glib::Uint', 'Glib::Uint');
+
+    my $model = Gtk2::ListStore->new(
+        'Glib::Boolean', 'Glib::String', 'Glib::String', 'Glib::String',
+        'Glib::Uint',    'Glib::Uint'
+    );
     my $renderer = Gtk2::CellRendererToggle->new;
-    $renderer->signal_connect(toggled => sub {
-                my ($cell, $path_str, $model) = @_;
-                my $path = Gtk2::TreePath->new_from_string ($path_str);
-                my $column = 0;
-                my $iter = $model->get_iter ($path);
-                my ($toggle_item) = $model->get ($iter, $column);
-                $toggle_item ^= 1;
-                debug 'setting '.$path_str.' to '.$toggle_item;
-                # set new value
-                $model->set ($iter, $column, $toggle_item);
-            }, $model);
-    my $column1 = Gtk2::TreeViewColumn->new_with_attributes("", $renderer, active=>0);
-    my $column2 = Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Title")), Gtk2::CellRendererText->new, text=>1);
-    my $column3 = Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Artist")), Gtk2::CellRendererText->new, text=>2);
-    my $column4 = Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Book")), Gtk2::CellRendererText->new, text=>3);
-    my $column5 = Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Song Number")), Gtk2::CellRendererText->new, text=>4);
+    $renderer->signal_connect(
+        toggled => sub {
+            my ($cell, $path_str, $model) = @_;
+            my $path   = Gtk2::TreePath->new_from_string($path_str);
+            my $column = 0;
+            my $iter   = $model->get_iter($path);
+            my ($toggle_item) = $model->get($iter, $column);
+            $toggle_item ^= 1;
+            debug 'setting ' . $path_str . ' to ' . $toggle_item;
+
+            # set new value
+            $model->set($iter, $column, $toggle_item);
+        },
+        $model
+    );
+    my $column1 =
+      Gtk2::TreeViewColumn->new_with_attributes("", $renderer, active => 0);
+    my $column2 =
+      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Title")),
+        Gtk2::CellRendererText->new, text => 1);
+    my $column3 =
+      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Artist")),
+        Gtk2::CellRendererText->new, text => 2);
+    my $column4 =
+      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Book")),
+        Gtk2::CellRendererText->new, text => 3);
+    my $column5 =
+      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Song Number")),
+        Gtk2::CellRendererText->new, text => 4);
     $column1->set_resizable(TRUE);
     $column2->set_resizable(TRUE);
     $column3->set_resizable(TRUE);
     $column4->set_resizable(TRUE);
     $column5->set_resizable(TRUE);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column1);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column2);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column3);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column4);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')->append_column($column5);
-    foreach my $songnum (0 .. (@$songs-1)) {
-        debug ("Adding ".$songnum.":". @$songs[$songnum]->{'name'});
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column1);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column2);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column3);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column4);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column5);
+
+    foreach my $songnum (0 .. (@$songs - 1)) {
+        debug("Adding " . $songnum . ":" . @$songs[$songnum]->{'name'});
         my $iter = $model->append;
         $model->set(
-            $iter, 0, TRUE,
-            1, @$songs[$songnum]->{'name'},
-            2, @$songs[$songnum]->{'artist'},
-            3, @$songs[$songnum]->{'book'},
-            4, @$songs[$songnum]->{'number'},
-            5, $songnum
+            $iter,                         0,
+            TRUE,                          1,
+            @$songs[$songnum]->{'name'},   2,
+            @$songs[$songnum]->{'artist'}, 3,
+            @$songs[$songnum]->{'book'},   4,
+            @$songs[$songnum]->{'number'}, 5,
+            $songnum
         );
     }
     $widgets->{'select_songs'}->get_widget('treeSongImport')->set_model($model);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')->set_headers_clickable(TRUE);
-    my $confirm = $widgets->{'select_songs'}->get_widget('dialogSelectSongs')->run();
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->set_headers_clickable(TRUE);
+    my $confirm =
+      $widgets->{'select_songs'}->get_widget('dialogSelectSongs')->run();
     if ($confirm == 1) {
-        $model->foreach( \&do_import_songs, $songs);
+        $model->foreach(\&do_import_songs, $songs);
         update_available();
     }
     close_dialog($widgets->{'select_songs'}->get_widget('dialogSelectSongs'));
 }
+
 #***
 
 #****f* lyricue/import_selection
@@ -9359,15 +9454,21 @@ sub import_songs {
 sub import_selection {
     my ($widget) = @_;
     debug("Selection changing");
-    my $model = $widgets->{'select_songs'}->get_widget('treeSongImport')->get_model;
+    my $model =
+      $widgets->{'select_songs'}->get_widget('treeSongImport')->get_model;
     my $toggle = FALSE;
     if ($widget->get_name() eq "buttonImportAll") {
         $toggle = TRUE;
     }
-    $model->foreach( sub { 
-        my ($store, $path, $iter, $toggle) = @_;
-        $store->set ($iter, 0, $toggle);}, $toggle );
+    $model->foreach(
+        sub {
+            my ($store, $path, $iter, $toggle) = @_;
+            $store->set($iter, 0, $toggle);
+        },
+        $toggle
+    );
 }
+
 #***
 
 #****f* lyricue/do_import_songs
@@ -9385,10 +9486,10 @@ sub import_selection {
 # OUTPUT
 sub do_import_songs {
     my ($store, $path, $iter, $songs) = @_;
-    my $songnum = $store->get($iter,5);
+    my $songnum = $store->get($iter, 5);
     if ($store->get($iter, 0)) {
-        my $song = @$songs[$songnum] ;
-        debug("Importing ".$song->{'name'});
+        my $song = @$songs[$songnum];
+        debug("Importing " . $song->{'name'});
 
         # Find next id
         my $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
@@ -9431,6 +9532,7 @@ sub do_import_songs {
         }
     }
 }
+
 #***
 
 #****f* lyricue/export_songs
@@ -10632,7 +10734,7 @@ sub db_get_admin {
     if (!$dbh) {
         debug("Password incorrect - retry");
         db_get_admin();
-    }       
+    }
 }
 
 #***
@@ -10754,14 +10856,15 @@ sub db_check_databases {
         db_installdb($globals->{'sharedir'} . "mysql/Create_mediaDb.sql",
             "mediaDb");
         db_reload();
+
         # Don't do this anymore - leave stuff in their homes
         #debug("Importing existing backgrounds/images\n");
 
-        # NOTE FAILS WITH SQLITE
-        #if ($config->{'DatabaseType'} eq "mysql") {
-        #    system("import_media img " . $globals->{'sharedir'} . "images");
-        #    system("import_media bg " . $globals->{'sharedir'} . "backgrounds");
-        #}
+       # NOTE FAILS WITH SQLITE
+       #if ($config->{'DatabaseType'} eq "mysql") {
+       #    system("import_media img " . $globals->{'sharedir'} . "images");
+       #    system("import_media bg " . $globals->{'sharedir'} . "backgrounds");
+       #}
         debug("Done\n");
     }
 }
@@ -10959,7 +11062,7 @@ sub db_updatedb_lyricDb {
         foreach (@$fields) {
             $page->{$_->[0]} = $_->[1];
         }
-        if (! defined $page->{'pagetitle'} ) {
+        if (!defined $page->{'pagetitle'}) {
             db_installdb($globals->{'sharedir'} . "mysql/Update_2.1.0.sql",
                 "lyricDb");
         }
@@ -11726,6 +11829,7 @@ sub import_db {
     $importxml->get_widget('fileImportData')->set_filter($filter);
     my $confirm = $importxml->get_widget('dialogImportData')->run();
     debug(":" . $confirm);
+
     if ($confirm == 0) {
         my $filename = $importxml->get_widget('fileImportData')->get_filename();
         if (defined $filename) {
@@ -11752,8 +11856,8 @@ sub import_db {
 #
 sub export_db {
     debug("Export DB selected");
-    my $exportxml = Gtk2::GladeXML->new($globals->{'gladefile'},
-        'dialogFile', 'lyricue');
+    my $exportxml =
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
     $exportxml->signal_autoconnect_from_package('');
     $exportxml->get_widget('dialogFile')->complete("*.xmlz");
     $exportxml->get_widget('dialogFile')->set_filename("lyricue.xmlz");
@@ -11769,6 +11873,7 @@ sub export_db {
     }
     close_dialog($exportxml->get_widget('dialogFile'));
 }
+
 #***
 
 #****f* lyricue/biblebrowser_init
