@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.331 2009/10/07 03:34:15 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.332 2009/10/07 05:33:01 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4956,120 +4956,70 @@ sub update_adv_search {
 #
 sub move_item {
     my ($source,$placement,$dest) = @_;
-        debug("Moving ".$source." to ".$placement." ".$dest);
-        my $query = "SELECT playlist FROM playlist WHERE playorder=".$source;
-        qdebug($query);
-        my $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
-        my @playlist = $sth->fetchrow_array;
-        
-        $query = "SELECT playorder FROM playlist WHERE playlist=".$playlist[0];
-        qdebug($query);
-        my $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
-        my @items=();
-        while (my @row = $sth->fetchrow_array ) {
-            push @items, $row[0];
-        }
-        # Find first free slot before first item in playlist
-        $query = "SELECT playorder FROM playlist WHERE playorder<".$items[0]." AND playlist=".$playlist[0];
-        # Find first free slot after last item in playlist
-        $query = "SELECT playorder FROM playlist WHERE playorder>".$items[0]." AND playlist=".$playlist[0];
-
-        my $sourceitem=0;
-        my $destitem=0;
-        foreach my $i ( 0 .. @items-1) {
-            if ($row[$i] == $source) {
-                $sourceitem=$i;
-            } elsif ($row[0] == $destination) {
-                $destitem=$i;
-            } 
-        }
-      
-        if ($source == $dest) {
-            if ($placement eq "before") {
-                $destitem--;
-            } else {
-                $destitem++;
-            }
-            $dest = $items[$destitem];
-        }
-
-        while ($source != $destination) {
-            if ($source < $destination) {
-                renumber_item($source, -1) ;
-                renumber_item($items[$sourceitem+1], $source);
-                renumber_item(-1, $items[$sourceitem+1]);
-                $sourceitem++;
-            } else {
-                renumber_item($source, -1) ;
-                renumber_item($items[$sourceitem-1], $source);
-                renumber_item(-1, $items[$sourceitem-1]);
-                $sourceitem--;
-            }
-            $source=$items[$sourceitem];
-        }
-        
-        if ($direction > 0) {
-            $query =
-"SELECT MIN(a.playorder) FROM playlist AS a, playlist AS b WHERE a.playlist=b.playlist AND a.playorder > "
-              . $item
-              . " AND b.playorder="
-              . $item;
-            $endstring++;
-        } else {
-            $query =
-"SELECT MAX(a.playorder) FROM playlist AS a, playlist AS b WHERE a.playlist=b.playlist AND a.playorder < "
-              . $item
-              . " AND b.playorder="
-              . $item;
-            $endstring--;
-        }
-        qdebug($query);
-        my $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
-        my @row = $sth->fetchrow_array;
-
-        if ($row[0]) {
-            renumber_item($item,   -1);
-            renumber_item($row[0], $item);
-            renumber_item(-1,      $row[0]);
-            $pathstring = $startstring . $endstring;
-            my $path2 = Gtk2::TreePath->new_from_string($pathstring);
-            my $path_state =
-              $widgets->{'main'}->get_widget('treePlaylist')
-              ->row_expanded($path);
-            my $path2_state =
-              $widgets->{'main'}->get_widget('treePlaylist')
-              ->row_expanded($path2);
-            if ($path_state) {
-                $widgets->{'main'}->get_widget('treePlaylist')
-                  ->expand_row($path2, FALSE);
-            } else {
-                $widgets->{'main'}->get_widget('treePlaylist')
-                  ->collapse_row($path2);
-            }
-            if ($path2_state) {
-                $widgets->{'main'}->get_widget('treePlaylist')
-                  ->expand_row($path, FALSE);
-            } else {
-                $widgets->{'main'}->get_widget('treePlaylist')
-                  ->collapse_row($path);
-            }
-        }
+    debug("Moving ".$source." to ".$placement." ".$dest);
+    my $query = "SELECT playlist FROM playlist WHERE playorder=".$source;
+    qdebug($query);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'},
+        $! . "\nSQL: " . $query);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'},
+        $! . "\nSQL: " . $query);
+    my @playlist = $sth->fetchrow_array;
+    
+    # Get list of items in this playlist
+    $query = "SELECT playorder FROM playlist WHERE playlist=".$playlist[0]." ORDER BY playorder";
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'},
+        $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'},
+        $! . "\nSQL: " . $query);
+    my @items=();
+    while (my @row = $sth->fetchrow_array ) {
+        push @items, $row[0];
     }
+
+    my $sourceitem=0;
+    my $destitem=0;
+    foreach my $i ( 0 .. @items-1) {
+debug($i."-".$items[$i]);
+        if ($items[$i] == $source) {
+            $sourceitem=$i;
+        }
+        if ($items[$i] == $dest) {
+            $destitem=$i;
+        } 
+    }
+debug( $sourceitem.":".$destitem);
+      
+    if ($source == $dest) {
+        if ($placement eq "before") {
+            $destitem--;
+        } else {
+            $destitem++;
+        }
+        $dest = $items[$destitem];
+    }
+debug($source.":".$dest);
+
+    while ($source != $dest) {
+        debug("Moving ".$source." to ".$dest);
+        if ($source < $dest) {
+            renumber_item($source, -1) ;
+            renumber_item($items[$sourceitem+1], $source);
+            renumber_item(-1, $items[$sourceitem+1]);
+            $sourceitem++;
+        } else {
+            renumber_item($source, -1) ;
+            renumber_item($items[$sourceitem-1], $source);
+            renumber_item(-1, $items[$sourceitem-1]);
+            $sourceitem--;
+        }
+        $source=$items[$sourceitem];
+    }
+    update_playlist($dest);
 }
 
 #***
@@ -5092,7 +5042,6 @@ sub move_item_up {
     if ($iter) {
         my $item  = $model->get($iter, 2);
         move_item($item,'before',$item);
-        update_playlist($row[0]);
     }
 }
 
@@ -5116,7 +5065,6 @@ sub move_item_down {
     if ($iter) {
         my $item  = $model->get($iter, 2);
         move_item($item,'after',$item);
-        update_playlist($row[0]);
     }
 }
 
@@ -5149,6 +5097,7 @@ sub renumber_item {
 
     $query =
       "UPDATE playlist SET playorder=" . $after . " WHERE playorder=" . $before;
+    qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
@@ -5159,6 +5108,7 @@ sub renumber_item {
       . $after
       . " WHERE playlist="
       . $before;
+    qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
