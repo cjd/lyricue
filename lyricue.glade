@@ -1854,7 +1854,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="position">200</property>
-                <signal name="event" handler="resize_preview"/>
+                <signal name="move_handle" handler="resize_preview"/>
                 <child>
                   <widget class="GtkFrame" id="frameMainCentre">
                     <property name="visible">True</property>
@@ -1932,9 +1932,11 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="headers_visible">False</property>
+                                <property name="reorderable">True</property>
                                 <property name="enable_search">False</property>
                                 <signal name="event" handler="display_song" after="yes"/>
                                 <signal name="drag_data_received" handler="on_treePlaylist_drag_data_received"/>
+                                <signal name="drag_data_get" handler="on_treePlaylist_drag_data_get"/>
                               </widget>
                             </child>
                           </widget>
@@ -6327,8 +6329,8 @@ http://www.lyricue.org/bibles</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -7837,6 +7839,18 @@ http://www.lyricue.org/bibles</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>

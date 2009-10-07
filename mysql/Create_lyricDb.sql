@@ -63,9 +63,9 @@ CREATE TABLE `playlists` (
 
 -- Baseline Data
 INSERT INTO lyricMain VALUES (1,'Today\'s Announcements',0,'Not Songs','',20040307192037 ,'',00000000000000,'');
-INSERT INTO page VALUES (1,1,1,'Here are todays announcements');
+INSERT INTO page VALUES (1,1,1,'', 'Here are todays announcements');
 INSERT INTO lyricMain VALUES (2,'Sample Song',0,'Sample Songbook','',20040307192037 ,'',00000000000000,'');
-INSERT INTO page VALUES (2,2,1,'This is a sample song');
-INSERT INTO page VALUES (3,2,2,'This is the second page of the a sample song');
+INSERT INTO page VALUES (2,2,1,'Verse 1', 'This is a sample song');
+INSERT INTO page VALUES (3,2,2,'Chorus', 'This is the second page of the a sample song');
 INSERT INTO playlists VALUES (1,'Main Playlist','');
 

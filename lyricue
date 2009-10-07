@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.330 2009/09/02 23:45:27 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.331 2009/10/07 03:34:15 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -716,7 +716,7 @@ sub add_playlist {
         } elsif ($row->{'type'} eq "song") {
             my $query2 =
               "SELECT pagetitle, lyrics FROM page WHERE pageid=" . $row->{'data'};
-            qdebug($query2);
+            #qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
@@ -731,7 +731,7 @@ sub add_playlist {
             } else {
                 ($title, undef) = split(/\n/, $lyrics);
             }
-            if ($row2->{'pagetitle'} ne '') {
+            if (defined $row2->{'pagetitle'} && ($row2->{'pagetitle'} ne '')) {
                 $title = "<b>".$row2->{'pagetitle'}."</b>\n".$title;
             }
             if (!$title) {
@@ -1631,9 +1631,13 @@ sub add_page {
     $widgets->{'labelAPage'}{$hashnum}->set_line_wrap(0);
     $widgets->{'labelAPage'}{$hashnum}->show;
     $widgets->{'labelAPage'}{$hashnum}->set_alignment(0.5, 0.5);
+
+    # And a event box so you can change it
     $widgets->{'eventAPage'}{$hashnum} = Gtk2::EventBox->new;
     $widgets->{'eventAPage'}{$hashnum}->{user_data} = $hashnum;
     $widgets->{'eventAPage'}{$hashnum}->add($widgets->{'labelAPage'}{$hashnum});
+    $widgets->{'eventAPage'}{$hashnum}->set_above_child(FALSE);
+    $widgets->{'eventAPage'}{$hashnum}->set_visible_window(FALSE);
     $widgets->{'eventAPage'}{$hashnum}->signal_connect('button-press-event','update_pagename');
 
     $pageOrder{$hashnum} = $pagenum;
@@ -2822,7 +2826,7 @@ sub clear_playlist {
 sub display_song {
     my ($widget, $event) = @_;
 
-    #debug ("event ".$event->key); #Too many calls to this one
+    #debug ("event ".$event . " - ".$event->type); #Too many calls to this one
     if (defined($event->type)) {
         if (
             ($event->type eq '2button-press')
@@ -4951,25 +4955,69 @@ sub update_adv_search {
 # SOURCE
 #
 sub move_item {
-    my ($direction) = @_;
-    my $selection =
-      $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
-    my ($model, $iter) = $selection->get_selected;
-    if ($iter) {
-        debug("Moving item in " . $direction . " direction");
-        my $query = "";
-        my $item  = $model->get($iter, 2);
-        my $model = $widgets->{'main'}->get_widget('treePlaylist')->get_model();
-        my $path  = $model->get_path($iter);
-        my $pathstring  = $path->to_string();
-        my $startstring = $pathstring;
-        $startstring =~ s/^(.*:)(.*?)$/$1/g;
-        my $endstring = $2;
-
-        if (!defined($2)) {
-            $endstring   = $startstring;
-            $startstring = "";
+    my ($source,$placement,$dest) = @_;
+        debug("Moving ".$source." to ".$placement." ".$dest);
+        my $query = "SELECT playlist FROM playlist WHERE playorder=".$source;
+        qdebug($query);
+        my $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+        my @playlist = $sth->fetchrow_array;
+        
+        $query = "SELECT playorder FROM playlist WHERE playlist=".$playlist[0];
+        qdebug($query);
+        my $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+        my @items=();
+        while (my @row = $sth->fetchrow_array ) {
+            push @items, $row[0];
         }
+        # Find first free slot before first item in playlist
+        $query = "SELECT playorder FROM playlist WHERE playorder<".$items[0]." AND playlist=".$playlist[0];
+        # Find first free slot after last item in playlist
+        $query = "SELECT playorder FROM playlist WHERE playorder>".$items[0]." AND playlist=".$playlist[0];
+
+        my $sourceitem=0;
+        my $destitem=0;
+        foreach my $i ( 0 .. @items-1) {
+            if ($row[$i] == $source) {
+                $sourceitem=$i;
+            } elsif ($row[0] == $destination) {
+                $destitem=$i;
+            } 
+        }
+      
+        if ($source == $dest) {
+            if ($placement eq "before") {
+                $destitem--;
+            } else {
+                $destitem++;
+            }
+            $dest = $items[$destitem];
+        }
+
+        while ($source != $destination) {
+            if ($source < $destination) {
+                renumber_item($source, -1) ;
+                renumber_item($items[$sourceitem+1], $source);
+                renumber_item(-1, $items[$sourceitem+1]);
+                $sourceitem++;
+            } else {
+                renumber_item($source, -1) ;
+                renumber_item($items[$sourceitem-1], $source);
+                renumber_item(-1, $items[$sourceitem-1]);
+                $sourceitem--;
+            }
+            $source=$items[$sourceitem];
+        }
+        
         if ($direction > 0) {
             $query =
 "SELECT MIN(a.playorder) FROM playlist AS a, playlist AS b WHERE a.playlist=b.playlist AND a.playorder > "
@@ -5020,7 +5068,6 @@ sub move_item {
                 $widgets->{'main'}->get_widget('treePlaylist')
                   ->collapse_row($path);
             }
-            update_playlist($row[0]);
         }
     }
 }
@@ -5039,7 +5086,14 @@ sub move_item {
 # SOURCE
 #
 sub move_item_up {
-    move_item(-1);
+    my $selection =
+      $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+    my ($model, $iter) = $selection->get_selected;
+    if ($iter) {
+        my $item  = $model->get($iter, 2);
+        move_item($item,'before',$item);
+        update_playlist($row[0]);
+    }
 }
 
 #***
@@ -5056,7 +5110,14 @@ sub move_item_up {
 # SOURCE
 #
 sub move_item_down {
-    move_item(1);
+    my $selection =
+      $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+    my ($model, $iter) = $selection->get_selected;
+    if ($iter) {
+        my $item  = $model->get($iter, 2);
+        move_item($item,'after',$item);
+        update_playlist($row[0]);
+    }
 }
 
 #***
@@ -6667,11 +6728,11 @@ sub init_mainWindow {
       ->drag_source_set(['button1_mask'], ['copy'],
         {'target' => "STRING", 'flags' => [], 'info' => 0});
     $widgets->{'main'}->get_widget('treePlaylist')
-      ->drag_dest_set('all', ['copy'],
+      ->drag_source_set('button1_mask', ['move','copy'],
         {'target' => "STRING", 'flags' => [], 'info' => 0});
-
-    # BORKED
-    #$widgets->{'main'}->get_widget('treePlaylist')->set_reorderable(TRUE);
+    $widgets->{'main'}->get_widget('treePlaylist')
+      ->drag_dest_set('all', ['copy','move'],
+        {'target' => "STRING", 'flags' => [], 'info' => 0});
 
     init_preview();
     init_miniview();
@@ -7425,6 +7486,36 @@ sub on_treeSearch_drag_data_get {
 
 #***
 
+#****f* lyricue/on_treePlaylist_drag_data_get
+# NAME
+#   on_treePlaylist_drag_data_get
+# SYNOPSIS
+#   on_treePlaylist_drag_data_get($widget, $context, $data, $info, $time)
+# FUNCTION
+#   Dragged from playlist
+# INPUTS
+#   $widget -
+#    $context -
+#    $data -
+#    $info -
+#    $time -
+# OUTPUT
+# SOURCE
+#
+sub on_treePlaylist_drag_data_get {
+    my ($widget, $context, $data, $info, $time) = @_;
+    debug("Dragged from Playlist");
+    my $selection = $widget->get_selection;
+    my ($model, $iter) = $selection->get_selected;
+    if ($iter) {
+        $data->set($data->target, 8, "song:".$model->get($iter, 2));
+        return TRUE;
+    }
+    return FALSE;
+}
+
+#***
+
 #****f* lyricue/on_treePlaylist_drag_data_received
 # NAME
 #   on_treePlaylist_drag_data_received
@@ -7447,6 +7538,12 @@ sub on_treePlaylist_drag_data_received {
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
     my ($u1, $file);
     debug("Dropped on playlist");
+
+    # Catch duplicate events
+    if (defined ($globals->{'drop_time'}) && ($globals->{'drop_time'} == $time)) {
+        return;
+    }
+    $globals->{'drop_time'} = $time;
 
     if (($data->length >= 0) && ($data->format == 8)) {
         debug("Received: " . $data->data);
@@ -7476,16 +7573,26 @@ sub on_treePlaylist_drag_data_received {
               ->{user_data};
             my ($path, $drop);
             ($path, $drop) = $widget->get_dest_row_at_pos($x, $y);
-            debug($drop);
-            if ($drop eq "into-or-before") {
+            debug($path.":".$drop);
+            if ($drop =~ /^into/) {
                 my $iter = $widget->get_model->get_iter($path);
                 my $item = $widget->get_model->get($iter, 2);
                 @ASSOCIATE = ($item, $playlist);
                 debug($item . ":" . $playlist . ":" . $selected);
                 associate_bg($selected);
             }
+        } elsif ($data->data =~ /^song:/) {
+            my $song = $data->data;
+            $song =~ s/^song://g;
+            my ($path,$drop) = $widget->get_dest_row_at_pos ($x, $y);
+            my $iter = $widget->get_model->get_iter($path);
+            my $item = $widget->get_model->get($iter, 2);
+            debug($song." - ".$drop . " - ". $item);
+            move_item($song, $drop, $item);
         } else {
-            add_single_song($data->data);
+            if ($data->data != 0 ) {
+                add_single_song($data->data);
+            }
         }
         update_playlist();
         $context->finish(1, 0, $time);

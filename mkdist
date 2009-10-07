@@ -76,12 +76,4 @@ rm -rf ${BUILD_DIR}/lyricue-${VERSION}
 
 echo Pushing to repository
 cp ${BUILD_DIR}/*deb ${BUILD_DIR}/*.dsc ${BUILD_DIR}/*.asc ${BUILD_DIR}/*.gz ${BUILD_DIR}/*.changes  /var/www/debian
-cd /var/www/debian
-rm Packages.gz Sources.gz Packages.bz2 Sources.bz2 Release Release.gpg
-apt-ftparchive packages . > Packages
-apt-ftparchive sources . > Sources
-apt-ftparchive release . > /tmp/a
-gzip Packages
-gzip Sources
-mv /tmp/a Release
-gnome-gpg -abs -o Release.gpg Release
+update_repo
