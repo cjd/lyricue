@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.202 2009/10/30 03:08:13 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.203 2009/10/30 04:38:26 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1468,8 +1468,11 @@ sub change_backdrop {
                         undef $globals->{'background_old'};
                     }
                     $globals->{'background_old'} = $globals->{'background'};
-                    $globals->{'timeline_bg'} =
-                      Clutter::Timeline->new_for_duration(100);
+                    if ($globals->{'clutter1'}) {
+                        $globals->{'timeline_bg'} = Clutter::Timeline->new(500);
+                    } else {
+                        $globals->{'timeline_bg'} = Clutter::Timeline->new_for_duration(100);
+                    }
                     $globals->{'timeline_bg'}->set_speed(15);
                     my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
                         \&Clutter::Alpha::ramp_inc);
@@ -1592,8 +1595,11 @@ sub change_backdrop {
                         $globals->{'stage'}->get_height()
                     );
                     $globals->{'background'}->set_position(0, 0);
-                    $globals->{'background'}
-                      ->set_color(Clutter::Color->parse($row->{'description'}));
+                    if ($globals->{'clutter1'}) {
+                        $globals->{'background'}->set_color(Clutter::Color->from_string($row->{'description'}));
+                    } else {
+                        $globals->{'background'}->set_color(Clutter::Color->parse($row->{'description'}));
+                    }
                     $globals->{'stage'}->add($globals->{'background'});
                     $globals->{'background'}->lower_bottom();
                     return;
@@ -2018,11 +2024,15 @@ sub set_maintext_clutter {
     $globals->{'maintext'}->set_position($final_x, $final_y);
     debug($final_x . ":" . $final_y);
 
-    $globals->{'timeline'} = Clutter::Timeline->new_for_duration(100);
-    $globals->{'timeline'}->set_speed(15);
+    if ($globals->{'clutter1'}) {
+        $globals->{'timeline'} = Clutter::Timeline->new(500);
+    } else {
+        $globals->{'timeline'} = Clutter::Timeline->new_for_duration(100);
+        $globals->{'timeline'}->set_speed(15);
+    }
     $globals->{'timeline'}->set_loop(0);
     my $alpha =
-      Clutter::Alpha->new($globals->{'timeline'}, \&Clutter::Alpha::ramp_inc);
+      Clutter::Alpha->new($globals->{'timeline'}, 'CLUTTER_LINEAR');
 
     # Set start position
     $globals->{'timeline'}->signal_connect(
@@ -2195,20 +2205,37 @@ sub create_outlined_text {
     $text =~ s/\&/\&amp\;/g;
 
     foreach my $count (0, 2, 10, 12, 18, 24, 6) {
-        my $colour;
-        if ($count == 6) {
-            $colour = Clutter::Color->parse($text_colour);
+        my ($colour, $item);
+        if ($globals->{'clutter1'}) {
+            if ($count == 6) {
+                $colour = Clutter::Color->from_string($text_colour);
+            } else {
+                $colour = Clutter::Color->from_string($shadow_colour);
+                $colour->alpha(0xA0);
+            }
+            $item = Clutter::Text->new($font, $text, $colour);
+            if ($config->{'Justification'} =~ /^L/) {
+                $item->set_line_alignment('left');
+            } elsif ($config->{'Justification'} =~ /^R/) {
+                $item->set_line_alignment('right');
+            } else {
+                $item->set_line_alignment('center');
+            }
         } else {
-            $colour = Clutter::Color->parse($shadow_colour);
-            $colour->alpha(0xA0);
-        }
-        my $item = Clutter::Label->new($font, $text, $colour);
-        if ($config->{'Justification'} =~ /^L/) {
-            $item->set_alignment('left');
-        } elsif ($config->{'Justification'} =~ /^R/) {
-            $item->set_alignment('right');
-        } else {
-            $item->set_alignment('center');
+            if ($count == 6) {
+                $colour = Clutter::Color->parse($text_colour);
+            } else {
+                $colour = Clutter::Color->parse($shadow_colour);
+                $colour->alpha(0xA0);
+            }
+            $item = Clutter::Label->new($font, $text, $colour);
+            if ($config->{'Justification'} =~ /^L/) {
+                $item->set_alignment('left');
+            } elsif ($config->{'Justification'} =~ /^R/) {
+                $item->set_alignment('right');
+            } else {
+                $item->set_alignment('center');
+            }
         }
         $item->set_use_markup(1);
         if ($item->get_width() > $config->{'Width'}) {
@@ -2247,9 +2274,9 @@ sub set_maintext_simple {
     debug("Set maintext simple");
     my $font_desc =
       Gtk2::Pango::FontDescription->from_string($config->{'Main'});
-    my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
+    my $colour = Gtk2::Gdk::Color->from_string($config->{'Colour'});
     if ($config->{'BackdropTextColour'} ne "") {
-        $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
+        $colour = Gtk2::Gdk::Color->from_string($config->{'BackdropTextColour'});
     }
     $globals->{'mainText'}->modify_fg('normal', $colour);
     $globals->{'mainText'}->modify_font($font_desc);
@@ -2764,9 +2791,9 @@ sub set_footer_simple {
     my $font_desc =
       Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
     $globals->{'footerText'}->modify_font($font_desc);
-    my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
+    my $colour = Gtk2::Gdk::Color->from_string($config->{'Colour'});
     if ($config->{'BackdropTextColour'} ne "") {
-        $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
+        $colour = Gtk2::Gdk::Color->from_string($config->{'BackdropTextColour'});
     }
     $globals->{'footerText'}->modify_fg('normal', $colour);
     $globals->{'footerText'}->set_text($text);
@@ -2915,9 +2942,9 @@ sub set_header_simple {
     my $font_desc =
       Gtk2::Pango::FontDescription->from_string($config->{'Header'});
     $globals->{'headerText'}->modify_font($font_desc);
-    my $colour = Gtk2::Gdk::Color->parse($config->{'Colour'});
+    my $colour = Gtk2::Gdk::Color->from_string($config->{'Colour'});
     if ($config->{'BackdropTextColour'} ne "") {
-        $colour = Gtk2::Gdk::Color->parse($config->{'BackdropTextColour'});
+        $colour = Gtk2::Gdk::Color->from_string($config->{'BackdropTextColour'});
     }
     $globals->{'headerText'}->modify_fg('normal', $colour);
     $globals->{'headerText'}->set_text($text);
@@ -3225,9 +3252,21 @@ sub create_window {
               "Optional module Clutter not available. Using canvas server\n";
             $globals->{'server_type'} = CANVAS;
         } else {
-            import Clutter;
-            import Clutter qw( :gtk-init );
-            import Clutter::Keysyms;
+            eval { require Gtk2::Clutter };
+            if ($@) {
+                $globals->{'clutter1'}=FALSE;
+                import Clutter;
+                import Clutter qw( :gtk-init );
+                import Clutter::Keysyms;
+            } else {
+                $globals->{'clutter1'}=TRUE;
+                import Gtk2::Clutter;
+                require Clutter::GStreamer;
+                import Clutter;
+                import Clutter::GStreamer;
+                import Clutter::Keysyms;
+            }
+print "VERS:".$globals->{'clutter1'}."\n";
         }
     }
     my $aspect = $config->{'Width'} / $config->{'Height'};
@@ -3287,10 +3326,18 @@ sub create_window {
         $vbox->pack_start($globals->{'footerText'}, FALSE, FALSE, 0);
     } elsif ($globals->{'server_type'} == CLUTTER) {
         debug("Using clutter server");
-        Clutter->init();
-        Clutter::Gst->init;
+        my ($embed);
+        if ($globals->{'clutter1'}) {
+            Gtk2::Clutter->init;
+            Clutter::GStreamer->init;
+            $embed = Gtk2::Clutter::Embed->new();
+        } else {
+            Clutter->init();
+            Clutter::Gst->init;
+            $embed = Gtk2::ClutterEmbed->new();
+        }
+
         my $black_colour = Clutter::Color->new(0, 0, 0, 0xff);
-        my $embed = Gtk2::ClutterEmbed->new();
         $globals->{'window'}->add($embed);
         $globals->{'stage'} = $embed->get_stage();
         $globals->{'stage'}->set_color($black_colour);
