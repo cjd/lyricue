@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.201 2009/08/31 02:15:13 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.202 2009/10/30 03:08:13 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -171,6 +171,7 @@ $globals->{'preview_port'}  = "2347";    #port used for lyric server socket
 $globals->{'miniview_port'} = "2348";    #port used for lyric server socket
 $globals->{'run_windowed'}  = FALSE;
 $globals->{'server_type'}   = CLUTTER;
+$globals->{'force_server'}  = FALSE;
 $globals->{'blanked_state'} = TRUE;
 $globals->{'bgid'}          = "";
 $globals->{'diatheke'} = `which diatheke`;
@@ -240,8 +241,10 @@ if ($ARGV[0]) {
             exit;
         } elsif ($ARGV[$_] eq "-f") {
             $globals->{'server_type'} = SIMPLE;
+            $globals->{'force_server'} = TRUE;
         } elsif ($ARGV[$_] eq "-c") {
             $globals->{'server_type'} = CLUTTER;
+            $globals->{'force_server'} = TRUE;
         } elsif ($ARGV[$_] eq "-d") {
             $DEBUG = 1;
             debug("Lyric Server version " . $globals->{'version'} . "\n" . $ID);
@@ -294,12 +297,14 @@ binmode LOG, ":utf8";
 
 my $config = load_config();
 db_check_app();
-if ($config->{'ServerType'} eq "simple") {
-    $globals->{'server_type'} = SIMPLE;
-} elsif ($config->{'ServerType'} eq "canvas") {
-    $globals->{'server_type'} = CANVAS;
-} else {
-    $globals->{'server_type'} = CLUTTER;
+if (!$globals->{'force_server'}) {
+    if ($config->{'ServerType'} eq "simple") {
+        $globals->{'server_type'} = SIMPLE;
+    } elsif ($config->{'ServerType'} eq "canvas") {
+        $globals->{'server_type'} = CANVAS;
+    } else {
+        $globals->{'server_type'} = CLUTTER;
+    }
 }
 
 my ($contents, @preset);
