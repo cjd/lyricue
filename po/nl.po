@@ -3,13 +3,13 @@ msgstr ""
 "Project-Id-Version: Lyricue 2.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-07-31 09:21+1000\n"
-"PO-Revision-Date: 2009-08-05 06:04+0000\n"
-"Last-Translator: ChrisDebenham <chris@adebenham.com>\n"
+"PO-Revision-Date: 2009-10-22 12:36+0000\n"
+"Last-Translator: linuxpete <Unknown>\n"
 "Language-Team: nl <lds-devel@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2009-08-20 23:04+0000\n"
+"X-Launchpad-Export-Date: 2009-11-01 23:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 "X-Poedit-Country: NETHERLANDS\n"
 "X-Poedit-Language: Dutch\n"
@@ -19,6 +19,8 @@ msgid ""
 "I'm sorry but I could not open the lyric database.\n"
 "Please confirm that Lyricue is installed correctly and MySQL is running"
 msgstr ""
+"De liederen database kon niet worden geopend.\n"
+"Controleer of Lyricue correct is geïnstalleerd en de MySQL server draait"
 
 #: lyricue:246 lyricue_server:206
 msgid ""
@@ -27,46 +29,63 @@ msgid ""
 "database exists.\n"
 "The requested database was named "
 msgstr ""
+"De Bijbel database kon niet worden geopend.\n"
+"Controleer of Lyricue correct is geïnstalleerd en de gebruikteBijbel "
+"database bestaat.\n"
+"De gebruikte database is: "
 
 #: lyricue:251
 msgid ""
 "I'm sorry but I could not open the media database.\n"
 "Please confirm that Lyricue is installed correctly and MySQL is running"
 msgstr ""
+"De media database kon niet worden geopend.\n"
+"Controleer of Lyricue correct is geïnstalleerd en de MySQL server draait"
 
 #: lyricue:255 lyricue_server:210
 msgid ""
 "Unable to prepare query.\n"
 "Has mysql died?"
 msgstr ""
+"Deze query kon niet worden gemaakt.\n"
+"Is de MySQL server gestart?"
 
 #: lyricue:257 lyricue_server:212
 msgid ""
 "Unable to execute query.\n"
 "Has mysql died?"
 msgstr ""
+"Deze query kon niet worden uitgevoerd\n"
+"Is de MySQL server gestart?"
 
 #: lyricue:260 lyricue_server:215
 msgid ""
 "Sorry, I was unable to listen on the network.\n"
 "Please make sure I am not already running"
 msgstr ""
+"Het netwerk kon niet worden gevonden.\n"
+"Controleer of Lyricue_server al ergens anders is gestart."
 
 #: lyricue:263
 msgid "Could not open "
-msgstr ""
+msgstr "Het volgende kon niet geopend worden: "
 
 #: lyricue:266
 msgid ""
 "Unable to read the file, are you sure it exists?\n"
 "The file asked for was "
 msgstr ""
+"De file kon niet geopend worden. Bestaat deze file nog?\n"
+"De gevraagde filenaam is: "
 
 #: lyricue:271
 msgid ""
 "Unable to write to the file, you may not have sufficent permissions.\n"
 "Please check the permissions for "
 msgstr ""
+"Er kon niet naar de file worden geschreven, het kan zijn dat u geen  recht "
+"heeft om naar de file te schrijven.\n"
+"Controleert u de file rechten "
 
 #: lyricue:276
 msgid ""
@@ -83,12 +102,26 @@ msgid ""
 "\t-i:  Import songlist from file\n"
 "\n"
 msgstr ""
+"\n"
+"Gebruik: lyricue <-v|-l> <-b> <-k> <-d> <-s>\n"
+"\n"
+"\t-v:  Print Lyricue versie informatie en stop hierna.\n"
+"\t-l:  Exporteert liederenlijst in HTML en stop hierna.\n"
+"\t-b:  Start Lyricue zonder achtergrond voorvertoning.\n"
+"\t-s:  Specificeer de host waarop Lyricue_server is gestart.\n"
+"\t-r:  Specificeer de host waarop de MySQL server is gestart.\n"
+"\t-d:  Druk debug boodschappen af.\n"
+"\t-w:  Start niet gemaximaliseerd.\n"
+"\t-i:  Importeer liederenlijst van file.\n"
+"\n"
 
 #: lyricue:290
 msgid ""
 "No bible has been selected\n"
 "Please select one from the menu"
 msgstr ""
+"Er is geen Bijbel geselecteerd.\n"
+"Kies er één van het menu"
 
 #: lyricue:407
 msgid ""
@@ -96,6 +129,10 @@ msgid ""
 "It is now ~/.local/share/lyricue\n"
 "If you do not wish to do this press Cancel and Lyricue will exit"
 msgstr ""
+"De directory welke de configuratie bestanden bevat is gewijzigd.\n"
+"Deze is geworden: ~/.local/share/lyricue .\n"
+"Als u deze wijziging niet wenst kunt u Afbreken klikken en Lyricue zal "
+"stoppen."
 
 #: lyricue:965 lyricue:4867 lyricue:9301
 msgid "Title"
@@ -119,7 +156,7 @@ msgstr "/Lied verwijderen"
 
 #: lyricue:1121
 msgid "/Refresh List"
-msgstr "/Lijst vernieuwen"
+msgstr "/Lijst verversen"
 
 #: lyricue:1125
 msgid "/Order - Songbook -> No."
@@ -195,7 +232,7 @@ msgstr "Pagina "
 
 #: lyricue:2799
 msgid "Are you sure you wish to clear the current playlist?"
-msgstr "Weet u zeker dat u de volgende afspeellijst wilt wissen?"
+msgstr "Weet u zeker dat u deze afspeellijst wilt wissen?"
 
 #: lyricue:2802
 msgid "Confirm Clear Playlist"
@@ -203,7 +240,7 @@ msgstr "Wissen van afspeellijst bevestigen"
 
 #: lyricue:3545 lyricue_server:1111 lyricue_server:1189
 msgid "Displaying "
-msgstr "Het volgende wordt getoond "
+msgstr "Toont "
 
 #: lyricue:3547 lyricue:3668 lyricue_server:1113
 msgid " verses "
@@ -215,7 +252,7 @@ msgstr " pagina "
 
 #: lyricue:3666
 msgid "Previewed "
-msgstr ""
+msgstr "Voorbeeld "
 
 #: lyricue:3720
 msgid "Select "
@@ -223,7 +260,7 @@ msgstr "Selecteren "
 
 #: lyricue:3720
 msgid " Colour"
-msgstr ""
+msgstr " Kleur"
 
 #: lyricue:4877
 msgid "Song No"
@@ -231,27 +268,27 @@ msgstr "Liednummer"
 
 #: lyricue:5286
 msgid "Create new playlist"
-msgstr ""
+msgstr "Maak een nieuwe afspeellijst"
 
 #: lyricue:5288
 msgid "Name of playlist"
-msgstr ""
+msgstr "Naam van de afspeellijst"
 
 #: lyricue:5379
 msgid "Renaming "
-msgstr ""
+msgstr "Hernoemen "
 
 #: lyricue:6095 lyricue:6150
 msgid "Importing presentation"
-msgstr ""
+msgstr "Importeren van een presentatie"
 
 #: lyricue:6746 lyricue:8560 lyricue:8885
 msgid "Select Category"
-msgstr ""
+msgstr "Selecteer Categorie"
 
 #: lyricue:7087
 msgid "Choose a Directory"
-msgstr ""
+msgstr "Kies een directory"
 
 #: lyricue:7089 lyricue.glade:2033 lyricue.glade:2975 lyricue.glade:3833
 #: lyricue.glade:7785
@@ -260,11 +297,11 @@ msgstr "Annuleren"
 
 #: lyricue:7090
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: lyricue:7137 lyricue:7278
 msgid "Create new sublist"
-msgstr ""
+msgstr "Maak een nieuwe sublijst"
 
 #: lyricue:7139 lyricue:7280
 msgid "Name of sublist"
@@ -285,30 +322,36 @@ msgid ""
 "To fix please edit /etc/lyricue/access.conf and add an entry for this user.\n"
 "Click OK to continue anyway or Cancel to Exit"
 msgstr ""
+"Deze gebruiker heeft geen toegangsregel.\n"
+"Om dit te wijziginen edit /etc/lyricue/access.conf en voeg een regel voor "
+"deze gebruiker toe.\n"
+"Standaard zal deze volle toegang hebben.\n"
+"Klik OK om door te gaan of Annuleren om te stoppen."
 
 #: lyricue:8087
 msgid "Add a user"
-msgstr ""
+msgstr "Gebruiker toevoegen"
 
 #: lyricue:8089
 msgid "Enter username"
-msgstr ""
+msgstr "Vul Gebruikersnaam in"
 
 #: lyricue:9022
 msgid "Confirm Delete Image"
-msgstr "Verwijderen van een afbeelding bevestigen"
+msgstr "Bevestig Verwijderen Afbeelding"
 
 #: lyricue:9169
 msgid "Select Database Backup file"
-msgstr "Bestand met reservekopie van de database selecteren"
+msgstr "Secteer Bestand database reserve kopie"
 
 #: lyricue:9179
 msgid "Confirm Restore Database"
-msgstr "Terugplaatsen van database bevestigen"
+msgstr "Bevestig Terugplaatsen database"
 
 #: lyricue:9183
 msgid "WARNING: Restoring this database will overwrite your current database"
 msgstr ""
+"LET OP: Terugzetten van deze database zal uw huidige database overschrijven"
 
 #: lyricue:9302 lyricue.glade:2621
 msgid "Artist"
@@ -319,6 +362,9 @@ msgid ""
 "Unable to login to database as admin, maybe the database is down.\n"
 "Please re-enter your database admin login and retry"
 msgstr ""
+"Het was niet mogelijk in te loggen in de database als admin, misschien is de "
+"database uitgeschakeld.\n"
+"Vul opnieuw de database admin login en probeer het opnieuw"
 
 #: lyricue:10649
 msgid "Login Error"
@@ -330,15 +376,15 @@ msgstr "Bijbel geïnstalleerd van "
 
 #: lyricue:11529
 msgid "Unable to load from "
-msgstr ""
+msgstr "Niet mogelijk te laden van "
 
 #: lyricue:11591
 msgid "Install new bibles"
-msgstr ""
+msgstr "Installeer nieuwe bijbels"
 
 #: lyricue:12095
 msgid "First-run wizard"
-msgstr ""
+msgstr "Initialisatie wizard"
 
 #: lyricue:12100
 msgid "Welcome"
@@ -350,7 +396,7 @@ msgstr "Database login"
 
 #: lyricue:12110
 msgid "Projector settings"
-msgstr ""
+msgstr "Projector instellingen"
 
 #: lyricue:12136 lyricue.glade:4727
 msgid "Fonts"
@@ -362,7 +408,7 @@ msgstr "Mappen met afbeeldingen"
 
 #: lyricue:12160
 msgid "Most-used items"
-msgstr ""
+msgstr "Meest gebruikte onderwerpen"
 
 #: lyricue:12191
 msgid "Confirm"
@@ -370,29 +416,31 @@ msgstr "Bevestigen"
 
 #: lyricue:12269
 msgid "<i>Username/Password accepted</i>"
-msgstr ""
+msgstr "<i>Gebruikersnaam/Wachtwoord geaccepteerd</i>"
 
 #: lyricue:12274 lyricue.glade:7956
 msgid "<i>Username/Password failed</i>"
-msgstr ""
+msgstr "<i>Gebruikersnaam/Wachtwoord niet geaccepteerd</i>"
 
 #: lyricue_server:201
 msgid ""
 "I'm sorry but I could not open the lyric database.\n"
 "Please confirm that Lyricue is installed correctly and MySql is running"
 msgstr ""
+"De Lyricue database kon niet worden geopend.\n"
+"Controleer of Lyricue correct is geïnstalleerd en dat MySQL gestart is"
 
 #: lyricue_server:494
 msgid "Configuration reloaded"
-msgstr ""
+msgstr "Configuratie opnieuw geladen"
 
 #: lyricue_server:498
 msgid "Backdrop changed to "
-msgstr ""
+msgstr "Achtergrond gewijzigd naar "
 
 #: lyricue_server:506
 msgid "Screen blanked"
-msgstr "Scherm gewist"
+msgstr "Scherm zwart"
 
 #: lyricue_server:508
 msgid "Text cleared"
@@ -400,7 +448,7 @@ msgstr "Text gewist"
 
 #: lyricue_server:513
 msgid "Bible changed to "
-msgstr "Bijbel gewijzigd op "
+msgstr "Bijbel gewijzigd naar "
 
 #: lyricue_server:555 lyricue_server:560 lyricue_server:1145
 msgid "Written by "
@@ -424,11 +472,11 @@ msgstr "A_chtergronden beheren"
 
 #: lyricue.glade:55
 msgid "Import Songlist"
-msgstr ""
+msgstr "Importeer liederenlijst"
 
 #: lyricue.glade:70
 msgid "Export Songlist"
-msgstr ""
+msgstr "Exporteer Liederenlijst"
 
 #: lyricue.glade:99
 msgid "_Edit"
@@ -456,11 +504,11 @@ msgstr "Lijst ve_rversen"
 
 #: lyricue.glade:194
 msgid "_Configuration Wizard"
-msgstr ""
+msgstr "_Configuratie Wizard"
 
 #: lyricue.glade:209
 msgid "_User Administration"
-msgstr ""
+msgstr "_Gebruikersbeheer"
 
 #: lyricue.glade:229
 msgid "_Playlist"
@@ -468,19 +516,19 @@ msgstr "_Afspeellijst"
 
 #: lyricue.glade:235
 msgid "_Select Playlist"
-msgstr "Afspeellijst _selecteren"
+msgstr "_Selecteer Afspeellijst"
 
 #: lyricue.glade:250
 msgid "_Clear Playlist"
-msgstr "Afspeellijst _wissen"
+msgstr "_Wis Afspeellijst"
 
 #: lyricue.glade:265
 msgid "_Refresh Playlist"
-msgstr "Afspeellijst ve_rversen"
+msgstr "Ve_rversen Afspeellijst"
 
 #: lyricue.glade:280
 msgid "_Clear Image Associations"
-msgstr "_Koppelingen met achtergronden verwijderen"
+msgstr "Verwijder _Koppeling met achtergrond"
 
 #: lyricue.glade:295
 msgid "_Invert Line Display"
@@ -500,7 +548,7 @@ msgstr "_Afbeelding toevoegen"
 
 #: lyricue.glade:352
 msgid "Add _File"
-msgstr ""
+msgstr "_File toevoegen"
 
 #: lyricue.glade:367
 msgid "Add _Directory"
@@ -508,7 +556,7 @@ msgstr "_Map toevoegen"
 
 #: lyricue.glade:382
 msgid "_Remove from Playlist"
-msgstr "Ve_rwijderen van afspeellijst"
+msgstr "Ve_rwijder van afspeellijst"
 
 #: lyricue.glade:402
 msgid "_Display"
@@ -536,7 +584,7 @@ msgstr "_Tekst wissen"
 
 #: lyricue.glade:483
 msgid "_Live Video"
-msgstr ""
+msgstr "Live _Video"
 
 #: lyricue.glade:503
 msgid "_Applications"
@@ -552,15 +600,15 @@ msgstr "_Help"
 
 #: lyricue.glade:523
 msgid "Online Documentation"
-msgstr "Online documentatie"
+msgstr "Online _Documentatie"
 
 #: lyricue.glade:562
 msgid "Prev. Page"
-msgstr "Vorige pag"
+msgstr "Vorige pagina"
 
 #: lyricue.glade:575 lyricue.glade:4236
 msgid "Next Page"
-msgstr "Volgende pag"
+msgstr "Volgende pagina"
 
 #: lyricue.glade:588
 msgid "Next Point"
@@ -576,7 +624,7 @@ msgstr "Tekst wissen"
 
 #: lyricue.glade:627
 msgid "Pause Media"
-msgstr ""
+msgstr "Pauzeer Media"
 
 #: lyricue.glade:640
 msgid "Add File"
@@ -592,7 +640,7 @@ msgstr "Geavanceerd zoeken"
 
 #: lyricue.glade:702
 msgid "Search the songlist directly"
-msgstr ""
+msgstr "Zoek direct in de liederenlijst"
 
 #: lyricue.glade:716
 msgid "Clear Search Field"
@@ -628,7 +676,7 @@ msgstr "Vorige"
 
 #: lyricue.glade:919
 msgid "Background preview"
-msgstr "Achtergrond-voorvertooning"
+msgstr "Achtergrond voorvertooning"
 
 #: lyricue.glade:940 lyricue.glade:5387 lyricue.glade:8446
 msgid "Backgrounds"
@@ -660,11 +708,11 @@ msgstr ">"
 
 #: lyricue.glade:1201
 msgid "Add these verses to the playlist"
-msgstr "Voeg die verzen aan de afspeellijst toe"
+msgstr "Voeg deze verzen aan de afspeellijst toe"
 
 #: lyricue.glade:1217
 msgid "Show Now"
-msgstr ""
+msgstr "Nu laten zien"
 
 #: lyricue.glade:1219 lyricue.glade:2263
 msgid "Show"
@@ -680,31 +728,31 @@ msgstr "Bijbel"
 
 #: lyricue.glade:1276
 msgid "Fade"
-msgstr ""
+msgstr "Vervagen"
 
 #: lyricue.glade:1293
 msgid "Slide Text"
-msgstr ""
+msgstr "Text schuiven"
 
 #: lyricue.glade:1310
 msgid "Wipe to Black"
-msgstr ""
+msgstr "Vervaag naar Zwart"
 
 #: lyricue.glade:1327
 msgid "Rotate Text"
-msgstr ""
+msgstr "Tekst Roteren"
 
 #: lyricue.glade:1374
 msgid "In Direction"
-msgstr ""
+msgstr "Richting In"
 
 #: lyricue.glade:1383
 msgid "Out Direction"
-msgstr ""
+msgstr "Richting Uit"
 
 #: lyricue.glade:1711
 msgid "Rotate Direction"
-msgstr ""
+msgstr "Rotatie As"
 
 #: lyricue.glade:1719
 msgid "X-Axis"
@@ -728,7 +776,7 @@ msgstr "Toepassen op afspeellijst"
 
 #: lyricue.glade:1822
 msgid "Transitions"
-msgstr ""
+msgstr "Overgangen"
 
 #: lyricue.glade:1865 lyricue.glade:4376
 msgid "Playlist"
@@ -876,11 +924,11 @@ msgstr "Titel"
 
 #: lyricue.glade:2660
 msgid "label27"
-msgstr ""
+msgstr "label27"
 
 #: lyricue.glade:2666
 msgid "label26"
-msgstr ""
+msgstr "label26"
 
 #: lyricue.glade:2784 lyricue.glade:4421
 msgid "Display"
@@ -892,7 +940,7 @@ msgstr "Spellingcontrole"
 
 #: lyricue.glade:2865
 msgid "Honourise"
-msgstr ""
+msgstr "Vereer"
 
 #: lyricue.glade:2870
 msgid "Capitalize some words etc"
@@ -910,7 +958,7 @@ msgstr "Over Lyricue"
 
 #: lyricue.glade:3025
 msgid "Version ##VERSION##"
-msgstr ""
+msgstr "Versie ##VERSION##"
 
 #: lyricue.glade:3036
 msgid ""
@@ -919,6 +967,10 @@ msgid ""
 "Website:\n"
 "http://www.lyricue.org/"
 msgstr ""
+"Geschreven door:\n"
+"Chris Debenham & Clint Turner\n"
+"Website:\n"
+"http://www.lyricue.org/"
 
 #: lyricue.glade:3059
 msgid "Thanks"
@@ -938,7 +990,7 @@ msgstr "Verwijderen van een lied bevestigen"
 
 #: lyricue.glade:3167
 msgid "Are you sure?"
-msgstr ""
+msgstr "Weet u het zeker?"
 
 #: lyricue.glade:3223
 msgid "Choose an Image"
@@ -1010,11 +1062,11 @@ msgstr "Scherm wissen"
 
 #: lyricue.glade:4265
 msgid "Lyricue Error"
-msgstr "Lyricue fout"
+msgstr "Lyricue Fout"
 
 #: lyricue.glade:4293
 msgid "label"
-msgstr ""
+msgstr "label"
 
 #: lyricue.glade:4301
 msgid "Details"
@@ -1022,7 +1074,7 @@ msgstr "Details"
 
 #: lyricue.glade:4344
 msgid "Lyricue Administration"
-msgstr ""
+msgstr "Lyricue Beheer"
 
 #: lyricue.glade:4363
 msgid "Username"
@@ -1075,11 +1127,11 @@ msgstr "Hoogte"
 
 #: lyricue.glade:4838
 msgid "Vertical Overscan"
-msgstr ""
+msgstr "Verticale Overscan"
 
 #: lyricue.glade:4867
 msgid "Horizontal Overscan"
-msgstr ""
+msgstr "Horizontale Overscan"
 
 #: lyricue.glade:4895
 msgid "Xinerama"
@@ -1087,7 +1139,7 @@ msgstr "Xinerama"
 
 #: lyricue.glade:4908 lyricue.glade:8037
 msgid "Vertical Text Location"
-msgstr ""
+msgstr "Verticale Text Positie"
 
 #: lyricue.glade:4920 lyricue.glade:8049
 msgid ""
@@ -1105,23 +1157,23 @@ msgstr "Server type"
 
 #: lyricue.glade:4952
 msgid "OpenGL"
-msgstr ""
+msgstr "OpenGL"
 
 #: lyricue.glade:4967
 msgid "Canvas - depreciated"
-msgstr ""
+msgstr "Canvas - depreciated"
 
 #: lyricue.glade:4984
 msgid "Simple - depreciated"
-msgstr ""
+msgstr "Simple - depreciated"
 
 #: lyricue.glade:5012 lyricue.glade:8066
 msgid "Text Justification"
-msgstr ""
+msgstr "Tekst Uitgelijnd"
 
 #: lyricue.glade:5025 lyricue.glade:8079
 msgid "Horizontal Text Location"
-msgstr ""
+msgstr "Horizontale Text Positie"
 
 #: lyricue.glade:5037 lyricue.glade:5053 lyricue.glade:8091 lyricue.glade:8107
 msgid ""
@@ -1167,7 +1219,7 @@ msgstr "Pagina's doorlopend tonen"
 
 #: lyricue.glade:5217
 msgid "Return to first page after last page of songs"
-msgstr ""
+msgstr "Ga terug naar de eerste pagina na de laatste pagina van de liederen."
 
 #: lyricue.glade:5229
 msgid "Audit Songs"
@@ -1191,7 +1243,7 @@ msgstr "Opties"
 
 #: lyricue.glade:5337
 msgid "Special items that will be first in lists"
-msgstr "Speciale items die permanent in de lijst getoond worden"
+msgstr "Speciale items die eerst in lijsten getoond worden"
 
 #: lyricue.glade:5363 lyricue.glade:8422
 msgid "Available songs"
@@ -1234,14 +1286,17 @@ msgid ""
 "Database Server\n"
 "<i>Note: You will need to backup/restore your database when changing</i>"
 msgstr ""
+"Database Server\n"
+"<i>Noot: De database moet gebackuped en terugezet worden als u de database "
+"wijzigt.</i>"
 
 #: lyricue.glade:5657
 msgid "Use MySQL"
-msgstr ""
+msgstr "Gebruik MySQL"
 
 #: lyricue.glade:5672
 msgid "Use SQLite"
-msgstr ""
+msgstr "Gebruik SQLite"
 
 #: lyricue.glade:5694
 msgid "Advanced"
@@ -1249,15 +1304,15 @@ msgstr "Geavanceerd"
 
 #: lyricue.glade:5726
 msgid "Layout"
-msgstr ""
+msgstr "Opmaak"
 
 #: lyricue.glade:5758
 msgid "Main text"
-msgstr ""
+msgstr "Hoofd text"
 
 #: lyricue.glade:5825
 msgid "Customize"
-msgstr ""
+msgstr "Wijzigen"
 
 #: lyricue.glade:5888 lyricue.glade:5901
 msgid "Select Databases to backup"
@@ -1269,7 +1324,7 @@ msgstr "Liederen, afspeellijsten, gebruik"
 
 #: lyricue.glade:5931
 msgid "Images, Backgrounds, Media"
-msgstr "Afbeeldingen, achtergronden, media"
+msgstr "Afbeeldingen, achtergronden, Media"
 
 #: lyricue.glade:5962
 msgid "File to save as"
@@ -1281,7 +1336,7 @@ msgstr "Bladeren"
 
 #: lyricue.glade:6057
 msgid "Enter Login details"
-msgstr ""
+msgstr "Voer login gegevens in"
 
 #: lyricue.glade:6074
 msgid "Login name"
@@ -1300,6 +1355,8 @@ msgid ""
 "Enter the login name and password\n"
 "of your MySQL Administration user"
 msgstr ""
+"Voer de loginnaam en wachtwoord in\n"
+"van uw MySQL Administrator gebruiker"
 
 #: lyricue.glade:6176
 msgid "Bible Installer"
@@ -1312,18 +1369,26 @@ msgid ""
 "Click the relevant button to load that site in your browser.\n"
 "Once downloaded come back here to install."
 msgstr ""
+"Selecteer de file met de Bijbel die u wilt importeren.\n"
+"Nieuwe Bijbels kunnen worden gedownload van de onderstaande sites.\n"
+"Klik op de knop van de site om deze in uw browser te openenen.\n"
+"Als de Bijbel is gedownload komt u hier terug om de Bijbel te installeren."
 
 #: lyricue.glade:6198
 msgid ""
 "Sword bibles\n"
 "http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles"
 msgstr ""
+"Sword Bijbels\n"
+"http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles"
 
 #: lyricue.glade:6213
 msgid ""
 "LyricueDB bibles\n"
 "http://www.lyricue.org/bibles"
 msgstr ""
+"LyricueDB bijbels\n"
+"http://www.lyricue.org/bibles"
 
 #: lyricue.glade:6232
 msgid "Select file to install"
@@ -1339,11 +1404,11 @@ msgstr "Data van bestand importeren"
 
 #: lyricue.glade:6378
 msgid "Use this dialog to import a songlist"
-msgstr ""
+msgstr "Gebruik deze dialoog om de liederenlijst te importeren"
 
 #: lyricue.glade:6386
 msgid "Sample songlists"
-msgstr ""
+msgstr "Voorbeeld liederenlijst."
 
 #: lyricue.glade:6407
 msgid "Select file to import"
@@ -1363,7 +1428,7 @@ msgstr "Alles deselecteren"
 
 #: lyricue.glade:6611
 msgid "Choose a Book"
-msgstr "Selecteer een boek"
+msgstr "Selecteer een Boek"
 
 #: lyricue.glade:6620
 msgid "Old Testament"
@@ -1527,7 +1592,7 @@ msgstr "Genesis"
 
 #: lyricue.glade:7266
 msgid "Song of Songs"
-msgstr ""
+msgstr "Hooglied"
 
 #: lyricue.glade:7294
 msgid "New Testament"
@@ -1646,6 +1711,8 @@ msgid ""
 "As this is the first time you have run Lyricue we now walk through some "
 "initial settings"
 msgstr ""
+"Omdat dit de eerste keer is dat u Lyricue start lopen we eerst door een "
+"aantal initiële instellingen"
 
 #: lyricue.glade:7881
 msgid ""
@@ -1654,6 +1721,10 @@ msgid ""
 "To do this I need your mysql root users password.\n"
 "<i>Note: This password is not stored anywhere</i>"
 msgstr ""
+"Lyricue gebruikt MySQL om de gegevens in op te slaan.\n"
+"Om MySQL te gebruiken zal ik een speciale gebruiker aanmaken 'lyric'\n"
+"Om dit te kunnen is het MySQL root wachtwoord noodzakelijk.\n"
+"<i>Noot: Dit wachtwoord zal niet elders worden opgeslagen.</i>"
 
 #: lyricue.glade:7895
 msgid "Username:"
@@ -1670,10 +1741,14 @@ msgid ""
 "Here you can tell me what resolution your projector runs at and where you "
 "want the text to display on the screen"
 msgstr ""
+"Lyricue is ontworpen om op een machine te werken met een tweede display "
+"verbonden aan een projector.\n"
+"Hier kunt u de resolutie instellen van de projector en waar u de tekst op "
+"het projectorscherm wilt."
 
 #: lyricue.glade:8164
 msgid "Select the fonts that you want to use on the projector from here"
-msgstr ""
+msgstr "Selecteer de lettertypes die u wilt gebruiken op de projector"
 
 #: lyricue.glade:8389
 msgid ""
@@ -1682,12 +1757,18 @@ msgid ""
 "seperate.\n"
 "Please select a suitable directory for each."
 msgstr ""
+"Lyricue moet ergens de afbeeldingen en achtergronden van laden\n"
+"De mappen Afbeeldingen en Achtergronden kan dezelfde zijn maar u kunt ook \n"
+"aparte mappen instellen\n"
+"Selecteer de juiste map voor Afbeeldingen en Achtergronden."
 
 #: lyricue.glade:8507
 msgid ""
 "Choose your default Bible translation.\n"
 "You can install other bibles frm within Lyricue later."
 msgstr ""
+"Kies uw standaard Bijbel vertaling\n"
+"Later kunt u andere Bijbels installeren"
 
 #: lyricue.glade:8530
 msgid "None selected"
@@ -1699,90 +1780,6 @@ msgid ""
 "If you need to make any changes, or for more options, select Preferences "
 "from the Edit menu"
 msgstr ""
-
-#~ msgid "_Edit Transitions"
-#~ msgstr "_Overgangen bewerken"
-
-#~ msgid "Select Screen Transition"
-#~ msgstr "Selecteer de schermovergang"
-
-#~ msgid "None"
-#~ msgstr "Geen"
-
-#~ msgid "Up"
-#~ msgstr "Naar boven"
-
-#~ msgid "Down"
-#~ msgstr "Naar beneden"
-
-#~ msgid "Left"
-#~ msgstr "Links"
-
-#~ msgid "Right"
-#~ msgstr "Rechts"
-
-#~ msgid "Up + Left"
-#~ msgstr "Naar boven + links"
-
-#~ msgid "Up + Right"
-#~ msgstr "Naar boven + rechts"
-
-#~ msgid "Down + Left"
-#~ msgstr "Naar beneden + links"
-
-#~ msgid "Down + Right"
-#~ msgstr "Naar beneden + rechts"
-
-#~ msgid "Wait?"
-#~ msgstr "Wachten?"
-
-#~ msgid "_Preferences"
-#~ msgstr "_Voorkeuren"
-
-#~ msgid "Add _Verse"
-#~ msgstr "_Vers toevoegen"
-
-#~ msgid "Add Song"
-#~ msgstr "Lied toevoegen"
-
-#~ msgid "Edit Song"
-#~ msgstr "Lied bewerken"
-
-#~ msgid "Add Image(s)"
-#~ msgstr "Afbeelding toevoegen"
-
-#~ msgid "Bible Verse"
-#~ msgstr "Bijbelvers"
-
-#~ msgid "Available Songs"
-#~ msgstr "Beschikbare liederen"
-
-#~ msgid "Refresh the available songlist"
-#~ msgstr "Vernieuw de lijst met beschikbare liederen"
-
-#~ msgid "Refresh"
-#~ msgstr "Vernieuwen"
-
-#~ msgid "Bible Navigator"
-#~ msgstr "Bijbel navigator"
-
-#~ msgid "_About"
-#~ msgstr "_Over"
-
-#~ msgid "abcdefghijk ABCDEFGHIJK"
-#~ msgstr "abcdefghijk ABCDEFGHIJK"
-
-#~ msgid "Select a Chapter"
-#~ msgstr "Selecteer een hoofdstuk"
-
-#~ msgid "Choose Verse Range"
-#~ msgstr "Selecteer het versbereik"
-
-#~ msgid "Choose your verse range"
-#~ msgstr "Selecteer het versbereik"
-
-#~ msgid "Simple"
-#~ msgstr "Eenvoudig"
-
-#~ msgid "Transparent (experimental)"
-#~ msgstr "Transparant (experimenteel)"
+"Lyricue is nu geconfigureerd.\n"
+"Als u verder nog wijzigingen wilt maken selecteer dan Voorkeuren\n"
+"in het menu Bewerken"
