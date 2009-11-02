@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.334 2009/10/07 08:19:16 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.335 2009/11/02 00:21:17 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -6118,6 +6118,7 @@ sub file_ok_sel {
       $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
     do_add_file($filexml->get_widget('dialogFile')->get_filename,
         $main_playlist);
+    update_playlist();
     close_dialog($widget);
 }
 
@@ -6256,45 +6257,23 @@ sub do_add_file {
             }
         }
 
-        # Find next media
-        my $mediaid = 1;
-        $query = "SELECT MAX(id) FROM media";
+        # Add item to playlist
+        my $main_playlist =
+          $widgets->{'main'}->get_widget('labelCurrentPlaylist')
+          ->{user_data};
+        $query =
+          "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
+          . $playorder . ", "
+          . $playlist
+          . ", \"file\", \""
+          . $file . "\")";
         qdebug($query);
-        $sth = $mediaDbh->prepare($query)
+        $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
-        if (@row = $sth->fetchrow_array()) {
-            if ($row[0]) {
-                $mediaid = $row[0] + 1;
-            }
-        }
-
-        # Import item into mediaDb (if requested)
-        if (FALSE) {
-        } else {
-
-            # Add item to playlist
-            my $main_playlist =
-              $widgets->{'main'}->get_widget('labelCurrentPlaylist')
-              ->{user_data};
-            $query =
-              "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
-              . $playorder . ", "
-              . $playlist
-              . ", \"file\", \""
-              . $file . "\")";
-            qdebug($query);
-            $sth = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
-                $! . "\nSQL: " . $query);
-            $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
-                $! . "\nSQL: " . $query);
-        }
-        update_playlist();
     }
 }
 
