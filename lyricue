@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.335 2009/11/02 00:21:17 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.336 2009/11/02 02:02:37 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4615,10 +4615,15 @@ sub create_dialog_prefs {
 sub execute_app {
     my ($widget, $app) = @_;
     my $command = $config->{'App'}[$app];
-    $command =~ s/^.*;//g;
+    $command =~ s/^.*?;//g;
     debug("Executing app: " . $command);
     if ($config->{'Xinerama'}) {
-        system($command. " -geometry +" . $config->{'Width'} . "+0 &");
+        if ($command =~ /;$/) {
+            $command =~ s/;$//;
+            system($command . " &");
+        } else {
+            system($command. " -geometry +" . $config->{'Width'} . "+0 &");
+        }
     } else {
         system("DISPLAY=:0.1 " . $command . " &");
     }
@@ -6691,7 +6696,7 @@ sub init_mainWindow {
     my @appMenu  = ();
     foreach (0 .. $config->{'AppCount'} - 1) {
         my $app = $config->{'App'}[$_];
-        $app =~ s/^(.*);.*$/$1/g;
+        $app =~ s/^(.*?);.*$/$1/g;
 
         $appMenu[$_] = Gtk2::MenuItem->new_with_label($app);
         $appMenu[$_]->signal_connect("activate", "execute_app", $_);
