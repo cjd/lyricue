@@ -213,6 +213,7 @@ page (
   pageid int(11) NOT NULL auto_increment,    # Unique id of page
   songid int(11) NOT NULL default '0',       # Id of song which this is page of
   pagenum int(11) NOT NULL default '0',      # Number of page in song
+  pagetitle varchar(100) default '',         # Name of page
   lyrics text,                               # Lyrics contained on this page
   PRIMARY KEY  (pageid)
 )
