@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.203 2009/10/30 04:38:26 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.204 2009/11/06 03:54:18 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1036,7 +1036,8 @@ sub process_input {
                             $line[4] = $line[2];
                         }
                         if (!$globals->{'usesword'}) {
-                            $query = "SELECT book FROM verse WHERE book LIKE \""
+                            my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+                            $query = "SELECT book FROM ".$table." WHERE book LIKE \""
                               . $line[0] . "%\"";
                             $sth = $bibleDbh->prepare($query)
                               || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -1047,7 +1048,7 @@ sub process_input {
 
                             if ($line[1] == $line[3]) {
                                 $query =
-                                    "SELECT * FROM  verse WHERE book LIKE \""
+                                    "SELECT * FROM ".$table." WHERE book LIKE \""
                                   . $line[0]
                                   . "%\" AND chapternum="
                                   . $line[1]
@@ -1057,7 +1058,7 @@ sub process_input {
                                   . $line[4];
                             } else {
                                 $query =
-                                    "SELECT * FROM verse WHERE book LIKE \""
+                                    "SELECT * FROM ".$table." WHERE book LIKE \""
                                   . $line[0]
                                   . "%\" AND ((chapternum="
                                   . $line[1]
@@ -1815,9 +1816,16 @@ sub change_to_db {
         $bibleDbh->disconnect;
     }
     if ($type eq "db") {
+        my ($table, $dbname) = split(/@/,$globals->{'bibledb'},2);
+        if ($dbname eq "" ) {
+            $dbname = $table;
+            $table = "verse";
+            $globals->{'bibledb'} = $table."@".$dbname;
+        }
+
         $bibleDbh =
-          db_connect($globals->{'bibledb'},
-            $errorcodes->{'bibledbopen'} . $globals->{'bibledb'});
+          db_connect($dbname,
+            $errorcodes->{'bibledbopen'} . $dbname);
         $globals->{'usesword'} = FALSE;
     } else {
         $globals->{'usesword'} = TRUE;
@@ -1827,7 +1835,7 @@ sub change_to_db {
     $globals->{'biblename'} =~ s/^.*?://g;
     $globals->{'biblename'} =~ s/^.*?;//g;
     $globals->{'biblename'} =~ s/_//g;
-} ## end sub debug
+} ## end sub change_to_db
 
 #***
 
@@ -3037,10 +3045,13 @@ sub get_bibles {
         my @tables = $db->tables;
         my $table;
         foreach (@tables) {
-            $_ =~ s/^.*`(.*)`$/$1/g;
-            $_ =~ s/^"(.*)"$/$1/g;
-            if (/^verse$/) {
-                my $query = "SELECT * FROM verse WHERE book=\"Bible\";";
+            my $tablename = $_;
+            $tablename =~ s/^.*`(.*)`$/$1/g;
+            $tablename =~ s/^"(.*)"$/$1/g;
+            my @fields = @{$db->selectall_arrayref("describe ".$tablename)};
+            my $a= $fields[0]->[0];
+            if ($a eq "verseid") {
+                my $query = "SELECT verse FROM ".$tablename." WHERE book=\"Bible\";";
                 qdebug($query);
                 my $sth = $db->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -3048,7 +3059,7 @@ sub get_bibles {
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $row = $sth->fetchrow_hashref();
                 if (defined $row->{'verse'}) {
-                    $bibles->{$dbname} = "db;" . $row->{'verse'};
+                    $bibles->{$tablename."@".$dbname} = "db;" . $row->{'verse'};
                 }
                 $sth->finish;
             }

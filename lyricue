@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.336 2009/11/02 02:02:37 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.337 2009/11/06 03:54:18 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4791,9 +4791,15 @@ sub do_change_bible {
     }
     if ($type eq "db") {
         $globals->{'usesword'} = FALSE;
+        my ($table, $dbname) = split(/@/,$globals->{'bibledb'},2);
+        if ($dbname eq "" ) {
+            $dbname = $table;
+            $table = "verse";
+            $globals->{'bibledb'} = $table."@".$dbname;
+        }
         $bibleDbh =
-          db_connect($globals->{'bibledb'},
-            $errorcodes->{'bibledbopen'} . $globals->{'bibledb'});
+          db_connect($dbname,
+            $errorcodes->{'bibledbopen'} . $dbname);
     } else {
         $globals->{'usesword'} = TRUE;
     }
@@ -8861,8 +8867,9 @@ sub update_quickedit {
                             }
                         }
                     } else {
+                        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
                         $query =
-"SELECT chapternum,versenum,verse FROM verse WHERE book=\""
+"SELECT chapternum,versenum,verse FROM ".$table." WHERE book=\""
                           . $line[0]
                           . "\" AND chapternum="
                           . $line[1]
@@ -9707,10 +9714,13 @@ sub get_bibles {
         my @tables = $db->tables;
         my $table;
         foreach (@tables) {
-            $_ =~ s/^.*`(.*)`$/$1/g;
-            $_ =~ s/^"(.*)"$/$1/g;
-            if (/^verse$/) {
-                my $query = "SELECT * FROM verse WHERE book=\"Bible\";";
+            my $tablename = $_;
+            $tablename =~ s/^.*`(.*)`$/$1/g;
+            $tablename =~ s/^"(.*)"$/$1/g;
+            my @fields = @{$db->selectall_arrayref("describe ".$tablename)};
+            my $a= $fields[0]->[0];
+            if ($a eq "verseid") {
+                my $query = "SELECT verse FROM ".$tablename." WHERE book=\"Bible\";";
                 qdebug($query);
                 my $sth = $db->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'},
@@ -9720,7 +9730,7 @@ sub get_bibles {
                     $! . "\nSQL: " . $query);
                 my $row = $sth->fetchrow_hashref();
                 if (defined $row->{'verse'}) {
-                    $bibles->{$dbname} = "db;" . $row->{'verse'};
+                    $bibles->{$tablename."@".$dbname} = "db;" . $row->{'verse'};
                 }
                 $sth->finish;
             }
@@ -9819,8 +9829,9 @@ sub navigator_update {
         $browser = "verse";
         my $newbook = "";
         if (!$globals->{'usesword'}) {
+            my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
             my $query =
-              "SELECT book FROM verse WHERE book LIKE \"" . $book . "%\"";
+              "SELECT book FROM ".$table." WHERE book LIKE \"" . $book . "%\"";
             qdebug($query);
             my $sth = $bibleDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'},
@@ -9883,7 +9894,8 @@ sub navigator_update {
         # remove the trailing bible name
         #$quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
     } else {
-        $query = "SELECT book FROM verse WHERE book LIKE \"" . $book . "%\"";
+        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+        $query = "SELECT book FROM ".$table." WHERE book LIKE \"" . $book . "%\"";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
@@ -9894,8 +9906,9 @@ sub navigator_update {
         my @bookrow = $sth->fetchrow_array();
         if ((defined $bookrow[0]) && ($book ne "")) {
             $book = $bookrow[0];
+            my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
             $query =
-"SELECT book,chapternum,versenum,verse FROM  verse WHERE book LIKE \""
+"SELECT book,chapternum,versenum,verse FROM ".$table." WHERE book LIKE \""
               . $book
               . "%\" AND chapternum="
               . $chapter
@@ -10150,8 +10163,9 @@ sub get_max_verse {
     my (@command_out);
 
     if (!$globals->{'usesword'}) {
+        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
         $query =
-            "SELECT * FROM  verse WHERE book=\"" 
+            "SELECT * FROM ".$table." WHERE book=\"" 
           . $book
           . "\" AND chapternum="
           . $chapter
@@ -11973,8 +11987,9 @@ sub biblebrowser_chapter {
             $cont = TRUE;
         }
     } else {
+        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
         my $query =
-            "SELECT MAX(chapternum) FROM verse WHERE book like \""
+            "SELECT MAX(chapternum) FROM ".$table." WHERE book like \""
           . toutf($book)
           . "%\" or book like \""
           . toutf($translated_book) . "%\"";
@@ -12055,8 +12070,9 @@ sub biblebrowser_verse {
         $maxverse = fromutf(`$command`);
         $maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
     } else {
+        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
         my $query =
-            "SELECT MAX(versenum) FROM verse WHERE book=\""
+            "SELECT MAX(versenum) FROM ".$table." WHERE book=\""
           . toutf($book)
           . "\" AND chapternum=\""
           . $chapter . "\"";
