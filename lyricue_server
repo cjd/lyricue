@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.204 2009/11/06 03:54:18 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.205 2009/11/30 02:11:34 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -394,9 +394,12 @@ debug("Listening on " . $globals->{'use_port'});
 system('xset s off -dpms');
 
 debug("Main program running");
-Glib::Timeout->add(200, \&check_net);
+Glib::Timeout->add(200, \&check_net); # Check the net 5 times a second
+Glib::Timeout->add_seconds(60, \&poke_db); # Poke the db connections every minute
 Gtk2->main();
 
+# Should never get here
+exit(0);
 #***
 
 #****f* lyricue_server/loop_background
@@ -418,7 +421,6 @@ sub loop_background {
     Clutter::Media::set_position($globals->{'background'}, 0);
     return FALSE;
 }
-
 #***
 
 #****f* lyricue_server/check_net
@@ -439,9 +441,62 @@ sub check_net {
     }
     return TRUE;
 }
+#***
 
-# Should never get here
-exit(0);
+#****f* lyricue_server/poke_db
+# NAME
+#   poke_db 
+# SYNOPSIS
+#   poke_db()
+# FUNCTION
+#   Pokes the database connection to ensure it is alive
+#   Reconnects on failure
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+sub poke_db {
+    debug("Poking database connections");
+    my $fail = FALSE;
+
+
+    # Check lyricDb
+    my $sth = $lyricDbh->prepare("describe lyricMain") || ($fail = TRUE);
+    if (!$fail) {
+        my $rv = $sth->execute || ($fail = TRUE);
+    }
+    if ($fail) { # Re-connect and re-try
+        $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
+        poke_db();
+        return TRUE;
+    }
+
+    # Check mediaDb
+    $sth = $mediaDbh->prepare("describe media") || ($fail = TRUE);
+    if (!$fail) {
+        my $rv = $sth->execute || ($fail = TRUE);
+    }
+    if ($fail) { # Re-connect and re-try
+        $mediaDbh = db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'});
+        poke_db();
+        return TRUE;
+    }
+
+    # Check bibleDb
+    if (!$globals->{'usesword'}) {
+        $sth = $bibleDbh->prepare("describe verse") || ($fail = TRUE);
+        if (!$fail) {
+            my $rv = $sth->execute || ($fail = TRUE);
+        }
+        if ($fail) { # Re-connect and re-try
+            change_to_db($globals->{'bibledb'}, "db");
+            poke_db();
+            return TRUE;
+        }
+    }
+
+    return TRUE;
+}
 
 #***
 
@@ -3224,6 +3279,7 @@ sub create_window {
                 my $geom = "+"
                   . ($globals->{'window'}->get_screen->get_width - 100)
                   . "+100";
+                debug ("Geom:".$geom);
                 $globals->{'window'}->parse_geometry($geom);
             } else {
                 my $display = Gtk2::Gdk::Display->open(":0.1");
