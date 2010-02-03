@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.205 2009/11/30 02:11:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.206 2010/02/03 03:24:34 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -418,7 +418,11 @@ exit(0);
 sub loop_background {
     my ($widget, $id) = @_;
     debug("Video ended - Looping");
-    Clutter::Media::set_position($globals->{'background'}, 0);
+    if ($globals->{'clutter1'}) {
+        Clutter::Media::set_progress($globals->{'background'}, 0);
+    } else {
+        Clutter::Media::set_position($globals->{'background'}, 0);
+    }
     return FALSE;
 }
 #***
@@ -1424,7 +1428,11 @@ sub change_backdrop {
             undef $globals->{'background'};
         }
         if ($MINISERV < 0) {
-            $globals->{'background'} = Clutter::Gst::VideoTexture->new();
+            if ($globals->{'clutter1'}) {
+                $globals->{'background'} = Clutter::Gst::VideoTexture->new();
+            } else {
+                Clutter::GStreamer::VideoTexture->new();
+            }
             my $playbin = $globals->{'background'}->get_playbin();
             use GStreamer;
             my $pipeline = GStreamer::Pipeline->new("");
@@ -1473,8 +1481,11 @@ sub change_backdrop {
                             $globals->{'background'}->destroy();
                             undef $globals->{'background'};
                         }
-                        $globals->{'background'} =
-                          Clutter::Gst::VideoTexture->new();
+                        if ($globals->{'clutter1'}) {
+                            $globals->{'background'} = Clutter::GStreamer::VideoTexture->new();
+                        } else {
+                            $globals->{'background'} = Clutter::Gst::VideoTexture->new();
+                        }
                         $globals->{'background'}->set_filename($data);
                         $globals->{'background'}->set(
                             keep_aspect_ratio => 1,
@@ -1526,12 +1537,13 @@ sub change_backdrop {
                     $globals->{'background_old'} = $globals->{'background'};
                     if ($globals->{'clutter1'}) {
                         $globals->{'timeline_bg'} = Clutter::Timeline->new(500);
+                        my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'}, 0);
                     } else {
                         $globals->{'timeline_bg'} = Clutter::Timeline->new_for_duration(100);
+                        $globals->{'timeline_bg'}->set_speed(15);
+                        my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
+                          \&Clutter::Alpha::ramp_inc);
                     }
-                    $globals->{'timeline_bg'}->set_speed(15);
-                    my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
-                        \&Clutter::Alpha::ramp_inc);
                     $globals->{'timeline_bg'}->signal_connect(
                         'new-frame' => sub {
                             my ($self, $alpha_value) = @_;
