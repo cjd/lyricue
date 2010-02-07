@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.337 2009/11/06 03:54:18 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.338 2010/02/07 10:47:18 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -1363,6 +1363,7 @@ sub do_delete_song {
     my ($query, $sth, $rv);
     debug("do delete song");
 
+    start_transaction();
     $query = "DELETE FROM lyricMain WHERE id=" . $songid;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
@@ -1399,6 +1400,7 @@ sub do_delete_song {
             $! . "\nSQL: " . $query);
         $disable = 1;
     }
+    end_transaction();
     if ($disable == 1) {
 
         #Cancel any loop timers
@@ -1435,6 +1437,7 @@ sub do_save_song {
     my $numpages =
       $widgets->{'add'}->get_widget('notebookEditPages')->get_n_pages;
 
+    start_transaction();
     if ($songid != 0) {
 
         # Remove extra pages
@@ -1608,6 +1611,7 @@ sub do_save_song {
         $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $pagequery);
     }
+    end_transaction();
     return $songid;
 }
 
@@ -5083,14 +5087,23 @@ sub move_item {
     while ($source != $dest) {
         debug("Moving " . $source . " to " . $dest);
         if ($source < $dest) {
-            renumber_item($source,                 -1);
-            renumber_item($items[$sourceitem + 1], $source);
-            renumber_item(-1,                      $items[$sourceitem + 1]);
+            start_transaction();
+	    {
+                renumber_item($source,                 -1);
+                renumber_item($items[$sourceitem + 1], $source);
+                renumber_item(-1,                      $items[$sourceitem + 1]);
+                $lyricDbh->commit();
+            };
+            end_transaction($@);
             $sourceitem++;
         } else {
-            renumber_item($source,                 -1);
-            renumber_item($items[$sourceitem - 1], $source);
-            renumber_item(-1,                      $items[$sourceitem - 1]);
+            start_transaction();
+	    {
+                renumber_item($source,                 -1);
+                renumber_item($items[$sourceitem - 1], $source);
+                renumber_item(-1,                      $items[$sourceitem - 1]);
+            };
+            end_transaction($@);
             $sourceitem--;
         }
         $source = $items[$sourceitem];
@@ -12569,3 +12582,15 @@ sub online_help {
 
 #***
 
+sub start_transaction
+{
+    my $globals->{'old_re'} = $lyricDbh->{RaiseError};
+    $lyricDbh->{RaiseError} = 1;
+    $lyricDbh->{AutoCommit} = 0;
+}
+sub end_transaction
+{
+    $lyricDbh->rollback() if $@;
+    $lyricDbh->{AutoCommit} = 1;
+    $lyricDbh->{RaiseError} = $globals->{'old_re'};
+}
