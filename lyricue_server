@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.206 2010/02/03 03:24:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.207 2010/02/10 04:53:20 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1429,9 +1429,9 @@ sub change_backdrop {
         }
         if ($MINISERV < 0) {
             if ($globals->{'clutter1'}) {
-                $globals->{'background'} = Clutter::Gst::VideoTexture->new();
+                $globals->{'background'} = Clutter::GStreamer::VideoTexture->new();
             } else {
-                Clutter::GStreamer::VideoTexture->new();
+                $globals->{'background'} = Clutter::Gst::VideoTexture->new();
             }
             my $playbin = $globals->{'background'}->get_playbin();
             use GStreamer;
