@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.207 2010/02/10 04:53:20 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.208 2010/02/18 01:32:16 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2062,9 +2062,16 @@ sub set_maintext_clutter {
 
     $globals->{'maintext_old'} = $globals->{'maintext'};
     undef $globals->{'maintext'};
+    my $colour = $config->{'Colour'};
+    if ($config->{'BackdropTextColour'} ne "") {
+        $colour = $config->{'BackdropTextColour'};
+    }
+    my $shadowcolour = $config->{'ShadowColour'};
+    if ($config->{'BackdropShadowColour'} ne "") {
+        $shadowcolour = $config->{'BackdropShadowColour'};
+    }
     $globals->{'maintext'} =
-      create_outlined_text($text, $config->{'Main'}, $config->{'Colour'},
-        $config->{'ShadowColour'});
+      create_outlined_text($text, $config->{'Main'}, $colour, $shadowcolour);
     my $final_x = $globals->{'stage'}->get_width() / 2;
     my $final_y = $globals->{'stage'}->get_height() / 2;
     if ($config->{'VerticalLocation'} =~ /^T/) {
@@ -2832,9 +2839,16 @@ sub set_footer_clutter {
     if ($text eq "") {
         return;
     }
+    my $colour = $config->{'Colour'};
+    if ($config->{'BackdropTextColour'} ne "") {
+        $colour = $config->{'BackdropTextColour'};
+    }
+    my $shadowcolour = $config->{'ShadowColour'};
+    if ($config->{'BackdropShadowColour'} ne "") {
+        $shadowcolour = $config->{'BackdropShadowColour'};
+    }
     $globals->{'footer'} =
-      create_outlined_text($text, $config->{'Footer'}, $config->{'Colour'},
-        $config->{'ShadowColour'});
+      create_outlined_text($text, $config->{'Footer'}, $colour, $shadowcolour);
     $globals->{'footer'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
@@ -2986,9 +3000,16 @@ sub set_header_clutter {
         return;
     }
 
+    my $colour = $config->{'Colour'};
+    if ($config->{'BackdropTextColour'} ne "") {
+        $colour = $config->{'BackdropTextColour'};
+    }
+    my $shadowcolour = $config->{'ShadowColour'};
+    if ($config->{'BackdropShadowColour'} ne "") {
+        $shadowcolour = $config->{'BackdropShadowColour'};
+    }
     $globals->{'header'} =
-      create_outlined_text($text, $config->{'Header'}, $config->{'Colour'},
-        $config->{'ShadowColour'});
+      create_outlined_text($text, $config->{'Header'}, $colour, $shadowcolour);
     $globals->{'header'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
