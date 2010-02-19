@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.338 2010/02/07 10:47:18 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.339 2010/02/19 04:23:45 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4054,7 +4054,6 @@ sub change_preview {
             my $scaled = create_pixbuf($data, 480, 360);
             if ($scaled) {
                 my $row;
-                if ($type eq "db") {
                     my $query =
                       "SELECT textcolour, shadowcolour FROM media WHERE id=\""
                       . $id . "\"";
@@ -4066,6 +4065,7 @@ sub change_preview {
                       || display_fatal($errorcodes->{'sqlexecute'},
                         $! . "\nSQL: " . $query);
                     $row = $sth->fetchrow_hashref();
+                if ($row) {
                     $widgets->{'image'}->get_widget('buttonImageDelete')
                       ->set_sensitive(TRUE);
                     $widgets->{'image'}->get_widget('buttonImageChange')
@@ -4075,12 +4075,13 @@ sub change_preview {
                 } else {
                     $row->{'textcolour'}   = "Default";
                     $row->{'shadowcolour'} = "Default";
-                    $widgets->{'image'}->get_widget('buttonImageDelete')
-                      ->set_sensitive(FALSE);
-                    $widgets->{'image'}->get_widget('buttonImageChange')
-                      ->set_sensitive(FALSE);
-                    $widgets->{'image'}->get_widget('hboxImageColour')->hide;
                 }
+                #    $widgets->{'image'}->get_widget('buttonImageDelete')
+                #      ->set_sensitive(FALSE);
+                #    $widgets->{'image'}->get_widget('buttonImageChange')
+                #      ->set_sensitive(FALSE);
+                #    $widgets->{'image'}->get_widget('hboxImageColour')->hide;
+                #}
                 if (   ($row->{'textcolour'} ne "")
                     && ($row->{'textcolour'} ne "NULL")
                     && ($row->{'textcolour'} ne "Default"))
@@ -4142,7 +4143,7 @@ sub set_default_backdrop {
     debug("Set default backdrop");
     my $image = $widgets->{'image'}->get_widget('imageImage')->{user_data};
     if ($image) {
-        my $scaled = create_pixbuf($image, 100, 75);
+        my $scaled = create_pixbuf($image, $globals->{'icon_width'}, $globals->{'icon_height'});
         if ($scaled) {
             $widgets->{'prefs'}->get_widget('imagePrefBG')
               ->set_from_pixbuf($scaled);
@@ -4546,7 +4547,7 @@ sub create_dialog_prefs {
       ->set_active($config->{'DynamicPreview'});
     $widgets->{'prefs'}->get_widget('checkPrefMiniview')
       ->set_active($config->{'Miniview'});
-    my $scaled = create_pixbuf($config->{'BGImage'}, 72, 54);
+    my $scaled = create_pixbuf($config->{'BGImage'}, $globals->{'icon_width'}, $globals->{'icon_height'});
 
     if ($scaled) {
         $widgets->{'prefs'}->get_widget('imagePrefBG')
@@ -6667,7 +6668,7 @@ sub init_mainWindow {
     biblebrowser_init();
 
     # Load bg thumbnails
-    my $scaled = create_pixbuf($config->{'BGImage'}, 72, 52);
+    my $scaled = create_pixbuf($config->{'BGImage'}, $globals->{'icon_width'}, $globals->{'icon_height'} );
     if ($scaled) {
         my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
         $widgets->{'pixmapCurr'} = $pixmap;
@@ -6681,7 +6682,7 @@ sub init_mainWindow {
         $widgets->{'buttonCurr'}
           ->signal_connect("clicked", "backdrop_preview_clicked");
     }
-    $scaled = create_pixbuf($config->{'BGImage'}, 72, 52);
+    $scaled = create_pixbuf($config->{'BGImage'}, $globals->{'icon_width'}, $globals->{'icon_height'});
     if ($scaled) {
         my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
         $widgets->{'pixmapPrev'} = $pixmap;
@@ -7026,7 +7027,7 @@ sub imgdir_load {
                                 $type . ";" . $dirname . "/" . $file);
                         }
                     }
-
+   
                     if (!$video) {
                         my $scaled = create_pixbuf(
                             $type . ";" . $dirname . "/" . $file,
@@ -8558,14 +8559,66 @@ sub create_pixbuf {
     my ($pixbuf);
     my ($type, $id) = split /;/, $data;
     if ($type eq "dir") {
+        my $id_end=substr $id,-100;
+        my $query = "SELECT data,description FROM media WHERE format='file' AND category=\"".$id_end."\"";
+        qdebug($query);
+        my $sth = $mediaDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+        if($row = $sth->fetchrow_hashref()) {
+            debug("Found ".$id_end." in cache");
+            if ($width > $globals->{'icon_width'}) {
+                # Bigger than cache value so just send new pixbuf
+                $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width,$height);
+                return $pixbuf;
+            }
+            my $mtime=(stat($id))[9];
+            debug ("mtime:".$mtime." - dbmtime:".$row->{'description'});
+            if ($mtime <= $row->{'description'}) {
+                my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+                eval { $pixbuf_loader->write($row->{'data'}); };
+                eval { $pixbuf_loader->close() };
+                if ($@) {
+                    return undef;
+                } else {
+                    my $pixbuf = $pixbuf_loader->get_pixbuf();
+                    if ($width == 0) {
+                        return $pixbuf;
+                    } else {
+                        return $pixbuf->scale_simple($width, $height, 'nearest');
+                    }
+                }
+            } else {
+                my $query = "DELETE FROM media WHERE format='file' AND category=".quote($id_end);
+            }
+        }
+        debug("Missed ".$id_end." from cache");
         eval {
             $pixbuf =
-              Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width, $height);
+            Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $globals->{'icon_width'}, $globals->{'icon_height'});
         };
         if ($@) {
             return undef;
         } else {
-            return $pixbuf;
+            my $imgdata = $pixbuf->save_to_buffer("jpeg", quality => '90');
+            my $owner = getpwuid($<);
+            my $mtime = (stat($id))[9];
+            my $sth = $mediaDbh->prepare(
+              q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,NOW(),?,?)}
+            );
+            my $rv = $sth->execute($id_end, "", $type, "file", $owner, $mtime,$imgdata);
+            debug ($id_end." added to cache");
+            if ($width > $globals->{'icon_width'}) {
+                $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width,$height);
+                return $pixbuf;
+            } elsif ($width == 0) {
+                return $pixbuf;
+            } else {
+                return $pixbuf->scale_simple($width, $height, 'nearest');
+            }
         }
     } else {
         my $query = "SELECT format, description, data FROM media WHERE id=\"" 
@@ -9209,7 +9262,9 @@ sub change_colour_media {
             $id   = $type;
             $type = "db";
         }
-        if ($type eq "db") {
+        $id=substr $id,-100;
+
+        if (($type eq "db") || ($type eq "file")) {
             debug("change_colour_media: $fontcolour, $shadowcolour, $id");
             my $query =
 "UPDATE media SET textcolour=\"$fontcolour\", shadowcolour=\"$shadowcolour\" WHERE id=$id";
@@ -9220,13 +9275,6 @@ sub change_colour_media {
             my $rv = $sth->execute
               || display_fatal($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
-
-            #update_imagedir(
-            #$widgets->{'image'}->get_widget('optionImageCategory')
-            #->{'user_data'},
-            #$widgets->{'image'}->get_widget('optionImageCategory')
-            #->get_menu->get_active->{user_data}
-            #);
         }
     }
 }
@@ -12582,15 +12630,53 @@ sub online_help {
 
 #***
 
+#****f* lyricue/start_transaction
+# NAME
+#   start_transaction
+# SYNOPSIS
+#   start_transaction()
+# FUNCTION
+#   Mark the start of a bunch of queries to be run in a single transaction
+# SOURCE
+#
 sub start_transaction
 {
     my $globals->{'old_re'} = $lyricDbh->{RaiseError};
     $lyricDbh->{RaiseError} = 1;
     $lyricDbh->{AutoCommit} = 0;
 }
+
+#***
+
+#****f* lyricue/end_transaction
+# NAME
+#   end_transaction
+# SYNOPSIS
+#   end_transaction()
+# FUNCTION
+#   Mark the end of a bunch of queries to be run in a single transaction
+# SOURCE
+#
 sub end_transaction
 {
     $lyricDbh->rollback() if $@;
     $lyricDbh->{AutoCommit} = 1;
     $lyricDbh->{RaiseError} = $globals->{'old_re'};
 }
+
+#***
+
+#****f* lyricue/rescan_media
+# NAME
+#   rescan_media
+# SYNOPSIS
+#   rescan_media()
+# FUNCTION
+#   Rescan the image/backgrounds directories
+#   Builds thumbnails, cleans up old associations
+# SOURCE
+#
+sub rescan_media
+{
+}
+#***

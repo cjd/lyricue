@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <glade-interface>
-  <!-- interface-requires gtk+ 2.10 -->
+  <!-- interface-requires gtk+ 2.14 -->
   <!-- interface-naming-policy toplevel-contextual -->
   <widget class="GtkWindow" id="windowMain">
     <property name="title" translatable="yes">Lyricue</property>
@@ -46,6 +46,21 @@
                           <widget class="GtkImage" id="image2">
                             <property name="visible">True</property>
                             <property name="stock">gtk-missing-image</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="rescan1">
+                        <property name="label" translatable="yes">_Rescan media</property>
+                        <property name="visible">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="rescan_media"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image40">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-refresh</property>
                           </widget>
                         </child>
                       </widget>
@@ -6329,8 +6344,8 @@ http://www.lyricue.org/bibles</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="action">select-folder</property>
     <property name="do_overwrite_confirmation">True</property>
+    <property name="action">select-folder</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -7839,6 +7854,9 @@ http://www.lyricue.org/bibles</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
