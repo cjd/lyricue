@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.339 2010/02/19 04:23:45 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.340 2010/02/19 05:11:21 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -8560,7 +8560,7 @@ sub create_pixbuf {
     my ($type, $id) = split /;/, $data;
     if ($type eq "dir") {
         my $id_end=substr $id,-100;
-        my $query = "SELECT data,description FROM media WHERE format='file' AND category=\"".$id_end."\"";
+        my $query = "SELECT data,description FROM media WHERE format='file' AND category=".quote($id_end);
         qdebug($query);
         my $sth = $mediaDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
@@ -8592,7 +8592,13 @@ sub create_pixbuf {
                     }
                 }
             } else {
-                my $query = "DELETE FROM media WHERE format='file' AND category=".quote($id_end);
+                $query = "DELETE FROM media WHERE format='file' AND category=".quote($id_end);
+                $sth = $mediaDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'},
+                    $! . "\nSQL: " . $query);
+                $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'},
+                    $! . "\nSQL: " . $query);
             }
         }
         debug("Missed ".$id_end." from cache");
@@ -12678,5 +12684,36 @@ sub end_transaction
 #
 sub rescan_media
 {
+    my $query = "SELECT description,category FROM media WHERE format=\"file\"";
+    qdebug($query);
+    my $sth = $mediaDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'},
+        $! . "\nSQL: " . $query);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'},
+        $! . "\nSQL: " . $query);
+    while($row = $sth->fetchrow_hashref()) {
+        my @mystat = stat($row->{'category'});
+        if (!(@mystat)) {
+            # file no longer exists so remove it from db
+            my $query2 = "DELETE FROM media WHERE format=\"file\" AND category=".quote($row->{'category'});
+            qdebug($query2);
+            my $sth2 = $mediaDbh->prepare($query2)
+              || display_fatal($errorcodes->{'sqlprepare'},
+                $! . "\nSQL: " . $query2);
+            my $rv2 = $sth2->execute
+              || display_fatal($errorcodes->{'sqlexecute'},
+                $! . "\nSQL: " . $query2);
+        }
+    }
+    
+    # Remove leftover playlist item from failed re-orders
+    $query = "DELETE FROM playlist WHERE playorder=-1";
+    $sth = $mediaDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'},
+        $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'},
+        $! . "\nSQL: " . $query);
 }
 #***

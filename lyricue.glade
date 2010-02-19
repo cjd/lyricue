@@ -52,7 +52,7 @@
                     </child>
                     <child>
                       <widget class="GtkImageMenuItem" id="rescan1">
-                        <property name="label" translatable="yes">_Rescan media</property>
+                        <property name="label" translatable="yes">_Rescan for media</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
@@ -1060,8 +1060,8 @@
                         <child>
                           <widget class="GtkFileChooserWidget" id="fileAddFile">
                             <property name="visible">True</property>
-                            <property name="preview_widget_active">False</property>
                             <property name="use_preview_label">False</property>
+                            <property name="preview_widget_active">False</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -6344,8 +6344,8 @@ http://www.lyricue.org/bibles</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -7854,6 +7854,9 @@ http://www.lyricue.org/bibles</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
