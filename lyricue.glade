@@ -51,12 +51,12 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="rescan1">
-                        <property name="label" translatable="yes">_Rescan for media</property>
+                      <widget class="GtkImageMenuItem" id="cleandb1">
+                        <property name="label" translatable="yes">_Clean database</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
-                        <signal name="activate" handler="rescan_media"/>
+                        <signal name="activate" handler="clean_database"/>
                         <child internal-child="image">
                           <widget class="GtkImage" id="image40">
                             <property name="visible">True</property>
@@ -7854,6 +7854,9 @@ http://www.lyricue.org/bibles</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>

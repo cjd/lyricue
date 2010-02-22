@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.340 2010/02/19 05:11:21 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.341 2010/02/22 01:42:37 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -12672,17 +12672,18 @@ sub end_transaction
 
 #***
 
-#****f* lyricue/rescan_media
+#****f* lyricue/clean_database
 # NAME
-#   rescan_media
+#   clean_database
 # SYNOPSIS
-#   rescan_media()
+#   clean_database()
 # FUNCTION
 #   Rescan the image/backgrounds directories
-#   Builds thumbnails, cleans up old associations
+#   Cleans up old associations
+#   Cleans up left-over playlist items
 # SOURCE
 #
-sub rescan_media
+sub clean_database
 {
     my $query = "SELECT description,category FROM media WHERE format=\"file\"";
     qdebug($query);
