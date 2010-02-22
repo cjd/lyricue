@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.341 2010/02/22 01:42:37 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.342 2010/02/22 04:59:08 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -3589,7 +3589,7 @@ sub update_display {
         )
       )
     {
-        binmode $server, ":utf8";
+        #binmode $server, ":utf8";
         print $server toutf(
             $command . ":" . $primary . ":" . $secondary . "\n");
         if (defined(my $status = <$server>)) {
@@ -5300,30 +5300,25 @@ sub select_playlist {
     debug("Selecting a main playlist");
 
     my $playlist = "";
+    my $playlistid = 0;
     my $selection =
       $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
     if ($selection) {
         my ($m, $i) = $selection->get_selected;
         if ($m) {
             $playlist = $m->get($i, 0);
+            $playlistid = $m->get($i, 1);
         }
     }
 
     if ($playlist eq "") {
         return;
     }
-    my $query =
-      "SELECT id FROM playlists WHERE title LIKE \"" . $playlist . "\"";
-    my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
-    my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    my @row = $sth->fetchrow_array();
-    if ($row[0]) {
+    if ($playlistid) {
         $widgets->{'main'}->get_widget('labelCurrentPlaylist')
           ->set_text($playlist);
         $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} =
-          $row[0];
+          $playlistid;
         update_playlist();
         close_playlist_chooser();
     }
@@ -5528,7 +5523,7 @@ sub delete_playlist {
     if ($selection) {
         my ($m, $i) = $selection->get_selected;
         if ($m) {
-            $playlist = $m->get($i, 0);
+            $playlist = $m->get($i, 1);
         }
     }
 
@@ -5536,32 +5531,28 @@ sub delete_playlist {
         return;
     }
 
-    my $query = "SELECT id FROM playlists WHERE title=\"" . $playlist . "\"";
+    my $query = "DELETE FROM playlists WHERE id=" . $playlist;
+    qdebug($query);
     my $sth   = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    my @row = $sth->fetchrow_array();
-
-    $query = "DELETE FROM playlists WHERE id=" . $row[0];
-    $sth   = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
-    $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query =
-      "DELETE FROM playlist WHERE data=" . $row[0] . " AND type=\"play\"";
+      "DELETE FROM playlist WHERE data=" . $playlist . " AND type=\"play\"";
+    qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
-    $query = "SELECT playorder FROM playlist WHERE playlist=" . $row[0];
+    $query = "SELECT playorder FROM playlist WHERE playlist=" . $playlist;
+    qdebug($query);
     $sth   = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    while (@row = $sth->fetchrow_array()) {
+    while (my @row = $sth->fetchrow_array()) {
         remove_single_item($row[0]);
     }
 
@@ -5589,7 +5580,7 @@ sub update_cplayclist {
     if ($store) {
         $store->clear;
     } else {
-        $store = Gtk2::ListStore->new('Glib::String');
+        $store = Gtk2::ListStore->new('Glib::String','Glib::Int');
         $widgets->{'main'}->get_widget('treeChoosePlay')->set_model($store);
         $renderer = Gtk2::CellRendererText->new;
         $selection =
@@ -5602,7 +5593,7 @@ sub update_cplayclist {
     }
 
     my $query =
-"SELECT title FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
+"SELECT title,id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -5611,7 +5602,7 @@ sub update_cplayclist {
     my @row;
     while (@row = $sth->fetchrow_array()) {
         my $iter = $store->append;
-        $store->set($iter, 0, fromutf($row[0]));
+        $store->set($iter, 0, fromutf($row[0]), 1, $row[1]);
     }
 }
 
