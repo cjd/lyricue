@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.209 2010/02/22 01:41:49 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.210 2010/02/22 05:04:15 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -521,10 +521,9 @@ sub process_input {
     debug("Beginning transaction from socket");
     my ($input) = @_;
     my $status = "";
-
-    debug("Received :" . $input);
     if ($input) {
         fromutf($input);
+        debug("Received :" . $input);
         chomp($input);
         my @line = split(/:/, $input);
         $_ = lc($line[0]);
