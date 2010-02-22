@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.208 2010/02/18 01:32:16 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.209 2010/02/22 01:41:49 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1493,12 +1493,11 @@ sub change_backdrop {
                         );
                         $globals->{'background'}
                           ->set_width($globals->{'stage'}->get_width());
-                        $globals->{'background'}->set_anchor_point(
-                            $globals->{'background'}->get_width / 2,
-                            $globals->{'background'}->get_height / 2
+                        $globals->{'background'}->set_anchor_point_from_gravity(
+                            'CLUTTER_GRAVITY_CENTER'
                         );
                         $globals->{'background'}
-                          ->set_position($globals->{'stage'}->get_width / 2, 0);
+                          ->set_position($globals->{'stage'}->get_width / 2, $globals->{'stage'}->get_height /2);
                         $globals->{'stage'}->add($globals->{'background'});
 
                         if ($MINISERV < 0) {
