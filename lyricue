@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.342 2010/02/22 04:59:08 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.343 2010/02/24 02:41:27 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -10980,7 +10980,7 @@ sub db_installdb {
     if ($config->{'DatabaseType'} eq "mysql") {
         system( "cat " 
               . $db_file
-              . " | mysql -h "
+              . " | mysql -f -h "
               . $globals->{'mysqlhost'} . " -u "
               . $globals->{'db_adminuser'}
               . " --password="
