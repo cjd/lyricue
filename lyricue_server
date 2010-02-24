@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.210 2010/02/22 05:04:15 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.211 2010/02/24 05:21:24 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -555,11 +555,11 @@ sub process_input {
             return $status;
         } elsif (/^reconfig$/) {
             $config = load_config();
-            $status = gettext("Configuration reloaded");
+            $status = fromutf(gettext("Configuration reloaded"));
         } elsif (/^backdrop$/) {
             $config->{'BGImage'} = $line[1];
             change_backdrop($config->{'BGImage'}, TRUE);
-            $status = gettext("Backdrop changed to ") . $config->{'BGImage'};
+            $status = fromutf(gettext("Backdrop changed to ")) . $config->{'BGImage'};
         } elsif (/^blank$/) {
             set_header("");
             set_footer("");
@@ -567,14 +567,14 @@ sub process_input {
             if ($line[1] ne "") {
                 $config->{'BGImage'} = $line[1];
                 change_backdrop($config->{'BGImage'}, TRUE);
-                $status = gettext("Screen blanked");
+                $status = fromutf(gettext("Screen blanked"));
             } else {
-                $status = gettext("Text cleared");
+                $status = fromutf(gettext("Text cleared"));
             }
             $globals->{'blanked_state'} = TRUE;
         } elsif (/^change_to_db$/) {
             change_to_db($line[1], $line[2]);
-            $status = gettext("Bible changed to ") . $globals->{'bibledb'};
+            $status = fromutf(gettext("Bible changed to ")) . $globals->{'bibledb'};
         } elsif (/^next_point$/) {
             $globals->{'blanked_state'} = FALSE;
             if ($current_point > -1 && scalar(@points) > $current_point + 1) {
@@ -1173,9 +1173,9 @@ sub process_input {
                         set_footer($globals->{'biblename'});
                         set_maintext($verse, $transition, TRUE);
                         $status =
-                            gettext("Displaying ")
+                            fromutf(gettext("Displaying "))
                           . $versetext
-                          . gettext(" verses ")
+                          . fromutf(gettext(" verses "))
                           . $verses;
                     } elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub")
                     {
@@ -1251,9 +1251,9 @@ sub process_input {
                         set_maintext($row2->{'lyrics'}, $row->{'transition'},
                             FALSE);
                         $status =
-                            gettext("Displaying ")
+                            fromutf(gettext("Displaying "))
                           . $row2->{'title'}
-                          . gettext(" page ")
+                          . fromutf(gettext(" page "))
                           . $row2->{'pagenum'};
                     } ## end else
                     refresh_screen();

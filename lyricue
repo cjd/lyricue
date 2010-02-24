@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.343 2010/02/24 02:41:27 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.344 2010/02/24 05:21:24 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -3593,6 +3593,7 @@ sub update_display {
         print $server toutf(
             $command . ":" . $primary . ":" . $secondary . "\n");
         if (defined(my $status = <$server>)) {
+            $status=fromutf($status);
             chomp($status);
             if ($status =~ /^pl:/) {
                 my @line = split(/:/, $status);
