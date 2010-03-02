@@ -1060,8 +1060,8 @@
                         <child>
                           <widget class="GtkFileChooserWidget" id="fileAddFile">
                             <property name="visible">True</property>
-                            <property name="use_preview_label">False</property>
                             <property name="preview_widget_active">False</property>
+                            <property name="use_preview_label">False</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -2294,6 +2294,20 @@
                                         <property name="use_underline">True</property>
                                         <property name="stock_id">gtk-apply</property>
                                         <signal name="clicked" handler="quick_show"/>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="homogeneous">True</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkToolButton" id="buttonQuickOSD">
+                                        <property name="visible">True</property>
+                                        <property name="is_important">True</property>
+                                        <property name="label" translatable="yes">OSD</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="stock_id">gtk-dialog-info</property>
+                                        <signal name="clicked" handler="quick_osd"/>
                                       </widget>
                                       <packing>
                                         <property name="expand">False</property>
@@ -4592,7 +4606,7 @@ http://www.lyricue.org/</property>
                 <child>
                   <widget class="GtkTable" id="tablePrefFont">
                     <property name="visible">True</property>
-                    <property name="n_rows">6</property>
+                    <property name="n_rows">7</property>
                     <property name="n_columns">2</property>
                     <child>
                       <widget class="GtkLabel" id="labelprefColour">
@@ -4601,8 +4615,8 @@ http://www.lyricue.org/</property>
                         <property name="label" translatable="yes">Font Colour</property>
                       </widget>
                       <packing>
-                        <property name="top_attach">3</property>
-                        <property name="bottom_attach">4</property>
+                        <property name="top_attach">4</property>
+                        <property name="bottom_attach">5</property>
                         <property name="x_options">GTK_FILL</property>
                         <property name="y_options"></property>
                       </packing>
@@ -4653,8 +4667,8 @@ http://www.lyricue.org/</property>
                       <packing>
                         <property name="left_attach">1</property>
                         <property name="right_attach">2</property>
-                        <property name="top_attach">3</property>
-                        <property name="bottom_attach">4</property>
+                        <property name="top_attach">4</property>
+                        <property name="bottom_attach">5</property>
                         <property name="y_options"></property>
                       </packing>
                     </child>
@@ -4705,8 +4719,8 @@ http://www.lyricue.org/</property>
                         <property name="label" translatable="yes">Shadow Colour</property>
                       </widget>
                       <packing>
-                        <property name="top_attach">4</property>
-                        <property name="bottom_attach">5</property>
+                        <property name="top_attach">5</property>
+                        <property name="bottom_attach">6</property>
                         <property name="x_options">GTK_FILL</property>
                         <property name="y_options"></property>
                       </packing>
@@ -4718,8 +4732,8 @@ http://www.lyricue.org/</property>
                         <property name="label" translatable="yes">Shadow Offset</property>
                       </widget>
                       <packing>
-                        <property name="top_attach">5</property>
-                        <property name="bottom_attach">6</property>
+                        <property name="top_attach">6</property>
+                        <property name="bottom_attach">7</property>
                         <property name="x_options">GTK_FILL</property>
                         <property name="y_options"></property>
                       </packing>
@@ -4732,8 +4746,8 @@ http://www.lyricue.org/</property>
                       <packing>
                         <property name="left_attach">1</property>
                         <property name="right_attach">2</property>
-                        <property name="top_attach">4</property>
-                        <property name="bottom_attach">5</property>
+                        <property name="top_attach">5</property>
+                        <property name="bottom_attach">6</property>
                         <property name="y_options"></property>
                       </packing>
                     </child>
@@ -4749,9 +4763,34 @@ http://www.lyricue.org/</property>
                       <packing>
                         <property name="left_attach">1</property>
                         <property name="right_attach">2</property>
-                        <property name="top_attach">5</property>
-                        <property name="bottom_attach">6</property>
+                        <property name="top_attach">6</property>
+                        <property name="bottom_attach">7</property>
                         <property name="y_options"></property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="label1">
+                        <property name="visible">True</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">OSD</property>
+                      </widget>
+                      <packing>
+                        <property name="top_attach">3</property>
+                        <property name="bottom_attach">4</property>
+                        <property name="y_options">GTK_FILL</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkEntry" id="entryPrefOSD">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                      </widget>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="right_attach">2</property>
+                        <property name="top_attach">3</property>
+                        <property name="bottom_attach">4</property>
+                        <property name="y_options">GTK_FILL</property>
                       </packing>
                     </child>
                   </widget>
@@ -7861,78 +7900,6 @@ http://www.lyricue.org/bibles</property>
       <placeholder/>
     </child>
     <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
       <widget class="GtkLabel" id="labelFRIntro">
         <property name="visible">True</property>
         <property name="label" translatable="yes">As this is the first time you have run Lyricue we now walk through some initial settings</property>
@@ -8219,7 +8186,7 @@ Here you can tell me what resolution your projector runs at and where you want t
     <child>
       <widget class="GtkTable" id="tableFRFonts">
         <property name="visible">True</property>
-        <property name="n_rows">5</property>
+        <property name="n_rows">6</property>
         <property name="n_columns">2</property>
         <child>
           <widget class="GtkHSeparator" id="hseparator5">
@@ -8314,6 +8281,31 @@ Here you can tell me what resolution your projector runs at and where you want t
             <property name="right_attach">2</property>
             <property name="top_attach">4</property>
             <property name="bottom_attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkFontButton" id="fontFROSD">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="font_name">Sans 30</property>
+            <property name="use_font">True</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">5</property>
+            <property name="bottom_attach">6</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label1">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">OSD</property>
+          </widget>
+          <packing>
+            <property name="top_attach">5</property>
+            <property name="bottom_attach">6</property>
           </packing>
         </child>
       </widget>

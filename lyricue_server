@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.211 2010/02/24 05:21:24 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.212 2010/03/02 04:19:22 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1277,6 +1277,10 @@ sub process_input {
                     };
                 }
             }
+        } elsif (/^osd$/) {
+            $line[1] =~ s/#BREAK#/\n/g;
+            $line[1] =~ s/#SEMI#/:/g;
+            set_osd($line[1]);
         }
     } ## end if ($_)
     debug("The status message sent is: " . $status);
@@ -2069,7 +2073,7 @@ sub set_maintext_clutter {
         $shadowcolour = $config->{'BackdropShadowColour'};
     }
     $globals->{'maintext'} =
-      create_outlined_text($text, $config->{'Main'}, $colour, $shadowcolour);
+      create_outlined_text($text, $config->{'Main'}, $colour, $shadowcolour, TRUE);
     my $final_x = $globals->{'stage'}->get_width() / 2;
     my $final_y = $globals->{'stage'}->get_height() / 2;
     if ($config->{'VerticalLocation'} =~ /^T/) {
@@ -2279,7 +2283,7 @@ sub set_maintext_clutter {
 # SOURCE
 #
 sub create_outlined_text {
-    my ($text, $font, $text_colour, $shadow_colour) = @_;
+    my ($text, $font, $text_colour, $shadow_colour, $wrap) = @_;
     my $group = Clutter::Group->new;
     $group->{user_data} = toutf($text);
     $text =~ s/\&/\&amp\;/g;
@@ -2318,10 +2322,8 @@ sub create_outlined_text {
             }
         }
         $item->set_use_markup(1);
-        if ($item->get_width() > $config->{'Width'}) {
+        if ($item->get_width() > $config->{'Width'} && $wrap) {
             $item->set_line_wrap(1);
-
-            #$item->set_size($globals->{'stage'}->get_width(), -1);
             $item->set_size($config->{'Width'}, -1);
         }
         $item->set_anchor_point($item->get_width() / 2,
@@ -2846,7 +2848,7 @@ sub set_footer_clutter {
         $shadowcolour = $config->{'BackdropShadowColour'};
     }
     $globals->{'footer'} =
-      create_outlined_text($text, $config->{'Footer'}, $colour, $shadowcolour);
+      create_outlined_text($text, $config->{'Footer'}, $colour, $shadowcolour, TRUE);
     $globals->{'footer'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
@@ -3007,7 +3009,7 @@ sub set_header_clutter {
         $shadowcolour = $config->{'BackdropShadowColour'};
     }
     $globals->{'header'} =
-      create_outlined_text($text, $config->{'Header'}, $colour, $shadowcolour);
+      create_outlined_text($text, $config->{'Header'}, $colour, $shadowcolour, TRUE);
     $globals->{'header'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
@@ -3107,6 +3109,103 @@ sub set_header_canvas {
 }
 
 #***
+
+
+#****f* lyricue_server/set_osd
+# NAME
+#   set_osd
+# SYNOPSIS
+#   set_osd($text)
+# FUNCTION
+#
+# INPUTS
+#   $text -
+# OUTPUT
+# SOURCE
+#
+sub set_osd{
+    my ($text) = @_;
+    if (!defined $text) { $text = " "; }
+    $text = fromutf($text);
+    if ($globals->{'server_type'} == CLUTTER) {
+        set_osd_clutter($text);
+    }
+}
+
+#***
+
+#****f* lyricue_server/set_osd_clutter
+# NAME
+#   set_osd_clutter
+# SYNOPSIS
+#   set_osd_clutter($text)
+# FUNCTION
+#
+# INPUTS
+#   $text -
+# OUTPUT
+# SOURCE
+#
+sub set_osd_clutter {
+    my ($text) = @_;
+    debug("Setting OSD");
+    if (defined $globals->{'osd'}) {
+        $globals->{'timeline_osd'}->set_loop(FALSE);
+        $globals->{'osd'}->destroy;
+        undef $globals->{'osd'};
+    }
+    if ($text eq "") {
+        return;
+    }
+    my $colour = $config->{'Colour'};
+    if ($config->{'BackdropTextColour'} ne "") {
+        $colour = $config->{'BackdropTextColour'};
+    }
+    my $shadowcolour = $config->{'ShadowColour'};
+    if ($config->{'BackdropShadowColour'} ne "") {
+        $shadowcolour = $config->{'BackdropShadowColour'};
+    }
+    $globals->{'osd'} =
+      create_outlined_text($text, $config->{'OSD'}, $colour, $shadowcolour, FALSE);
+    $globals->{'stage'}->add($globals->{'osd'});
+    $globals->{'osd'}->set_position(
+        $globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2) ,
+        $globals->{'stage'}->get_height() -
+          ($globals->{'osd'}->get_height() / $MINISCALE)/2
+    );
+    my $duration = $globals->{'osd'}->get_width()/$globals->{'stage'}->get_width();
+    if ($duration < 1) {
+        $duration = 1;
+    }
+    $duration = ($duration * 5000); # 5 seconds per screen width 
+    if ($globals->{'clutter1'}) {
+        $globals->{'timeline_osd'} = Clutter::Timeline->new($duration);
+        my $alpha = Clutter::Alpha->new($globals->{'timeline_osd'}, 0);
+    } else {
+        $globals->{'timeline_osd'} = Clutter::Timeline->new_for_duration($duration);
+        $globals->{'timeline_osd'}->set_speed(15);
+        my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
+            \&Clutter::Alpha::ramp_inc);
+    }
+    $globals->{'timeline_osd'}->signal_connect(
+        'new-frame' => sub {
+            my ($self, $alpha_value) = @_;
+            if (defined $globals->{'osd'}) {
+                $globals->{'osd'}->set_position(
+                    $globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2) - ($self->get_progress * ($globals->{'osd'}->get_width() + $globals->{'stage'}->get_width())),
+                    $globals->{'stage'}->get_height() - ($globals->{'osd'}->get_height() / $MINISCALE)/2
+                );
+            }
+        }
+    );
+
+    $globals->{'timeline_osd'}->set_loop(TRUE);
+    $globals->{'timeline_osd'}->start();
+
+}
+
+#***
+
 
 #****f* lyricue_server/get_bibles
 # NAME

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.344 2010/02/24 05:21:24 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.345 2010/03/02 04:19:21 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4534,6 +4534,8 @@ sub create_dialog_prefs {
       ->set_text($config->{'Main'});
     $widgets->{'prefs'}->get_widget('entryPrefFooter')
       ->set_text($config->{'Footer'});
+    $widgets->{'prefs'}->get_widget('entryPrefOSD')
+      ->set_text($config->{'OSD'});
     $widgets->{'prefs'}->get_widget('entryPrefColour')
       ->set_text($config->{'Colour'});
     $widgets->{'prefs'}->get_widget('entryPrefShadowColour')
@@ -4596,6 +4598,8 @@ sub create_dialog_prefs {
       ->signal_connect("button_press_event", "open_dialogFont", "Main");
     $widgets->{'prefs'}->get_widget('entryPrefFooter')
       ->signal_connect("button_press_event", "open_dialogFont", "Footer");
+    $widgets->{'prefs'}->get_widget('entryPrefOSD')
+      ->signal_connect("button_press_event", "open_dialogFont", "OSD");
     $widgets->{'prefs'}->get_widget('entryPrefColour')
       ->signal_connect("button_press_event", "open_dialogColour", "Font");
     $widgets->{'prefs'}->get_widget('entryPrefShadowColour')
@@ -5940,6 +5944,8 @@ sub save_preferences {
       $widgets->{'prefs'}->get_widget('entryPrefHeader')->get_text();
     $config->{'Footer'} =
       $widgets->{'prefs'}->get_widget('entryPrefFooter')->get_text();
+    $config->{'OSD'} =
+      $widgets->{'prefs'}->get_widget('entryPrefOSD')->get_text();
     $config->{'Colour'} =
       $widgets->{'prefs'}->get_widget('entryPrefColour')->get_text();
     $config->{'ShadowColour'} =
@@ -8502,7 +8508,28 @@ sub quick_show {
     update_display("preview", "ignore", $songtext);
 }
 
-# Called when the preview windows are resized
+#***
+
+#****f* lyricue/quick_osd
+# NAME
+#   quick_osd
+# SYNOPSIS
+#   quick_osd()
+# FUNCTION
+#   Quickshow OSD
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+sub quick_osd {
+    debug("Update OSD");
+    my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
+    my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
+    $songtext =~ s/\n/#BREAK#/g;
+    $songtext =~ s/:/#SEMI#/g;
+    update_display("osd", $songtext,"");
+}
+
 #***
 
 #****f* lyricue/resize_preview
@@ -8511,7 +8538,7 @@ sub quick_show {
 # SYNOPSIS
 #   resize_preview($widget, $event)
 # FUNCTION
-#
+#   Called when the preview windows are resized
 # INPUTS
 #   $widget -
 #    $event -
@@ -12346,6 +12373,8 @@ sub firstrun_prepare {
           ->set_font_name($config->{'Header'});
         $widgets->{'firstrunxml'}->get_widget('fontFRFooter')
           ->set_font_name($config->{'Footer'});
+        $widgets->{'firstrunxml'}->get_widget('fontFROSD')
+          ->set_font_name($config->{'OSD'});
     } elsif ($widgets->{'firstrun'}->get_current_page == 4) {
 
         # Directories
@@ -12504,6 +12533,8 @@ sub firstrun_apply {
       $widgets->{'firstrunxml'}->get_widget('fontFRHeader')->get_font_name();
     $config->{'Footer'} =
       $widgets->{'firstrunxml'}->get_widget('fontFRFooter')->get_font_name();
+    $config->{'OSD'} =
+      $widgets->{'firstrunxml'}->get_widget('fontFROSD')->get_font_name();
     $config->{'Height'} =
       $widgets->{'firstrunxml'}->get_widget('spinFRHeight')->get_value();
     $config->{'Width'} =
