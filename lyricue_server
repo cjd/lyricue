@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.212 2010/03/02 04:19:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.213 2010/03/02 08:08:22 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1278,9 +1278,7 @@ sub process_input {
                 }
             }
         } elsif (/^osd$/) {
-            $line[1] =~ s/#BREAK#/\n/g;
-            $line[1] =~ s/#SEMI#/:/g;
-            set_osd($line[1]);
+            set_osd($line[1], $line[2]);
         }
     } ## end if ($_)
     debug("The status message sent is: " . $status);
@@ -3115,7 +3113,7 @@ sub set_header_canvas {
 # NAME
 #   set_osd
 # SYNOPSIS
-#   set_osd($text)
+#   set_osd($speed, $text)
 # FUNCTION
 #
 # INPUTS
@@ -3124,11 +3122,13 @@ sub set_header_canvas {
 # SOURCE
 #
 sub set_osd{
-    my ($text) = @_;
-    if (!defined $text) { $text = " "; }
+    my ($speed, $text) = @_;
+    if (!defined $text) { $text = ""; }
+    $text =~ s/#BREAK#/\n/g;
+    $text =~ s/#SEMI#/:/g;
     $text = fromutf($text);
     if ($globals->{'server_type'} == CLUTTER) {
-        set_osd_clutter($text);
+        set_osd_clutter($speed, $text);
     }
 }
 
@@ -3138,7 +3138,7 @@ sub set_osd{
 # NAME
 #   set_osd_clutter
 # SYNOPSIS
-#   set_osd_clutter($text)
+#   set_osd_clutter($speed, $text)
 # FUNCTION
 #
 # INPUTS
@@ -3147,12 +3147,14 @@ sub set_osd{
 # SOURCE
 #
 sub set_osd_clutter {
-    my ($text) = @_;
-    debug("Setting OSD");
+    my ($speed, $text) = @_;
+    debug("Setting OSD at ".$speed." speed");
     if (defined $globals->{'osd'}) {
         $globals->{'timeline_osd'}->set_loop(FALSE);
         $globals->{'osd'}->destroy;
+        $globals->{'osd_background'}->destroy;
         undef $globals->{'osd'};
+        undef $globals->{'osd_background'};
     }
     if ($text eq "") {
         return;
@@ -3167,17 +3169,42 @@ sub set_osd_clutter {
     }
     $globals->{'osd'} =
       create_outlined_text($text, $config->{'OSD'}, $colour, $shadowcolour, FALSE);
+    $globals->{'osd_background'} = Clutter::Rectangle->new();
+    $globals->{'osd_background'}->set_size(
+        $globals->{'stage'}->get_width(),
+        $globals->{'osd'}->get_height()+5
+    );
+    $globals->{'osd_background'}->set_position(0, $globals->{'stage'}->get_height-$globals->{'osd_background'}->get_height());
+    if ($globals->{'clutter1'}) {
+        $globals->{'osd_background'}->set_color(Clutter::Color->from_string($shadowcolour));
+    } else {
+        $globals->{'osd_background'}->set_color(Clutter::Color->parse($shadowcolour));
+    }
+    $globals->{'osd_background'}->set_opacity(100);
+
     $globals->{'stage'}->add($globals->{'osd'});
+    $globals->{'stage'}->add($globals->{'osd_background'});
+    $globals->{'osd_background'}->lower($globals->{'osd'});
     $globals->{'osd'}->set_position(
         $globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2) ,
         $globals->{'stage'}->get_height() -
           ($globals->{'osd'}->get_height() / $MINISCALE)/2
     );
-    my $duration = $globals->{'osd'}->get_width()/$globals->{'stage'}->get_width();
-    if ($duration < 1) {
-        $duration = 1;
+    my $duration = 0;
+    if ($speed eq "slow") {
+        $duration = 8000;
+    } elsif ($speed eq "fast") {
+        $duration = 3000;
+    } elsif ($speed =~ /^\d*$/) {
+        $duration = $speed;
+    } else {
+        $duration = 5000;
     }
-    $duration = ($duration * 5000); # 5 seconds per screen width 
+    my $scale = $globals->{'osd'}->get_width()/$globals->{'stage'}->get_width();
+    if ($scale < 1) {
+        $scale = 1;
+    }
+    $duration = ($scale * $duration); # 5 seconds per screen width 
     if ($globals->{'clutter1'}) {
         $globals->{'timeline_osd'} = Clutter::Timeline->new($duration);
         my $alpha = Clutter::Alpha->new($globals->{'timeline_osd'}, 0);

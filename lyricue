@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.345 2010/03/02 04:19:21 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.346 2010/03/02 08:08:22 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -8527,7 +8527,7 @@ sub quick_osd {
     my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
     $songtext =~ s/\n/#BREAK#/g;
     $songtext =~ s/:/#SEMI#/g;
-    update_display("osd", $songtext,"");
+    update_display("osd", "default", $songtext);
 }
 
 #***

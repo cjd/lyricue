@@ -56,10 +56,13 @@ if ($ARGV[0]) {
         } elsif ($ARGV[$_] eq "next_point") {
             update_display("next_point", "", "");
         } elsif ($ARGV[$_] eq "osd") {
-            my $osd = $ARGV[$_+1];
-            $osd =~ s/:/#SEMI#/g;
-            $osd =~ s/\n/#BREAK#/g;
-            update_display("osd", $osd, "");
+            my $osd = "";
+            if ($ARGV[$_+1]) {
+                $osd = $ARGV[$_+1];
+                $osd =~ s/:/#SEMI#/g;
+                $osd =~ s/\n/#BREAK#/g;
+            }
+            update_display("osd",$ARGV[$_+2], $osd);
         } elsif ($ARGV[$_] eq "custom") {
             update_display($ARGV[$_+1],$ARGV[$_+2],$ARGV[$_+3]);
             exit;
