@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.213 2010/03/02 08:08:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.214 2010/03/03 03:17:37 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -3192,19 +3192,19 @@ sub set_osd_clutter {
     );
     my $duration = 0;
     if ($speed eq "slow") {
-        $duration = 8000;
+        $duration = 20000;
     } elsif ($speed eq "fast") {
-        $duration = 3000;
+        $duration = 5000;
     } elsif ($speed =~ /^\d*$/) {
         $duration = $speed;
     } else {
-        $duration = 5000;
+        $duration = 10000;
     }
     my $scale = $globals->{'osd'}->get_width()/$globals->{'stage'}->get_width();
     if ($scale < 1) {
         $scale = 1;
     }
-    $duration = ($scale * $duration); # 5 seconds per screen width 
+    $duration = ($scale * $duration);
     if ($globals->{'clutter1'}) {
         $globals->{'timeline_osd'} = Clutter::Timeline->new($duration);
         my $alpha = Clutter::Alpha->new($globals->{'timeline_osd'}, 0);

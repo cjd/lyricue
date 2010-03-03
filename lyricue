@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.346 2010/03/02 08:08:22 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.347 2010/03/03 03:17:36 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -8523,10 +8523,13 @@ sub quick_show {
 #
 sub quick_osd {
     debug("Update OSD");
-    my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
-    my $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
-    $songtext =~ s/\n/#BREAK#/g;
-    $songtext =~ s/:/#SEMI#/g;
+    my $songtext="";
+    if ($widgets->{'main'}->get_widget('buttonQuickOSD')->get_active()) {
+        my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
+        $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
+        $songtext =~ s/\n/#BREAK#/g;
+        $songtext =~ s/:/#SEMI#/g;
+    }
     update_display("osd", "default", $songtext);
 }
 
