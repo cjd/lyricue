@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.215 2010/03/05 06:17:30 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.216 2010/03/05 07:16:25 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -3185,11 +3185,6 @@ sub set_osd_clutter {
     $globals->{'stage'}->add($globals->{'osd'});
     $globals->{'stage'}->add($globals->{'osd_background'});
     $globals->{'osd_background'}->lower($globals->{'osd'});
-    $globals->{'osd'}->set_position(
-        $globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2) ,
-        $globals->{'stage'}->get_height() -
-          ($globals->{'osd'}->get_height() / $MINISCALE)/2
-    );
     my $duration = 0;
     if ($speed eq "slow") {
         $duration = 20000;
@@ -3205,26 +3200,29 @@ sub set_osd_clutter {
         $scale = 1;
     }
     $duration = ($scale * $duration);
+    my ($alpha);
     if ($globals->{'clutter1'}) {
         $globals->{'timeline_osd'} = Clutter::Timeline->new($duration);
-        my $alpha = Clutter::Alpha->new($globals->{'timeline_osd'}, 0);
+        $alpha = Clutter::Alpha->new($globals->{'timeline_osd'}, 'linear');
     } else {
         $globals->{'timeline_osd'} = Clutter::Timeline->new_for_duration($duration);
         $globals->{'timeline_osd'}->set_speed(15);
-        my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
+        $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
             \&Clutter::Alpha::ramp_inc);
     }
-    $globals->{'timeline_osd'}->signal_connect(
-        'new-frame' => sub {
-            my ($self, $alpha_value) = @_;
-            if (defined $globals->{'osd'}) {
-                $globals->{'osd'}->set_position(
-                    $globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2) - ($self->get_progress * ($globals->{'osd'}->get_width() + $globals->{'stage'}->get_width())),
-                    $globals->{'stage'}->get_height() - ($globals->{'osd'}->get_height() / $MINISCALE)/2
-                );
-            }
-        }
+    my $start_x = $globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2);
+    my $end_x = ($globals->{'osd'}->get_width()/2) - $globals->{'osd'}->get_width();
+    my $start_y = int($globals->{'stage'}->get_height() - ($globals->{'osd'}->get_height() / $MINISCALE)/2);
+    my $path = 
+        Clutter::Path->new(
+            [ 'move-to', [ [ $start_x, $start_y ] ] ],
+            [ 'line-to', [ [ $end_x,   $start_y ] ] ],
+        );
+    $globals->{'osd_path'} = Clutter::Behaviour::Path->new(
+        $alpha, $path
     );
+    $globals->{'osd_path'}->apply($globals->{'osd'});
+    $globals->{'osd'}->set_position( $start_x, $start_y) ;
 
     $globals->{'timeline_osd'}->set_loop(TRUE);
     $globals->{'timeline_osd'}->start();
