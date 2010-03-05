@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.214 2010/03/03 03:17:37 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.215 2010/03/05 06:17:30 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -655,6 +655,7 @@ sub process_input {
                 # Change it to lowercase
                 $line[1] = lc($line[1]);
 
+                if ($current_item ne "") {
                 # display new lyrics
                 my $query =
                   "SELECT * FROM playlist WHERE playorder=" . $current_item;
@@ -1262,10 +1263,8 @@ sub process_input {
                     $current_item = $preview_item;
                     $preview_item = 0;
                 }
+                }
 
-                #reset_timer($globals->{'snapshot_timer'});
-                #$globals->{'snapshot_timer'} =
-                #Glib::Idle->add(\&update_snapshot);
             }
         } elsif (/^media$/) {
             if ($line[1] eq "pause") {
@@ -1646,6 +1645,7 @@ sub change_backdrop {
             if ($row->{'format'} eq "bg") {
                 debug("Changing backdrop colour to " . $row->{'description'});
                 if ($globals->{'server_type'} == SIMPLE) {
+                    $globals->{'bg_file'}="/tmp/lyricue.bg";
                     open(BGIMG, ">" . $globals->{'bg_file'});
                     print BGIMG
                       sprintf(
