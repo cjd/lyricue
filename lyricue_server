@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.216 2010/03/05 07:16:25 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.217 2010/03/06 00:17:12 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -3210,8 +3210,8 @@ sub set_osd_clutter {
         $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
             \&Clutter::Alpha::ramp_inc);
     }
-    my $start_x = $globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2);
-    my $end_x = ($globals->{'osd'}->get_width()/2) - $globals->{'osd'}->get_width();
+    my $start_x = int($globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2));
+    my $end_x = int(($globals->{'osd'}->get_width()/2) - $globals->{'osd'}->get_width());
     my $start_y = int($globals->{'stage'}->get_height() - ($globals->{'osd'}->get_height() / $MINISCALE)/2);
     my $path = 
         Clutter::Path->new(
