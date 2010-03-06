@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.348 2010/03/06 02:03:35 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.349 2010/03/06 05:21:51 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -11700,7 +11700,7 @@ sub install_bibles {
     $widgets->{'bible'}->get_widget('buttonBibleSword')->{'user_data'} =
       "http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles";
     $widgets->{'bible'}->get_widget('buttonBibleDB')->{'user_data'} =
-      "http://www.lyricue.org/lyricue/bibles.html";
+      "http://www.lyricue.org/bibles";
     $widgets->{'bible'}->get_widget('windowBibleManager')->show_all();
 }
 
@@ -11744,7 +11744,7 @@ sub do_install_bible {
         # Uncompressed bibleDb
         open(DB, $dbfilename);
         debug("bibleDb: " . $dbfilename);
-        my $dbname = "";
+        my $dbname = "bibleDb";
         while (<DB>) {
             if (/^CREATE DATABASE.*;$/) {
                 $dbname = $_;
