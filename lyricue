@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.347 2010/03/03 03:17:36 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.348 2010/03/06 02:03:35 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -12736,11 +12736,10 @@ sub clean_database
     
     # Remove leftover playlist item from failed re-orders
     $query = "DELETE FROM playlist WHERE playorder=-1";
-    $sth = $mediaDbh->prepare($query)
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'},
         $! . "\nSQL: " . $query);
-    $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
-        $! . "\nSQL: " . $query);
+    $rv = $sth->execute; # Don't worry if it fails
 }
 #***
