@@ -1,0 +1,47 @@
+#!/bin/bash
+
+cp debian/rules debian/rules.orig
+cp debian/menu debian/menu.orig
+
+# Build for intrepid
+cat debian/control-jaunty | sed -e 's/lyricue-cvs/lyricue/g' > debian/control
+HEADER=`cat debian/changelog-release | head -1 | sed -e 's/karmic/intrepid/g' -e 's/)/intrepid)/g'` 
+echo $HEADER > debian/changelog
+echo "  * Rebuild for intrepid " >> debian/changelog
+echo "" >> debian/changelog
+echo " -- Chris Debenham <chris@adebenham.com> " `date -R` >> debian/changelog
+echo "" >> debian/changelog
+cat debian/changelog-release >> debian/changelog
+debuild -S -sa -kB734D1F5
+
+# Build for jaunty
+cat debian/control-jaunty | sed -e 's/lyricue-cvs/lyricue/g' > debian/control
+HEADER=`cat debian/changelog-release | head -1 | sed -e 's/karmic/jaunty/g' -e 's/)/jaunty)/g'` 
+echo $HEADER > debian/changelog
+echo "  * Rebuild for jaunty" >> debian/changelog
+echo "" >> debian/changelog
+echo " -- Chris Debenham <chris@adebenham.com> " `date -R` >> debian/changelog
+echo "" >> debian/changelog
+cat debian/changelog-release >> debian/changelog
+debuild -S -sa -kB734D1F5
+
+# Build for karmic
+cat debian/control-karmic | sed -e 's/lyricue-cvs/lyricue/g' > debian/control
+cp debian/changelog-release debian/changelog
+debuild -S -sa -kB734D1F5
+
+# Build for Lucid
+HEADER=`cat debian/changelog-release | head -1 | sed -e 's/karmic/lucid/g' -e 's/)/lucid)/g'` 
+echo $HEADER > debian/changelog
+echo "  * Rebuild for lucid" >> debian/changelog
+echo "" >> debian/changelog
+echo " -- Chris Debenham <chris@adebenham.com> " `date -R` >> debian/changelog
+echo "" >> debian/changelog
+cat debian/changelog-release >> debian/changelog
+debuild -S -sa -kB734D1F5
+
+cp debian/control-jaunty debian/control
+cp debian/rules.orig debian/rules
+cp debian/menu.orig debian/menu
+
+(cd ..;dput ppa:chris-debenham/lyricue lyricue-cvs*_source.changes)
