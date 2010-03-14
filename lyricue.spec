@@ -1,4 +1,4 @@
-# $Revision: 1.11 $, $Date: 2009/07/30 04:19:51 $
+# $Revision: 1.12 $, $Date: 2010/03/14 10:18:19 $
 Summary:	The GNU Lyric Display System
 Name:		lyricue
 Version:	2.0.0
@@ -13,7 +13,6 @@ Requires:	mysql-client
 Requires:	mysql-server
 Requires:	perl-DBD-mysql
 Requires:	perl-DBI
-Requires:	perl-Gnome2-Canvas
 Requires:	perl-Gtk2-GladeXML
 Requires:	perl-Gtk2-Spell
 Requires:	perl-URI
@@ -66,6 +65,9 @@ rm -rf $RPM_BUILD_ROOT
 All persons listed below can be reached at lds-devel@lists.sourceforge.net
 
 $Log: lyricue.spec,v $
+Revision 1.12  2010/03/14 10:18:19  cjdebenh
+Remove GnomeCanvas Support and fix OSD with clutter 0.8
+
 Revision 1.11  2009/07/30 04:19:51  cjdebenh
 Move website references to lyricue.org
 

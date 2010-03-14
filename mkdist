@@ -2,78 +2,28 @@
 if [ "$1" = "release" ] 
 then echo Making release
 CHANGELOG="debian/changelog-release"
-else CHANGELOG="debian/changelog"
+cat debian/rules-base | sed -e 's/lyricue-cvs/lyricue/g' > debian/rules
+chmod +x debian/rules
+cat debian/menu-base | sed -e 's/lyricue-cvs/lyricue/g' > debian/menu
+else CHANGELOG="debian/changelog-cvs"
+cp debian/rules-base debian/rules
+cp debian/menu-base debian/menu
 fi
 
-PACKAGE=`head -1 ${CHANGELOG} | cut -f1 -d" "`
-VERSION=`head -1 ${CHANGELOG} |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
-LC_ALL=C;export LC_ALL
-BUILD_DIR=~/source/Lyricue/dist
-
-echo Removing old ${BUILD_DIR} files
-rm -rf ${BUILD_DIR}/l*
-
-echo Creating new files
-mkdir ${BUILD_DIR}
-mkdir ${BUILD_DIR}/lyricue-${VERSION}
-cp -R * ${BUILD_DIR}/lyricue-${VERSION}
-rm -rf ${BUILD_DIR}/${BUILD_DIR}
-rm -rf ${BUILD_DIR}/lyricue-${VERSION}/bibles
-rm -rf ${BUILD_DIR}/lyricue-${VERSION}/${BUILD_DIR}
-rm ${BUILD_DIR}/lyricue-${VERSION}/ChangeLog.bak
-
-pushd ${BUILD_DIR}/lyricue-${VERSION}
-CONV="s/##VERSION##/${VERSION}/g"
-for F in import_media lyricue lyricue.1 lyricue_server lyricue.glade
-do sed --in-place -e $CONV $F
+for DIST in intrepid jaunty karmic lucid
+do echo Building for ${DIST}
+if [ "$1" = "release" ]
+then cat debian/control-${DIST} | sed -e 's/lyricue-cvs/lyricue/g' > debian/control
+else cp debian/control-${DIST} debian/control
+fi
+cat ${CHANGELOG} | head -1 | sed -e "s/karmic/$DIST/g" -e "s/)/${DIST})/g"  > debian/changelog
+echo "  * Build for ${DIST}" >> debian/changelog
+echo "" >> debian/changelog
+echo " -- Chris Debenham <chris@adebenham.com> " `date -R` >> debian/changelog
+echo "" >> debian/changelog
+cat $CHANGELOG >> debian/changelog
+debuild -S -sa -kB734D1F5
 done
 
-if [ "$1" = "release" ] 
-then mv debian/changelog-release debian/changelog
-  CONV="s/lyricue-cvs/${PACKAGE}/g"
-  for F in debian/control debian/menu debian/rules
-  do sed --in-place -e $CONV $F
-  done
-else rm debian/changelog-release
-fi
-
-
-rm images/*.svg
-find . -name CVS -type d -exec rm -r \{} \; 2>/dev/null
-make
-
-echo Creating Debian packages
-dpkg-buildpackage -rfakeroot -kB734D1F5 -pgnome-gpg
-popd
-rm -rf ${BUILD_DIR}/lyricue-${VERSION}/debian
-pushd ${BUILD_DIR}
-tar cvfz lyricue*_${VERSION}.tar.gz lyricue-${VERSION}
-popd
-
-rm -rf ${BUILD_DIR}/lyricue-${VERSION}
-
-
-# Bibles no longer provided in deb format
-#echo Making Bible packages
-#if [ "$1" = "-b" ]
-#then echo Making bibles
-#for DB in KJV MES NIV NLT NIRV
-#    do DB_LOWER=`echo $DB | tr [:upper:] [:lower:]`
-#    ${BUILD_DIR}DIR=${BUILD_DIR}/lyricue-bible-$DB_LOWER
-#    mkdir $${BUILD_DIR}DIR
-#    mkdir $${BUILD_DIR}DIR/mysql
-#    mkdir $${BUILD_DIR}DIR/debian
-#    cp mysql/MySQL_create_bible_$DB.sql $${BUILD_DIR}DIR/mysql
-#    cp debian/bibles/$DB/* $${BUILD_DIR}DIR/debian
-#    pushd $${BUILD_DIR}DIR/debian
-#    popd
-#    pushd $${BUILD_DIR}DIR
-#    dpkg-buildpackage -rfakeroot
-#    popd
-#    rm -rf $${BUILD_DIR}DIR
-#done
-#fi
-
-echo Pushing to repository
-cp ${BUILD_DIR}/*deb ${BUILD_DIR}/*.dsc ${BUILD_DIR}/*.asc ${BUILD_DIR}/*.gz ${BUILD_DIR}/*.changes  /var/www/debian
-update_repo
+#(cd ..;dput ppa:chris-debenham/lyricue lyricue-*_source.changes)
+rm debian/rules debian/changelog debian/control debian/menu

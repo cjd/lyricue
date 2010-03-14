@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.349 2010/03/06 05:21:51 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.350 2010/03/14 10:18:19 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -4512,11 +4512,8 @@ sub create_dialog_prefs {
         if ($config->{'ServerType'} eq "simple") {
             $widgets->{'prefs'}->get_widget('radioPrefServerFast')
               ->set_active(TRUE);
-        } elsif ($config->{'ServerType'} eq "clutter") {
-            $widgets->{'prefs'}->get_widget('radioPrefServerClutter')
-              ->set_active(TRUE);
         } else {
-            $widgets->{'prefs'}->get_widget('radioPrefServerCanvas')
+            $widgets->{'prefs'}->get_widget('radioPrefServerClutter')
               ->set_active(TRUE);
         }
     } else {
@@ -4524,7 +4521,7 @@ sub create_dialog_prefs {
             $widgets->{'prefs'}->get_widget('radioPrefServerFast')
               ->set_active(TRUE);
         } else {
-            $widgets->{'prefs'}->get_widget('radioPrefServerCanvas')
+            $widgets->{'prefs'}->get_widget('radioPrefServerClutter')
               ->set_active(TRUE);
         }
     }
@@ -6036,7 +6033,7 @@ sub save_preferences {
     {
         $config->{'ServerType'} = "simple";
     } else {
-        $config->{'ServerType'} = "canvas";
+        $config->{'ServerType'} = "clutter";
     }
     $config->{'BGImage'} =
       $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};

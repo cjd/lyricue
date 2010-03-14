@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.217 2010/03/06 00:17:12 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.218 2010/03/14 10:18:19 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -134,9 +134,8 @@ use constant Z_AXIS    => 2**7;
 use constant NUM_TRANS => 8;
 
 # Server types
-use constant CANVAS  => 0;
-use constant SIMPLE  => 1;
-use constant CLUTTER => 2;
+use constant SIMPLE  => 0;
+use constant CLUTTER => 1;
 
 #
 # Site Configuration.  You should only have to
@@ -301,7 +300,7 @@ if (!$globals->{'force_server'}) {
     if ($config->{'ServerType'} eq "simple") {
         $globals->{'server_type'} = SIMPLE;
     } elsif ($config->{'ServerType'} eq "canvas") {
-        $globals->{'server_type'} = CANVAS;
+        $globals->{'server_type'} = CLUTTER; # Canvas no longer supported
     } else {
         $globals->{'server_type'} = CLUTTER;
     }
@@ -732,7 +731,7 @@ sub process_input {
                                 my $item    = $current_item;
                                 my $plpoint = -2;
 
-                                while ($plpoint != $LOOPPARENT) {
+                                while (($plpoint != $LOOPPARENT) && ($item ne "")) {
                                     $query =
 "SELECT playlist FROM playlist WHERE playorder="
                                       . $item;
@@ -1581,30 +1580,6 @@ sub change_backdrop {
                     );
                     $globals->{'stage'}->add($globals->{'background'});
                 }
-            } else {
-                my ($pixbuf);
-                eval {
-                    $pixbuf =
-                      Gtk2::Gdk::Pixbuf->new_from_file_at_size($data,
-                        $config->{'Width'}, $config->{'Height'});
-                };
-                if ($@) {
-                    debug("Unable to load background: $data");
-                } else {
-                    if (defined $background) {
-                        $background->destroy;
-                    }
-                    $background = Gnome2::Canvas::Item->new(
-                        $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
-                        pixbuf     => $pixbuf,
-                        x          => 0,
-                        y          => 0,
-                        width      => $config->{'Width'},
-                        height     => $config->{'Height'},
-                        width_set  => TRUE,
-                        height_set => TRUE,
-                    );
-                }
             }
         }
     } else {
@@ -1671,20 +1646,6 @@ sub change_backdrop {
                     $globals->{'stage'}->add($globals->{'background'});
                     $globals->{'background'}->lower_bottom();
                     return;
-                } else {
-                    if (defined $background) {
-                        $background->destroy;
-                    }
-
-                    $background = Gnome2::Canvas::Item->new(
-                        $globals->{'root'}, 'Gnome2::Canvas::Rect',
-                        x1          => 0,
-                        y1          => 0,
-                        x2          => $config->{'Width'},
-                        y2          => $config->{'Height'},
-                        fill_color  => $row->{'description'},
-                        width_units => 0
-                    );
                 }
             } else {
                 debug("Changing backdrop image to " . $row->{'description'});
@@ -1735,20 +1696,6 @@ sub change_backdrop {
                             $globals->{'stage'}->get_height / 2
                         );
                         $globals->{'stage'}->add($globals->{'background'});
-                    } else {
-                        if (defined $background) {
-                            $background->destroy;
-                        }
-                        $background = Gnome2::Canvas::Item->new(
-                            $globals->{'root'}, 'Gnome2::Canvas::Pixbuf',
-                            pixbuf     => $pixbuf,
-                            x          => $offset_x,
-                            y          => $offset_y,
-                            width      => $tmp_width * $scale,
-                            height     => $tmp_height * $scale,
-                            width_set  => TRUE,
-                            height_set => TRUE,
-                        );
                     }
                 }
             }
@@ -2024,8 +1971,6 @@ sub set_maintext {
         set_maintext_simple($text, $transition, $wrap);
     } elsif ($globals->{'server_type'} == CLUTTER) {
         set_maintext_clutter($text, $transition, $wrap);
-    } else {
-        set_maintext_canvas($text, $transition, $wrap);
     }
 }
 
@@ -2372,286 +2317,6 @@ sub set_maintext_simple {
 
 #***
 
-#****f* lyricue_server/set_maintext_canvas
-# NAME
-#   set_maintext_canvas
-# SYNOPSIS
-#   set_maintext_canvas($text, $transition, $wrap)
-# FUNCTION
-#   Set maintext canvas
-# INPUTS
-#   $text -
-#    $transition -
-#    $wrap -
-# OUTPUT
-# SOURCE
-#
-sub set_maintext_canvas {
-    my ($text, $transition, $wrap) = @_;
-    debug("Set maintext canvas");
-    my ($oldText);
-    if (!defined $transition) { $transition = 0; }
-
-    # Set the transition values
-    my $out_direction = mod($transition, 2**NUM_TRANS);
-    $transition = $transition >> NUM_TRANS;
-    my $in_direction = mod($transition, 2**NUM_TRANS);
-    my $effect = $transition >> NUM_TRANS;
-
-    # Copy the old mainText to oldText
-    $oldText = $globals->{'mainText'};
-
-    my $top_y = 0;
-    if ($config->{'VerticalLocation'} =~ /^T/) {
-        $top_y = $headerHeight;
-    } elsif ($config->{'VerticalLocation'} =~ /^B/) {
-        $top_y = $config->{'Height'};
-    } else {
-        $top_y = ($config->{'Height'} - $config->{'ShadowSize'}) / 2;
-    }
-
-    # Create a new mainText;
-    $globals->{'mainText'} = Gnome2::Canvas::Item->new(
-        $globals->{'root'}, 'Gnome2::Canvas::RichText',
-        x      => ($config->{'Width'} - $config->{'ShadowSize'}) / 2,
-        y      => $top_y,
-        anchor => 'GTK_ANCHOR_CENTER',
-        width  => $config->{'Width'} -
-          ($config->{'OverscanH'} * 2) -
-          $config->{'ShadowSize'},
-        height => $config->{'Height'} -
-          $globals->{'headhigh'} -
-          ($config->{'OverscanV'} * 2) -
-          $config->{'ShadowSize'},
-        'cursor-visible' => FALSE
-    );
-    $globals->{'mainText'}->show();
-    my $buffer = $globals->{'mainText'}->get_buffer();
-    my $colour = $config->{'Colour'};
-    my $tag;
-    if ($config->{'BackdropTextColour'} ne "") {
-        $colour = $config->{'BackdropTextColour'};
-    }
-    my $tag = $buffer->create_tag(
-        "Main",  "font",      $config->{'Main'}, "foreground",
-        $colour, "wrap-mode", "word",            "editable-set",
-        TRUE,    "editable",  FALSE
-    );
-    $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-
-    # Hide the shadow during the transition
-    if ($globals->{'mainTextShadow'}) { $globals->{'mainTextShadow'}->hide(); }
-    my $widget = Gtk2::Label->new();
-    my $layout = $widget->create_pango_layout("");
-    $layout->set_wrap('word');
-    $layout->set_width(
-        (
-            $config->{'Width'} -
-              ($config->{'OverscanH'} * 2) -
-              $config->{'ShadowSize'}
-        ) * PANGO_SCALE
-    );
-    my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Main'});
-
-    # Find old/new dimensions
-    $layout->set_font_description($desc);
-    $layout->set_text($oldText->get_buffer()
-          ->get_text($oldText->get_buffer()->get_bounds, FALSE));
-    my ($ow, $oh) = $layout->get_pixel_size;
-    $ow = $ow + 10;
-    $oh = $oh + 10;
-    $layout->set_text($text);
-    my ($w, $h) = $layout->get_pixel_size;
-    $w = $w + 10;
-    $h = $h + 10;
-    my $centreX = $config->{'Width'} / 2;
-    my $centreY = $config->{'Height'} / 2;
-
-    if ($config->{'VerticalLocation'} =~ /^B/) {
-        $centreY = ($config->{'Height'} - ($h / 2)) - $headerHeight;
-    } elsif ($config->{'VerticalLocation'} =~ /^T/) {
-        $centreY = ($h / 2) + $headerHeight;
-    }
-
-    my @items = ();
-    if ($effect == SLIDE_TEXT) {
-        my $ostepx = 0;
-        my $ostepy = 0;
-        my $nstepx = 0;
-        my $nstepy = 0;
-        my $nx     = $centreX;
-        my $ny     = $centreY;
-        if ($oldText->get_buffer()
-            ->get_text($oldText->get_buffer()->get_bounds, FALSE) eq "")
-        {
-            $out_direction = WAIT;
-        }
-        if ($out_direction & RIGHT) {
-            $ostepx = (($config->{'Width'} + ($ow / 2)) - $centreX) / $steps;
-        }
-        if ($out_direction & LEFT) {
-            $ostepx = -(($config->{'Width'} + ($ow / 2)) - $centreX) / $steps;
-        }
-        if ($out_direction & UP) {
-            $ostepy = (($config->{'Height'} + ($oh / 2)) - $centreY) / $steps;
-        }
-        if ($out_direction & DOWN) {
-            $ostepy = -(($config->{'Height'} + ($oh / 2)) - $centreY) / $steps;
-        }
-        if ($in_direction & RIGHT) {
-            $nx = -($w / 2);
-            $nstepx = (($config->{'Width'} + ($w / 2)) - $centreX) / $steps;
-        }
-        if ($in_direction & LEFT) {
-            $nx = $config->{'Width'} + ($w / 2);
-            $nstepx = -(($config->{'Width'} + ($w / 2)) - $centreX) / $steps;
-        }
-        if ($in_direction & UP) {
-            $ny = $config->{'Height'} + ($h / 2);
-            $nstepy = -(($config->{'Height'} + ($h / 2)) - $centreY) / $steps;
-        }
-        if ($in_direction & DOWN) {
-            $ny = -($h / 2);
-            $nstepy = (($config->{'Height'} + ($h / 2)) - $centreY) / $steps;
-        }
-        my $ox = $centreX;
-        my $oy = $centreY;
-        $buffer->set_text($text);
-        $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-        $globals->{'mainText'}->set(width => $w,  height => $h);
-        $globals->{'mainText'}->set(x     => $nx, y      => $ny);
-        $globals->{'mainText'}->set_buffer($buffer);
-
-        if (!(($out_direction & WAIT) && ($in_direction & WAIT))) {
-            foreach my $step (1 .. $steps) {
-                if (!($out_direction & WAIT)) {
-                    $oldText->set(x => ($ox + ($step * $ostepx)));
-                    $oldText->set(y => ($oy + ($step * $ostepy)));
-                }
-                if (!($in_direction & WAIT)) {
-                    $globals->{'mainText'}->set(x => ($nx + ($step * $nstepx)));
-                    $globals->{'mainText'}->set(y => ($ny + ($step * $nstepy)));
-                }
-                select(undef, undef, undef, 0.01);
-                do_pending();
-            }
-        }
-        if (($out_direction & WAIT) || ($in_direction & WAIT)) {
-            foreach my $step (1 .. $steps) {
-                if ($out_direction & WAIT) {
-                    $oldText->set(x => ($ox + ($step * $ostepx)));
-                    $oldText->set(y => ($oy + ($step * $ostepy)));
-                }
-                if ($in_direction & WAIT) {
-                    $globals->{'mainText'}->set(x => ($nx + ($step * $nstepx)));
-                    $globals->{'mainText'}->set(y => ($ny + ($step * $nstepy)));
-                }
-                select(undef, undef, undef, 0.01);
-                do_pending();
-            }
-        }
-    } elsif ($effect == WIPE) {
-        $items[0] = Gnome2::Canvas::Item->new(
-            $globals->{'root'},
-            'Gnome2::Canvas::Rect',
-            y1         => ($config->{'Height'} - $oh) / 2,
-            y2         => ($config->{'Height'} + $oh) / 2,
-            x1         => ($config->{'Width'} - $ow) / 2,
-            x2         => ($config->{'Width'} - $ow) / 2,
-            fill_color => 'black'
-        );
-        my $stepsize = $ow / 20;
-        for (
-            my $fx = ($config->{'Width'} - $ow) / 2 ;
-            $fx < ($config->{'Width'} + $ow) / 2 ;
-            $fx = $fx + $stepsize
-          )
-        {
-            $items[0]->set(x2 => $fx);
-            select(undef, undef, undef, 0.01);
-            do_pending();
-        }
-        $buffer->set_text($text);
-        $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-        $globals->{'mainText'}->set(width => $w, height => $h);
-        $globals->{'mainText'}->set_buffer($buffer);
-        $items[0]->set(
-            y1 => ($config->{'Height'} - $h) / 2,
-            x1 => ($config->{'Width'} - $w) / 2,
-            x2 => ($config->{'Width'} + $w) / 2,
-            y2 => ($config->{'Height'} + $h) / 2
-        );
-        $stepsize = $w / 20;
-        for (
-            my $fx = ($config->{'Width'} - $w) / 2 ;
-            $fx < ($config->{'Width'} + $w) / 2 ;
-            $fx = $fx + $stepsize
-          )
-        {
-            $items[0]->set(x1 => $fx);
-            select(undef, undef, undef, 0.01);
-            do_pending();
-        }
-        $items[0]->destroy;
-    } else {
-        $buffer->set_text($text);
-        $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-        $globals->{'mainText'}->set(width => $w, height => $h);
-        $globals->{'mainText'}
-          ->set(x => $centreX - ($config->{'ShadowSize'} / 2));
-        $globals->{'mainText'}
-          ->set(y => $centreY - ($config->{'ShadowSize'} / 2));
-        $globals->{'mainText'}->set_buffer($buffer);
-    }
-    $oldText->destroy;
-
-    # Make sure text in right spot
-    $buffer->set_text($text);
-    $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
-    $globals->{'mainText'}->set(
-        x => $centreX - ($config->{'ShadowSize'} / 2),
-        y => $centreY - ($config->{'ShadowSize'} / 2),
-        width  => $w,
-        height => $h,
-    );
-    $globals->{'mainText'}->set_buffer($buffer);
-    $globals->{'mainText'}->show();
-
-    if ($MINISERV < 0) {
-
-        # Add the shadow
-        $globals->{'mainTextShadow'} = Gnome2::Canvas::Item->new(
-            $globals->{'root'}, 'Gnome2::Canvas::RichText',
-            x => $centreX + ($config->{'ShadowSize'} / 2),
-            y => $centreY + ($config->{'ShadowSize'} / 2),
-            width            => $w,
-            height           => $h,
-            anchor           => 'GTK_ANCHOR_CENTER',
-            'cursor-visible' => FALSE
-        );
-        my $buffer2      = $globals->{'mainTextShadow'}->get_buffer();
-        my $shadowcolour = $config->{'ShadowColour'};
-        if ($config->{'BackdropShadowColour'} ne "") {
-            $shadowcolour = $config->{'BackdropShadowColour'};
-        }
-        my $tags = $buffer2->create_tag(
-            "MainShadow",      "font",
-            $config->{'Main'}, "foreground",
-            $shadowcolour,     "wrap-mode",
-            "word",            "editable-set",
-            TRUE,              "editable",
-            FALSE
-        );
-        $buffer2->set_text($text);
-        $buffer2->apply_tag_by_name("MainShadow", $buffer2->get_bounds);
-        $globals->{'mainTextShadow'}->set_buffer($buffer2);
-        $globals->{'mainText'}->raise_to_top();
-        $globals->{'mainTextShadow'}->show();
-    }
-}
-
-#***
-
 #****f* lyricue_server/Configure_event
 # NAME
 #   Configure_event
@@ -2808,8 +2473,6 @@ sub set_footer {
         set_footer_simple($text);
     } elsif ($globals->{'server_type'} == CLUTTER) {
         set_footer_clutter($text);
-    } else {
-        set_footer_canvas($text);
     }
 }
 
@@ -2888,66 +2551,6 @@ sub set_footer_simple {
 
 #***
 
-#****f* lyricue_server/set_footer_canvas
-# NAME
-#   set_footer_canvas
-# SYNOPSIS
-#   set_footer_canvas($text)
-# FUNCTION
-#
-# INPUTS
-#   $text -
-# OUTPUT
-# SOURCE
-#
-sub set_footer_canvas {
-    my ($text) = @_;
-    my $widget = Gtk2::Label->new();
-    my $layout = $widget->create_pango_layout("");
-    $layout->set_wrap('word');
-    $layout->set_width(
-        (
-            $config->{'Width'} -
-              ($config->{'OverscanH'} * 2) -
-              $config->{'ShadowSize'}
-        ) * PANGO_SCALE
-    );
-    my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Footer'});
-    $layout->set_font_description($desc);
-    $layout->set_text($text);
-    my ($w, $h) = $layout->get_pixel_size;
-    $w = $w + 10;
-    $h = $h + 10;
-    if ($globals->{'footerText'}) { $globals->{'footerText'}->destroy(); }
-    $globals->{'footerText'} = Gnome2::Canvas::Item->new(
-        $globals->{'root'}, 'Gnome2::Canvas::RichText',
-        x                => $config->{'Width'} / 2,
-        y                => $config->{'Height'} - $config->{'OverscanV'},
-        anchor           => 'GTK_ANCHOR_S',
-        width            => $w,
-        height           => $h,
-        'cursor-visible' => FALSE
-    );
-    my $buffer = $globals->{'footerText'}->get_buffer();
-    my $colour = $config->{'Colour'};
-
-    if ($config->{'BackdropTextColour'} ne "") {
-        $colour = $config->{'BackdropTextColour'};
-    }
-    my $tag3 = $buffer->create_tag(
-        "Footer",            "font",
-        $config->{'Footer'}, "foreground",
-        $colour,             "wrap-mode",
-        "word",              "editable-set",
-        TRUE,                "editable",
-        FALSE
-    );
-    $buffer->set_text($text);
-    $buffer->apply_tag_by_name("Footer", $buffer->get_bounds);
-}
-
-#***
-
 #****f* lyricue_server/set_header
 # NAME
 #   set_header
@@ -2968,8 +2571,6 @@ sub set_header {
         set_header_simple($text);
     } elsif ($globals->{'server_type'} == CLUTTER) {
         set_header_clutter($text);
-    } else {
-        set_header_canvas($text);
     }
 }
 
@@ -3045,69 +2646,6 @@ sub set_header_simple {
 }
 
 #***
-
-#****f* lyricue_server/set_header_canvas
-# NAME
-#   set_header_canvas
-# SYNOPSIS
-#   set_header_canvas($text)
-# FUNCTION
-#
-# INPUTS
-#   $text -
-# OUTPUT
-# SOURCE
-#
-sub set_header_canvas {
-    my ($text) = @_;
-
-    my $widget = Gtk2::Label->new();
-    my $layout = $widget->create_pango_layout("");
-    $layout->set_wrap('word');
-    $layout->set_width(
-        (
-            $config->{'Width'} -
-              ($config->{'OverscanH'} * 2) -
-              $config->{'ShadowSize'}
-        ) * PANGO_SCALE
-    );
-    my $desc = Gtk2::Pango::FontDescription->from_string($config->{'Header'});
-    $layout->set_font_description($desc);
-    $layout->set_text($text);
-    my ($w, $h) = $layout->get_pixel_size;
-    $w            = $w + 10;
-    $h            = $h + 10;
-    $headerHeight = $h;
-    if ($globals->{'headerText'}) { $globals->{'headerText'}->destroy(); }
-    $globals->{'headerText'} = Gnome2::Canvas::Item->new(
-        $globals->{'root'}, 'Gnome2::Canvas::RichText',
-        x                => $config->{'Width'} / 2,
-        y                => $config->{'OverscanV'},
-        anchor           => 'GTK_ANCHOR_N',
-        width            => $w,
-        height           => $h,
-        'cursor-visible' => FALSE
-    );
-    my $buffer = $globals->{'headerText'}->get_buffer();
-    my $colour = $config->{'Colour'};
-
-    if ($config->{'BackdropTextColour'} ne "") {
-        $colour = $config->{'BackdropTextColour'};
-    }
-    my $tag3 = $buffer->create_tag(
-        "Header",            "font",
-        $config->{'Header'}, "foreground",
-        $colour,             "wrap-mode",
-        "word",              "editable-set",
-        TRUE,                "editable",
-        FALSE
-    );
-    $buffer->set_text($text);
-    $buffer->apply_tag_by_name("Header", $buffer->get_bounds);
-}
-
-#***
-
 
 #****f* lyricue_server/set_osd
 # NAME
@@ -3207,20 +2745,28 @@ sub set_osd_clutter {
     } else {
         $globals->{'timeline_osd'} = Clutter::Timeline->new_for_duration($duration);
         $globals->{'timeline_osd'}->set_speed(15);
-        $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
+        $alpha = Clutter::Alpha->new($globals->{'timeline_osd'},
             \&Clutter::Alpha::ramp_inc);
     }
     my $start_x = int($globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2));
     my $end_x = int(($globals->{'osd'}->get_width()/2) - $globals->{'osd'}->get_width());
     my $start_y = int($globals->{'stage'}->get_height() - ($globals->{'osd'}->get_height() / $MINISCALE)/2);
-    my $path = 
-        Clutter::Path->new(
+
+    if ($globals->{'clutter1'}) {
+        my $path = Clutter::Path->new(
             [ 'move-to', [ [ $start_x, $start_y ] ] ],
             [ 'line-to', [ [ $end_x,   $start_y ] ] ],
         );
-    $globals->{'osd_path'} = Clutter::Behaviour::Path->new(
+        $globals->{'osd_path'} = Clutter::Behaviour::Path->new(
         $alpha, $path
-    );
+    } else {
+        $globals->{'osd_path'} = Clutter::Behaviour::Path->new(
+            $alpha,
+            Clutter::Knot->new($start_x, $start_y),
+            Clutter::Knot->new($end_x, $start_y)
+        );
+    }
+
     $globals->{'osd_path'}->apply($globals->{'osd'});
     $globals->{'osd'}->set_position( $start_x, $start_y) ;
 
@@ -3336,8 +2882,7 @@ sub update_snapshot {
 
     #if ($globals->{'preview'}) {
 
-    if (   ($globals->{'server_type'} == CANVAS)
-        || ($globals->{'server_type'} == SIMPLE))
+    if ($globals->{'server_type'} == SIMPLE)
     {
         my $window = $globals->{'window'}->window();
         my $pixmap =
@@ -3471,8 +3016,8 @@ sub create_window {
         eval { require Clutter };
         if ($@) {
             print
-              "Optional module Clutter not available. Using canvas server\n";
-            $globals->{'server_type'} = CANVAS;
+              "Optional module Clutter not available. Using simple server\n";
+            $globals->{'server_type'} = SIMPLE;
         } else {
             eval { require Gtk2::Clutter };
             if ($@) {
@@ -3496,16 +3041,6 @@ print "VERS:".$globals->{'clutter1'}."\n";
     $geom->min_aspect($aspect);
     $globals->{'window'}
       ->set_geometry_hints($globals->{'window'}, $geom, 'GDK_HINT_ASPECT');
-    if ($globals->{'server_type'} == CANVAS) {
-        eval { require Gnome2::Canvas; };
-        if ($@) {
-            print
-"Optional module Gnome2::Canvas not available. Using simple server\n";
-            $globals->{'server_type'} = SIMPLE;
-        } else {
-            import Gnome2::Canvas;
-        }
-    }
     if ($globals->{'server_type'} == SIMPLE) {
         debug("Using simple server");
         my $vbox = Gtk2::VBox->new(FALSE, 0);
@@ -3564,66 +3099,6 @@ print "VERS:".$globals->{'clutter1'}."\n";
         $globals->{'stage'} = $embed->get_stage();
         $globals->{'stage'}->set_color($black_colour);
         $globals->{'stage'}->hide_cursor();
-    } else {
-        debug("Using full server");
-        $globals->{'canvas'} = Gnome2::Canvas->new();
-        $globals->{'canvas'}
-          ->signal_connect("button_press_event", \&HandleMouse);
-        $globals->{'canvas'}
-          ->set_scroll_region(0, 0, $config->{'Width'}, $config->{'Height'});
-        $globals->{'canvas'}->set_center_scroll_region(TRUE);
-        $globals->{'canvas'}->set_pixels_per_unit(1 / $MINISCALE);
-
-        $globals->{'window'}->add($globals->{'canvas'});
-        $globals->{'root'} = $globals->{'canvas'}->root;
-        $globals->{'canvas'}->show();
-
-        $background_black = Gnome2::Canvas::Item->new(
-            $globals->{'root'},
-            'Gnome2::Canvas::Rect',
-            x1            => 0,
-            y1            => 0,
-            x2            => $config->{'Width'},
-            y2            => $config->{'Height'},
-            fill_color    => 'black',
-            outline_color => 'black'
-        );
-
-        # Find font sizes
-        my $layout = $globals->{'window'}->create_pango_layout("lj");
-        my $tmpdesc =
-          Gtk2::Pango::FontDescription->from_string($config->{'Header'});
-        $layout->set_font_description($tmpdesc);
-        ($globals->{'headhigh'}, $globals->{'headwide'}) =
-          $layout->get_pixel_size;
-
-        debug("Creating text areas");
-
-        # Create the area for lyrics and set styles
-        # Song lyrics - Middle of screen
-        $globals->{'mainText'} = Gnome2::Canvas::Item->new(
-            $globals->{'root'}, 'Gnome2::Canvas::RichText',
-            x                => 0,
-            y                => 0,
-            width            => 0,
-            height           => 0,
-            anchor           => 'GTK_ANCHOR_CENTER',
-            'cursor-visible' => FALSE
-        );
-        my $buffer = $globals->{'mainText'}->get_buffer();
-        my $colour = $config->{'Colour'};
-        if ($config->{'BackdropTextColour'} ne "") {
-            $colour = $config->{'BackdropTextColour'};
-        }
-        my $tag2 = $buffer->create_tag(
-            "Main",            "font",
-            $config->{'Main'}, "foreground",
-            $colour,           "wrap-mode",
-            "word",            "editable-set",
-            TRUE,              "editable",
-            FALSE
-        );
-        $buffer->apply_tag_by_name("Main", $buffer->get_bounds);
     }
 
     # callback registration
@@ -3642,10 +3117,6 @@ print "VERS:".$globals->{'clutter1'}."\n";
     $globals->{'window'}->show_all();
     $globals->{'window'}->signal_connect("configure_event", \&Configure_event);
     Configure_event();
-
-    if ($globals->{'server_type'} == CANVAS) {
-        $globals->{'canvas'}->update_now();
-    }
 
     debug("Done");
 }
