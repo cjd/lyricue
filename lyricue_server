@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.218 2010/03/14 10:18:19 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.219 2010/03/15 02:02:08 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -290,8 +290,10 @@ if (!-w $globals->{'configfile'}) {
     }
     system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
 }
-open(LOG,
-    ">" . $globals->{'basedir'} . "/server-" . $globals->{'use_port'} . ".log");
+
+my $logname = $globals->{'basedir'} . "/server-" . $globals->{'use_port'} . ".log";
+rename($logname , $logname.".old") or system("mv", $logname, $logname.".old");
+open(LOG, ">" . $logname);
 binmode LOG, ":utf8";
 
 my $config = load_config();
@@ -2759,6 +2761,7 @@ sub set_osd_clutter {
         );
         $globals->{'osd_path'} = Clutter::Behaviour::Path->new(
         $alpha, $path
+        );
     } else {
         $globals->{'osd_path'} = Clutter::Behaviour::Path->new(
             $alpha,

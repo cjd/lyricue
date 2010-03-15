@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.351 2010/03/15 01:20:05 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.352 2010/03/15 02:02:08 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -447,7 +447,9 @@ if (-e $globals->{'basedir'}) {
 }
 
 # Setup logging
-open(LOG, ">" . $globals->{'basedir'} . "/frontend.log");
+my $logname = $globals->{'basedir'} . "/frontend.log";
+rename($logname , $logname.".old") or system("mv", $logname, $logname.".old");
+open(LOG, ">" . $logname);
 binmode LOG, ":utf8";
 $widgets->{'main'} =
   Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain', 'lyricue');
