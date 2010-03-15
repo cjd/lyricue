@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.350 2010/03/14 10:18:19 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.351 2010/03/15 01:20:05 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -15,11 +15,11 @@ lyricue
 
 =head1 SYNOPSIS
 
-lyricue [ C<-v|-b|-l> C<-d> C<-s> I<server>]
+lyricue [-v|-l] [-b] [-r] [-w I<server>] [-d[q]] [-s I<server>]
 
 =head1 DESCRIPTION
 
-This program creates a GTK2 gui to add, edit and remove songs from the song database and also control a lyric display server
+This application is used to edit/display song lyrics on a second screen/projector for use at singing events such as church services.
 
 =head1 OPTIONS
 
@@ -31,7 +31,8 @@ Get lyricue version
 
 =item B<-d>
 
-Turn on debugging mode. Prints out debugging information
+Turn on debugging mode. Prints out debugging information. 
+Use -dq to enable SQL debugging as well
 
 =item B<-l>
 
@@ -45,13 +46,31 @@ Turn off background changing ability. Speeds program load
 
 Set server to connect to for Db and screen
 
+=item B<-r>
+
+Set server to connect to for MySQL
+
+=item B<-w>
+
+Do not maximize window on startup
+
+=item B<-i>
+
+Import song list from a file
+
+=back
+
 =head1 CONFIGURATION
 
 All configuration is done by editing the configuration section in the program
 
 =head1 REQUIRES
 
-Perl 5.6 or later, DBI::MySQL, Gtk2-Perl, MySQL database
+Perl 5.6 or later, DBI::MySQL, Gtk2-Perl, MySQL database, Clutter-perl, Gstreamer
+
+=head1 SEE ALSO
+
+lyricue_server, lyricue_remote
 
 =head1 AUTHOR
 

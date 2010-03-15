@@ -1,4 +1,8 @@
 #!/bin/bash
+
+BUILD_DIR=~/source/Lyricue/dist
+rm -rf ${BUILD_DIR}/l*
+
 if [ "$1" = "release" ] 
 then echo Making release
 CHANGELOG="debian/changelog-release"
@@ -9,6 +13,29 @@ else CHANGELOG="debian/changelog-cvs"
 cp debian/rules-base debian/rules
 cp debian/menu-base debian/menu
 fi
+
+VERSION=`head -1 ${CHANGELOG} |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
+LC_ALL=C;export LC_ALL
+
+echo Creating new files
+mkdir ${BUILD_DIR}
+mkdir ${BUILD_DIR}/lyricue-${VERSION}
+cp -R * ${BUILD_DIR}/lyricue-${VERSION}
+rm -rf ${BUILD_DIR}/${BUILD_DIR}
+rm -rf ${BUILD_DIR}/lyricue-${VERSION}/${BUILD_DIR}
+find ${BUILD_DIR}/lyricue-${VERSION} -type d -name CVS -exec rm -rf \{} \;
+
+pushd ${BUILD_DIR}/lyricue-${VERSION}
+rm ChangeLog.bak debian/menu-base debian/rules-base
+pod2man lyricue > lyricue.1
+pod2man lyricue_server > lyricue_server.1
+pod2man lyricue_remote > lyricue_remote.1
+
+CONV="s/##VERSION##/${VERSION}/g"
+for F in import_media lyricue lyricue.1 lyricue_server lyricue.glade
+do sed --in-place -e $CONV $F
+done
+
 
 for DIST in intrepid jaunty karmic lucid
 do echo Building for ${DIST}
