@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Update changelog
+cvs2cl
+
 BUILD_DIR=~/source/Lyricue/dist
 rm -rf ${BUILD_DIR}/l*
 
@@ -44,6 +47,7 @@ then cat debian/control-${DIST} | sed -e 's/lyricue-cvs/lyricue/g' > debian/cont
 else cp debian/control-${DIST} debian/control
 fi
 cat ${CHANGELOG} | head -1 | sed -e "s/karmic/$DIST/g" -e "s/)/${DIST})/g"  > debian/changelog
+echo "" >> debian/changelog
 echo "  * Build for ${DIST}" >> debian/changelog
 echo "" >> debian/changelog
 echo " -- Chris Debenham <chris@adebenham.com> " `date -R` >> debian/changelog
@@ -52,5 +56,7 @@ cat $CHANGELOG >> debian/changelog
 debuild -S -sa -kB734D1F5
 done
 
-#(cd ..;dput ppa:chris-debenham/lyricue lyricue-*_source.changes)
+# Cleanup
 rm debian/rules debian/changelog debian/control debian/menu
+
+echo "dput ../dist/ppa:chris-debenham/lyricue lyricue-*_source.changes"
