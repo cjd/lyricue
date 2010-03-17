@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.219 2010/03/15 02:02:08 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.220 2010/03/17 00:17:10 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -2051,7 +2051,6 @@ sub set_maintext_clutter {
           (($globals->{'maintext'}->get_width / 2) / $MINISCALE);
     }
     $globals->{'maintext'}->set_position($final_x, $final_y);
-    debug($final_x . ":" . $final_y);
 
     if ($globals->{'clutter1'}) {
         $globals->{'timeline'} = Clutter::Timeline->new(500);
@@ -3431,6 +3430,7 @@ sub db_check_app {
 #
 sub db_connect {
     my ($dbname, $dberror) = @_;
+    debug("Connecting to database:".$dbname);
     my ($dbh);
     if ($globals->{'db_type'} eq "SQLite") {
         $dbh =
