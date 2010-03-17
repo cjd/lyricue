@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.220 2010/03/17 00:17:10 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.221 2010/03/17 00:49:32 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -489,7 +489,8 @@ sub poke_db {
 
     # Check bibleDb
     if (!$globals->{'usesword'}) {
-        $sth = $bibleDbh->prepare("describe verse") || ($fail = TRUE);
+        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+        $sth = $bibleDbh->prepare("describe ".$table) || ($fail = TRUE);
         if (!$fail) {
             my $rv = $sth->execute || ($fail = TRUE);
         }
