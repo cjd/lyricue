@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.352 2010/03/15 02:02:08 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.353 2010/03/17 00:16:25 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -9967,7 +9967,9 @@ sub navigator_update {
         biblebrowser_verse(NULL, 0, "entry");
         foreach my $num ($startverse .. $endverse) {
             my $button = "button" . ($num - 1);
-            $widgets->{'bibleBrowser'}{$button}->set_active(TRUE);
+            if (defined $widgets->{'bibleBrowser'}{$button}) {
+                $widgets->{'bibleBrowser'}{$button}->set_active(TRUE);
+            }
         }
     }
     if ($globals->{'usesword'}) {
@@ -10147,12 +10149,36 @@ sub navigator_next {
     $endverse++;
     while ($loop) {
         my $maxv = get_max_verse($book, $chapter, $startverse, $endverse);
+print $maxv."\n";
         if ($maxv < $endverse) {
             $startverse++;
         } else {
             $loop = FALSE;
         }
     }
+    if (!$globals->{'usesword'}) {
+        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+        my $query = "SELECT MAX(versenum) FROM ".$table." WHERE book=\""
+          . $book
+          . "\" AND chapternum="
+          . $chapter;
+        qdebug($query);
+        my $sth = $bibleDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+        my @row = $sth->fetchrow_array();
+        
+        if ($endverse > $row[0]) {
+            $endverse = $row[0];
+        }
+        if ($startverse > $row[0]) {
+            $startverse = $row[0];
+        }
+    }
+
     $verse = $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
     $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
     navigator_update();
@@ -10173,7 +10199,7 @@ sub navigator_next {
 # SOURCE
 #
 sub navigator_prev {
-    debug("Showing next verse");
+    debug("Showing previous verse");
     my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->{user_data};
     $verse =~ s/ (\D)/_$1/;
     my ($book, $chapter, $startverse, $endverse) =
@@ -10181,6 +10207,9 @@ sub navigator_prev {
     $book =~ s/_/ /g;
     my $loop = TRUE;
     $startverse--;
+    if ($startverse < 1) {
+        $startverse = 1;
+    }
     $endverse = get_max_verse($book, $chapter, $startverse, $endverse);
     $verse = $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
     $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
@@ -10249,6 +10278,7 @@ sub do_pending {
 #
 sub get_max_verse {
     my ($book, $chapter, $startverse, $endverse) = @_;
+    debug("Get max verse that fits on screen");
 
     if ($config->{'Main'} eq "") {
         $config = load_config();
@@ -10271,6 +10301,7 @@ sub get_max_verse {
 
     if (!$globals->{'usesword'}) {
         my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+
         $query =
             "SELECT * FROM ".$table." WHERE book=\"" 
           . $book
