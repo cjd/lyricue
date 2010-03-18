@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.353 2010/03/17 00:16:25 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.354 2010/03/18 05:28:24 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -522,6 +522,7 @@ choose_playlist();
 # Don't let them cancel out of the playlist chooser yet
 $widgets->{'main'}->get_widget('toolbuttonPlayCancel')->hide;
 $globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
+$globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
 Gtk2->main();
 
@@ -9938,7 +9939,7 @@ sub navigator_update {
         if (!$globals->{'usesword'}) {
             my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
             my $query =
-              "SELECT book FROM ".$table." WHERE book LIKE \"" . $book . "%\"";
+              "SELECT DISTINCT(book) FROM ".$table." WHERE book LIKE \"" . $book . "%\"";
             qdebug($query);
             my $sth = $bibleDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'},
@@ -12760,6 +12761,7 @@ sub end_transaction
 #
 sub clean_database
 {
+    debug("Cleaning database");
     my $query = "SELECT description,category FROM media WHERE format=\"file\"";
     qdebug($query);
     my $sth = $mediaDbh->prepare($query)
@@ -12790,5 +12792,6 @@ sub clean_database
       || display_fatal($errorcodes->{'sqlprepare'},
         $! . "\nSQL: " . $query);
     $rv = $sth->execute; # Don't worry if it fails
+    return FALSE;
 }
 #***
