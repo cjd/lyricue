@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.355 2010/03/21 09:57:50 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.356 2010/03/30 20:56:18 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -2303,7 +2303,7 @@ sub import_song_xml {
 
     my ($xml);
     if ($filename =~ /[zZ]$/) {
-        open my $fh, "gzip -dc " . $filename . "|";
+        open my $fh, "gzip -dc \"" . $filename . "\" |";
         $xml = XMLin($fh, ForceArray => ['page'], SuppressEmpty => '');
         close $fh;
     } else {
@@ -9447,7 +9447,7 @@ sub import_songs {
 
     my ($fh);
     if ($filename =~ /[zZ]$/) {
-        open $fh, "gzip -dc " . $filename . "|";
+        open $fh, "gzip -dc \"" . $filename . "\" |";
     } else {
         open $fh, $filename;
     }
@@ -9986,7 +9986,6 @@ sub navigator_update {
         my @command_lines = split(/$book /, $command_out);
         my $mark          = 0;
         my $lineno        = 0;
-
         foreach $lineno (1 .. @command_lines) {
             my $line2 = $command_lines[$lineno - 1];
             chomp($line2);
@@ -9994,6 +9993,7 @@ sub navigator_update {
                 if ($lineno != @command_lines) {
                     $line2 .= "\n";
                 }
+                $line2 =~ s/{[^{}]*?}//gc;
                 $buffer->create_mark($mark, $iter, TRUE);
                 insert_link($buffer, $iter, $mark, $line2);
                 $mark++;
