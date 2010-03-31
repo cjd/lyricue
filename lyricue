@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.359 2010/03/31 20:57:07 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.360 2010/03/31 21:11:30 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -3282,8 +3282,8 @@ sub preview_pageid {
     if (defined $row) {
         #join all the strings together so update display will accept them, removing
         #any newlines or semicolons that would upset the split on the other end.
-        my $songtext = $row->{'lyrics'};
-        my $pagetitle = $row->{'pagetitle'};
+        my $songtext = toutf($row->{'lyrics'});
+        my $pagetitle = toutf($row->{'pagetitle'});
         $songtext =~ s/\n/#BREAK#/g;
         $songtext =~ s/:/#SEMI#/g;
         $pagetitle =~ s/\n/#BREAK#/g;
@@ -4997,7 +4997,7 @@ sub complete_export_song {
     my $out = {'song' => [$song]};
 
     my $writer = XML::Simple->new();
-    open my $fh, ">" . $export;
+    open my $fh, ">" . $export. "";
     $writer->XMLout($out, OutputFile => $fh, RootName => 'lyricue');
     close $fh;
 
@@ -12065,7 +12065,7 @@ sub export_db {
     if ($confirm eq 'ok') {
         my $filename = $exportxml->get_widget('dialogFile')->get_filename;
 
-        $filename =~ s/\..*?g//g;
+        $filename =~ s/\..*?$//g;
         $filename .= ".xmlz";
         if (defined $filename) {
             export_songs($filename);
