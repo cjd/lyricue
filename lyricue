@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.357 2010/03/31 00:37:35 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.358 2010/03/31 20:54:29 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -9750,7 +9750,7 @@ sub export_songs {
     }
     my $out = {'song' => \@songs};
     my $writer = XML::Simple->new();
-    open my $fh, "| gzip -c - >" . $filename;
+    open my $fh, "| gzip -c - > \"" . $filename."\"";
     $writer->XMLout($out, OutputFile => $fh, RootName => 'lyricue');
     close $fh;
 
