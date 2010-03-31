@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.356 2010/03/30 20:56:18 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.357 2010/03/31 00:37:35 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -1177,6 +1177,27 @@ sub popup_avail_menu {
     } elsif ($event->button == 1 && $event->type eq '2button-press') {
         debug("Add song");
         add_to_playlist();
+        return (TRUE);
+    } else {
+        debug("song selected");
+        my $path = $widget->get_path_at_pos($event->x, $event->y);
+        my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
+        my $iter = $model->get_iter($path);
+        my $songid = $model->get($iter,3);
+        my $query = "SELECT pageid FROM page WHERE songid=".$songid." ORDER BY pagenum";
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+        my @row = $sth->fetchrow_array();
+        if (defined $row[0]) {
+            my $pageid = $row[0];
+            preview_pageid($pageid);
+        }
+
         return (TRUE);
     }
 
@@ -3227,6 +3248,49 @@ sub preview_page {
         update_display("preview", $titledata, $songtext);
     }
     preview_display("preview", $titledata, $songtext);
+}
+
+#***
+
+#****f* lyricue/preview_pageid
+# NAME
+#   preview_pageid
+# SYNOPSIS
+#   preview_pageid ($pageid)
+# FUNCTION
+#   Preview a pageid in the server
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub preview_pageid {
+    my ($pageid) = @_;
+    debug("preview pageid");
+    reset_timer($globals->{'timer'});
+
+    my $query = "SELECT lyrics, pagetitle FROM page WHERE pageid=" . $pageid;
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+    $row = $sth->fetchrow_hashref();
+    if (defined $row) {
+        #join all the strings together so update display will accept them, removing
+        #any newlines or semicolons that would upset the split on the other end.
+        my $songtext = $row->{'lyrics'};
+        my $pagetitle = $row->{'pagetitle'};
+        $songtext =~ s/\n/#BREAK#/g;
+        $songtext =~ s/:/#SEMI#/g;
+        $pagetitle =~ s/\n/#BREAK#/g;
+        $pagetitle =~ s/:/#SEMI#/g;
+
+        preview_display("preview", $pagetitle, $songtext);
+    }
 }
 
 #***
@@ -9993,7 +10057,6 @@ sub navigator_update {
                 if ($lineno != @command_lines) {
                     $line2 .= "\n";
                 }
-                $line2 =~ s/{[^{}]*?}//gc;
                 $buffer->create_mark($mark, $iter, TRUE);
                 insert_link($buffer, $iter, $mark, $line2);
                 $mark++;
