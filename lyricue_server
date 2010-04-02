@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.222 2010/03/21 09:57:50 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.223 2010/04/02 22:26:39 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -845,6 +845,8 @@ sub process_input {
                                     $current_item = $start[0];
                                 }
                             }
+                        } else {
+                            update_display("display", "next_song", 0);
                         }
                     }
                 } elsif ($line[1] eq "prev_page") {
