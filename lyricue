@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.360 2010/03/31 21:11:30 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.361 2010/04/07 22:23:35 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7098,7 +7098,7 @@ sub imgdir_load {
             foreach $file (sort readdir(DIR)) {
                 if (!($file =~ /^\./)) {
                     do_pending();
-                    my @fileexts = qw(avi mpg mov wmv mp4);
+                    my @fileexts = qw(avi mpg mov wmv mp4 ogv flv);
                     my $video    = FALSE;
                     for my $fileobj (@fileexts) {
                         if ($file =~ /$fileobj$/i) {

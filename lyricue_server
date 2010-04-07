@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.223 2010/04/02 22:26:39 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.224 2010/04/07 22:23:35 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1472,7 +1472,7 @@ sub change_backdrop {
     } elsif ($type eq "dir") {
 
         # Movie file
-        my @fileexts = qw(avi mpg mov wmv mp4);
+        my @fileexts = qw(avi mpg mov wmv mp4 ogv flv);
         my $video    = FALSE;
         for my $fileobj (@fileexts) {
             if ($data =~ /$fileobj$/i) {
