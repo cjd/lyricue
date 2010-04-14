@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.361 2010/04/07 22:23:35 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.362 2010/04/14 01:43:28 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -2932,37 +2932,21 @@ sub clear_playlist {
 # SOURCE
 #
 sub display_song {
-    my ($widget, $event) = @_;
+    my ($widget, $path, ,$column) = @_;
+    debug ("display song");
+    reset_timer($globals->{'timer'});
+    my $selection =
+      $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+    my ($model, $iter) = $selection->get_selected;
+    if ($iter) {
+        update_display("display", $model->get($iter, 2), "");
+    }
+    return TRUE;
+}
 
-    #debug ("event ".$event . " - ".$event->type); #Too many calls to this one
-    if (defined($event->type)) {
-        if (
-            ($event->type eq '2button-press')
-            || (
-                ($event->type eq 'key-press')
-                && (   ($event->keyval == $Gtk2::Gdk::Keysyms{Return})
-                    || ($event->keyval == $Gtk2::Gdk::Keysyms{KP_Enter}))
-            )
-          )
-        {
-            reset_timer($globals->{'timer'});
-            my $selection =
-              $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
-            my ($model, $iter) = $selection->get_selected;
-            if ($iter) {
-                update_display("display", $model->get($iter, 2), "");
-
-            }
-            return TRUE;
-        } elsif ($event->type eq 'button-press') {
-            my $path = $widget->get_path_at_pos($event->x, $event->y);
-            if (defined $path) {
-                $widget->get_selection->select_path($path);
-            }
-            if ($event->button == 3) {
-                popup_play_menu($event);
-                return TRUE;
-            } else {
+sub treePlaylist_cursor_changed {
+    my ($widget) = @_;
+    debug ("preview playlist item");
                 my $selection =
                   $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
                 my ($model, $iter) = $selection->get_selected;
@@ -3015,8 +2999,15 @@ sub display_song {
                 if ($config->{'DynamicPreview'}) {
                     preview_playlist_item();
                 }
-            }
-        }
+}
+
+sub on_treePlaylist_button_press_event {
+    my ($widget, $event) = @_;
+
+    # Right-click menu
+    if ($event->button == 3) {
+        popup_play_menu($event);
+        return TRUE;
     }
     return FALSE;
 }
@@ -7985,7 +7976,7 @@ sub calculate_transition {
     if ($widgets->{'main'}->get_widget('toggleRotY')->get_active()) {
         $trans_type = $trans_type + Y_AXIS;
     }
-    if ($widgets->{'main'}->get_widget('toggleRotY')->get_active()) {
+    if ($widgets->{'main'}->get_widget('toggleRotZ')->get_active()) {
         $trans_type = $trans_type + Z_AXIS;
     }
     return $trans_type;
