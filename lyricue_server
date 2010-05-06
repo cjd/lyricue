@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.224 2010/04/07 22:23:35 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.225 2010/05/06 06:08:25 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -527,7 +527,7 @@ sub process_input {
         fromutf($input);
         debug("Received :" . $input);
         chomp($input);
-        my @line = split(/:/, $input);
+        my @line = split(/:/, $input,3);
         $_ = lc($line[0]);
 
         if (/^status$/) {
@@ -560,6 +560,10 @@ sub process_input {
             $status = fromutf(gettext("Configuration reloaded"));
         } elsif (/^backdrop$/) {
             $config->{'BGImage'} = $line[1];
+            if ($line[2] ne "") {
+                $line[2] =~ s/#SEMI#/:/g;
+                $config->{'BGImage'} .= ";".$line[2];
+            }
             change_backdrop($config->{'BGImage'}, TRUE);
             $status = fromutf(gettext("Backdrop changed to ")) . $config->{'BGImage'};
         } elsif (/^blank$/) {
@@ -1058,7 +1062,7 @@ sub process_input {
                         $config->{'BGImage'} = $file;
                         change_backdrop($file, TRUE);
                     } elsif ($row->{'type'} eq "file") {
-                        if (-r $row->{'data'}) {
+                        if ((-r $row->{'data'}) || ($row->{'data'} =~ /:\/\//)) {
                             $bgimage_changed = TRUE;
                             set_footer("");
                             set_header("");
@@ -1420,62 +1424,26 @@ sub change_backdrop {
     $globals->{'video_loop'} = FALSE;
     debug("Setting backdrop to $id");
     $globals->{'bgid'} = $id;
-    my ($type, $data) = split /;/, $id;
+    my ($type, $data) = split(/;/, $id,2);
     if ($data eq "") {
         $data = $type;
         $type = "db";
     }
-    if ($type eq "special") {
-        debug("Changing backdrop to live video feed");
-        if (defined $globals->{'background'}) {
-            $globals->{'background'}->destroy();
-            undef $globals->{'background'};
-        }
-        if ($MINISERV < 0) {
-            if ($globals->{'clutter1'}) {
-                $globals->{'background'} = Clutter::GStreamer::VideoTexture->new();
-            } else {
-                $globals->{'background'} = Clutter::Gst::VideoTexture->new();
-            }
-            my $playbin = $globals->{'background'}->get_playbin();
-            use GStreamer;
-            my $pipeline = GStreamer::Pipeline->new("");
-            my $src = GStreamer::ElementFactory->make("v4l2src", "src");
 
-            #my $fade =
-            #  GStreamer::ElementFactory->make("videobalance", "filter");
-            #$fade->set(saturation=>0.5 ,brightness=>0.1, contrast=>0.5);
-            my $colorspace =
-              GStreamer::ElementFactory->make("ffmpegcolorspace", "colorspace");
-            my $sink = Clutter::Gst::VideoSink->new($globals->{'background'});
-            $pipeline->add($src, $colorspace, $sink);
-            $src->link($colorspace, $sink);
-            $globals->{'background'}->set(
-                keep_aspect_ratio => 1,
-                request_mode      => 'height-for-width',
-            );
-            $globals->{'background'}
-              ->set_width($globals->{'stage'}->get_width());
-            $globals->{'background'}->set_anchor_point(
-                $globals->{'background'}->get_width / 2,
-                $globals->{'background'}->get_height / 2
-            );
-            $globals->{'background'}
-              ->set_position($globals->{'stage'}->get_width / 2, 0);
-            $globals->{'stage'}->add($globals->{'background'});
-
-            if ($MINISERV < 0) {
-                $pipeline->set_state('GST_STATE_PLAYING');
-            }
-            $globals->{'video_playing'} = TRUE;
-        }
-    } elsif ($type eq "dir") {
+    if ($type eq "dir") {
 
         # Movie file
         my @fileexts = qw(avi mpg mov wmv mp4 ogv flv);
         my $video    = FALSE;
         for my $fileobj (@fileexts) {
             if ($data =~ /$fileobj$/i) {
+                $video = TRUE;
+            }
+        }
+        if ( $data =~ /:\/\//) {
+            $video = TRUE;
+        }
+        if ($video) {
                 debug("Changing backdrop video to file:" . $data);
                 $video = TRUE;
                 if ($MINISERV < 0) {    # Don't play video in miniview
@@ -1490,7 +1458,22 @@ sub change_backdrop {
                         } else {
                             $globals->{'background'} = Clutter::Gst::VideoTexture->new();
                         }
-                        $globals->{'background'}->set_filename($data);
+                        my $start=0;
+                        my $end=0;
+                        if (! ($data =~ /:\/\//)) {
+                            $data = "file://".$data;
+                        } else {
+                            if ($data =~ / /) {
+                                my @parts = split(/ /, $data);
+                                $data = $parts[0];
+                                if ($data =~ /^dvd:\// ) {
+                                    ($start,$end) = split(/-/,$parts[1],2);
+                                    $data="dvd://"; # title number not working yet
+                                }
+                            }
+                        }
+                        debug ("Playing ".$data);
+                        $globals->{'background'}->set_uri($data);
                         $globals->{'background'}->set(
                             keep_aspect_ratio => 1,
                             request_mode      => 'height-for-width',
@@ -1510,6 +1493,11 @@ sub change_backdrop {
                         $globals->{'stage'}->add($globals->{'background'});
 
                         if ($MINISERV < 0) {
+                            if ($start != 0) {
+    print $start."\n";
+                                my $element= $globals->{'background'}->get_element();
+                                $element->seek(1.0, 'time', 'flush', 'set', $start*1000, 'none', 'none')
+                            }
                             $globals->{'background'}->set_playing(TRUE);
                             $globals->{'video_loop'} = $loop;
                             if ($loop) {
@@ -1530,7 +1518,6 @@ sub change_backdrop {
                         }
                     }
                 }
-            }
         }
         if (!$video) {
             debug("Changing backdrop image to file:" . $data);

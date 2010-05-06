@@ -9,7 +9,6 @@
     <child>
       <widget class="GtkVBox" id="vboxMain">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkMenuBar" id="menuMain">
             <property name="visible">True</property>
@@ -393,6 +392,21 @@
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkImageMenuItem" id="dvd_video1">
+                        <property name="label" translatable="yes">Add _DVD Video</property>
+                        <property name="visible">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="media_dvd"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image8">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-media-play</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkImageMenuItem" id="remove_from_playlist1">
                         <property name="label" translatable="yes">_Remove from Playlist</property>
                         <property name="visible">True</property>
@@ -702,7 +716,6 @@
                       <widget class="GtkVBox" id="vboxAvailable">
                         <property name="width_request">300</property>
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkHBox" id="hboxSearch">
                             <property name="visible">True</property>
@@ -850,7 +863,6 @@
                     <child>
                       <widget class="GtkVBox" id="vboxBGDir">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkComboBox" id="comboBGDirList">
                             <property name="visible">True</property>
@@ -896,7 +908,6 @@
                                 <child>
                                   <widget class="GtkVBox" id="vboxCurrentBG">
                                     <property name="visible">True</property>
-                                    <property name="orientation">vertical</property>
                                     <child>
                                       <placeholder/>
                                     </child>
@@ -919,7 +930,6 @@
                                 <child>
                                   <widget class="GtkVBox" id="vboxPrevBG">
                                     <property name="visible">True</property>
-                                    <property name="orientation">vertical</property>
                                     <child>
                                       <placeholder/>
                                     </child>
@@ -976,7 +986,6 @@
                     <child>
                       <widget class="GtkVBox" id="vboxImgDir">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkComboBox" id="comboImgDirList">
                             <property name="visible">True</property>
@@ -1053,15 +1062,14 @@
                     </child>
                     <child>
                       <widget class="GtkVBox" id="vboxFiles">
-                        <property name="orientation">vertical</property>
                         <child>
                           <placeholder/>
                         </child>
                         <child>
                           <widget class="GtkFileChooserWidget" id="fileAddFile">
                             <property name="visible">True</property>
-                            <property name="preview_widget_active">False</property>
                             <property name="use_preview_label">False</property>
+                            <property name="preview_widget_active">False</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -1090,7 +1098,6 @@
                     <child>
                       <widget class="GtkVBox" id="vboxBibleNav1">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkLabel" id="labelBibleNav">
                             <property name="visible">True</property>
@@ -1157,7 +1164,6 @@
                           <widget class="GtkVPaned" id="vpaned1">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkScrolledWindow" id="scrollBible">
                                 <property name="visible">True</property>
@@ -1293,11 +1299,9 @@
                     <child>
                       <widget class="GtkVBox" id="vboxTransitions">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkVBox" id="vboxTransTypes">
                             <property name="visible">True</property>
-                            <property name="orientation">vertical</property>
                             <property name="homogeneous">True</property>
                             <child>
                               <widget class="GtkRadioButton" id="radioTransFade">
@@ -1501,7 +1505,7 @@
                                 <property name="receives_default">True</property>
                                 <signal name="clicked" handler="transition_dir_changed"/>
                                 <child>
-                                  <widget class="GtkImage" id="image8">
+                                  <widget class="GtkImage" id="image28">
                                     <property name="visible">True</property>
                                     <property name="stock">gtk-go-up</property>
                                   </widget>
@@ -1879,14 +1883,12 @@
                       <widget class="GtkVBox" id="vboxMainRight">
                         <property name="width_request">300</property>
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkHBox" id="hbox1">
                             <property name="visible">True</property>
                             <child>
                               <widget class="GtkVBox" id="vbox1">
                                 <property name="visible">True</property>
-                                <property name="orientation">vertical</property>
                                 <child>
                                   <widget class="GtkLabel" id="labelPlaylist">
                                     <property name="visible">True</property>
@@ -1921,7 +1923,7 @@
                                 <property name="image_position">top</property>
                                 <signal name="clicked" handler="update_playlist"/>
                                 <child>
-                                  <widget class="GtkImage" id="image28">
+                                  <widget class="GtkImage" id="image41">
                                     <property name="visible">True</property>
                                     <property name="stock">gtk-refresh</property>
                                   </widget>
@@ -1964,7 +1966,6 @@
                         <child>
                           <widget class="GtkVBox" id="vboxChoosePlay">
                             <property name="visible">True</property>
-                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkHSeparator" id="hseparator1">
                                 <property name="visible">True</property>
@@ -2170,16 +2171,13 @@
                       <widget class="GtkVBox" id="vboxView">
                         <property name="width_request">200</property>
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkVPaned" id="vpanedNav">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="orientation">vertical</property>
                             <child>
                               <widget class="GtkVBox" id="vbox13">
                                 <property name="visible">True</property>
-                                <property name="orientation">vertical</property>
                                 <child>
                                   <widget class="GtkLabel" id="labelPreview">
                                     <property name="visible">True</property>
@@ -2244,7 +2242,6 @@
                             <child>
                               <widget class="GtkVBox" id="vboxQuickUpdate">
                                 <property name="visible">True</property>
-                                <property name="orientation">vertical</property>
                                 <child>
                                   <widget class="GtkLabel" id="label7">
                                     <property name="visible">True</property>
@@ -2373,7 +2370,6 @@
     <child>
       <widget class="GtkVBox" id="vboxEditMain">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkMenuBar" id="menubarEdit">
             <property name="visible">True</property>
@@ -2724,7 +2720,6 @@
             <child>
               <widget class="GtkVBox" id="vboxEditButtons">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkButton" id="buttonEditAddPage">
                     <property name="visible">True</property>
@@ -3055,7 +3050,6 @@
     <child>
       <widget class="GtkVBox" id="vboxAbout">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkImage" id="imageAbout">
             <property name="visible">True</property>
@@ -3206,7 +3200,6 @@ http://www.lyricue.org/</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="vboxDelete">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkLabel" id="labelDelete">
             <property name="visible">True</property>
@@ -3273,14 +3266,12 @@ http://www.lyricue.org/</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="vboxImage">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hboxImage">
             <property name="visible">True</property>
             <child>
               <widget class="GtkVBox" id="vboxImageLeft">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkHBox" id="hbox58">
                     <property name="visible">True</property>
@@ -3475,7 +3466,6 @@ http://www.lyricue.org/</property>
             <child>
               <widget class="GtkVBox" id="vboxImageRight">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkImage" id="imageImage">
                     <property name="width_request">480</property>
@@ -3648,7 +3638,6 @@ http://www.lyricue.org/</property>
     <child>
       <widget class="GtkVBox" id="vboxSearchSongs">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hboxSearchSongs">
             <property name="visible">True</property>
@@ -3735,7 +3724,6 @@ http://www.lyricue.org/</property>
           <widget class="GtkVPaned" id="vpaned2">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="orientation">vertical</property>
             <child>
               <widget class="GtkScrolledWindow" id="scrollSearchSongs">
                 <property name="visible">True</property>
@@ -3760,7 +3748,6 @@ http://www.lyricue.org/</property>
             <child>
               <widget class="GtkVBox" id="vbox12">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="labelSearchText">
                     <property name="visible">True</property>
@@ -3950,11 +3937,9 @@ http://www.lyricue.org/</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="vboxPromptE">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkVBox" id="vboxPromptETop">
             <property name="visible">True</property>
-            <property name="orientation">vertical</property>
             <child>
               <widget class="GtkLabel" id="labelPromptE">
                 <property name="visible">True</property>
@@ -4036,11 +4021,9 @@ http://www.lyricue.org/</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="vboxPromptC">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkVBox" id="vboxPromptCTop">
             <property name="visible">True</property>
-            <property name="orientation">vertical</property>
             <child>
               <widget class="GtkLabel" id="labelPromptC">
                 <property name="visible">True</property>
@@ -4135,7 +4118,6 @@ http://www.lyricue.org/</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="vboxLoop">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkHBox" id="hboxLoopTop">
             <property name="visible">True</property>
@@ -4326,7 +4308,6 @@ http://www.lyricue.org/</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkLabel" id="labelError">
             <property name="visible">True</property>
@@ -4405,7 +4386,6 @@ http://www.lyricue.org/</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox2">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkTable" id="tableAccess">
             <property name="visible">True</property>
@@ -4575,7 +4555,6 @@ http://www.lyricue.org/</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox3">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkNotebook" id="notebook2">
             <property name="visible">True</property>
@@ -4584,7 +4563,6 @@ http://www.lyricue.org/</property>
             <child>
               <widget class="GtkVBox" id="vbox8">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label112">
                     <property name="visible">True</property>
@@ -4815,7 +4793,6 @@ http://www.lyricue.org/</property>
             <child>
               <widget class="GtkVBox" id="vbox9">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label113">
                     <property name="visible">True</property>
@@ -5027,7 +5004,6 @@ Bottom</property>
                     <child>
                       <widget class="GtkVBox" id="vbox11">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <widget class="GtkRadioButton" id="radioPrefServerClutter">
                             <property name="label" translatable="yes">OpenGL</property>
@@ -5191,7 +5167,6 @@ Right</property>
             <child>
               <widget class="GtkVBox" id="vboxPrefBackground">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="labelPrefBackground">
                     <property name="visible">True</property>
@@ -5251,7 +5226,6 @@ Right</property>
             <child>
               <widget class="GtkVBox" id="vboxPrefsOptions">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label114">
                     <property name="visible">True</property>
@@ -5394,7 +5368,6 @@ Right</property>
             <child>
               <widget class="GtkVBox" id="vbox10">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label117">
                     <property name="visible">True</property>
@@ -5651,7 +5624,6 @@ Right</property>
             <child>
               <widget class="GtkVBox" id="vbox5">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label115">
                     <property name="visible">True</property>
@@ -5765,7 +5737,6 @@ Right</property>
             </child>
             <child>
               <widget class="GtkVBox" id="vbox14">
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkTable" id="table3">
                     <property name="visible">True</property>
@@ -5954,11 +5925,9 @@ Right</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox4">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkVBox" id="vbox6">
             <property name="visible">True</property>
-            <property name="orientation">vertical</property>
             <child>
               <widget class="GtkLabel" id="label103">
                 <property name="visible">True</property>
@@ -5973,7 +5942,6 @@ Right</property>
             <child>
               <widget class="GtkVBox" id="vbox7">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkCheckButton" id="checkLyricdb">
                     <property name="label" translatable="yes">Songs, Playlists, Usage</property>
@@ -6125,7 +6093,6 @@ Right</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox5">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkTable" id="table2">
             <property name="visible">True</property>
@@ -6241,7 +6208,6 @@ of your MySQL Administration user</property>
     <child>
       <widget class="GtkVBox" id="vbox15">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkLabel" id="labelBibleInstall">
             <property name="visible">True</property>
@@ -6373,7 +6339,6 @@ http://www.lyricue.org/bibles</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
           <widget class="GtkHButtonBox" id="dialog-action_area6">
@@ -6430,12 +6395,10 @@ http://www.lyricue.org/bibles</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox12">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <widget class="GtkVBox" id="vbox3">
             <property name="visible">True</property>
-            <property name="orientation">vertical</property>
             <child>
               <widget class="GtkLabel" id="label14">
                 <property name="visible">True</property>
@@ -6546,12 +6509,10 @@ http://www.lyricue.org/bibles</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox13">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <widget class="GtkVBox" id="vbox4">
             <property name="visible">True</property>
-            <property name="orientation">vertical</property>
             <child>
               <widget class="GtkLabel" id="label16">
                 <property name="visible">True</property>
@@ -6677,7 +6638,6 @@ http://www.lyricue.org/bibles</property>
     <child>
       <widget class="GtkVBox" id="vboxBook">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkLabel" id="labelBookOld">
             <property name="visible">True</property>
@@ -7879,6 +7839,15 @@ http://www.lyricue.org/bibles</property>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
     <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
       <widget class="GtkLabel" id="labelFRIntro">
         <property name="visible">True</property>
         <property name="label" translatable="yes">As this is the first time you have run Lyricue we now walk through some initial settings</property>
@@ -8607,7 +8576,6 @@ If you need to make any changes, or for more options, select Preferences from th
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox15">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <widget class="GtkComboBoxEntry" id="comboSelectCategory">
@@ -8639,6 +8607,156 @@ If you need to make any changes, or for more options, select Preferences from th
               <widget class="GtkButton" id="buttonCatOK">
                 <property name="label">gtk-ok</property>
                 <property name="response_id">1</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+  <widget class="GtkDialog" id="dialogDvd">
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">Select DVD Title</property>
+    <property name="window_position">center</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">normal</property>
+    <child internal-child="vbox">
+      <widget class="GtkVBox" id="dialog-vbox16">
+        <property name="visible">True</property>
+        <property name="spacing">2</property>
+        <child>
+          <widget class="GtkVBox" id="vboxDvdMain">
+            <property name="visible">True</property>
+            <child>
+              <widget class="GtkVBox" id="vboxDvd">
+                <property name="visible">True</property>
+                <child>
+                  <widget class="GtkLabel" id="labelDvdTitle">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Select the DVD title number to play</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+              </widget>
+              <packing>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkExpander" id="expander1">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <child>
+                  <widget class="GtkTable" id="table1">
+                    <property name="visible">True</property>
+                    <property name="n_rows">2</property>
+                    <property name="n_columns">2</property>
+                    <child>
+                      <widget class="GtkLabel" id="label3">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Start time</property>
+                      </widget>
+                      <packing>
+                        <property name="x_options">GTK_FILL</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkComboBox" id="comboDvdEnd">
+                        <property name="visible">True</property>
+                        <property name="items" translatable="yes">End time
+Duration</property>
+                      </widget>
+                      <packing>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                        <property name="x_options">GTK_FILL</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkEntry" id="entryDvdStart">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                      </widget>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="right_attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkEntry" id="entryDvdEnd">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                      </widget>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="right_attach">2</property>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                      </packing>
+                    </child>
+                  </widget>
+                </child>
+                <child>
+                  <widget class="GtkLabel" id="labelDvdExp">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Select time period</property>
+                  </widget>
+                  <packing>
+                    <property name="type">label_item</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child internal-child="action_area">
+          <widget class="GtkHButtonBox" id="dialog-action_area16">
+            <property name="visible">True</property>
+            <property name="layout_style">end</property>
+            <child>
+              <widget class="GtkButton" id="buttonCancel">
+                <property name="label">gtk-cancel</property>
+                <property name="response_id">1</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkButton" id="buttonAdd">
+                <property name="label">gtk-add</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>

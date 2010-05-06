@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.362 2010/04/14 01:43:28 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.363 2010/05/06 06:08:25 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -141,6 +141,8 @@ binmode(STDERR, ":utf8");
 # edit this section.
 #
 my ($globals);
+
+my %lsdvd;
 
 if ($^O eq 'MSWin32') {
     $globals->{'etcdir'}   = "etc/lyricue/";
@@ -704,6 +706,11 @@ sub add_playlist {
                     $filename =~ s/\..*?$//g;
                     $filename =~ s/_/ /g;
                     $title = "Presentation: " . $filename;
+                } elsif ($dir =~ /^dvd:/) {
+                    if ($filename =~ / /) {
+                        $filename =~ s/ / from /;
+                    }
+                    $title = "DVD Title: ".$filename;
                 } else {
                     $title = "File: " . $filename . " in " . $dir;
                 }
@@ -6334,7 +6341,7 @@ sub do_add_file {
             return;
         }
     }
-    if (($file ne "") && (-r $file)) {
+    if (($file ne "") && ((-r $file) || ($file =~ /:\/\// ) )) {
 
         # Find next playorder
         my $playorder = 1;
@@ -11780,7 +11787,163 @@ sub pause_media {
 #
 sub media_v4l {
     debug("Starting Live Video");
-    update_display("backdrop", "special;v4l", "");
+    update_display("backdrop", "dir", "v4l2:///dev/video2");
+}
+
+#***
+
+#****f* lyricue/media_dvd
+# NAME
+#   media_dvd
+# SYNOPSIS
+#   media_dvd()
+# FUNCTION
+#   Starting DVD Video
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+sub media_dvd {
+    debug("Checking DVD");
+    $widgets->{'dialogDvd'} = Gtk2::GladeXML->new($globals->{'gladefile'},
+            'dialogDvd', 'lyricue');
+    $widgets->{'dialogDvd'}->signal_autoconnect_from_package('');
+    my $vbox = $widgets->{'dialogDvd'}->get_widget('vboxDvd');
+    my $com = `lsdvd -Op`;
+    #my $com = `./lsdvd-test.sh -Op`;
+    $com =~ s/^our //g;
+    eval $com;
+
+    my $tracks = $lsdvd{'track'};
+    my $longest_track = $lsdvd{'longest_track'};
+    if (!defined $longest_track) {
+        display_message(fromutf(gettext("No DVD titles found")),fromutf(gettext("Unable to open the dvd.  There may be no media in the drive")));
+        return;
+    }
+    my $longest = Gtk2::RadioButton->new(undef,"Longest title (".$longest_track.")");
+    $longest->{user_data} = $longest_track;
+    $vbox->add($longest);
+    $longest->show();
+    foreach (@$tracks) {
+        my $radio = Gtk2::RadioButton->new($longest,"Title ".$_->{"ix"}." - ".sec_to_time($_->{"length"}));
+        debug("Title ".$_->{"ix"}." - ".sec_to_time($_->{"length"}));
+        $radio->{user_data}  = $_->{"ix"};
+        $vbox->add($radio);
+        $radio->show();
+        if ($_->{"ix"} == $longest_track) {
+            select_dvdtitle($longest,$_->{"length"});
+        }
+        $radio->signal_connect(toggled => \&select_dvdtitle, $_->{"length"});
+
+    }
+    $longest->set_active(TRUE);
+    $widgets->{'dialogDvd'}->get_widget('comboDvdEnd')->set_active(0);
+    my $confirm = $widgets->{'dialogDvd'}->get_widget('dialogDvd')->run();
+    if ($confirm == 0) {
+        my $selected = 0;
+        my $group = $longest->get_group;
+        my $length = 0;
+        foreach my $r (@$group) {
+            if ($r->get_active) {
+                $selected = $r->{user_data};
+            }
+        }
+        debug("Adding DVD title:".$selected);
+        my $type = $widgets->{'dialogDvd'}->get_widget('comboDvdEnd')->get_active;
+        my $start = time_to_sec($widgets->{'dialogDvd'}->get_widget('entryDvdStart')->get_text);
+        my $end = time_to_sec($widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->get_text);
+        my $total = $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->{user_data};
+        if ($type == 1) {
+            $end = $start + $end;
+        }
+        if (($start eq 0) && (($end - 1) < $total) && (($end + 1) > $total)) {
+            do_add_file("dvd://".$selected, $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data});
+        } else {
+            do_add_file("dvd://".$selected." ".sec_to_time($start)."-".sec_to_time($end), $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data});
+        }
+        update_playlist();
+    }
+    close_dialog($widgets->{'dialogDvd'}->get_widget('dialogDvd'));
+}
+
+#***
+
+#****f* lyricue/select_dvdtitle
+# NAME
+#   select_dvdtitle
+# SYNOPSIS
+#   select_dvdtitle($widget, $length)
+# FUNCTION
+#   Fill in the start/end times for dvd media
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+
+sub select_dvdtitle {
+    my ($widget,$length) = @_;
+    if ($widget->get_active) {
+        $widgets->{'dialogDvd'}->get_widget('comboDvdEnd')->set_active(0);
+        $widgets->{'dialogDvd'}->get_widget('entryDvdStart')->set_text(sec_to_time(0));
+        $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->set_text(sec_to_time($length));
+        $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->{user_data} = $length;
+    }
+}
+
+#***
+
+#****f* lyricue/sec_to_time
+# NAME
+#   sec_to_time
+# SYNOPSIS
+#   sec_to_time($seconds)
+# FUNCTION
+#   Convert seconds to pretty 0:00:00 format
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+
+sub sec_to_time {
+    my ($seconds) = @_;
+    if (! defined $seconds) {
+        $seconds = 0;
+    }
+    my @parts = gmtime($seconds);
+    if ($parts[2] == 0) {
+        return sprintf ("%d:%02d",@parts[1,0]);
+    } else {
+        return sprintf ("%d:%02d:%02d",@parts[2,1,0]);
+    }
+}
+
+#***
+
+#****f* lyricue/time_to_sec
+# NAME
+#   time_to_sec
+# SYNOPSIS
+#   time_to_sec($time)
+# FUNCTION
+#   Convert pretty 0:00:00 format to seconds
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+
+sub time_to_sec {
+    my ($time) = @_;
+    if (! defined $time) {
+        return 0;
+    }
+    my @parts = split(/:/,$time);
+    if (defined $parts[2]) {
+        return ($parts[0] * 3600) + ($parts[1]*60) + $parts[2];
+    } elsif (defined $parts[1]) {
+        return ($parts[0]*60) + $parts[1];
+    } else {
+        return $parts[0];
+    }
 }
 
 #***
