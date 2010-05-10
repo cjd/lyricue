@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.364 2010/05/10 00:50:19 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.365 2010/05/10 01:19:52 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -9794,7 +9794,7 @@ sub backup_db {
         }
 
         my $command =
-"mysqldump --skip-extended-insert --no-create-db --no-create-info --user=lyric --password='' --databases "
+"mysqldump --skip-extended-insert --no-create-db --no-create-info --complete-insert --user=lyric --password='' --databases "
           . $databases
           . " | gzip -c > "
           . $filename;
