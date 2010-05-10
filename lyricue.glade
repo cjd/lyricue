@@ -1068,8 +1068,8 @@
                         <child>
                           <widget class="GtkFileChooserWidget" id="fileAddFile">
                             <property name="visible">True</property>
-                            <property name="use_preview_label">False</property>
                             <property name="preview_widget_active">False</property>
+                            <property name="use_preview_label">False</property>
                           </widget>
                           <packing>
                             <property name="position">1</property>
@@ -3903,32 +3903,6 @@ http://www.lyricue.org/</property>
       </widget>
     </child>
   </widget>
-  <widget class="GtkFileSelection" id="dialogFile">
-    <property name="visible">True</property>
-    <property name="border_width">10</property>
-    <property name="title" translatable="yes">Select File</property>
-    <property name="window_position">center</property>
-    <property name="icon">lyricue-icon.png</property>
-    <property name="type_hint">dialog</property>
-    <property name="show_fileops">False</property>
-    <child internal-child="cancel_button">
-      <widget class="GtkButton" id="buttonFileCancel">
-        <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="can_default">True</property>
-        <property name="receives_default">False</property>
-        <signal name="clicked" handler="close_dialog"/>
-      </widget>
-    </child>
-    <child internal-child="ok_button">
-      <widget class="GtkButton" id="buttonFileOK">
-        <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="can_default">True</property>
-        <property name="receives_default">False</property>
-      </widget>
-    </child>
-  </widget>
   <widget class="GtkDialog" id="dialogPromptEntry">
     <property name="visible">True</property>
     <property name="modal">True</property>
@@ -6334,8 +6308,8 @@ http://www.lyricue.org/bibles</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -7848,6 +7822,9 @@ http://www.lyricue.org/bibles</property>
       <placeholder/>
     </child>
     <child>
+      <placeholder/>
+    </child>
+    <child>
       <widget class="GtkLabel" id="labelFRIntro">
         <property name="visible">True</property>
         <property name="label" translatable="yes">As this is the first time you have run Lyricue we now walk through some initial settings</property>
@@ -8757,6 +8734,61 @@ Duration</property>
             <child>
               <widget class="GtkButton" id="buttonAdd">
                 <property name="label">gtk-add</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+  <widget class="GtkFileChooserDialog" id="dialogFileChooser">
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">Select File</property>
+    <property name="type_hint">normal</property>
+    <property name="has_separator">False</property>
+    <child internal-child="vbox">
+      <widget class="GtkVBox" id="dialog-vbox17">
+        <property name="visible">True</property>
+        <property name="spacing">2</property>
+        <child>
+          <placeholder/>
+        </child>
+        <child internal-child="action_area">
+          <widget class="GtkHButtonBox" id="dialog-action_area17">
+            <property name="visible">True</property>
+            <property name="layout_style">end</property>
+            <child>
+              <widget class="GtkButton" id="buttonFileCancel">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+                <signal name="clicked" handler="close_dialog"/>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkButton" id="buttonFileOK">
+                <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>

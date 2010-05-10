@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.363 2010/05/06 06:08:25 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.364 2010/05/10 00:50:19 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -2171,10 +2171,11 @@ sub insert_verse {
 sub import_song {
     debug("import song");
     my $filexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "do_import_song", $filexml);
+    $filexml->get_widget('dialogFileChooser')->show_all();
 }
 
 #***
@@ -2196,7 +2197,7 @@ sub import_song {
 sub do_import_song {
     my ($widget, $filexml) = @_;
     debug("do import song");
-    my $filename   = $filexml->get_widget('dialogFile')->get_filename;
+    my $filename   = $filexml->get_widget('dialogFileChooser')->get_filename;
     my $lcfilename = lc($filename);
 
     if (($lcfilename =~ /xmlz$/) || ($lcfilename =~ /xml$/)) {
@@ -4933,10 +4934,11 @@ sub invert_lines {
 sub export_song {
     debug("Export song");
     my $filexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "complete_export_song", $filexml);
+    $filexml->get_widget('dialogFileChooser')->show_all();
 }
 
 #***
@@ -4959,7 +4961,7 @@ sub complete_export_song {
     my ($widget, $filexml) = @_;
     my ($tmppage, $page, $numchars, $key);
     debug("Exporting song");
-    my $export = $filexml->get_widget('dialogFile')->get_filename;
+    my $export = $filexml->get_widget('dialogFileChooser')->get_filename;
     close_dialog($widget);
     debug(" to file: " . $export);
 
@@ -6220,7 +6222,7 @@ sub file_ok_sel {
     debug("Add filename to playlist");
     my $main_playlist =
       $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
-    do_add_file($filexml->get_widget('dialogFile')->get_filename,
+    do_add_file($filexml->get_widget('dialogFileChooser')->get_filename,
         $main_playlist);
     update_playlist();
     close_dialog($widget);
@@ -7213,10 +7215,11 @@ sub create_search {
 sub add_file {
     debug("Open a file dialog");
     my $filexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "file_ok_sel", $filexml);
+    $filexml->get_widget('dialogFileChooser')->show_all();
 }
 
 #***
@@ -8815,12 +8818,13 @@ sub import_media {
     my ($type) = @_;
     debug("Import media to db of type:" . $type);
     my $filexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "select_category", $filexml);
-    $filexml->get_widget('dialogFile')->{user_data} = $type;
-    $filexml->get_widget('dialogFile')->set_select_multiple(TRUE);
+    $filexml->get_widget('dialogFileChooser')->{user_data} = $type;
+    $filexml->get_widget('dialogFileChooser')->set_select_multiple(TRUE);
+    $filexml->get_widget('dialogFileChooser')->show_all();
 }
 
 #***
@@ -8842,10 +8846,10 @@ sub select_category {
     my ($widget, $filexml) = @_;
     debug("select category");
     my $hashnum   = 0;
-    my @filenames = $filexml->get_widget('dialogFile')->get_selections;
+    my @filenames = $filexml->get_widget('dialogFileChooser')->get_selections;
     debug(@filenames);
-    my $type = $filexml->get_widget('dialogFile')->{user_data};
-    close_dialog($filexml->get_widget('dialogFile'));
+    my $type = $filexml->get_widget('dialogFileChooser')->{user_data};
+    close_dialog($filexml->get_widget('dialogFileChooser'));
     my $choosexml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogSelectCategory');
 
@@ -9406,13 +9410,13 @@ sub restore_db {
 
     # Get filename of DB
     my $fileDialog =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
-    $fileDialog->get_widget('dialogFile')
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
+    $fileDialog->get_widget('dialogFileChooser')
       ->set_title(fromutf(gettext("Select Database Backup file")));
-    my $response = $fileDialog->get_widget('dialogFile')->run();
+    my $response = $fileDialog->get_widget('dialogFileChooser')->run();
     if ($response eq "ok") {
-        my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
-        close_dialog($fileDialog->get_widget('dialogFile'));
+        my $filename = $fileDialog->get_widget('dialogFileChooser')->get_filename;
+        close_dialog($fileDialog->get_widget('dialogFileChooser'));
 
         my $confirmDialog = Gtk2::GladeXML->new($globals->{'gladefile'},
             'dialogConfirm', 'lyricue');
@@ -9485,7 +9489,7 @@ sub restore_db {
         }
         close_dialog($confirmDialog->get_widget('dialogConfirm'));
     } else {
-        close_dialog($fileDialog->get_widget('dialogFile'));
+        close_dialog($fileDialog->get_widget('dialogFileChooser'));
     }
 }
 
@@ -9821,20 +9825,20 @@ sub backup_db {
 sub backup_db_browse {
     debug("Browsing for BackupDB filename");
     my $fileDialog =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
-    $fileDialog->get_widget('dialogFile')
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
+    $fileDialog->get_widget('dialogFileChooser')
       ->set_filename(
         $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->get_text());
-    my $response = $fileDialog->get_widget('dialogFile')->run();
+    my $response = $fileDialog->get_widget('dialogFileChooser')->run();
     if ($response eq "ok") {
-        my $filename = $fileDialog->get_widget('dialogFile')->get_filename;
+        my $filename = $fileDialog->get_widget('dialogFileChooser')->get_filename;
         if (!($filename =~ /\.gz$/)) {
             $filename .= ".gz";
         }
         $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')
           ->set_text($filename);
     }
-    close_dialog($fileDialog->get_widget('dialogFile'));
+    close_dialog($fileDialog->get_widget('dialogFileChooser'));
 }
 
 #***
@@ -12211,13 +12215,13 @@ sub import_db {
 sub export_db {
     debug("Export DB selected");
     my $exportxml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFile', 'lyricue');
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
     $exportxml->signal_autoconnect_from_package('');
-    $exportxml->get_widget('dialogFile')->complete("*.xmlz");
-    $exportxml->get_widget('dialogFile')->set_filename("lyricue.xmlz");
-    my $confirm = $exportxml->get_widget('dialogFile')->run();
+    $exportxml->get_widget('dialogFileChooser')->complete("*.xmlz");
+    $exportxml->get_widget('dialogFileChooser')->set_filename("lyricue.xmlz");
+    my $confirm = $exportxml->get_widget('dialogFileChooser')->run();
     if ($confirm eq 'ok') {
-        my $filename = $exportxml->get_widget('dialogFile')->get_filename;
+        my $filename = $exportxml->get_widget('dialogFileChooser')->get_filename;
 
         $filename =~ s/\..*?$//g;
         $filename .= ".xmlz";
@@ -12225,7 +12229,7 @@ sub export_db {
             export_songs($filename);
         }
     }
-    close_dialog($exportxml->get_widget('dialogFile'));
+    close_dialog($exportxml->get_widget('dialogFileChooser'));
 }
 
 #***
