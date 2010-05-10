@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.365 2010/05/10 01:19:52 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.366 2010/05/10 04:40:44 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -8691,7 +8691,7 @@ sub create_pixbuf {
                     return undef;
                 } else {
                     my $pixbuf = $pixbuf_loader->get_pixbuf();
-                    if ($width == 0) {
+                    if (($width == 0) || ($width == $pixbuf->get_width)) {
                         return $pixbuf;
                     } else {
                         return $pixbuf->scale_simple($width, $height, 'nearest');
