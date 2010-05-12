@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.227 2010/05/12 04:23:24 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.228 2010/05/12 04:25:21 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -239,10 +239,10 @@ if ($ARGV[0]) {
             print "Lyricue Server version " . $globals->{'version'} . "\n";
             exit;
         } elsif ($ARGV[$_] eq "-f") {
-            $globals->{'server_type'} = SIMPLE;
+            $globals->{'server_type'}  = SIMPLE;
             $globals->{'force_server'} = TRUE;
         } elsif ($ARGV[$_] eq "-c") {
-            $globals->{'server_type'} = CLUTTER;
+            $globals->{'server_type'}  = CLUTTER;
             $globals->{'force_server'} = TRUE;
         } elsif ($ARGV[$_] eq "-d") {
             $DEBUG = 1;
@@ -291,8 +291,10 @@ if (!-w $globals->{'configfile'}) {
     system("cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
 }
 
-my $logname = $globals->{'basedir'} . "/server-" . $globals->{'use_port'} . ".log";
-rename($logname , $logname.".old") or system("mv", $logname, $logname.".old");
+my $logname =
+  $globals->{'basedir'} . "/server-" . $globals->{'use_port'} . ".log";
+rename($logname, $logname . ".old")
+  or system("mv", $logname, $logname . ".old");
 open(LOG, ">" . $logname);
 binmode LOG, ":utf8";
 
@@ -302,7 +304,7 @@ if (!$globals->{'force_server'}) {
     if ($config->{'ServerType'} eq "simple") {
         $globals->{'server_type'} = SIMPLE;
     } elsif ($config->{'ServerType'} eq "canvas") {
-        $globals->{'server_type'} = CLUTTER; # Canvas no longer supported
+        $globals->{'server_type'} = CLUTTER;    # Canvas no longer supported
     } else {
         $globals->{'server_type'} = CLUTTER;
     }
@@ -395,12 +397,14 @@ debug("Listening on " . $globals->{'use_port'});
 system('xset s off -dpms');
 
 debug("Main program running");
-Glib::Timeout->add(200, \&check_net); # Check the net 5 times a second
-Glib::Timeout->add_seconds(60, \&poke_db); # Poke the db connections every minute
+Glib::Timeout->add(200, \&check_net);    # Check the net 5 times a second
+Glib::Timeout->add_seconds(60, \&poke_db)
+  ;                                      # Poke the db connections every minute
 Gtk2->main();
 
 # Should never get here
 exit(0);
+
 #***
 
 #****f* lyricue_server/loop_background
@@ -426,6 +430,7 @@ sub loop_background {
     }
     return FALSE;
 }
+
 #***
 
 #****f* lyricue_server/check_net
@@ -446,11 +451,12 @@ sub check_net {
     }
     return TRUE;
 }
+
 #***
 
 #****f* lyricue_server/poke_db
 # NAME
-#   poke_db 
+#   poke_db
 # SYNOPSIS
 #   poke_db()
 # FUNCTION
@@ -464,14 +470,14 @@ sub poke_db {
     debug("Poking database connections");
     my $fail = FALSE;
 
-
     # Check lyricDb
     my $sth = $lyricDbh->prepare("describe lyricMain") || ($fail = TRUE);
     if (!$fail) {
         my $rv = $sth->execute || ($fail = TRUE);
     }
-    if ($fail) { # Re-connect and re-try
-        $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
+    if ($fail) {    # Re-connect and re-try
+        $lyricDbh =
+          db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
         poke_db();
         return TRUE;
     }
@@ -481,20 +487,21 @@ sub poke_db {
     if (!$fail) {
         my $rv = $sth->execute || ($fail = TRUE);
     }
-    if ($fail) { # Re-connect and re-try
-        $mediaDbh = db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'});
+    if ($fail) {    # Re-connect and re-try
+        $mediaDbh =
+          db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'});
         poke_db();
         return TRUE;
     }
 
     # Check bibleDb
     if (!$globals->{'usesword'}) {
-        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
-        $sth = $bibleDbh->prepare("describe ".$table) || ($fail = TRUE);
+        my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
+        $sth = $bibleDbh->prepare("describe " . $table) || ($fail = TRUE);
         if (!$fail) {
             my $rv = $sth->execute || ($fail = TRUE);
         }
-        if ($fail) { # Re-connect and re-try
+        if ($fail) {    # Re-connect and re-try
             change_to_db($globals->{'bibledb'}, "db");
             poke_db();
             return TRUE;
@@ -527,7 +534,7 @@ sub process_input {
         fromutf($input);
         debug("Received :" . $input);
         chomp($input);
-        my @line = split(/:/, $input,3);
+        my @line = split(/:/, $input, 3);
         $_ = lc($line[0]);
 
         if (/^status$/) {
@@ -562,10 +569,11 @@ sub process_input {
             $config->{'BGImage'} = $line[1];
             if ($line[2] ne "") {
                 $line[2] =~ s/#SEMI#/:/g;
-                $config->{'BGImage'} .= ";".$line[2];
+                $config->{'BGImage'} .= ";" . $line[2];
             }
             change_backdrop($config->{'BGImage'}, TRUE);
-            $status = fromutf(gettext("Backdrop changed to ")) . $config->{'BGImage'};
+            $status =
+              fromutf(gettext("Backdrop changed to ")) . $config->{'BGImage'};
         } elsif (/^blank$/) {
             set_header("");
             set_footer("");
@@ -580,7 +588,8 @@ sub process_input {
             $globals->{'blanked_state'} = TRUE;
         } elsif (/^change_to_db$/) {
             change_to_db($line[1], $line[2]);
-            $status = fromutf(gettext("Bible changed to ")) . $globals->{'bibledb'};
+            $status =
+              fromutf(gettext("Bible changed to ")) . $globals->{'bibledb'};
         } elsif (/^next_point$/) {
             $globals->{'blanked_state'} = FALSE;
             if ($current_point > -1 && scalar(@points) > $current_point + 1) {
@@ -662,60 +671,234 @@ sub process_input {
                 $line[1] = lc($line[1]);
 
                 if ($current_item ne "") {
-                # display new lyrics
-                my $query =
-                  "SELECT * FROM playlist WHERE playorder=" . $current_item;
-                debug($query);
-                my $sth = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                my $rv = $sth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                my $current_play = $sth->fetchrow_hashref();
 
-                if ($line[1] eq "playlist") {
-                    debug("Changing playlist to " . $line[2]);
-                    $current_list = $line[2];
-                } elsif ($line[1] eq "current") {
-                    $globals->{'blanked_state'} = FALSE;
-
-                    # ignore and just display same page
-                } elsif ($line[1] eq "next_page") {
-                    my $query = "SELECT playlist FROM playlist WHERE playorder="
-                      . $current_item;
+                    # display new lyrics
+                    my $query =
+                      "SELECT * FROM playlist WHERE playorder=" . $current_item;
                     debug($query);
                     my $sth = $lyricDbh->prepare($query)
                       || display_fatal($errorcodes->{'sqlprepare'}, $!);
                     my $rv = $sth->execute
                       || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    my @row = $sth->fetchrow_array();
-                    $query =
-                        "SELECT MIN(playorder) FROM playlist WHERE playlist="
-                      . $row[0]
-                      . " AND playorder>"
-                      . $current_item
-                      . " ORDER BY playorder";
-                    debug($query);
-                    $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    my @row2 = $sth->fetchrow_array();
+                    my $current_play = $sth->fetchrow_hashref();
 
-                    if ($row2[0]) {
+                    if ($line[1] eq "playlist") {
+                        debug("Changing playlist to " . $line[2]);
+                        $current_list = $line[2];
+                    } elsif ($line[1] eq "current") {
+                        $globals->{'blanked_state'} = FALSE;
 
-                        #End of this particular list (song/sublist) not reached
-                        debug("Looping to next item in list\n");
-                        $current_item = $row2[0];
-                    } else {
+                        # ignore and just display same page
+                    } elsif ($line[1] eq "next_page") {
+                        my $query =
+                          "SELECT playlist FROM playlist WHERE playorder="
+                          . $current_item;
+                        debug($query);
+                        my $sth = $lyricDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        my $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        my @row = $sth->fetchrow_array();
+                        $query =
+                          "SELECT MIN(playorder) FROM playlist WHERE playlist="
+                          . $row[0]
+                          . " AND playorder>"
+                          . $current_item
+                          . " ORDER BY playorder";
+                        debug($query);
+                        $sth = $lyricDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        my @row2 = $sth->fetchrow_array();
 
-                        #End of this particular list (song/sublist) reached
-                        if ($line[2] eq "loop") {
-                            debug("Finding next item to display in loop\n");
+                        if ($row2[0]) {
 
-                            if ($LOOPPARENT == -1) {
-                                debug("Looping a song, back to page 1\n");
-                                $query =
+                         #End of this particular list (song/sublist) not reached
+                            debug("Looping to next item in list\n");
+                            $current_item = $row2[0];
+                        } else {
+
+                            #End of this particular list (song/sublist) reached
+                            if ($line[2] eq "loop") {
+                                debug("Finding next item to display in loop\n");
+
+                                if ($LOOPPARENT == -1) {
+                                    debug("Looping a song, back to page 1\n");
+                                    $query =
 "SELECT MIN(playorder) FROM playlist WHERE playlist="
+                                      . $row[0];
+                                    debug($query);
+                                    $sth = $lyricDbh->prepare($query)
+                                      || display_fatal(
+                                        $errorcodes->{'sqlprepare'}, $!);
+                                    $rv = $sth->execute
+                                      || display_fatal(
+                                        $errorcodes->{'sqlexecute'}, $!);
+                                    my @row3 = $sth->fetchrow_array();
+                                    if ($row3[0]) {
+                                        $current_item = $row3[0];
+                                    }
+                                } else {
+                                    debug("Looping a sublist...\n");
+
+                           #Build a 'context map', by tracing the
+                           #steps from the current level, to the top of the list
+                                    debug("Building the context map...\n");
+                                    my @contextmap;    #array of playorders
+                                    my $item    = $current_item;
+                                    my $plpoint = -2;
+
+                                    while (($plpoint != $LOOPPARENT)
+                                        && ($item ne ""))
+                                    {
+                                        $query =
+"SELECT playlist FROM playlist WHERE playorder="
+                                          . $item;
+                                        debug("\t" . $query);
+                                        $sth = $lyricDbh->prepare($query)
+                                          || display_fatal(
+                                            $errorcodes->{'sqlprepare'}, $!);
+                                        $rv = $sth->execute
+                                          || display_fatal(
+                                            $errorcodes->{'sqlexecute'}, $!);
+                                        my @playlist = $sth->fetchrow_array();
+
+                                        #Add playlist id to contextmap
+                                        @contextmap =
+                                          (@contextmap, $playlist[0]);
+
+                                        #Update playlist pointer so we can do
+                                        #the test for equality to LOOPPARENT
+                                        $plpoint = $playlist[0];
+
+                                       #Change item to this playlist's playorder
+                                        $query =
+"SELECT playorder FROM playlist WHERE data="
+                                          . $playlist[0]
+                                          . " and (type='sub' or type='play')";
+                                        debug("\t" . $query);
+                                        $sth = $lyricDbh->prepare($query)
+                                          || display_fatal(
+                                            $errorcodes->{'sqlprepare'}, $!);
+                                        $rv = $sth->execute
+                                          || display_fatal(
+                                            $errorcodes->{'sqlexecute'}, $!);
+                                        my @playorder = $sth->fetchrow_array();
+
+                                        $item = $playorder[0];
+                                        debug("....\n");
+                                    }
+                                    debug("Context map built!\n");
+
+                                    #Find the next item
+                                    my $lastpo   = $current_item;
+                                    my $nextitem = $current_item;
+
+                                    foreach (@contextmap) {
+
+                                 #Find next item in the current context map list
+                                        $query =
+"SELECT MIN(playorder) FROM playlist WHERE "
+                                          . " playlist="
+                                          . $_
+                                          . " and playorder > "
+                                          . $lastpo;
+                                        debug($query);
+                                        $sth = $lyricDbh->prepare($query)
+                                          || display_fatal(
+                                            $errorcodes->{'sqlprepare'}, $!);
+                                        $rv = $sth->execute
+                                          || display_fatal(
+                                            $errorcodes->{'sqlexecute'}, $!);
+                                        my @results = $sth->fetchrow_array();
+
+                                        if ($results[0]) {
+
+                                            #Set nextitem and leave loop
+                                            $nextitem = $results[0];
+                                            last;
+                                        } else {
+
+                                            #prepare for next iteration
+                                            $query =
+"SELECT playorder FROM playlist WHERE "
+                                              . " data="
+                                              . $_
+                                              . " and (type='sub'"
+                                              . " or type='play')";
+
+                                            debug("\t" . $query);
+                                            $sth = $lyricDbh->prepare($query)
+                                              || display_fatal(
+                                                $errorcodes->{'sqlprepare'},
+                                                $!);
+                                            $rv = $sth->execute
+                                              || display_fatal(
+                                                $errorcodes->{'sqlexecute'},
+                                                $!);
+                                            my @poresult =
+                                              $sth->fetchrow_array();
+
+                                            $lastpo = $poresult[0];
+                                        }
+                                    }
+
+                                    if ($current_item != $nextitem) {
+                                        debug("Found next item to show\n");
+                                        $current_item = $nextitem;
+                                    } else {
+
+                                        #End of the road, go back to start!
+                                        debug("No more items, back to start\n");
+                                        $query =
+"SELECT MIN(playorder) FROM playlist WHERE "
+                                          . " playlist="
+                                          . $LOOPPARENT;
+                                        debug($query);
+                                        $sth = $lyricDbh->prepare($query)
+                                          || display_fatal(
+                                            $errorcodes->{'sqlprepare'}, $!);
+                                        $rv = $sth->execute
+                                          || display_fatal(
+                                            $errorcodes->{'sqlexecute'}, $!);
+                                        my @start = $sth->fetchrow_array();
+                                        $current_item = $start[0];
+                                    }
+                                }
+                            } else {
+                                update_display("display", "next_song", 0);
+                            }
+                        }
+                    } elsif ($line[1] eq "prev_page") {
+                        my $query =
+                          "SELECT playlist FROM playlist WHERE playorder="
+                          . $current_item;
+                        debug($query);
+                        my $sth = $lyricDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        my $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        my @row = $sth->fetchrow_array();
+                        $query =
+                          "SELECT MAX(playorder) FROM playlist WHERE playlist="
+                          . $row[0]
+                          . " AND playorder<"
+                          . $current_item
+                          . " ORDER BY playorder";
+                        debug($query);
+                        $sth = $lyricDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        my @row2 = $sth->fetchrow_array();
+
+                        if ($row2[0]) {
+                            $current_item = $row2[0];
+                        } else {
+                            if ($line[2] eq "loop") {
+                                $query =
+"SELECT MAX(playorder) FROM playlist WHERE playlist="
                                   . $row[0];
                                 debug($query);
                                 $sth = $lyricDbh->prepare($query)
@@ -724,553 +907,413 @@ sub process_input {
                                 $rv = $sth->execute
                                   || display_fatal($errorcodes->{'sqlexecute'},
                                     $!);
-                                my @row3 = $sth->fetchrow_array();
-                                if ($row3[0]) {
-                                    $current_item = $row3[0];
-                                }
-                            } else {
-                                debug("Looping a sublist...\n");
-
-                           #Build a 'context map', by tracing the
-                           #steps from the current level, to the top of the list
-                                debug("Building the context map...\n");
-                                my @contextmap;    #array of playorders
-                                my $item    = $current_item;
-                                my $plpoint = -2;
-
-                                while (($plpoint != $LOOPPARENT) && ($item ne "")) {
-                                    $query =
-"SELECT playlist FROM playlist WHERE playorder="
-                                      . $item;
-                                    debug("\t" . $query);
-                                    $sth = $lyricDbh->prepare($query)
-                                      || display_fatal(
-                                        $errorcodes->{'sqlprepare'}, $!);
-                                    $rv = $sth->execute
-                                      || display_fatal(
-                                        $errorcodes->{'sqlexecute'}, $!);
-                                    my @playlist = $sth->fetchrow_array();
-
-                                    #Add playlist id to contextmap
-                                    @contextmap = (@contextmap, $playlist[0]);
-
-                                    #Update playlist pointer so we can do
-                                    #the test for equality to LOOPPARENT
-                                    $plpoint = $playlist[0];
-
-                                    #Change item to this playlist's playorder
-                                    $query =
-"SELECT playorder FROM playlist WHERE data="
-                                      . $playlist[0]
-                                      . " and (type='sub' or type='play')";
-                                    debug("\t" . $query);
-                                    $sth = $lyricDbh->prepare($query)
-                                      || display_fatal(
-                                        $errorcodes->{'sqlprepare'}, $!);
-                                    $rv = $sth->execute
-                                      || display_fatal(
-                                        $errorcodes->{'sqlexecute'}, $!);
-                                    my @playorder = $sth->fetchrow_array();
-
-                                    $item = $playorder[0];
-                                    debug("....\n");
-                                }
-                                debug("Context map built!\n");
-
-                                #Find the next item
-                                my $lastpo   = $current_item;
-                                my $nextitem = $current_item;
-
-                                foreach (@contextmap) {
-
-                                 #Find next item in the current context map list
-                                    $query =
-"SELECT MIN(playorder) FROM playlist WHERE "
-                                      . " playlist="
-                                      . $_
-                                      . " and playorder > "
-                                      . $lastpo;
-                                    debug($query);
-                                    $sth = $lyricDbh->prepare($query)
-                                      || display_fatal(
-                                        $errorcodes->{'sqlprepare'}, $!);
-                                    $rv = $sth->execute
-                                      || display_fatal(
-                                        $errorcodes->{'sqlexecute'}, $!);
-                                    my @results = $sth->fetchrow_array();
-
-                                    if ($results[0]) {
-
-                                        #Set nextitem and leave loop
-                                        $nextitem = $results[0];
-                                        last;
-                                    } else {
-
-                                        #prepare for next iteration
-                                        $query =
-"SELECT playorder FROM playlist WHERE "
-                                          . " data="
-                                          . $_
-                                          . " and (type='sub'"
-                                          . " or type='play')";
-
-                                        debug("\t" . $query);
-                                        $sth = $lyricDbh->prepare($query)
-                                          || display_fatal(
-                                            $errorcodes->{'sqlprepare'}, $!);
-                                        $rv = $sth->execute
-                                          || display_fatal(
-                                            $errorcodes->{'sqlexecute'}, $!);
-                                        my @poresult = $sth->fetchrow_array();
-
-                                        $lastpo = $poresult[0];
-                                    }
-                                }
-
-                                if ($current_item != $nextitem) {
-                                    debug("Found next item to show\n");
-                                    $current_item = $nextitem;
-                                } else {
-
-                                    #End of the road, go back to start!
-                                    debug("No more items, back to start\n");
-                                    $query =
-"SELECT MIN(playorder) FROM playlist WHERE "
-                                      . " playlist="
-                                      . $LOOPPARENT;
-                                    debug($query);
-                                    $sth = $lyricDbh->prepare($query)
-                                      || display_fatal(
-                                        $errorcodes->{'sqlprepare'}, $!);
-                                    $rv = $sth->execute
-                                      || display_fatal(
-                                        $errorcodes->{'sqlexecute'}, $!);
-                                    my @start = $sth->fetchrow_array();
-                                    $current_item = $start[0];
+                                my @row2 = $sth->fetchrow_array();
+                                if ($row2[0]) {
+                                    $current_item = $row2[0];
                                 }
                             }
-                        } else {
-                            update_display("display", "next_song", 0);
                         }
-                    }
-                } elsif ($line[1] eq "prev_page") {
-                    my $query = "SELECT playlist FROM playlist WHERE playorder="
-                      . $current_item;
-                    debug($query);
-                    my $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    my $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    my @row = $sth->fetchrow_array();
-                    $query =
-                        "SELECT MAX(playorder) FROM playlist WHERE playlist="
-                      . $row[0]
-                      . " AND playorder<"
-                      . $current_item
-                      . " ORDER BY playorder";
-                    debug($query);
-                    $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    my @row2 = $sth->fetchrow_array();
 
-                    if ($row2[0]) {
-                        $current_item = $row2[0];
-                    } else {
-                        if ($line[2] eq "loop") {
-                            $query =
-"SELECT MAX(playorder) FROM playlist WHERE playlist="
-                              . $row[0];
-                            debug($query);
-                            $sth = $lyricDbh->prepare($query)
-                              || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                            $rv = $sth->execute
-                              || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                            my @row2 = $sth->fetchrow_array();
-                            if ($row2[0]) {
-                                $current_item = $row2[0];
-                            }
-                        }
-                    }
-
-                } elsif ($line[1] eq "next_song") {
-                    my $query =
-"SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
-                      . $current_item;
-                    debug($query);
-                    my $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    my $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    my @row;
-                    if (@row = $sth->fetchrow_array()) {
-                        $current_item = $row[0];
-                        $current_list = $row[1];
-                    }
-
-                    $query =
-                        "SELECT MIN(playorder) FROM playlist WHERE playorder > "
-                      . $current_item
-                      . " AND playlist="
-                      . $current_list;
-                    debug($query);
-                    $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    @row = $sth->fetchrow_array();
-
-                    if (defined $row[0]) {
-                        $current_item = $row[0];
-                    }
-                } elsif ($line[1] eq "prev_song") {
-                    my $query =
-"SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
-                      . $current_item;
-                    debug($query);
-                    my $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    my $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    my @row;
-                    if (@row = $sth->fetchrow_array()) {
-                        $current_item = $row[0];
-                        $current_list = $row[1];
-                    }
-
-                    $query =
-                        "SELECT MAX(playorder) FROM playlist WHERE playorder < "
-                      . $current_item
-                      . " AND playlist="
-                      . $current_list;
-                    debug($query);
-                    $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    @row = $sth->fetchrow_array();
-
-                    if (defined $row[0]) {
-                        $current_item = $row[0];
-                    }
-                } elsif ($line[1] eq "page") {
-                    my $query = "SELECT playlist FROM playlist WHERE playorder="
-                      . $current_item;
-                    debug($query);
-                    my $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    my $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    my @row = $sth->fetchrow_array();
-
-                    $query =
-                        "SELECT playorder FROM playlist WHERE playlist="
-                      . $row[0]
-                      . " ORDER BY playorder";
-                    debug($query);
-                    $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                    my $count = 0;
-
-                    while (($count < $line[2])
-                        && (@row = $sth->fetchrow_array()))
-                    {
-                        $count++;
-                    }
-                    if (defined $row[0]) {
-                        $current_item = $row[0];
-                    }
-
-                } else {
-                    $current_item = $line[1];
-                    $preview_item = 0;
-                }
-
-                # load lyrics from DB
-
-                if ($preview_item) {
-                    my $tmp = $current_item;
-                    $current_item = $preview_item;
-                    $preview_item = $tmp;
-                }
-                $query =
-                  "SELECT * FROM playlist WHERE playorder=" . $current_item;
-                debug($query);
-                $sth = $lyricDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                $rv = $sth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                my $row = $sth->fetchrow_hashref();
-                if (   $row->{'type'} ne "back"
-                    && $row->{'type'} ne "file"
-                    && $row->{'type'} ne "imag")
-                {
-
-                    #Check for associate image and, if present, apply it.
-                    my $imgquery =
-                      "SELECT imagename FROM associations WHERE playlist="
-                      . $current_item;
-                    debug($imgquery);
-                    my $imgsth = $lyricDbh->prepare($imgquery)
-                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                    $imgsth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
-
-                    if (my $imgrow = $imgsth->fetchrow_hashref()) {
-                        change_backdrop($imgrow->{'imagename'}, TRUE);
-                        $bgimage_changed = TRUE;
-                    } else {
-
-                        # If the song has changed then then check parent and set
-                        # background if one is associated with it
-                        my $parentquery =
-"SELECT a.imagename,q.data FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder="
-                          . $current_item;
-                        debug($parentquery);
-                        my $imgsth = $lyricDbh->prepare($parentquery)
-                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                        $imgsth->execute
-                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                        if (my $imgrow = $imgsth->fetchrow_hashref()) {
-                            change_backdrop($imgrow->{'imagename'}, TRUE);
-                            $bgimage_changed = TRUE;
-                        } else {
-                            if ($bgimage_changed && $imgrow->{'data'} ne "imag")
-                            {
-
-                                #Reset background if an image was shown
-                                change_backdrop($config->{'BGImage'}, TRUE);
-                                $bgimage_changed = FALSE;
-                            }
-                        }
-                    }
-                }
-
-                if ($exec_pid > 0) {
-                    debug("Killing " . $exec_pid);
-                    system('kill ' . $exec_pid);
-                    system('kill -9 ' . $exec_pid);
-                    $exec_pid = 0;
-                }
-
-                if (defined $row) {
-                    if ($row->{'type'} eq "back") {
-                        my $file = $row->{'data'};
-                        $config->{'BGImage'} = $file;
-                        change_backdrop($file, TRUE);
-                    } elsif ($row->{'type'} eq "file") {
-                        if ((-r $row->{'data'}) || ($row->{'data'} =~ /:\/\//)) {
-                            $bgimage_changed = TRUE;
-                            set_footer("");
-                            set_header("");
-                            set_maintext("", NONE, FALSE);
-                            change_backdrop("dir;" . $row->{'data'}, FALSE);
-                        }
-                    } elsif ($row->{'type'} eq "imag") {
-                        $bgimage_changed = TRUE;
-                        set_footer("");
-                        set_header("");
-                        set_maintext("", NONE, FALSE);
-                        change_backdrop($row->{'data'}, FALSE);
-                    } elsif ($row->{'type'} eq "vers") {
-
-                        # Kill invalid points from previous songs
-                        $current_point = -1;
-                        @points        = ();
-
+                    } elsif ($line[1] eq "next_song") {
                         my $query =
-"SELECT * FROM playlist,playlists WHERE playlist.playlist=playlists.id AND playorder="
+"SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
                           . $current_item;
                         debug($query);
                         my $sth = $lyricDbh->prepare($query)
                           || display_fatal($errorcodes->{'sqlprepare'}, $!);
                         my $rv = $sth->execute
                           || display_fatal($errorcodes->{'sqlexecute'}, $!);
-
-                        my $row        = $sth->fetchrow_hashref();
-                        my $transition = $row->{'transition'};
-
-                        my $versetext = $row->{'title'};
-                        my @line      = split(/[:-]/, $row->{'title'});
-                        my $verses    = $row->{'data'};
-                        my $verse     = "";
-
-                        ($line[2], $line[4]) = split(/-/, $row->{'data'});
-                        if ($line[4] eq "") {
-                            $line[4] = $line[2];
-                        }
-                        if (!$globals->{'usesword'}) {
-                            my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
-                            $query = "SELECT book FROM ".$table." WHERE book LIKE \""
-                              . $line[0] . "%\"";
-                            $sth = $bibleDbh->prepare($query)
-                              || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                            $rv = $sth->execute
-                              || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                            my @bookrow = $sth->fetchrow_array();
-                            $line[0] = $bookrow[0];
-
-                            if ($line[1] == $line[3]) {
-                                $query =
-                                    "SELECT * FROM ".$table." WHERE book LIKE \""
-                                  . $line[0]
-                                  . "%\" AND chapternum="
-                                  . $line[1]
-                                  . " AND versenum>="
-                                  . $line[2]
-                                  . " AND versenum <= "
-                                  . $line[4];
-                            } else {
-                                $query =
-                                    "SELECT * FROM ".$table." WHERE book LIKE \""
-                                  . $line[0]
-                                  . "%\" AND ((chapternum="
-                                  . $line[1]
-                                  . " AND versenum>="
-                                  . $line[2]
-                                  . ") OR (chapternum>"
-                                  . $line[1]
-                                  . " AND chapternum<"
-                                  . $line[3]
-                                  . ") OR (chapternum="
-                                  . $line[3]
-                                  . " AND versenum<="
-                                  . $line[4] . "))";
-                            } ## end else
-                            debug($query);
-                            $sth = $bibleDbh->prepare($query)
-                              || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                            $rv = $sth->execute
-                              || display_fatal($errorcodes->{'sqlexecute'}, $!);
-
-                            while ($row = $sth->fetchrow_hashref()) {
-                                my $line =
-                                    $row->{'chapternum'} . ":"
-                                  . $row->{'versenum'} . "   "
-                                  . $row->{'verse'};
-                                $verse .= $line . "\n";
-                            }
-                        } else {
-                            my $command = "";
-                            $command = sprintf(
-"%s -b %s -e UTF8 -k '%s' %d:%d-%d:%d |tr \\\\n \'#\'",
-                                $globals->{'diatheke'}, $globals->{'bibledb'},
-                                $line[0],               $line[1],
-                                $line[2],               $line[3],
-                                $line[4],               $line[0]
-                            );
-                            debug($command);
-                            my $command_out = fromutf(`$command`);
-                            ($line[0], undef) = split(/\s\d/, $command_out, 2);
-                            my @command_lines =
-                              split(/\#/,, $command_out);
-
-                            foreach (@command_lines) {
-                                chomp;
-                                my $line2 = $_;
-                                $line2 =~ s/^$line[0] //g;
-                                if ($line2 ne "") {
-                                    $verse .= $line2 . "\n";
-                                }
-                            }
+                        my @row;
+                        if (@row = $sth->fetchrow_array()) {
+                            $current_item = $row[0];
+                            $current_list = $row[1];
                         }
 
-                        set_header($versetext);
-                        set_footer($globals->{'biblename'});
-                        set_maintext($verse, $transition, TRUE);
-                        $status =
-                            fromutf(gettext("Displaying "))
-                          . $versetext
-                          . fromutf(gettext(" verses "))
-                          . $verses;
-                    } elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub")
-                    {
+                        $query =
+"SELECT MIN(playorder) FROM playlist WHERE playorder > "
+                          . $current_item
+                          . " AND playlist="
+                          . $current_list;
+                        debug($query);
+                        $sth = $lyricDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        @row = $sth->fetchrow_array();
+
+                        if (defined $row[0]) {
+                            $current_item = $row[0];
+                        }
+                    } elsif ($line[1] eq "prev_song") {
                         my $query =
-                            "SELECT * FROM playlist WHERE playlist="
-                          . $row->{'data'}
+"SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder="
+                          . $current_item;
+                        debug($query);
+                        my $sth = $lyricDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        my $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        my @row;
+                        if (@row = $sth->fetchrow_array()) {
+                            $current_item = $row[0];
+                            $current_list = $row[1];
+                        }
+
+                        $query =
+"SELECT MAX(playorder) FROM playlist WHERE playorder < "
+                          . $current_item
+                          . " AND playlist="
+                          . $current_list;
+                        debug($query);
+                        $sth = $lyricDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        @row = $sth->fetchrow_array();
+
+                        if (defined $row[0]) {
+                            $current_item = $row[0];
+                        }
+                    } elsif ($line[1] eq "page") {
+                        my $query =
+                          "SELECT playlist FROM playlist WHERE playorder="
+                          . $current_item;
+                        debug($query);
+                        my $sth = $lyricDbh->prepare($query)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        my $rv = $sth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                        my @row = $sth->fetchrow_array();
+
+                        $query =
+                            "SELECT playorder FROM playlist WHERE playlist="
+                          . $row[0]
                           . " ORDER BY playorder";
                         debug($query);
                         $sth = $lyricDbh->prepare($query)
                           || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                        my $rv = $sth->execute
+                        $rv = $sth->execute
                           || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                        my $row = $sth->fetchrow_hashref();
-                        update_display("display", $row->{'playorder'}, 0);
+                        my $count = 0;
+
+                        while (($count < $line[2])
+                            && (@row = $sth->fetchrow_array()))
+                        {
+                            $count++;
+                        }
+                        if (defined $row[0]) {
+                            $current_item = $row[0];
+                        }
 
                     } else {
-                        my $query2 =
-"SELECT title,artist,lyrics,copyright,pagenum FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid="
-                          . $row->{'data'};
-                        debug($query2);
-                        my $sth2 = $lyricDbh->prepare($query2)
-                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
-                        my $rv2 = $sth2->execute
-                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
-                        my $row2 = $sth2->fetchrow_hashref();
+                        $current_item = $line[1];
+                        $preview_item = 0;
+                    }
 
-                        $row2->{'lyrics'} =~ s/
-/\n/g;
-                        my $footer = "";
-                        if ($row2->{'artist'} ne "") {
-                            $footer =
-                              gettext("Written by ") . $row2->{'artist'};
-                        }
-                        if ($row2->{'copyright'} ne "") {
-                            if ($row2->{'copyright'} =~ /^Preset/) {
-                                $row2->{'copyright'} =~ s/^.*([0-9]).*$/$1/g;
-                                $footer .=
-                                  " - " . $preset[$row2->{'copyright'}];
+                    # load lyrics from DB
+
+                    if ($preview_item) {
+                        my $tmp = $current_item;
+                        $current_item = $preview_item;
+                        $preview_item = $tmp;
+                    }
+                    $query =
+                      "SELECT * FROM playlist WHERE playorder=" . $current_item;
+                    debug($query);
+                    $sth = $lyricDbh->prepare($query)
+                      || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                    $rv = $sth->execute
+                      || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                    my $row = $sth->fetchrow_hashref();
+                    if (   $row->{'type'} ne "back"
+                        && $row->{'type'} ne "file"
+                        && $row->{'type'} ne "imag")
+                    {
+
+                        #Check for associate image and, if present, apply it.
+                        my $imgquery =
+                          "SELECT imagename FROM associations WHERE playlist="
+                          . $current_item;
+                        debug($imgquery);
+                        my $imgsth = $lyricDbh->prepare($imgquery)
+                          || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                        $imgsth->execute
+                          || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+                        if (my $imgrow = $imgsth->fetchrow_hashref()) {
+                            change_backdrop($imgrow->{'imagename'}, TRUE);
+                            $bgimage_changed = TRUE;
+                        } else {
+
+                        # If the song has changed then then check parent and set
+                        # background if one is associated with it
+                            my $parentquery =
+"SELECT a.imagename,q.data FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder="
+                              . $current_item;
+                            debug($parentquery);
+                            my $imgsth = $lyricDbh->prepare($parentquery)
+                              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                            $imgsth->execute
+                              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                            if (my $imgrow = $imgsth->fetchrow_hashref()) {
+                                change_backdrop($imgrow->{'imagename'}, TRUE);
+                                $bgimage_changed = TRUE;
                             } else {
-                                $footer .= " - " . $row2->{'copyright'};
+                                if (   $bgimage_changed
+                                    && $imgrow->{'data'} ne "imag")
+                                {
+
+                                    #Reset background if an image was shown
+                                    change_backdrop($config->{'BGImage'}, TRUE);
+                                    $bgimage_changed = FALSE;
+                                }
                             }
                         }
+                    }
 
-                        # Determine if this is a multi-point page
-                        if ($row2->{'lyrics'} =~ m/<UL>/) {
-                            debug("This page has multiple points...");
-                            $current_point = 1;
-                            @points = split(/<LI>/, $row2->{'lyrics'});
-                            my $pointtext = $points[$current_point];
+                    if ($exec_pid > 0) {
+                        debug("Killing " . $exec_pid);
+                        system('kill ' . $exec_pid);
+                        system('kill -9 ' . $exec_pid);
+                        $exec_pid = 0;
+                    }
 
-                            #Now figure out how many \n's to add
-                            if (my @o = ($row2->{'lyrics'} =~ /\n/g)) {
-                                if (my @n = $pointtext =~ /\n/g) {
-                                    my $x;
-                                    for (
-                                        $x = 0 ;
-                                        $x < scalar(@o) - scalar(@n) ;
-                                        $x++
-                                      )
-                                    {
-                                        $pointtext .= "\n";
+                    if (defined $row) {
+                        if ($row->{'type'} eq "back") {
+                            my $file = $row->{'data'};
+                            $config->{'BGImage'} = $file;
+                            change_backdrop($file, TRUE);
+                        } elsif ($row->{'type'} eq "file") {
+                            if (   (-r $row->{'data'})
+                                || ($row->{'data'} =~ /:\/\//))
+                            {
+                                $bgimage_changed = TRUE;
+                                set_footer("");
+                                set_header("");
+                                set_maintext("", NONE, FALSE);
+                                change_backdrop("dir;" . $row->{'data'}, FALSE);
+                            }
+                        } elsif ($row->{'type'} eq "imag") {
+                            $bgimage_changed = TRUE;
+                            set_footer("");
+                            set_header("");
+                            set_maintext("", NONE, FALSE);
+                            change_backdrop($row->{'data'}, FALSE);
+                        } elsif ($row->{'type'} eq "vers") {
+
+                            # Kill invalid points from previous songs
+                            $current_point = -1;
+                            @points        = ();
+
+                            my $query =
+"SELECT * FROM playlist,playlists WHERE playlist.playlist=playlists.id AND playorder="
+                              . $current_item;
+                            debug($query);
+                            my $sth = $lyricDbh->prepare($query)
+                              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                            my $rv = $sth->execute
+                              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+
+                            my $row        = $sth->fetchrow_hashref();
+                            my $transition = $row->{'transition'};
+
+                            my $versetext = $row->{'title'};
+                            my @line      = split(/[:-]/, $row->{'title'});
+                            my $verses    = $row->{'data'};
+                            my $verse     = "";
+
+                            ($line[2], $line[4]) = split(/-/, $row->{'data'});
+                            if ($line[4] eq "") {
+                                $line[4] = $line[2];
+                            }
+                            if (!$globals->{'usesword'}) {
+                                my ($table, $dbname) =
+                                  split(/@/, $globals->{'bibledb'}, 2);
+                                $query =
+                                    "SELECT book FROM " 
+                                  . $table
+                                  . " WHERE book LIKE \""
+                                  . $line[0] . "%\"";
+                                $sth = $bibleDbh->prepare($query)
+                                  || display_fatal($errorcodes->{'sqlprepare'},
+                                    $!);
+                                $rv = $sth->execute
+                                  || display_fatal($errorcodes->{'sqlexecute'},
+                                    $!);
+                                my @bookrow = $sth->fetchrow_array();
+                                $line[0] = $bookrow[0];
+
+                                if ($line[1] == $line[3]) {
+                                    $query =
+                                        "SELECT * FROM " 
+                                      . $table
+                                      . " WHERE book LIKE \""
+                                      . $line[0]
+                                      . "%\" AND chapternum="
+                                      . $line[1]
+                                      . " AND versenum>="
+                                      . $line[2]
+                                      . " AND versenum <= "
+                                      . $line[4];
+                                } else {
+                                    $query =
+                                        "SELECT * FROM " 
+                                      . $table
+                                      . " WHERE book LIKE \""
+                                      . $line[0]
+                                      . "%\" AND ((chapternum="
+                                      . $line[1]
+                                      . " AND versenum>="
+                                      . $line[2]
+                                      . ") OR (chapternum>"
+                                      . $line[1]
+                                      . " AND chapternum<"
+                                      . $line[3]
+                                      . ") OR (chapternum="
+                                      . $line[3]
+                                      . " AND versenum<="
+                                      . $line[4] . "))";
+                                } ## end else
+                                debug($query);
+                                $sth = $bibleDbh->prepare($query)
+                                  || display_fatal($errorcodes->{'sqlprepare'},
+                                    $!);
+                                $rv = $sth->execute
+                                  || display_fatal($errorcodes->{'sqlexecute'},
+                                    $!);
+
+                                while ($row = $sth->fetchrow_hashref()) {
+                                    my $line =
+                                        $row->{'chapternum'} . ":"
+                                      . $row->{'versenum'} . "   "
+                                      . $row->{'verse'};
+                                    $verse .= $line . "\n";
+                                }
+                            } else {
+                                my $command = "";
+                                $command = sprintf(
+"%s -b %s -e UTF8 -k '%s' %d:%d-%d:%d |tr \\\\n \'#\'",
+                                    $globals->{'diatheke'},
+                                    $globals->{'bibledb'},
+                                    $line[0],
+                                    $line[1],
+                                    $line[2],
+                                    $line[3],
+                                    $line[4],
+                                    $line[0]
+                                );
+                                debug($command);
+                                my $command_out = fromutf(`$command`);
+                                ($line[0], undef) =
+                                  split(/\s\d/, $command_out, 2);
+                                my @command_lines =
+                                  split(/\#/,, $command_out);
+
+                                foreach (@command_lines) {
+                                    chomp;
+                                    my $line2 = $_;
+                                    $line2 =~ s/^$line[0] //g;
+                                    if ($line2 ne "") {
+                                        $verse .= $line2 . "\n";
                                     }
                                 }
                             }
-                            $row2->{'lyrics'} = $pointtext;
+
+                            set_header($versetext);
+                            set_footer($globals->{'biblename'});
+                            set_maintext($verse, $transition, TRUE);
+                            $status =
+                                fromutf(gettext("Displaying "))
+                              . $versetext
+                              . fromutf(gettext(" verses "))
+                              . $verses;
+                        } elsif (
+                            $row->{'type'} eq "play" | $row->{'type'} eq "sub")
+                        {
+                            my $query =
+                                "SELECT * FROM playlist WHERE playlist="
+                              . $row->{'data'}
+                              . " ORDER BY playorder";
+                            debug($query);
+                            $sth = $lyricDbh->prepare($query)
+                              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                            my $rv = $sth->execute
+                              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                            my $row = $sth->fetchrow_hashref();
+                            update_display("display", $row->{'playorder'}, 0);
+
                         } else {
-                            $current_point = -1;
-                            @points        = ();
-                        }
-                        $row2->{'lyrics'} =~ s/<.*?>//g;
-                        set_header($row2->{'title'});
-                        set_footer($footer);
-                        set_maintext($row2->{'lyrics'}, $row->{'transition'},
-                            FALSE);
-                        $status =
-                            fromutf(gettext("Displaying "))
-                          . $row2->{'title'}
-                          . fromutf(gettext(" page "))
-                          . $row2->{'pagenum'};
-                    } ## end else
-                    refresh_screen();
-                } ## end if (my $row = $sth->fetchrow_hashref...
-                if ($preview_item) {
-                    $current_item = $preview_item;
-                    $preview_item = 0;
-                }
+                            my $query2 =
+"SELECT title,artist,lyrics,copyright,pagenum FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid="
+                              . $row->{'data'};
+                            debug($query2);
+                            my $sth2 = $lyricDbh->prepare($query2)
+                              || display_fatal($errorcodes->{'sqlprepare'}, $!);
+                            my $rv2 = $sth2->execute
+                              || display_fatal($errorcodes->{'sqlexecute'}, $!);
+                            my $row2 = $sth2->fetchrow_hashref();
+
+                            $row2->{'lyrics'} =~ s/
+/\n/g;
+                            my $footer = "";
+                            if ($row2->{'artist'} ne "") {
+                                $footer =
+                                  gettext("Written by ") . $row2->{'artist'};
+                            }
+                            if ($row2->{'copyright'} ne "") {
+                                if ($row2->{'copyright'} =~ /^Preset/) {
+                                    $row2->{'copyright'} =~
+                                      s/^.*([0-9]).*$/$1/g;
+                                    $footer .=
+                                      " - " . $preset[$row2->{'copyright'}];
+                                } else {
+                                    $footer .= " - " . $row2->{'copyright'};
+                                }
+                            }
+
+                            # Determine if this is a multi-point page
+                            if ($row2->{'lyrics'} =~ m/<UL>/) {
+                                debug("This page has multiple points...");
+                                $current_point = 1;
+                                @points = split(/<LI>/, $row2->{'lyrics'});
+                                my $pointtext = $points[$current_point];
+
+                                #Now figure out how many \n's to add
+                                if (my @o = ($row2->{'lyrics'} =~ /\n/g)) {
+                                    if (my @n = $pointtext =~ /\n/g) {
+                                        my $x;
+                                        for (
+                                            $x = 0 ;
+                                            $x < scalar(@o) - scalar(@n) ;
+                                            $x++
+                                          )
+                                        {
+                                            $pointtext .= "\n";
+                                        }
+                                    }
+                                }
+                                $row2->{'lyrics'} = $pointtext;
+                            } else {
+                                $current_point = -1;
+                                @points        = ();
+                            }
+                            $row2->{'lyrics'} =~ s/<.*?>//g;
+                            set_header($row2->{'title'});
+                            set_footer($footer);
+                            set_maintext($row2->{'lyrics'},
+                                $row->{'transition'}, FALSE);
+                            $status =
+                                fromutf(gettext("Displaying "))
+                              . $row2->{'title'}
+                              . fromutf(gettext(" page "))
+                              . $row2->{'pagenum'};
+                        } ## end else
+                        refresh_screen();
+                    } ## end if (my $row = $sth->fetchrow_hashref...
+                    if ($preview_item) {
+                        $current_item = $preview_item;
+                        $preview_item = 0;
+                    }
                 }
 
             }
@@ -1424,7 +1467,7 @@ sub change_backdrop {
     $globals->{'video_loop'} = FALSE;
     debug("Setting backdrop to $id");
     $globals->{'bgid'} = $id;
-    my ($type, $data) = split(/;/, $id,2);
+    my ($type, $data) = split(/;/, $id, 2);
     if ($data eq "") {
         $data = $type;
         $type = "db";
@@ -1440,85 +1483,89 @@ sub change_backdrop {
                 $video = TRUE;
             }
         }
-        if ( $data =~ /:\/\//) {
+        if ($data =~ /:\/\//) {
             $video = TRUE;
         }
         if ($video) {
-                debug("Changing backdrop video to file:" . $data);
-                $video = TRUE;
-                    if ($globals->{'server_type'} == CLUTTER) {
-                        debug("Clutter Video");
-                        if (defined $globals->{'background'}) {
-                            $globals->{'background'}->destroy();
-                            undef $globals->{'background'};
-                        }
-                        if ($globals->{'clutter1'}) {
-                            $globals->{'background'} = Clutter::GStreamer::VideoTexture->new();
-                        } else {
-                            $globals->{'background'} = Clutter::Gst::VideoTexture->new();
-                        }
-                        my $start=0;
-                        my $end=0;
-                        if (! ($data =~ /:\/\//)) {
-                            $data = "file://".$data;
-                        } else {
-                            if ($data =~ / /) {
-                                my @parts = split(/ /, $data);
-                                $data = $parts[0];
-                                if ($data =~ /^dvd:\// ) {
-                                    ($start,$end) = split(/-/,$parts[1],2);
-                                    $data="dvd://"; # title number not working yet
-                                }
-                            }
-                        }
-                        debug ("Playing ".$data);
-                        $globals->{'background'}->set_uri($data);
-                        $globals->{'background'}->set(
-                            keep_aspect_ratio => 1,
-                            request_mode      => 'height-for-width',
-                        );
-                        $globals->{'background'}
-                          ->set_width($globals->{'stage'}->get_width());
-                        $globals->{'background'}->set_anchor_point_from_gravity(
-                            'CLUTTER_GRAVITY_CENTER'
-                        );
-                        if ($globals->{'clutter1'}) {
-                            $globals->{'background'}
-                              ->set_position($globals->{'stage'}->get_width / 2, $globals->{'stage'}->get_height /2);
-                        } else {
-                            $globals->{'background'}
-                              ->set_position($globals->{'stage'}->get_width / 2,0);
-                        }
-                        $globals->{'stage'}->add($globals->{'background'});
-
-                        if ($MINISERV < 0) {
-                            if ($start != 0) {
-                                my $element= $globals->{'background'}->get_element();
-                                $element->seek(1.0, 'time', 'flush', 'set', $start*1000, 'none', 'none')
-                            }
-                            $globals->{'background'}->set_playing(TRUE);
-                            $globals->{'video_loop'} = $loop;
-                            if ($loop) {
-                                $globals->{'background'}
-                                  ->signal_connect("eos", "loop_background",
-                                    $id);
-                            }
-                        } else {
-                            $globals->{'background'}->set_playing(TRUE);
-                            select(undef, undef, undef, 0.1);
-                            $globals->{'background'}->set_playing(FALSE);
-                        }
-                        $globals->{'video_playing'} = TRUE;
-                    } else {
-                        $exec_pid = fork;
-                        if ($exec_pid > 0) {
-
-                            my $command = $config->{'MPlayer'} . " " . $data;
-                            debug($command);
-
-                            system($command);
+            debug("Changing backdrop video to file:" . $data);
+            $video = TRUE;
+            if ($globals->{'server_type'} == CLUTTER) {
+                debug("Clutter Video");
+                if (defined $globals->{'background'}) {
+                    $globals->{'background'}->destroy();
+                    undef $globals->{'background'};
+                }
+                if ($globals->{'clutter1'}) {
+                    $globals->{'background'} =
+                      Clutter::GStreamer::VideoTexture->new();
+                } else {
+                    $globals->{'background'} =
+                      Clutter::Gst::VideoTexture->new();
+                }
+                my $start = 0;
+                my $end   = 0;
+                if (!($data =~ /:\/\//)) {
+                    $data = "file://" . $data;
+                } else {
+                    if ($data =~ / /) {
+                        my @parts = split(/ /, $data);
+                        $data = $parts[0];
+                        if ($data =~ /^dvd:\//) {
+                            ($start, $end) = split(/-/, $parts[1], 2);
+                            $data = "dvd://";    # title number not working yet
                         }
                     }
+                }
+                debug("Playing " . $data);
+                $globals->{'background'}->set_uri($data);
+                $globals->{'background'}->set(
+                    keep_aspect_ratio => 1,
+                    request_mode      => 'height-for-width',
+                );
+                $globals->{'background'}
+                  ->set_width($globals->{'stage'}->get_width());
+                $globals->{'background'}
+                  ->set_anchor_point_from_gravity('CLUTTER_GRAVITY_CENTER');
+                if ($globals->{'clutter1'}) {
+                    $globals->{'background'}->set_position(
+                        $globals->{'stage'}->get_width / 2,
+                        $globals->{'stage'}->get_height / 2
+                    );
+                } else {
+                    $globals->{'background'}
+                      ->set_position($globals->{'stage'}->get_width / 2, 0);
+                }
+                $globals->{'stage'}->add($globals->{'background'});
+
+                if ($MINISERV < 0) {
+                    if ($start != 0) {
+                        my $element = $globals->{'background'}->get_element();
+                        $element->seek(1.0, 'time', 'flush', 'set',
+                            $start * 1000,
+                            'none', 'none');
+                    }
+                    $globals->{'background'}->set_playing(TRUE);
+                    $globals->{'video_loop'} = $loop;
+                    if ($loop) {
+                        $globals->{'background'}
+                          ->signal_connect("eos", "loop_background", $id);
+                    }
+                } else {
+                    $globals->{'background'}->set_playing(TRUE);
+                    select(undef, undef, undef, 0.1);
+                    $globals->{'background'}->set_playing(FALSE);
+                }
+                $globals->{'video_playing'} = TRUE;
+            } else {
+                $exec_pid = fork;
+                if ($exec_pid > 0) {
+
+                    my $command = $config->{'MPlayer'} . " " . $data;
+                    debug($command);
+
+                    system($command);
+                }
+            }
         }
         if (!$video) {
             debug("Changing backdrop image to file:" . $data);
@@ -1533,12 +1580,16 @@ sub change_backdrop {
                     $globals->{'background_old'} = $globals->{'background'};
                     if ($globals->{'clutter1'}) {
                         $globals->{'timeline_bg'} = Clutter::Timeline->new(500);
-                        my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'}, 0);
+                        my $alpha =
+                          Clutter::Alpha->new($globals->{'timeline_bg'}, 0);
                     } else {
-                        $globals->{'timeline_bg'} = Clutter::Timeline->new_for_duration(100);
+                        $globals->{'timeline_bg'} =
+                          Clutter::Timeline->new_for_duration(100);
                         $globals->{'timeline_bg'}->set_speed(15);
-                        my $alpha = Clutter::Alpha->new($globals->{'timeline_bg'},
-                          \&Clutter::Alpha::ramp_inc);
+                        my $alpha = Clutter::Alpha->new(
+                            $globals->{'timeline_bg'},
+                            \&Clutter::Alpha::ramp_inc
+                        );
                     }
                     $globals->{'timeline_bg'}->signal_connect(
                         'new-frame' => sub {
@@ -1618,7 +1669,7 @@ sub change_backdrop {
             if ($row->{'format'} eq "bg") {
                 debug("Changing backdrop colour to " . $row->{'description'});
                 if ($globals->{'server_type'} == SIMPLE) {
-                    $globals->{'bg_file'}="/tmp/lyricue.bg";
+                    $globals->{'bg_file'} = "/tmp/lyricue.bg";
                     open(BGIMG, ">" . $globals->{'bg_file'});
                     print BGIMG
                       sprintf(
@@ -1637,9 +1688,11 @@ sub change_backdrop {
                     );
                     $globals->{'background'}->set_position(0, 0);
                     if ($globals->{'clutter1'}) {
-                        $globals->{'background'}->set_color(Clutter::Color->from_string($row->{'description'}));
+                        $globals->{'background'}->set_color(
+                            Clutter::Color->from_string($row->{'description'}));
                     } else {
-                        $globals->{'background'}->set_color(Clutter::Color->parse($row->{'description'}));
+                        $globals->{'background'}->set_color(
+                            Clutter::Color->parse($row->{'description'}));
                     }
                     $globals->{'stage'}->add($globals->{'background'});
                     $globals->{'background'}->lower_bottom();
@@ -1828,16 +1881,14 @@ sub change_to_db {
         $bibleDbh->disconnect;
     }
     if ($type eq "db") {
-        my ($table, $dbname) = split(/@/,$globals->{'bibledb'},2);
-        if ($dbname eq "" ) {
-            $dbname = $table;
-            $table = "verse";
-            $globals->{'bibledb'} = $table."@".$dbname;
+        my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
+        if ($dbname eq "") {
+            $dbname               = $table;
+            $table                = "verse";
+            $globals->{'bibledb'} = $table . "@" . $dbname;
         }
 
-        $bibleDbh =
-          db_connect($dbname,
-            $errorcodes->{'bibledbopen'} . $dbname);
+        $bibleDbh = db_connect($dbname, $errorcodes->{'bibledbopen'} . $dbname);
         $globals->{'usesword'} = FALSE;
     } else {
         $globals->{'usesword'} = TRUE;
@@ -2014,7 +2065,8 @@ sub set_maintext_clutter {
         $shadowcolour = $config->{'BackdropShadowColour'};
     }
     $globals->{'maintext'} =
-      create_outlined_text($text, $config->{'Main'}, $colour, $shadowcolour, TRUE);
+      create_outlined_text($text, $config->{'Main'}, $colour, $shadowcolour,
+        TRUE);
     my $final_x = $globals->{'stage'}->get_width() / 2;
     my $final_y = $globals->{'stage'}->get_height() / 2;
     if ($config->{'VerticalLocation'} =~ /^T/) {
@@ -2055,8 +2107,7 @@ sub set_maintext_clutter {
         $globals->{'timeline'}->set_speed(15);
     }
     $globals->{'timeline'}->set_loop(0);
-    my $alpha =
-      Clutter::Alpha->new($globals->{'timeline'}, 'CLUTTER_LINEAR');
+    my $alpha = Clutter::Alpha->new($globals->{'timeline'}, 'CLUTTER_LINEAR');
 
     # Set start position
     $globals->{'timeline'}->signal_connect(
@@ -2298,7 +2349,8 @@ sub set_maintext_simple {
       Gtk2::Pango::FontDescription->from_string($config->{'Main'});
     my $colour = Gtk2::Gdk::Color->from_string($config->{'Colour'});
     if ($config->{'BackdropTextColour'} ne "") {
-        $colour = Gtk2::Gdk::Color->from_string($config->{'BackdropTextColour'});
+        $colour =
+          Gtk2::Gdk::Color->from_string($config->{'BackdropTextColour'});
     }
     $globals->{'mainText'}->modify_fg('normal', $colour);
     $globals->{'mainText'}->modify_font($font_desc);
@@ -2506,7 +2558,8 @@ sub set_footer_clutter {
         $shadowcolour = $config->{'BackdropShadowColour'};
     }
     $globals->{'footer'} =
-      create_outlined_text($text, $config->{'Footer'}, $colour, $shadowcolour, TRUE);
+      create_outlined_text($text, $config->{'Footer'}, $colour, $shadowcolour,
+        TRUE);
     $globals->{'footer'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
@@ -2540,7 +2593,8 @@ sub set_footer_simple {
     $globals->{'footerText'}->modify_font($font_desc);
     my $colour = Gtk2::Gdk::Color->from_string($config->{'Colour'});
     if ($config->{'BackdropTextColour'} ne "") {
-        $colour = Gtk2::Gdk::Color->from_string($config->{'BackdropTextColour'});
+        $colour =
+          Gtk2::Gdk::Color->from_string($config->{'BackdropTextColour'});
     }
     $globals->{'footerText'}->modify_fg('normal', $colour);
     $globals->{'footerText'}->set_text($text);
@@ -2605,7 +2659,8 @@ sub set_header_clutter {
         $shadowcolour = $config->{'BackdropShadowColour'};
     }
     $globals->{'header'} =
-      create_outlined_text($text, $config->{'Header'}, $colour, $shadowcolour, TRUE);
+      create_outlined_text($text, $config->{'Header'}, $colour, $shadowcolour,
+        TRUE);
     $globals->{'header'}->set_position(
         $globals->{'stage'}->get_width() / 2,
         $globals->{'stage'}->get_height() / 2
@@ -2636,7 +2691,8 @@ sub set_header_simple {
     $globals->{'headerText'}->modify_font($font_desc);
     my $colour = Gtk2::Gdk::Color->from_string($config->{'Colour'});
     if ($config->{'BackdropTextColour'} ne "") {
-        $colour = Gtk2::Gdk::Color->from_string($config->{'BackdropTextColour'});
+        $colour =
+          Gtk2::Gdk::Color->from_string($config->{'BackdropTextColour'});
     }
     $globals->{'headerText'}->modify_fg('normal', $colour);
     $globals->{'headerText'}->set_text($text);
@@ -2656,7 +2712,7 @@ sub set_header_simple {
 # OUTPUT
 # SOURCE
 #
-sub set_osd{
+sub set_osd {
     my ($speed, $text) = @_;
     if (!defined $text) { $text = ""; }
     $text =~ s/#BREAK#/\n/g;
@@ -2683,7 +2739,7 @@ sub set_osd{
 #
 sub set_osd_clutter {
     my ($speed, $text) = @_;
-    debug("Setting OSD at ".$speed." speed");
+    debug("Setting OSD at " . $speed . " speed");
     if (defined $globals->{'osd'}) {
         $globals->{'timeline_osd'}->set_loop(FALSE);
         $globals->{'osd'}->destroy;
@@ -2703,17 +2759,20 @@ sub set_osd_clutter {
         $shadowcolour = $config->{'BackdropShadowColour'};
     }
     $globals->{'osd'} =
-      create_outlined_text($text, $config->{'OSD'}, $colour, $shadowcolour, FALSE);
+      create_outlined_text($text, $config->{'OSD'}, $colour, $shadowcolour,
+        FALSE);
     $globals->{'osd_background'} = Clutter::Rectangle->new();
-    $globals->{'osd_background'}->set_size(
-        $globals->{'stage'}->get_width(),
-        $globals->{'osd'}->get_height()+5
-    );
-    $globals->{'osd_background'}->set_position(0, $globals->{'stage'}->get_height-$globals->{'osd_background'}->get_height());
+    $globals->{'osd_background'}->set_size($globals->{'stage'}->get_width(),
+        $globals->{'osd'}->get_height() + 5);
+    $globals->{'osd_background'}->set_position(0,
+        $globals->{'stage'}->get_height -
+          $globals->{'osd_background'}->get_height());
     if ($globals->{'clutter1'}) {
-        $globals->{'osd_background'}->set_color(Clutter::Color->from_string($shadowcolour));
+        $globals->{'osd_background'}
+          ->set_color(Clutter::Color->from_string($shadowcolour));
     } else {
-        $globals->{'osd_background'}->set_color(Clutter::Color->parse($shadowcolour));
+        $globals->{'osd_background'}
+          ->set_color(Clutter::Color->parse($shadowcolour));
     }
     $globals->{'osd_background'}->set_opacity(100);
 
@@ -2730,7 +2789,8 @@ sub set_osd_clutter {
     } else {
         $duration = 10000;
     }
-    my $scale = $globals->{'osd'}->get_width()/$globals->{'stage'}->get_width();
+    my $scale =
+      $globals->{'osd'}->get_width() / $globals->{'stage'}->get_width();
     if ($scale < 1) {
         $scale = 1;
     }
@@ -2740,33 +2800,37 @@ sub set_osd_clutter {
         $globals->{'timeline_osd'} = Clutter::Timeline->new($duration);
         $alpha = Clutter::Alpha->new($globals->{'timeline_osd'}, 'linear');
     } else {
-        $globals->{'timeline_osd'} = Clutter::Timeline->new_for_duration($duration);
+        $globals->{'timeline_osd'} =
+          Clutter::Timeline->new_for_duration($duration);
         $globals->{'timeline_osd'}->set_speed(15);
         $alpha = Clutter::Alpha->new($globals->{'timeline_osd'},
             \&Clutter::Alpha::ramp_inc);
     }
-    my $start_x = int($globals->{'stage'}->get_width()+($globals->{'osd'}->get_width()/2));
-    my $end_x = int(($globals->{'osd'}->get_width()/2) - $globals->{'osd'}->get_width());
-    my $start_y = int($globals->{'stage'}->get_height() - ($globals->{'osd'}->get_height() / $MINISCALE)/2);
+    my $start_x =
+      int($globals->{'stage'}->get_width() +
+          ($globals->{'osd'}->get_width() / 2));
+    my $end_x = int(
+        ($globals->{'osd'}->get_width() / 2) - $globals->{'osd'}->get_width());
+    my $start_y =
+      int($globals->{'stage'}->get_height() -
+          ($globals->{'osd'}->get_height() / $MINISCALE) / 2);
 
     if ($globals->{'clutter1'}) {
         my $path = Clutter::Path->new(
-            [ 'move-to', [ [ $start_x, $start_y ] ] ],
-            [ 'line-to', [ [ $end_x,   $start_y ] ] ],
+            ['move-to', [[$start_x, $start_y]]],
+            ['line-to', [[$end_x,   $start_y]]],
         );
-        $globals->{'osd_path'} = Clutter::Behaviour::Path->new(
-        $alpha, $path
-        );
+        $globals->{'osd_path'} = Clutter::Behaviour::Path->new($alpha, $path);
     } else {
         $globals->{'osd_path'} = Clutter::Behaviour::Path->new(
             $alpha,
             Clutter::Knot->new($start_x, $start_y),
-            Clutter::Knot->new($end_x, $start_y)
+            Clutter::Knot->new($end_x,   $start_y)
         );
     }
 
     $globals->{'osd_path'}->apply($globals->{'osd'});
-    $globals->{'osd'}->set_position( $start_x, $start_y) ;
+    $globals->{'osd'}->set_position($start_x, $start_y);
 
     $globals->{'timeline_osd'}->set_loop(TRUE);
     $globals->{'timeline_osd'}->start();
@@ -2774,7 +2838,6 @@ sub set_osd_clutter {
 }
 
 #***
-
 
 #****f* lyricue_server/get_bibles
 # NAME
@@ -2802,10 +2865,11 @@ sub get_bibles {
             my $tablename = $_;
             $tablename =~ s/^.*`(.*)`$/$1/g;
             $tablename =~ s/^"(.*)"$/$1/g;
-            my @fields = @{$db->selectall_arrayref("describe ".$tablename)};
-            my $a= $fields[0]->[0];
+            my @fields = @{$db->selectall_arrayref("describe " . $tablename)};
+            my $a      = $fields[0]->[0];
             if ($a eq "verseid") {
-                my $query = "SELECT verse FROM ".$tablename." WHERE book=\"Bible\";";
+                my $query =
+                  "SELECT verse FROM " . $tablename . " WHERE book=\"Bible\";";
                 qdebug($query);
                 my $sth = $db->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'}, $!);
@@ -2813,7 +2877,8 @@ sub get_bibles {
                   || display_fatal($errorcodes->{'sqlexecute'}, $!);
                 my $row = $sth->fetchrow_hashref();
                 if (defined $row->{'verse'}) {
-                    $bibles->{$tablename."@".$dbname} = "db;" . $row->{'verse'};
+                    $bibles->{$tablename . "@" . $dbname} =
+                      "db;" . $row->{'verse'};
                 }
                 $sth->finish;
             }
@@ -2880,8 +2945,7 @@ sub update_snapshot {
 
     #if ($globals->{'preview'}) {
 
-    if ($globals->{'server_type'} == SIMPLE)
-    {
+    if ($globals->{'server_type'} == SIMPLE) {
         my $window = $globals->{'window'}->window();
         my $pixmap =
           Gtk2::Gdk::Pixbuf->get_from_drawable($window, $window->get_colormap(),
@@ -2977,7 +3041,7 @@ sub create_window {
                 my $geom = "+"
                   . ($globals->{'window'}->get_screen->get_width - 100)
                   . "+100";
-                debug ("Geom:".$geom);
+                debug("Geom:" . $geom);
                 $globals->{'window'}->parse_geometry($geom);
             } else {
                 my $display = Gtk2::Gdk::Display->open(":0.1");
@@ -3019,19 +3083,19 @@ sub create_window {
         } else {
             eval { require Gtk2::Clutter };
             if ($@) {
-                $globals->{'clutter1'}=FALSE;
+                $globals->{'clutter1'} = FALSE;
                 import Clutter;
                 import Clutter qw( :gtk-init );
                 import Clutter::Keysyms;
             } else {
-                $globals->{'clutter1'}=TRUE;
+                $globals->{'clutter1'} = TRUE;
                 import Gtk2::Clutter;
                 require Clutter::GStreamer;
                 import Clutter;
                 import Clutter::GStreamer;
                 import Clutter::Keysyms;
             }
-print "VERS:".$globals->{'clutter1'}."\n";
+            print "VERS:" . $globals->{'clutter1'} . "\n";
         }
     }
     my $aspect = $config->{'Width'} / $config->{'Height'};
@@ -3426,7 +3490,7 @@ sub db_check_app {
 #
 sub db_connect {
     my ($dbname, $dberror) = @_;
-    debug("Connecting to database:".$dbname);
+    debug("Connecting to database:" . $dbname);
     my ($dbh);
     if ($globals->{'db_type'} eq "SQLite") {
         $dbh =

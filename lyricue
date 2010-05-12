@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.368 2010/05/12 02:59:33 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.369 2010/05/12 04:25:21 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -448,13 +448,15 @@ if (-e $globals->{'basedir'}) {
 
 # Setup logging
 my $logname = $globals->{'basedir'} . "/frontend.log";
-rename($logname , $logname.".old") or system("mv", $logname, $logname.".old");
+rename($logname, $logname . ".old")
+  or system("mv", $logname, $logname . ".old");
 open(LOG, ">" . $logname);
 binmode LOG, ":utf8";
 debug("Lyric Interface version " . $globals->{'version'} . "\n" . $ID);
 $widgets->{'main'} =
   Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain', 'lyricue');
 $widgets->{'main'}->signal_autoconnect_from_package('');
+
 if ($globals->{'mini'}) {
     my $bitmap = Gtk2::Gdk::Bitmap->create_from_data(undef, 0, 1, 1);
     my $cursor = Gtk2::Gdk::Cursor->new_from_pixmap(
@@ -713,7 +715,7 @@ sub add_playlist {
                     if ($filename =~ / /) {
                         $filename =~ s/ / from /;
                     }
-                    $title = "DVD Title: ".$filename;
+                    $title = "DVD Title: " . $filename;
                 } else {
                     $title = "File: " . $filename . " in " . $dir;
                 }
@@ -1190,11 +1192,14 @@ sub popup_avail_menu {
         return (TRUE);
     } else {
         debug("song selected");
-        my $path = $widget->get_path_at_pos($event->x, $event->y);
-        my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
-        my $iter = $model->get_iter($path);
-        my $songid = $model->get($iter,3);
-        my $query = "SELECT pageid FROM page WHERE songid=".$songid." ORDER BY pagenum";
+        my $path   = $widget->get_path_at_pos($event->x, $event->y);
+        my $model  = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
+        my $iter   = $model->get_iter($path);
+        my $songid = $model->get($iter, 3);
+        my $query =
+            "SELECT pageid FROM page WHERE songid=" 
+          . $songid
+          . " ORDER BY pagenum";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
@@ -1203,6 +1208,7 @@ sub popup_avail_menu {
           || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @row = $sth->fetchrow_array();
+
         if (defined $row[0]) {
             my $pageid = $row[0];
             preview_pageid($pageid);
@@ -2173,8 +2179,8 @@ sub insert_verse {
 #
 sub import_song {
     debug("import song");
-    my $filexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
+    my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogFileChooser', 'lyricue');
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "do_import_song", $filexml);
@@ -2943,8 +2949,8 @@ sub clear_playlist {
 # SOURCE
 #
 sub display_song {
-    my ($widget, $path, ,$column) = @_;
-    debug ("display song");
+    my ($widget, $path,, $column) = @_;
+    debug("display song");
     reset_timer($globals->{'timer'});
     my $selection =
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
@@ -2957,59 +2963,54 @@ sub display_song {
 
 sub treePlaylist_cursor_changed {
     my ($widget) = @_;
-    debug ("preview playlist item");
-                my $selection =
-                  $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
-                my ($model, $iter) = $selection->get_selected;
-                if ($iter) {
-                    my $transition = $model->get($iter, 3);
+    debug("preview playlist item");
+    my $selection =
+      $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
+    my ($model, $iter) = $selection->get_selected;
+    if ($iter) {
+        my $transition = $model->get($iter, 3);
 
-                    # Set the transition values
-                    my $out_direction = mod($transition, 2**NUM_TRANS);
-                    $transition = $transition >> NUM_TRANS;
-                    my $in_direction = mod($transition, 2**NUM_TRANS);
-                    my $effect = $transition >> NUM_TRANS;
-                    if ($effect == WIPE) {
-                        $widgets->{'main'}->get_widget('radioTransWipe')
-                          ->set_active(TRUE);
-                    } elsif ($effect == SLIDE_TEXT) {
-                        $widgets->{'main'}->get_widget('radioTransSlide')
-                          ->set_active(TRUE);
-                    } elsif ($effect == ROTATE_TEXT) {
-                        $widgets->{'main'}->get_widget('radioTransRotate')
-                          ->set_active(TRUE);
-                    } else {
-                        $widgets->{'main'}->get_widget('radioTransFade')
-                          ->set_active(TRUE);
-                    }
-                    my $indir = "";
-                    if ($in_direction & UP)    { $indir .= "Up" }
-                    if ($in_direction & DOWN)  { $indir .= "Down" }
-                    if ($in_direction & LEFT)  { $indir .= "Left" }
-                    if ($in_direction & RIGHT) { $indir .= "Right" }
-                    if ($indir eq "") { $indir = "None" }
-                    $widgets->{'main'}->get_widget("toggleIn" . $indir)
-                      ->set_active(TRUE);
-                    $widgets->{'main'}->get_widget("toggleRotX")
-                      ->set_active($in_direction & X_AXIS);
-                    $widgets->{'main'}->get_widget("toggleRotY")
-                      ->set_active($in_direction & Y_AXIS);
-                    $widgets->{'main'}->get_widget("toggleRotZ")
-                      ->set_active($in_direction & Z_AXIS);
+        # Set the transition values
+        my $out_direction = mod($transition, 2**NUM_TRANS);
+        $transition = $transition >> NUM_TRANS;
+        my $in_direction = mod($transition, 2**NUM_TRANS);
+        my $effect = $transition >> NUM_TRANS;
+        if ($effect == WIPE) {
+            $widgets->{'main'}->get_widget('radioTransWipe')->set_active(TRUE);
+        } elsif ($effect == SLIDE_TEXT) {
+            $widgets->{'main'}->get_widget('radioTransSlide')->set_active(TRUE);
+        } elsif ($effect == ROTATE_TEXT) {
+            $widgets->{'main'}->get_widget('radioTransRotate')
+              ->set_active(TRUE);
+        } else {
+            $widgets->{'main'}->get_widget('radioTransFade')->set_active(TRUE);
+        }
+        my $indir = "";
+        if ($in_direction & UP)    { $indir .= "Up" }
+        if ($in_direction & DOWN)  { $indir .= "Down" }
+        if ($in_direction & LEFT)  { $indir .= "Left" }
+        if ($in_direction & RIGHT) { $indir .= "Right" }
+        if ($indir eq "") { $indir = "None" }
+        $widgets->{'main'}->get_widget("toggleIn" . $indir)->set_active(TRUE);
+        $widgets->{'main'}->get_widget("toggleRotX")
+          ->set_active($in_direction & X_AXIS);
+        $widgets->{'main'}->get_widget("toggleRotY")
+          ->set_active($in_direction & Y_AXIS);
+        $widgets->{'main'}->get_widget("toggleRotZ")
+          ->set_active($in_direction & Z_AXIS);
 
-                    my $outdir = "";
-                    if ($out_direction & UP)    { $outdir .= "Up" }
-                    if ($out_direction & DOWN)  { $outdir .= "Down" }
-                    if ($out_direction & LEFT)  { $outdir .= "Left" }
-                    if ($out_direction & RIGHT) { $outdir .= "Right" }
-                    if ($outdir eq "") { $outdir = "None" }
-                    $widgets->{'main'}->get_widget("toggleOut" . $outdir)
-                      ->set_active(TRUE);
-                }
-                update_quickedit();
-                if ($config->{'DynamicPreview'}) {
-                    preview_playlist_item();
-                }
+        my $outdir = "";
+        if ($out_direction & UP)    { $outdir .= "Up" }
+        if ($out_direction & DOWN)  { $outdir .= "Down" }
+        if ($out_direction & LEFT)  { $outdir .= "Left" }
+        if ($out_direction & RIGHT) { $outdir .= "Right" }
+        if ($outdir eq "") { $outdir = "None" }
+        $widgets->{'main'}->get_widget("toggleOut" . $outdir)->set_active(TRUE);
+    }
+    update_quickedit();
+    if ($config->{'DynamicPreview'}) {
+        preview_playlist_item();
+    }
 }
 
 sub on_treePlaylist_button_press_event {
@@ -3275,19 +3276,18 @@ sub preview_pageid {
     my $query = "SELECT lyrics, pagetitle FROM page WHERE pageid=" . $pageid;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     $row = $sth->fetchrow_hashref();
     if (defined $row) {
-        #join all the strings together so update display will accept them, removing
-        #any newlines or semicolons that would upset the split on the other end.
-        my $songtext = toutf($row->{'lyrics'});
+
+     #join all the strings together so update display will accept them, removing
+     #any newlines or semicolons that would upset the split on the other end.
+        my $songtext  = toutf($row->{'lyrics'});
         my $pagetitle = toutf($row->{'pagetitle'});
-        $songtext =~ s/\n/#BREAK#/g;
-        $songtext =~ s/:/#SEMI#/g;
+        $songtext  =~ s/\n/#BREAK#/g;
+        $songtext  =~ s/:/#SEMI#/g;
         $pagetitle =~ s/\n/#BREAK#/g;
         $pagetitle =~ s/:/#SEMI#/g;
 
@@ -3677,11 +3677,12 @@ sub update_display {
         )
       )
     {
+
         #binmode $server, ":utf8";
         print $server toutf(
             $command . ":" . $primary . ":" . $secondary . "\n");
         if (defined(my $status = <$server>)) {
-            $status=fromutf($status);
+            $status = fromutf($status);
             chomp($status);
             if ($status =~ /^pl:/) {
                 my @line = split(/:/, $status);
@@ -4143,17 +4144,17 @@ sub change_preview {
             my $scaled = create_pixbuf($data, 480, 360);
             if ($scaled) {
                 my $row;
-                    my $query =
-                      "SELECT textcolour, shadowcolour FROM media WHERE id=\""
-                      . $id . "\"";
-                    qdebug($query);
-                    my $sth = $mediaDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'},
-                        $! . "\nSQL: " . $query);
-                    my $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'},
-                        $! . "\nSQL: " . $query);
-                    $row = $sth->fetchrow_hashref();
+                my $query =
+                  "SELECT textcolour, shadowcolour FROM media WHERE id=\"" 
+                  . $id . "\"";
+                qdebug($query);
+                my $sth = $mediaDbh->prepare($query)
+                  || display_fatal($errorcodes->{'sqlprepare'},
+                    $! . "\nSQL: " . $query);
+                my $rv = $sth->execute
+                  || display_fatal($errorcodes->{'sqlexecute'},
+                    $! . "\nSQL: " . $query);
+                $row = $sth->fetchrow_hashref();
                 if ($row) {
                     $widgets->{'image'}->get_widget('buttonImageDelete')
                       ->set_sensitive(TRUE);
@@ -4165,6 +4166,7 @@ sub change_preview {
                     $row->{'textcolour'}   = "Default";
                     $row->{'shadowcolour'} = "Default";
                 }
+
                 #    $widgets->{'image'}->get_widget('buttonImageDelete')
                 #      ->set_sensitive(FALSE);
                 #    $widgets->{'image'}->get_widget('buttonImageChange')
@@ -4232,7 +4234,11 @@ sub set_default_backdrop {
     debug("Set default backdrop");
     my $image = $widgets->{'image'}->get_widget('imageImage')->{user_data};
     if ($image) {
-        my $scaled = create_pixbuf($image, $globals->{'icon_width'}, $globals->{'icon_height'});
+        my $scaled = create_pixbuf(
+            $image,
+            $globals->{'icon_width'},
+            $globals->{'icon_height'}
+        );
         if ($scaled) {
             $widgets->{'prefs'}->get_widget('imagePrefBG')
               ->set_from_pixbuf($scaled);
@@ -4619,8 +4625,7 @@ sub create_dialog_prefs {
       ->set_text($config->{'Main'});
     $widgets->{'prefs'}->get_widget('entryPrefFooter')
       ->set_text($config->{'Footer'});
-    $widgets->{'prefs'}->get_widget('entryPrefOSD')
-      ->set_text($config->{'OSD'});
+    $widgets->{'prefs'}->get_widget('entryPrefOSD')->set_text($config->{'OSD'});
     $widgets->{'prefs'}->get_widget('entryPrefColour')
       ->set_text($config->{'Colour'});
     $widgets->{'prefs'}->get_widget('entryPrefShadowColour')
@@ -4635,7 +4640,11 @@ sub create_dialog_prefs {
       ->set_active($config->{'DynamicPreview'});
     $widgets->{'prefs'}->get_widget('checkPrefMiniview')
       ->set_active($config->{'Miniview'});
-    my $scaled = create_pixbuf($config->{'BGImage'}, $globals->{'icon_width'}, $globals->{'icon_height'});
+    my $scaled = create_pixbuf(
+        $config->{'BGImage'},
+        $globals->{'icon_width'},
+        $globals->{'icon_height'}
+    );
 
     if ($scaled) {
         $widgets->{'prefs'}->get_widget('imagePrefBG')
@@ -4886,15 +4895,13 @@ sub do_change_bible {
     }
     if ($type eq "db") {
         $globals->{'usesword'} = FALSE;
-        my ($table, $dbname) = split(/@/,$globals->{'bibledb'},2);
-        if ($dbname eq "" ) {
-            $dbname = $table;
-            $table = "verse";
-            $globals->{'bibledb'} = $table."@".$dbname;
+        my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
+        if ($dbname eq "") {
+            $dbname               = $table;
+            $table                = "verse";
+            $globals->{'bibledb'} = $table . "@" . $dbname;
         }
-        $bibleDbh =
-          db_connect($dbname,
-            $errorcodes->{'bibledbopen'} . $dbname);
+        $bibleDbh = db_connect($dbname, $errorcodes->{'bibledbopen'} . $dbname);
     } else {
         $globals->{'usesword'} = TRUE;
     }
@@ -4936,8 +4943,8 @@ sub invert_lines {
 #
 sub export_song {
     debug("Export song");
-    my $filexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
+    my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogFileChooser', 'lyricue');
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "complete_export_song", $filexml);
@@ -5000,7 +5007,7 @@ sub complete_export_song {
     my $out = {'song' => [$song]};
 
     my $writer = XML::Simple->new();
-    open my $fh, ">" . $export. "";
+    open my $fh, ">" . $export . "";
     $writer->XMLout($out, OutputFile => $fh, RootName => 'lyricue');
     close $fh;
 
@@ -5180,7 +5187,7 @@ sub move_item {
         debug("Moving " . $source . " to " . $dest);
         if ($source < $dest) {
             start_transaction();
-	    {
+            {
                 renumber_item($source,                 -1);
                 renumber_item($items[$sourceitem + 1], $source);
                 renumber_item(-1,                      $items[$sourceitem + 1]);
@@ -5190,7 +5197,7 @@ sub move_item {
             $sourceitem++;
         } else {
             start_transaction();
-	    {
+            {
                 renumber_item($source,                 -1);
                 renumber_item($items[$sourceitem - 1], $source);
                 renumber_item(-1,                      $items[$sourceitem - 1]);
@@ -5390,14 +5397,14 @@ sub select_playlist {
     my ($widget) = @_;
     debug("Selecting a main playlist");
 
-    my $playlist = "";
+    my $playlist   = "";
     my $playlistid = 0;
     my $selection =
       $widgets->{'main'}->get_widget('treeChoosePlay')->get_selection;
     if ($selection) {
         my ($m, $i) = $selection->get_selected;
         if ($m) {
-            $playlist = $m->get($i, 0);
+            $playlist   = $m->get($i, 0);
             $playlistid = $m->get($i, 1);
         }
     }
@@ -5624,7 +5631,7 @@ sub delete_playlist {
 
     my $query = "DELETE FROM playlists WHERE id=" . $playlist;
     qdebug($query);
-    my $sth   = $lyricDbh->prepare($query)
+    my $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
@@ -5639,7 +5646,7 @@ sub delete_playlist {
 
     $query = "SELECT playorder FROM playlist WHERE playlist=" . $playlist;
     qdebug($query);
-    $sth   = $lyricDbh->prepare($query)
+    $sth = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
@@ -5671,7 +5678,7 @@ sub update_cplayclist {
     if ($store) {
         $store->clear;
     } else {
-        $store = Gtk2::ListStore->new('Glib::String','Glib::Int');
+        $store = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
         $widgets->{'main'}->get_widget('treeChoosePlay')->set_model($store);
         $renderer = Gtk2::CellRendererText->new;
         $selection =
@@ -6346,7 +6353,7 @@ sub do_add_file {
             return;
         }
     }
-    if (($file ne "") && ((-r $file) || ($file =~ /:\/\// ) )) {
+    if (($file ne "") && ((-r $file) || ($file =~ /:\/\//))) {
 
         # Find next playorder
         my $playorder = 1;
@@ -6368,10 +6375,9 @@ sub do_add_file {
 
         # Add item to playlist
         my $main_playlist =
-          $widgets->{'main'}->get_widget('labelCurrentPlaylist')
-          ->{user_data};
+          $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
         $query =
-          "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
+            "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
           . $playorder . ", "
           . $playlist
           . ", \"file\", \""
@@ -6752,7 +6758,11 @@ sub init_mainWindow {
     biblebrowser_init();
 
     # Load bg thumbnails
-    my $scaled = create_pixbuf($config->{'BGImage'}, $globals->{'icon_width'}, $globals->{'icon_height'} );
+    my $scaled = create_pixbuf(
+        $config->{'BGImage'},
+        $globals->{'icon_width'},
+        $globals->{'icon_height'}
+    );
     if ($scaled) {
         my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
         $widgets->{'pixmapCurr'} = $pixmap;
@@ -6766,7 +6776,11 @@ sub init_mainWindow {
         $widgets->{'buttonCurr'}
           ->signal_connect("clicked", "backdrop_preview_clicked");
     }
-    $scaled = create_pixbuf($config->{'BGImage'}, $globals->{'icon_width'}, $globals->{'icon_height'});
+    $scaled = create_pixbuf(
+        $config->{'BGImage'},
+        $globals->{'icon_width'},
+        $globals->{'icon_height'}
+    );
     if ($scaled) {
         my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
         $widgets->{'pixmapPrev'} = $pixmap;
@@ -7104,7 +7118,7 @@ sub imgdir_load {
     }
 
     $iconview->show();
-    $globals->{'thumb_idle'} = Glib::Idle->add(\&imgdir_thumbnails,$iconview);
+    $globals->{'thumb_idle'} = Glib::Idle->add(\&imgdir_thumbnails, $iconview);
 }
 
 #***
@@ -7117,7 +7131,7 @@ sub imgdir_load {
 # FUNCTION
 #   Load thumbnails for imagdir
 # INPUTS
-#   
+#
 # OUTPUT
 #   Thumbnails
 # SOURCE
@@ -7125,10 +7139,10 @@ sub imgdir_load {
 sub imgdir_thumbnails {
     my ($iconview) = @_;
     debug("Loading thumbnails");
-    my $store=$iconview->get_model;
-    my $iter = $store->get_iter_first;
-    while (defined $iter ) {
-        my $id = $store->get_value($iter,2);
+    my $store = $iconview->get_model;
+    my $iter  = $store->get_iter_first;
+    while (defined $iter) {
+        my $id = $store->get_value($iter, 2);
         my $scaled = create_pixbuf(
             $id,
             $globals->{'icon_width'},
@@ -7226,8 +7240,8 @@ sub create_search {
 #
 sub add_file {
     debug("Open a file dialog");
-    my $filexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
+    my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogFileChooser', 'lyricue');
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "file_ok_sel", $filexml);
@@ -8619,7 +8633,7 @@ sub quick_show {
 #
 sub quick_osd {
     debug("Update OSD");
-    my $songtext="";
+    my $songtext = "";
     if ($widgets->{'main'}->get_widget('buttonQuickOSD')->get_active()) {
         my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
         $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
@@ -8678,27 +8692,38 @@ sub create_pixbuf {
     my ($type, $id) = split /;/, $data;
     if ($type eq "dir") {
         if (($width > $globals->{'icon_width'}) || ($width == 0)) {
+
             # Bigger than cache value so just send new pixbuf
-            $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width,$height);
+            $pixbuf =
+              Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width, $height);
             return $pixbuf;
         }
-        my $mtime=(stat($id))[9];
-        my $filename = $globals->{'thumbnail_factory'}->lookup("file://".$id,$mtime);
-        if (! defined $filename) {
-            if ($globals->{'thumbnail_factory'}->has_valid_failed_thumbnail("file://".$id,$mtime)) {
+        my $mtime = (stat($id))[9];
+        my $filename =
+          $globals->{'thumbnail_factory'}->lookup("file://" . $id, $mtime);
+        if (!defined $filename) {
+            if ($globals->{'thumbnail_factory'}
+                ->has_valid_failed_thumbnail("file://" . $id, $mtime))
+            {
                 return undef;
             } else {
-                $pixbuf = $globals->{'thumbnail_factory'}->generate_thumbnail("file://".$id,$mtime);
+                $pixbuf =
+                  $globals->{'thumbnail_factory'}
+                  ->generate_thumbnail("file://" . $id, $mtime);
                 if ($pixbuf) {
-                    $globals->{'thumbnail_factory'}->save_thumbnail($pixbuf,"file://".$id,$mtime);
+                    $globals->{'thumbnail_factory'}
+                      ->save_thumbnail($pixbuf, "file://" . $id, $mtime);
                 } else {
+
                     # Try thumbnailing with totem
                     my $thumbfile = "/tmp/lyricue-tmpthumb.png";
-                    my $command = "totem-video-thumbnailer ".$id." ".$thumbfile;
+                    my $command =
+                      "totem-video-thumbnailer " . $id . " " . $thumbfile;
                     system($command);
-                    if ( -e $thumbfile ) {
+                    if (-e $thumbfile) {
                         $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($thumbfile);
-                        $globals->{'thumbnail_factory'}->save_thumbnail($pixbuf,"file://".$id,$mtime);
+                        $globals->{'thumbnail_factory'}
+                          ->save_thumbnail($pixbuf, "file://" . $id, $mtime);
                     } else {
                         return undef;
                     }
@@ -8793,8 +8818,8 @@ sub import_background {
 sub import_media {
     my ($type) = @_;
     debug("Import media to db of type:" . $type);
-    my $filexml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
+    my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogFileChooser', 'lyricue');
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "select_category", $filexml);
@@ -9022,9 +9047,12 @@ sub update_quickedit {
                             }
                         }
                     } else {
-                        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+                        my ($table, $dbname) =
+                          split(/@/, $globals->{'bibledb'}, 2);
                         $query =
-"SELECT chapternum,versenum,verse FROM ".$table." WHERE book=\""
+                            "SELECT chapternum,versenum,verse FROM " 
+                          . $table
+                          . " WHERE book=\""
                           . $line[0]
                           . "\" AND chapternum="
                           . $line[1]
@@ -9351,7 +9379,7 @@ sub change_colour_media {
             $id   = $type;
             $type = "db";
         }
-        $id=substr $id,-100;
+        $id = substr $id, -100;
 
         if (($type eq "db") || ($type eq "file")) {
             debug("change_colour_media: $fontcolour, $shadowcolour, $id");
@@ -9385,13 +9413,14 @@ sub restore_db {
     debug("Restoring DB");
 
     # Get filename of DB
-    my $fileDialog =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
+    my $fileDialog = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogFileChooser', 'lyricue');
     $fileDialog->get_widget('dialogFileChooser')
       ->set_title(fromutf(gettext("Select Database Backup file")));
     my $response = $fileDialog->get_widget('dialogFileChooser')->run();
     if ($response eq "ok") {
-        my $filename = $fileDialog->get_widget('dialogFileChooser')->get_filename;
+        my $filename =
+          $fileDialog->get_widget('dialogFileChooser')->get_filename;
         close_dialog($fileDialog->get_widget('dialogFileChooser'));
 
         my $confirmDialog = Gtk2::GladeXML->new($globals->{'gladefile'},
@@ -9728,7 +9757,7 @@ sub export_songs {
     }
     my $out = {'song' => \@songs};
     my $writer = XML::Simple->new();
-    open my $fh, "| gzip -c - > \"" . $filename."\"";
+    open my $fh, "| gzip -c - > \"" . $filename . "\"";
     $writer->XMLout($out, OutputFile => $fh, RootName => 'lyricue');
     close $fh;
 
@@ -9800,14 +9829,15 @@ sub backup_db {
 #
 sub backup_db_browse {
     debug("Browsing for BackupDB filename");
-    my $fileDialog =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
+    my $fileDialog = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogFileChooser', 'lyricue');
     $fileDialog->get_widget('dialogFileChooser')
       ->set_filename(
         $widgets->{'backupdb'}->get_widget('entryPrefDBFilename')->get_text());
     my $response = $fileDialog->get_widget('dialogFileChooser')->run();
     if ($response eq "ok") {
-        my $filename = $fileDialog->get_widget('dialogFileChooser')->get_filename;
+        my $filename =
+          $fileDialog->get_widget('dialogFileChooser')->get_filename;
         if (!($filename =~ /\.gz$/)) {
             $filename .= ".gz";
         }
@@ -9867,10 +9897,11 @@ sub get_bibles {
             my $tablename = $_;
             $tablename =~ s/^.*`(.*)`$/$1/g;
             $tablename =~ s/^"(.*)"$/$1/g;
-            my @fields = @{$db->selectall_arrayref("describe ".$tablename)};
-            my $a= $fields[0]->[0];
+            my @fields = @{$db->selectall_arrayref("describe " . $tablename)};
+            my $a      = $fields[0]->[0];
             if ($a eq "verseid") {
-                my $query = "SELECT verse FROM ".$tablename." WHERE book=\"Bible\";";
+                my $query =
+                  "SELECT verse FROM " . $tablename . " WHERE book=\"Bible\";";
                 qdebug($query);
                 my $sth = $db->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'},
@@ -9880,7 +9911,8 @@ sub get_bibles {
                     $! . "\nSQL: " . $query);
                 my $row = $sth->fetchrow_hashref();
                 if (defined $row->{'verse'}) {
-                    $bibles->{$tablename."@".$dbname} = "db;" . $row->{'verse'};
+                    $bibles->{$tablename . "@" . $dbname} =
+                      "db;" . $row->{'verse'};
                 }
                 $sth->finish;
             }
@@ -9979,9 +10011,12 @@ sub navigator_update {
         $browser = "verse";
         my $newbook = "";
         if (!$globals->{'usesword'}) {
-            my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+            my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
             my $query =
-              "SELECT DISTINCT(book) FROM ".$table." WHERE book LIKE \"" . $book . "%\"";
+                "SELECT DISTINCT(book) FROM " 
+              . $table
+              . " WHERE book LIKE \""
+              . $book . "%\"";
             qdebug($query);
             my $sth = $bibleDbh->prepare($query)
               || display_fatal($errorcodes->{'sqlprepare'},
@@ -10045,8 +10080,9 @@ sub navigator_update {
         # remove the trailing bible name
         #$quicktext =~ s/\($globals->{'bibledb'}\)/\n/g;
     } else {
-        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
-        $query = "SELECT book FROM ".$table." WHERE book LIKE \"" . $book . "%\"";
+        my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
+        $query =
+          "SELECT book FROM " . $table . " WHERE book LIKE \"" . $book . "%\"";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
@@ -10057,9 +10093,11 @@ sub navigator_update {
         my @bookrow = $sth->fetchrow_array();
         if ((defined $bookrow[0]) && ($book ne "")) {
             $book = $bookrow[0];
-            my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+            my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
             $query =
-"SELECT book,chapternum,versenum,verse FROM ".$table." WHERE book LIKE \""
+                "SELECT book,chapternum,versenum,verse FROM " 
+              . $table
+              . " WHERE book LIKE \""
               . $book
               . "%\" AND chapternum="
               . $chapter
@@ -10191,7 +10229,7 @@ sub navigator_next {
     $endverse++;
     while ($loop) {
         my $maxv = get_max_verse($book, $chapter, $startverse, $endverse);
-print $maxv."\n";
+        print $maxv. "\n";
         if ($maxv < $endverse) {
             $startverse++;
         } else {
@@ -10199,8 +10237,11 @@ print $maxv."\n";
         }
     }
     if (!$globals->{'usesword'}) {
-        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
-        my $query = "SELECT MAX(versenum) FROM ".$table." WHERE book=\""
+        my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
+        my $query =
+            "SELECT MAX(versenum) FROM " 
+          . $table
+          . " WHERE book=\""
           . $book
           . "\" AND chapternum="
           . $chapter;
@@ -10212,7 +10253,7 @@ print $maxv."\n";
           || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @row = $sth->fetchrow_array();
-        
+
         if ($endverse > $row[0]) {
             $endverse = $row[0];
         }
@@ -10342,10 +10383,12 @@ sub get_max_verse {
     my (@command_out);
 
     if (!$globals->{'usesword'}) {
-        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+        my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
 
         $query =
-            "SELECT * FROM ".$table." WHERE book=\"" 
+            "SELECT * FROM " 
+          . $table
+          . " WHERE book=\""
           . $book
           . "\" AND chapternum="
           . $chapter
@@ -11785,33 +11828,44 @@ sub media_v4l {
 #
 sub media_dvd {
     debug("Checking DVD");
-    $widgets->{'dialogDvd'} = Gtk2::GladeXML->new($globals->{'gladefile'},
-            'dialogDvd', 'lyricue');
+    $widgets->{'dialogDvd'} =
+      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogDvd', 'lyricue');
     $widgets->{'dialogDvd'}->signal_autoconnect_from_package('');
     my $vbox = $widgets->{'dialogDvd'}->get_widget('vboxDvd');
-    my $com = `lsdvd -Op`;
+    my $com  = `lsdvd -Op`;
+
     #my $com = `./lsdvd-test.sh -Op`;
     $com =~ s/^our //g;
     eval $com;
 
-    my $tracks = $lsdvd{'track'};
+    my $tracks        = $lsdvd{'track'};
     my $longest_track = $lsdvd{'longest_track'};
     if (!defined $longest_track) {
-        display_message(fromutf(gettext("No DVD titles found")),fromutf(gettext("Unable to open the dvd.  There may be no media in the drive")));
+        display_message(
+            fromutf(gettext("No DVD titles found")),
+            fromutf(
+                gettext(
+"Unable to open the dvd.  There may be no media in the drive"
+                )
+            )
+        );
         return;
     }
-    my $longest = Gtk2::RadioButton->new(undef,"Longest title (".$longest_track.")");
+    my $longest =
+      Gtk2::RadioButton->new(undef, "Longest title (" . $longest_track . ")");
     $longest->{user_data} = $longest_track;
     $vbox->add($longest);
     $longest->show();
     foreach (@$tracks) {
-        my $radio = Gtk2::RadioButton->new($longest,"Title ".$_->{"ix"}." - ".sec_to_time($_->{"length"}));
-        debug("Title ".$_->{"ix"}." - ".sec_to_time($_->{"length"}));
-        $radio->{user_data}  = $_->{"ix"};
+        my $radio =
+          Gtk2::RadioButton->new($longest,
+            "Title " . $_->{"ix"} . " - " . sec_to_time($_->{"length"}));
+        debug("Title " . $_->{"ix"} . " - " . sec_to_time($_->{"length"}));
+        $radio->{user_data} = $_->{"ix"};
         $vbox->add($radio);
         $radio->show();
         if ($_->{"ix"} == $longest_track) {
-            select_dvdtitle($longest,$_->{"length"});
+            select_dvdtitle($longest, $_->{"length"});
         }
         $radio->signal_connect(toggled => \&select_dvdtitle, $_->{"length"});
 
@@ -11821,25 +11875,38 @@ sub media_dvd {
     my $confirm = $widgets->{'dialogDvd'}->get_widget('dialogDvd')->run();
     if ($confirm == 0) {
         my $selected = 0;
-        my $group = $longest->get_group;
-        my $length = 0;
+        my $group    = $longest->get_group;
+        my $length   = 0;
         foreach my $r (@$group) {
             if ($r->get_active) {
                 $selected = $r->{user_data};
             }
         }
-        debug("Adding DVD title:".$selected);
-        my $type = $widgets->{'dialogDvd'}->get_widget('comboDvdEnd')->get_active;
-        my $start = time_to_sec($widgets->{'dialogDvd'}->get_widget('entryDvdStart')->get_text);
-        my $end = time_to_sec($widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->get_text);
-        my $total = $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->{user_data};
+        debug("Adding DVD title:" . $selected);
+        my $type =
+          $widgets->{'dialogDvd'}->get_widget('comboDvdEnd')->get_active;
+        my $start = time_to_sec(
+            $widgets->{'dialogDvd'}->get_widget('entryDvdStart')->get_text);
+        my $end = time_to_sec(
+            $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->get_text);
+        my $total =
+          $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->{user_data};
         if ($type == 1) {
             $end = $start + $end;
         }
         if (($start eq 0) && (($end - 1) < $total) && (($end + 1) > $total)) {
-            do_add_file("dvd://".$selected, $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data});
+            do_add_file("dvd://" . $selected,
+                $widgets->{'main'}->get_widget('labelCurrentPlaylist')
+                  ->{user_data});
         } else {
-            do_add_file("dvd://".$selected." ".sec_to_time($start)."-".sec_to_time($end), $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data});
+            do_add_file(
+                "dvd://"
+                  . $selected . " "
+                  . sec_to_time($start) . "-"
+                  . sec_to_time($end),
+                $widgets->{'main'}->get_widget('labelCurrentPlaylist')
+                  ->{user_data}
+            );
         }
         update_playlist();
     }
@@ -11861,12 +11928,15 @@ sub media_dvd {
 #
 
 sub select_dvdtitle {
-    my ($widget,$length) = @_;
+    my ($widget, $length) = @_;
     if ($widget->get_active) {
         $widgets->{'dialogDvd'}->get_widget('comboDvdEnd')->set_active(0);
-        $widgets->{'dialogDvd'}->get_widget('entryDvdStart')->set_text(sec_to_time(0));
-        $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->set_text(sec_to_time($length));
-        $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->{user_data} = $length;
+        $widgets->{'dialogDvd'}->get_widget('entryDvdStart')
+          ->set_text(sec_to_time(0));
+        $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')
+          ->set_text(sec_to_time($length));
+        $widgets->{'dialogDvd'}->get_widget('entryDvdEnd')->{user_data} =
+          $length;
     }
 }
 
@@ -11886,14 +11956,14 @@ sub select_dvdtitle {
 
 sub sec_to_time {
     my ($seconds) = @_;
-    if (! defined $seconds) {
+    if (!defined $seconds) {
         $seconds = 0;
     }
     my @parts = gmtime($seconds);
     if ($parts[2] == 0) {
-        return sprintf ("%d:%02d",@parts[1,0]);
+        return sprintf("%d:%02d", @parts[1, 0]);
     } else {
-        return sprintf ("%d:%02d:%02d",@parts[2,1,0]);
+        return sprintf("%d:%02d:%02d", @parts[2, 1, 0]);
     }
 }
 
@@ -11913,14 +11983,14 @@ sub sec_to_time {
 
 sub time_to_sec {
     my ($time) = @_;
-    if (! defined $time) {
+    if (!defined $time) {
         return 0;
     }
-    my @parts = split(/:/,$time);
+    my @parts = split(/:/, $time);
     if (defined $parts[2]) {
-        return ($parts[0] * 3600) + ($parts[1]*60) + $parts[2];
+        return ($parts[0] * 3600) + ($parts[1] * 60) + $parts[2];
     } elsif (defined $parts[1]) {
-        return ($parts[0]*60) + $parts[1];
+        return ($parts[0] * 60) + $parts[1];
     } else {
         return $parts[0];
     }
@@ -12190,14 +12260,15 @@ sub import_db {
 #
 sub export_db {
     debug("Export DB selected");
-    my $exportxml =
-      Gtk2::GladeXML->new($globals->{'gladefile'}, 'dialogFileChooser', 'lyricue');
+    my $exportxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogFileChooser', 'lyricue');
     $exportxml->signal_autoconnect_from_package('');
     $exportxml->get_widget('dialogFileChooser')->complete("*.xmlz");
     $exportxml->get_widget('dialogFileChooser')->set_filename("lyricue.xmlz");
     my $confirm = $exportxml->get_widget('dialogFileChooser')->run();
     if ($confirm eq 'ok') {
-        my $filename = $exportxml->get_widget('dialogFileChooser')->get_filename;
+        my $filename =
+          $exportxml->get_widget('dialogFileChooser')->get_filename;
 
         $filename =~ s/\..*?$//g;
         $filename .= ".xmlz";
@@ -12323,9 +12394,11 @@ sub biblebrowser_chapter {
             $cont = TRUE;
         }
     } else {
-        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+        my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
         my $query =
-            "SELECT MAX(chapternum) FROM ".$table." WHERE book like \""
+            "SELECT MAX(chapternum) FROM " 
+          . $table
+          . " WHERE book like \""
           . toutf($book)
           . "%\" or book like \""
           . toutf($translated_book) . "%\"";
@@ -12406,9 +12479,11 @@ sub biblebrowser_verse {
         $maxverse = fromutf(`$command`);
         $maxverse =~ s/^$book [0-9]*:([0-9]*):.*$/$1/g;
     } else {
-        my ($table,$dbname) = split(/@/,$globals->{'bibledb'},2);
+        my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
         my $query =
-            "SELECT MAX(versenum) FROM ".$table." WHERE book=\""
+            "SELECT MAX(versenum) FROM " 
+          . $table
+          . " WHERE book=\""
           . toutf($book)
           . "\" AND chapternum=\""
           . $chapter . "\"";
@@ -12790,6 +12865,7 @@ sub firstrun_apply {
     $config->{'Width'} =
       $widgets->{'firstrunxml'}->get_widget('spinFRWidth')->get_value();
     my $set = "";
+
     foreach my $value ("Top", "Bottom", "Centre") {
 
         if (
@@ -12918,8 +12994,7 @@ sub online_help {
 #   Mark the start of a bunch of queries to be run in a single transaction
 # SOURCE
 #
-sub start_transaction
-{
+sub start_transaction {
     my $globals->{'old_re'} = $lyricDbh->{RaiseError};
     $lyricDbh->{RaiseError} = 1;
     $lyricDbh->{AutoCommit} = 0;
@@ -12936,8 +13011,7 @@ sub start_transaction
 #   Mark the end of a bunch of queries to be run in a single transaction
 # SOURCE
 #
-sub end_transaction
-{
+sub end_transaction {
     $lyricDbh->rollback() if $@;
     $lyricDbh->{AutoCommit} = 1;
     $lyricDbh->{RaiseError} = $globals->{'old_re'};
@@ -12956,22 +13030,21 @@ sub end_transaction
 #   Cleans up left-over playlist items
 # SOURCE
 #
-sub clean_database
-{
+sub clean_database {
     debug("Cleaning database");
     my $query = "SELECT description,category FROM media WHERE format=\"file\"";
     qdebug($query);
     my $sth = $mediaDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
-        $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
-        $! . "\nSQL: " . $query);
-    while($row = $sth->fetchrow_hashref()) {
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    while ($row = $sth->fetchrow_hashref()) {
         my @mystat = stat($row->{'category'});
         if (!(@mystat)) {
+
             # file no longer exists so remove it from db
-            my $query2 = "DELETE FROM media WHERE format=\"file\" AND category=".quote($row->{'category'});
+            my $query2 = "DELETE FROM media WHERE format=\"file\" AND category="
+              . quote($row->{'category'});
             qdebug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
               || display_fatal($errorcodes->{'sqlprepare'},
@@ -12981,14 +13054,14 @@ sub clean_database
                 $! . "\nSQL: " . $query2);
         }
     }
-    
+
     # Remove leftover playlist item from failed re-orders
     $query = "DELETE FROM playlist WHERE playorder=-1";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
-        $! . "\nSQL: " . $query);
-    $rv = $sth->execute; # Don't worry if it fails
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute;    # Don't worry if it fails
     return FALSE;
 }
+
 #***
