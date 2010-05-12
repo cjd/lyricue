@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.366 2010/05/10 04:40:44 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.367 2010/05/12 00:43:26 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7081,7 +7081,7 @@ sub imgdir_load {
             );
             if ($scaled) {
                 my $iter = $store->append;
-                $store->set($iter, 0, $row->{'description'}, 1, $scaled, 2,
+                $store->set($iter, 0, $row->{'description'}, 2,
                     $type . ";" . $row->{'id'});
             }
         }
@@ -7098,7 +7098,7 @@ sub imgdir_load {
             foreach $file (sort readdir(DIR)) {
                 if (!($file =~ /^\./)) {
                     do_pending();
-                    my @fileexts = qw(avi mpg mov wmv mp4 ogv flv);
+                    my @fileexts = qw(avi mpg mov wmv mp4 m4v ogv flv);
                     my $video    = FALSE;
                     for my $fileobj (@fileexts) {
                         if ($file =~ /$fileobj$/i) {
@@ -7117,7 +7117,7 @@ sub imgdir_load {
                         );
                         if ($scaled) {
                             my $iter = $store->append;
-                            $store->set($iter, 0, $file, 1, $scaled, 2,
+                            $store->set($iter, 0, $file, 2,
                                 $type . ";" . $dirname . "/" . $file);
                         }
                     }
@@ -7128,7 +7128,44 @@ sub imgdir_load {
     }
 
     $iconview->show();
+    $globals->{'thumb_idle'} = Glib::Idle->add(\&imgdir_thumbnails,$iconview);
+}
 
+#***
+
+#****f* lyricue/imgdir_thumbnails
+# NAME
+#   imgdir_thumbnails
+# SYNOPSIS
+#   imgdir_thumbnails ()
+# FUNCTION
+#   Load thumbnails for imagdir
+# INPUTS
+#   
+# OUTPUT
+#   Thumbnails
+# SOURCE
+#
+sub imgdir_thumbnails {
+    my ($iconview) = @_;
+    debug("Loading thumbnails");
+    my $store=$iconview->get_model;
+    my $iter = $store->get_iter_first;
+    while (defined $iter ) {
+        my $id = $store->get_value($iter,2);
+debug($iter." adding ".$id);
+        my $scaled = create_pixbuf(
+            $id,
+            $globals->{'icon_width'},
+            $globals->{'icon_height'}
+        );
+        if ($scaled) {
+            $store->set($iter, 1, $scaled);
+        }
+        my $nextiter = $store->iter_next($iter);
+        $iter = $nextiter;
+        do_pending();
+    }
 }
 
 #***
