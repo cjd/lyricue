@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.226 2010/05/12 00:43:26 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.227 2010/05/12 04:23:24 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1446,7 +1446,6 @@ sub change_backdrop {
         if ($video) {
                 debug("Changing backdrop video to file:" . $data);
                 $video = TRUE;
-                if ($MINISERV < 0) {    # Don't play video in miniview
                     if ($globals->{'server_type'} == CLUTTER) {
                         debug("Clutter Video");
                         if (defined $globals->{'background'}) {
@@ -1494,7 +1493,6 @@ sub change_backdrop {
 
                         if ($MINISERV < 0) {
                             if ($start != 0) {
-    print $start."\n";
                                 my $element= $globals->{'background'}->get_element();
                                 $element->seek(1.0, 'time', 'flush', 'set', $start*1000, 'none', 'none')
                             }
@@ -1505,6 +1503,10 @@ sub change_backdrop {
                                   ->signal_connect("eos", "loop_background",
                                     $id);
                             }
+                        } else {
+                            $globals->{'background'}->set_playing(TRUE);
+                            select(undef, undef, undef, 0.1);
+                            $globals->{'background'}->set_playing(FALSE);
                         }
                         $globals->{'video_playing'} = TRUE;
                     } else {
@@ -1517,7 +1519,6 @@ sub change_backdrop {
                             system($command);
                         }
                     }
-                }
         }
         if (!$video) {
             debug("Changing backdrop image to file:" . $data);
