@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.367 2010/05/12 00:43:26 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.368 2010/05/12 02:59:33 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -114,6 +114,7 @@ use Gtk2::Pango;
 use Gtk2::Gdk::Keysyms;
 use URI::file;
 use XML::Simple;
+use Gnome2;
 use File::Temp qw/tempdir/;
 
 eval { require Locale::gettext };
@@ -367,9 +368,6 @@ if ($ARGV[0]) {
             $globals->{'bg_previews'} = FALSE;
         } elsif ($ARGV[$_] eq "-d") {
             $globals->{'debugging'} = 2;
-            print STDERR "Lyric Interface version "
-              . $globals->{'version'} . "\n"
-              . $ID;
         } elsif ($ARGV[$_] eq "-dq") {
             $globals->{'debugging'} = 2;
         } elsif ($ARGV[$_] eq "-sqlite") {
@@ -453,6 +451,7 @@ my $logname = $globals->{'basedir'} . "/frontend.log";
 rename($logname , $logname.".old") or system("mv", $logname, $logname.".old");
 open(LOG, ">" . $logname);
 binmode LOG, ":utf8";
+debug("Lyric Interface version " . $globals->{'version'} . "\n" . $ID);
 $widgets->{'main'} =
   Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowMain', 'lyricue');
 $widgets->{'main'}->signal_autoconnect_from_package('');
@@ -523,8 +522,12 @@ choose_playlist();
 
 # Don't let them cancel out of the playlist chooser yet
 $widgets->{'main'}->get_widget('toolbuttonPlayCancel')->hide;
+
+# Setup background tasks
 $globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
 $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
+
+$globals->{'thumbnail_factory'} = Gnome2::ThumbnailFactory->new('normal');
 
 Gtk2->main();
 
@@ -7074,16 +7077,9 @@ sub imgdir_load {
         while ($row = $sth->fetchrow_hashref()) {
 
             do_pending();
-            my $scaled = create_pixbuf(
-                $type . ";" . $row->{'id'},
-                $globals->{'icon_width'},
-                $globals->{'icon_height'}
-            );
-            if ($scaled) {
-                my $iter = $store->append;
-                $store->set($iter, 0, $row->{'description'}, 2,
-                    $type . ";" . $row->{'id'});
-            }
+            my $iter = $store->append;
+            $store->set($iter, 0, $row->{'description'}, 2,
+                $type . ";" . $row->{'id'});
         }
     } else {
         my $dirname = "";
@@ -7098,29 +7094,9 @@ sub imgdir_load {
             foreach $file (sort readdir(DIR)) {
                 if (!($file =~ /^\./)) {
                     do_pending();
-                    my @fileexts = qw(avi mpg mov wmv mp4 m4v ogv flv);
-                    my $video    = FALSE;
-                    for my $fileobj (@fileexts) {
-                        if ($file =~ /$fileobj$/i) {
-                            $video = TRUE;
-                            my $iter = $store->append;
-                            $store->set($iter, 0, $file, 2,
-                                $type . ";" . $dirname . "/" . $file);
-                        }
-                    }
-   
-                    if (!$video) {
-                        my $scaled = create_pixbuf(
-                            $type . ";" . $dirname . "/" . $file,
-                            $globals->{'icon_width'},
-                            $globals->{'icon_height'}
-                        );
-                        if ($scaled) {
-                            my $iter = $store->append;
-                            $store->set($iter, 0, $file, 2,
-                                $type . ";" . $dirname . "/" . $file);
-                        }
-                    }
+                    my $iter = $store->append;
+                    $store->set($iter, 0, $file, 2,
+                        $type . ";" . $dirname . "/" . $file);
                 }
             }
             closedir DIR;
@@ -7153,7 +7129,6 @@ sub imgdir_thumbnails {
     my $iter = $store->get_iter_first;
     while (defined $iter ) {
         my $id = $store->get_value($iter,2);
-debug($iter." adding ".$id);
         my $scaled = create_pixbuf(
             $id,
             $globals->{'icon_width'},
@@ -8702,73 +8677,37 @@ sub create_pixbuf {
     my ($pixbuf);
     my ($type, $id) = split /;/, $data;
     if ($type eq "dir") {
-        my $id_end=substr $id,-100;
-        my $query = "SELECT data,description FROM media WHERE format='file' AND category=".quote($id_end);
-        qdebug($query);
-        my $sth = $mediaDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
-        if($row = $sth->fetchrow_hashref()) {
-            debug("Found ".$id_end." in cache");
-            if ($width > $globals->{'icon_width'}) {
-                # Bigger than cache value so just send new pixbuf
-                $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width,$height);
-                return $pixbuf;
-            }
-            my $mtime=(stat($id))[9];
-            debug ("mtime:".$mtime." - dbmtime:".$row->{'description'});
-            if ($mtime <= $row->{'description'}) {
-                my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
-                eval { $pixbuf_loader->write($row->{'data'}); };
-                eval { $pixbuf_loader->close() };
-                if ($@) {
-                    return undef;
+        if (($width > $globals->{'icon_width'}) || ($width == 0)) {
+            # Bigger than cache value so just send new pixbuf
+            $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width,$height);
+            return $pixbuf;
+        }
+        my $mtime=(stat($id))[9];
+        my $filename = $globals->{'thumbnail_factory'}->lookup("file://".$id,$mtime);
+        if (! defined $filename) {
+            if ($globals->{'thumbnail_factory'}->has_valid_failed_thumbnail("file://".$id,$mtime)) {
+                return undef;
+            } else {
+                $pixbuf = $globals->{'thumbnail_factory'}->generate_thumbnail("file://".$id,$mtime);
+                if ($pixbuf) {
+                    $globals->{'thumbnail_factory'}->save_thumbnail($pixbuf,"file://".$id,$mtime);
                 } else {
-                    my $pixbuf = $pixbuf_loader->get_pixbuf();
-                    if (($width == 0) || ($width == $pixbuf->get_width)) {
-                        return $pixbuf;
+                    # Try thumbnailing with totem
+                    my $thumbfile = "/tmp/lyricue-tmpthumb.png";
+                    my $command = "totem-video-thumbnailer ".$id." ".$thumbfile;
+                    system($command);
+                    if ( -e $thumbfile ) {
+                        $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($thumbfile);
+                        $globals->{'thumbnail_factory'}->save_thumbnail($pixbuf,"file://".$id,$mtime);
                     } else {
-                        return $pixbuf->scale_simple($width, $height, 'nearest');
+                        return undef;
                     }
                 }
-            } else {
-                $query = "DELETE FROM media WHERE format='file' AND category=".quote($id_end);
-                $sth = $mediaDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'},
-                    $! . "\nSQL: " . $query);
-                $rv = $sth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'},
-                    $! . "\nSQL: " . $query);
             }
-        }
-        debug("Missed ".$id_end." from cache");
-        eval {
-            $pixbuf =
-            Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $globals->{'icon_width'}, $globals->{'icon_height'});
-        };
-        if ($@) {
-            return undef;
         } else {
-            my $imgdata = $pixbuf->save_to_buffer("jpeg", quality => '90');
-            my $owner = getpwuid($<);
-            my $mtime = (stat($id))[9];
-            my $sth = $mediaDbh->prepare(
-              q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate, description, data) VALUES (?,?,?,?,?,NOW(),?,?)}
-            );
-            my $rv = $sth->execute($id_end, "", $type, "file", $owner, $mtime,$imgdata);
-            debug ($id_end." added to cache");
-            if ($width > $globals->{'icon_width'}) {
-                $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_size($id, $width,$height);
-                return $pixbuf;
-            } elsif ($width == 0) {
-                return $pixbuf;
-            } else {
-                return $pixbuf->scale_simple($width, $height, 'nearest');
-            }
+            $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($filename);
         }
+        return $pixbuf->scale_simple($width, $height, 'nearest');
     } else {
         my $query = "SELECT format, description, data FROM media WHERE id=\"" 
           . $id . "\"";
