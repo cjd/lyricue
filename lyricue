@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.369 2010/05/12 04:25:21 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.370 2010/05/14 03:17:34 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -11341,7 +11341,7 @@ sub db_updatedb_lyricDb {
 sub check_tracker {
 
     #debug("Check tracker");
-    my $query = "SELECT ref FROM playlists WHERE id=-1";
+    my $query = "SELECT ref,title FROM playlists WHERE id=-1";
 
     #qdebug($query); # Commented out because it's too noisy
     my $sth = $lyricDbh->prepare($query)
@@ -11372,10 +11372,41 @@ sub check_tracker {
             }
         }
     }
+    if ($row[1] ne "") {
+        my ($position, $duration) = split(/;/,$row[1],2);
+        my $hscale = $widgets->{'main'}->get_widget('hscaleMediaPosition');
+        if ($duration <= 0) {
+            $duration=1000;
+        }
+        if (defined $globals->{'video_skip_signal'}) {
+            $hscale->signal_handler_disconnect($globals->{'video_skip_signal'});
+        }
+        $hscale->set_range(0,$duration);
+        $hscale->set_value($position);
+        do_pending();
+        $globals->{'video_skip_signal'} = $hscale->signal_connect('value-changed', "video_skip");
+    }
     return TRUE;
 }
 
 #***
+
+#****f* lyricue/video_skip
+# NAME
+#   video_skip
+# SYNOPSIS
+#   video_skip()
+# FUNCTION
+#   Tell server to skip to position
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+sub video_skip {
+    my ($hscale) = @_;
+    debug("Skipping to ".$hscale->get_value());
+    update_display("media","skip",$hscale->get_value());
+}
 
 #****f* lyricue/update_current
 # NAME

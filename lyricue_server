@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.228 2010/05/12 04:25:21 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.229 2010/05/14 03:17:34 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -172,6 +172,7 @@ $globals->{'run_windowed'}  = FALSE;
 $globals->{'server_type'}   = CLUTTER;
 $globals->{'force_server'}  = FALSE;
 $globals->{'blanked_state'} = TRUE;
+$globals->{'video_timer'} = FALSE;
 $globals->{'bgid'}          = "";
 $globals->{'diatheke'} = `which diatheke`;
 chomp $globals->{'diatheke'};
@@ -397,9 +398,8 @@ debug("Listening on " . $globals->{'use_port'});
 system('xset s off -dpms');
 
 debug("Main program running");
-Glib::Timeout->add(200, \&check_net);    # Check the net 5 times a second
-Glib::Timeout->add_seconds(60, \&poke_db)
-  ;                                      # Poke the db connections every minute
+Glib::Timeout->add(200, \&check_net);       # Check the net 5 times a second
+Glib::Timeout->add_seconds(60, \&poke_db);  # Poke the db connections
 Gtk2->main();
 
 # Should never get here
@@ -422,11 +422,15 @@ exit(0);
 #
 sub loop_background {
     my ($widget, $id) = @_;
-    debug("Video ended - Looping");
-    if ($globals->{'clutter1'}) {
-        Clutter::Media::set_progress($globals->{'background'}, 0);
+    if ($globals->{'video_loop'}) {
+        debug("Video ended - Looping");
+        if ($globals->{'clutter1'}) {
+            Clutter::Media::set_progress($globals->{'background'}, 0);
+        } else {
+            Clutter::Media::set_position($globals->{'background'}, 0);
+        }
     } else {
-        Clutter::Media::set_position($globals->{'background'}, 0);
+        reset_timer($globals->{'video_timer'});
     }
     return FALSE;
 }
@@ -1318,13 +1322,22 @@ sub process_input {
 
             }
         } elsif (/^media$/) {
-            if ($line[1] eq "pause") {
-                debug("Toggling Play/Pause media");
-                if ($MINISERV < 0) {
-                    eval {
-                        $globals->{'background'}
-                          ->set_playing(!$globals->{'background'}->get_playing);
-                    };
+            if ($globals->{'video_playing'}) {
+                if ($line[1] eq "pause") {
+                    debug("Toggling Play/Pause media");
+                    if ($MINISERV < 0) {
+                        eval {
+                            $globals->{'background'}
+                              ->set_playing(!$globals->{'background'}->get_playing);
+                        };
+                    }
+                } elsif ($line[1] eq "skip") {
+                    debug("Skipping to ".$line[2]);
+                    if ($globals->{'clutter1'}) {
+                        Clutter::Media::set_progress($globals->{'background'}, $line[2]/$globals->{'background'}->get_duration);
+                    } else {
+                        Clutter::Media::set_position($globals->{'background'}, $line[2]/$globals->{'background'}->get_duration);
+                    }
                 }
             }
         } elsif (/^osd$/) {
@@ -1465,6 +1478,7 @@ sub change_backdrop {
         return;
     }
     $globals->{'video_loop'} = FALSE;
+    reset_timer($globals->{'video_timer'});
     debug("Setting backdrop to $id");
     $globals->{'bgid'} = $id;
     my ($type, $data) = split(/;/, $id, 2);
@@ -1546,11 +1560,12 @@ sub change_backdrop {
                     }
                     $globals->{'background'}->set_playing(TRUE);
                     $globals->{'video_loop'} = $loop;
-                    if ($loop) {
-                        $globals->{'background'}
-                          ->signal_connect("eos", "loop_background", $id);
-                    }
+                    $globals->{'video_timer'} =
+                      Glib::Timeout->add_seconds(1, \&update_tracker);
+                    $globals->{'background'}
+                      ->signal_connect("eos", "loop_background", $id);
                 } else {
+                    # Play video for .1 seconds so preview visible
                     $globals->{'background'}->set_playing(TRUE);
                     select(undef, undef, undef, 0.1);
                     $globals->{'background'}->set_playing(FALSE);
@@ -3385,16 +3400,20 @@ sub update_tracker {
     # only do if this is main server
     if ($globals->{'use_port'} == $globals->{'server_port'}) {
         my $item = $current_item;
+        my $title = "";
         if ($globals->{'blanked_state'}) {
             $item = -1;
+        } elsif ($globals->{'video_timer'}) {
+            $title = $globals->{'background'}->get_progress * $globals->{'background'}->get_duration.";".$globals->{'background'}->get_duration;
         }
-        my $query = "UPDATE playlists SET ref = " . $item . " WHERE id=-1";
+        my $query = "UPDATE playlists SET ref = " . $item . ", title = \"" . $title . "\" WHERE id=-1";
         debug($query);
         my $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'}, $!);
         my $rv = $sth->execute
           || display_fatal($errorcodes->{'sqlexecute'}, $!);
     }
+    return TRUE;
 }
 
 #***

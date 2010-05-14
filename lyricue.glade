@@ -660,21 +660,6 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkToolButton" id="buttonMainPause">
-                <property name="visible">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip" translatable="yes">Pause Media</property>
-                <property name="label" translatable="yes">Pause Media</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-media-pause</property>
-                <signal name="clicked" handler="pause_media"/>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
               <widget class="GtkToolButton" id="buttonMainFile">
                 <property name="visible">True</property>
                 <property name="has_tooltip">True</property>
@@ -2228,6 +2213,47 @@
                                   </widget>
                                   <packing>
                                     <property name="position">3</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkHBox" id="hboxMedia">
+                                    <property name="visible">True</property>
+                                    <child>
+                                      <widget class="GtkHScale" id="hscaleMediaPosition">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="update_policy">delayed</property>
+                                        <property name="digits">0</property>
+                                        <property name="value_pos">left</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkButton" id="buttonMediaPause">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">True</property>
+                                        <property name="relief">none</property>
+                                        <property name="focus_on_click">False</property>
+                                        <signal name="clicked" handler="pause_media"/>
+                                        <child>
+                                          <widget class="GtkImage" id="image42">
+                                            <property name="visible">True</property>
+                                            <property name="stock">gtk-media-pause</property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                  </widget>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">4</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -7812,6 +7838,12 @@ http://www.lyricue.org/bibles</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
