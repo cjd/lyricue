@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.370 2010/05/14 03:17:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.371 2010/05/16 00:30:37 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -518,6 +518,7 @@ if ($globals->{'trayicon'}) {
 }
 $0 = "Lyricue Interface";
 
+$globals->{'thumbnail_factory'} = Gnome2::ThumbnailFactory->new('normal');
 init_mainWindow();
 $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data} = -1;
 choose_playlist();
@@ -529,7 +530,6 @@ $widgets->{'main'}->get_widget('toolbuttonPlayCancel')->hide;
 $globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
 $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
-$globals->{'thumbnail_factory'} = Gnome2::ThumbnailFactory->new('normal');
 
 Gtk2->main();
 

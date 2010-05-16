@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue_server,v 1.229 2010/05/14 03:17:34 cjdebenh Exp $;
+my $ID = q$Id: lyricue_server,v 1.230 2010/05/16 00:30:38 cjdebenh Exp $;
 
 #****** lyricue_server/pod
 # NAME
@@ -1518,6 +1518,7 @@ sub change_backdrop {
                 }
                 my $start = 0;
                 my $end   = 0;
+                my $title = 0;
                 if (!($data =~ /:\/\//)) {
                     $data = "file://" . $data;
                 } else {
@@ -1526,7 +1527,8 @@ sub change_backdrop {
                         $data = $parts[0];
                         if ($data =~ /^dvd:\//) {
                             ($start, $end) = split(/-/, $parts[1], 2);
-                            $data = "dvd://";    # title number not working yet
+                            $title =~ s/^dvd:\/\///;
+                            $data = "dvd://";
                         }
                     }
                 }
@@ -1556,6 +1558,12 @@ sub change_backdrop {
                         my $element = $globals->{'background'}->get_element();
                         $element->seek(1.0, 'time', 'flush', 'set',
                             $start * 1000,
+                            'none', 'none');
+                    }
+                    if ($title != 0) {
+                        my $element = $globals->{'background'}->get_element();
+                        $element->seek(1.0, 'title', 'flush', 'set',
+                            $title,
                             'none', 'none');
                     }
                     $globals->{'background'}->set_playing(TRUE);
