@@ -11,7 +11,7 @@ AM_CFLAGS =\
 	 -Wall\
 	 -g
 
-bin_PROGRAMS = lyricue \
+bin_PROGRAMS = \
 	lyricue_display
 
 lyricue_display_SOURCES = \
@@ -29,11 +29,4 @@ lyricue_display_SOURCES = \
 
 lyricue_display_LDADD = \
 	$(LYRICUE_LIBS)
-
-lyricue_SOURCES = \
-	main.c
-
-lyricue_LDFLAGS = 
-
-lyricue_LDADD = $(LYRICUE_LIBS)
 

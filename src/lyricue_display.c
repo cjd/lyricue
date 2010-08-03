@@ -46,15 +46,14 @@ gboolean windowed = FALSE;
 int server_port = SERVER_PORT;
 gchar *dbhostname = NULL;
 gchar *geometry = NULL;
+unsigned long windowid = 0;
 
 static GOptionEntry entries[] = {
     {"window", 'w', 0, G_OPTION_ARG_NONE, &windowed, "Run in a window", NULL},
-    {"remote", 'r', 0, G_OPTION_ARG_STRING, &dbhostname, "Database hostname",
-     NULL},
-    {"geometry", 'g', 0, G_OPTION_ARG_STRING, &geometry, "Window Geometry",
-     NULL},
-    {"port", 'p', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on",
-     NULL},
+    {"remote", 'r', 0, G_OPTION_ARG_STRING, &dbhostname, "Database hostname", NULL},
+    {"geometry", 'g', 0, G_OPTION_ARG_STRING, &geometry, "Window Geometry", NULL},
+    {"port", 'p', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on", NULL},
+    {"miniview", 'm', 0, G_OPTION_ARG_INT, &windowid, "Embed in windowid", NULL},
     {NULL}
 };
 

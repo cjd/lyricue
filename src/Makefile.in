@@ -34,7 +34,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = lyricue$(EXEEXT) lyricue_display$(EXEEXT)
+bin_PROGRAMS = lyricue_display$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -47,21 +47,15 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_lyricue_OBJECTS = main.$(OBJEXT)
-lyricue_OBJECTS = $(am_lyricue_OBJECTS)
-am__DEPENDENCIES_1 =
-lyricue_DEPENDENCIES = $(am__DEPENDENCIES_1)
-AM_V_lt = $(am__v_lt_$(V))
-am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
-am__v_lt_0 = --silent
-lyricue_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(lyricue_LDFLAGS) $(LDFLAGS) -o $@
 am_lyricue_display_OBJECTS = lyricue_display.$(OBJEXT) \
 	database.$(OBJEXT) display.$(OBJEXT) utils.$(OBJEXT) \
 	bible.$(OBJEXT)
 lyricue_display_OBJECTS = $(am_lyricue_display_OBJECTS)
+am__DEPENDENCIES_1 =
 lyricue_display_DEPENDENCIES = $(am__DEPENDENCIES_1)
+AM_V_lt = $(am__v_lt_$(V))
+am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
+am__v_lt_0 = --silent
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -88,8 +82,8 @@ am__v_CCLD_0 = @echo "  CCLD  " $@;
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
-SOURCES = $(lyricue_SOURCES) $(lyricue_display_SOURCES)
-DIST_SOURCES = $(lyricue_SOURCES) $(lyricue_display_SOURCES)
+SOURCES = $(lyricue_display_SOURCES)
+DIST_SOURCES = $(lyricue_display_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -263,11 +257,6 @@ lyricue_display_SOURCES = \
 lyricue_display_LDADD = \
 	$(LYRICUE_LIBS)
 
-lyricue_SOURCES = \
-	main.c
-
-lyricue_LDFLAGS = 
-lyricue_LDADD = $(LYRICUE_LIBS)
 all: all-am
 
 .SUFFIXES:
@@ -345,9 +334,6 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-lyricue$(EXEEXT): $(lyricue_OBJECTS) $(lyricue_DEPENDENCIES) 
-	@rm -f lyricue$(EXEEXT)
-	$(AM_V_CCLD)$(lyricue_LINK) $(lyricue_OBJECTS) $(lyricue_LDADD) $(LIBS)
 lyricue_display$(EXEEXT): $(lyricue_display_OBJECTS) $(lyricue_display_DEPENDENCIES) 
 	@rm -f lyricue_display$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(lyricue_display_OBJECTS) $(lyricue_display_LDADD) $(LIBS)
@@ -362,7 +348,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/database.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/display.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lyricue_display.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
 
 .c.o:

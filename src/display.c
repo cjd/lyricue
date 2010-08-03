@@ -24,6 +24,7 @@ extern gboolean blanked_state;
 extern gchar *default_bg;
 extern gchar *current_bg;
 extern MYSQL *mediaDb;
+extern unsigned long windowid;
 
 
 const ClutterColor black_colour = { 0x00, 0x00, 0x00, 0xff };
@@ -55,7 +56,7 @@ gfloat window_width = 0;
 gfloat window_height = 0;
 gfloat text_maxwidth = 0;
 gfloat text_maxheight = 0;
-gint bg_is_video = 0;
+guint bg_is_video = 0;
 
 // Transition directions
 #define NONE   0;
@@ -81,7 +82,13 @@ int
 create_main_window (int argc, char *argv[])
 {
     clutter_gst_init (&argc, &argv);
-    stage = clutter_stage_get_default ();
+    if (windowid == 0) {
+        stage = clutter_stage_get_default ();
+    } else {
+        stage = clutter_x11_get_stage_from_window((Window)windowid);
+        windowed = TRUE;
+        clutter_actor_set_size(stage, 246,185);
+    }
     stage_width = atof ((gchar *) g_hash_table_lookup (config, "Width"));
     stage_height = atof ((gchar *) g_hash_table_lookup (config, "Height"));
     gfloat wide = stage_width;
@@ -148,10 +155,16 @@ void
 set_maintext (const gchar * text, int transition, gboolean wrap)
 {
     l_debug("Setting maintext");
+    if (g_strcmp0(g_object_get_data(G_OBJECT(maintext), "text"), text) == 0) {
+        l_debug("No change to text - returning");
+        return;
+    }
+    g_object_set_data(G_OBJECT(maintext_old), "text", (gpointer) text);
 
     // Finish off old animations
     if (CLUTTER_IS_ANIMATION(clutter_actor_get_animation(maintext))) clutter_animation_completed(clutter_actor_get_animation(maintext));
     if (CLUTTER_IS_ANIMATION(clutter_actor_get_animation(maintext_old))) clutter_animation_completed(clutter_actor_get_animation(maintext_old));
+
 
     ClutterActor *tmp = maintext_old;
     maintext_old = maintext;
@@ -193,6 +206,11 @@ set_maintext (const gchar * text, int transition, gboolean wrap)
 void
 set_headtext (const gchar * text, int transition, gboolean wrap)
 {
+    if (g_strcmp0(g_object_get_data(G_OBJECT(headtext), "text"), text) == 0) {
+        return;
+    }
+    g_object_set_data(G_OBJECT(headtext_old), "text", (gpointer) text);
+
     ClutterActor *tmp = headtext_old;
     headtext_old = headtext;
     headtext = tmp;
@@ -207,6 +225,11 @@ set_headtext (const gchar * text, int transition, gboolean wrap)
 void
 set_foottext (const gchar * text, int transition, gboolean wrap)
 {
+    if (g_strcmp0(g_object_get_data(G_OBJECT(foottext), "text"), text) == 0) {
+        return;
+    }
+    g_object_set_data(G_OBJECT(foottext_old), "text", (gpointer) text);
+
     ClutterActor *tmp = foottext_old;
     foottext_old = foottext;
     foottext = tmp;
