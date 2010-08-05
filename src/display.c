@@ -40,6 +40,8 @@ gchar *maintext_font = "";
 gchar *headtext_font = "";
 gchar *foottext_font = "";
 
+GtkWidget *window = NULL;
+GtkWidget *clutter_widget = NULL;
 ClutterActor *stage = NULL;
 ClutterActor *maintext = NULL;
 ClutterActor *maintext_old = NULL;
@@ -71,47 +73,40 @@ guint bg_is_video = 0;
 #define NUM_TRANS 8
 
 // Transition types
-#define NORMAL     0
-#define SLIDE_TEXT 1
-#define WIPE       2
-#define CLIP       3
+#define DEFAULT    0
+#define NOTRANS    1
+#define FADE       2
+#define SLIDE_TEXT 3
 #define ROTATE     4
-
 
 int
 create_main_window (int argc, char *argv[])
 {
     clutter_gst_init (&argc, &argv);
-    if (windowid == 0) {
-        stage = clutter_stage_get_default ();
-    } else {
-        stage = clutter_x11_get_stage_from_window((Window)windowid);
-        windowed = TRUE;
-        clutter_actor_set_size(stage, 246,185);
-    }
+    gtk_init (&argc, &argv);
+
     stage_width = atof ((gchar *) g_hash_table_lookup (config, "Width"));
     stage_height = atof ((gchar *) g_hash_table_lookup (config, "Height"));
-    gfloat wide = stage_width;
-    gfloat high = stage_height;
-    if (geometry != NULL && windowed) {
-        gchar **line = g_strsplit (geometry, "x", 2);
-        wide = atoi (line[0]);
-        high = atoi (line[1]);
-        if (high != 0) {
-            clutter_actor_set_height (stage, high);
+    if (windowid == 0) {
+        window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+        if (!  gtk_window_parse_geometry(GTK_WINDOW (window),geometry)) {
+            l_debug("Failed to parse geometry '%s'", geometry);
+        } else {
+            l_debug("Geometry '%s'", geometry);
         }
-        if (wide != 0) {
-            clutter_actor_set_width (stage, wide);
-        }
+        if (!windowed) gtk_window_fullscreen(GTK_WINDOW (window));
+    } else {
+        window = gtk_plug_new(windowid);
     }
-    if (windowed) {
-        clutter_stage_set_user_resizable (CLUTTER_STAGE (stage), TRUE);
-    }
-    clutter_stage_set_fullscreen (CLUTTER_STAGE (stage), !windowed);
+    /* Create the clutter widget: */
+    clutter_widget = gtk_clutter_embed_new ();
+    gtk_container_add(GTK_CONTAINER(window), clutter_widget);
+    gtk_widget_show_all (window);
+
+    stage = gtk_clutter_embed_get_stage (GTK_CLUTTER_EMBED (clutter_widget));
     clutter_stage_set_color (CLUTTER_STAGE (stage), &black_colour);
     default_bg = (gchar *) g_hash_table_lookup (config, "BGImage");
     change_backdrop(default_bg, TRUE);
-    clutter_actor_show_all (stage);
     double window_scale_w =
       (double) clutter_actor_get_width (stage) / (double) stage_width;
     double window_scale_h =
@@ -128,12 +123,6 @@ create_main_window (int argc, char *argv[])
              (int) clutter_actor_get_height (stage));
 
 
-    // Setup events
-    g_signal_connect (stage, "event", G_CALLBACK (input_cb), NULL);
-    g_signal_connect (stage, "notify::width", G_CALLBACK (size_change), NULL);
-    g_signal_connect (stage, "notify::height", G_CALLBACK (size_change),
-                      NULL);
-
     maintext = clutter_group_new();
     maintext_old = clutter_group_new();
     headtext = clutter_group_new();
@@ -148,6 +137,13 @@ create_main_window (int argc, char *argv[])
     clutter_container_add (CLUTTER_CONTAINER (stage), headtext_old, NULL);
     clutter_container_add (CLUTTER_CONTAINER (stage), foottext_old, NULL);
     clutter_actor_show_all (stage);
+
+    // Setup events
+    g_signal_connect (stage, "event", G_CALLBACK (input_cb), NULL);
+    g_signal_connect (stage, "notify::width", G_CALLBACK (size_change), NULL);
+    g_signal_connect (stage, "notify::height", G_CALLBACK (size_change),
+                      NULL);
+
     return TRUE;
 }
 
@@ -159,7 +155,6 @@ set_maintext (const gchar * text, int transition, gboolean wrap)
         l_debug("No change to text - returning");
         return;
     }
-    g_object_set_data(G_OBJECT(maintext_old), "text", (gpointer) text);
 
     // Finish off old animations
     if (CLUTTER_IS_ANIMATION(clutter_actor_get_animation(maintext))) clutter_animation_completed(clutter_actor_get_animation(maintext));
@@ -169,6 +164,7 @@ set_maintext (const gchar * text, int transition, gboolean wrap)
     ClutterActor *tmp = maintext_old;
     maintext_old = maintext;
     maintext = tmp;
+    g_object_set_data(G_OBJECT(maintext), "text", (gpointer) text);
     clear_group(maintext);
     create_outlined_text (maintext, text, maintext_font, maintext_fgcol, maintext_bgcol, wrap);
     gchar *horiloc =
@@ -385,9 +381,15 @@ change_backdrop (const gchar * id, gboolean video_loop)
             clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
                                                    (background), TRUE);
             clutter_actor_set_size (background, stage_width, stage_height);
-            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
-            g_signal_connect (background, "eos", G_CALLBACK(loop_video), &video_loop);
-            bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
+            if (windowid == 0) {
+                clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+                g_signal_connect (background, "eos", G_CALLBACK(loop_video), &video_loop);
+                bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
+            } else {
+                clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+                clutter_media_set_progress(CLUTTER_MEDIA (background), 0.05);
+                clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
+            }
             
         } else
           if (g_content_type_is_a
@@ -467,7 +469,7 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
                 case CLUTTER_Q:
                 case CLUTTER_Escape:
                     clear_group(stage);
-                    clutter_main_quit ();
+                    gtk_main_quit ();
                     handled = TRUE;
                     break;
                 case CLUTTER_Left:
@@ -643,11 +645,21 @@ do_transition(ClutterActor *new, ClutterActor *old, int transition, gfloat final
     int in_direction = transition % (2 << NUM_TRANS);
     int effect = transition >> NUM_TRANS;
 
+    if (effect == DEFAULT) {
+        gchar *deftrans = (gchar *) g_hash_table_lookup (config, "DefaultTransition");
+        if (deftrans[0] == 'F') {
+            effect = FADE;
+        } else {
+            effect = NOTRANS;
+        }
+    }
+
     // Default positioning
     clutter_actor_set_position (new, new_final_x, new_final_y);
     clutter_actor_set_rotation (new, CLUTTER_X_AXIS, 0,0,0,0);
     clutter_actor_set_rotation (new, CLUTTER_Y_AXIS, 0,0,0,0);
     clutter_actor_set_rotation (new, CLUTTER_Z_AXIS, 0,0,0,0);
+    clutter_actor_set_opacity  (new, 0xff);
 
     switch (effect) {
         case SLIDE_TEXT:
@@ -662,7 +674,7 @@ do_transition(ClutterActor *new, ClutterActor *old, int transition, gfloat final
                 new_start_x = -new_start_x;
             }
             clutter_actor_set_position (new, new_start_x, new_start_y);
-            clutter_actor_animate(new, CLUTTER_LINEAR,1000,
+            clutter_actor_animate(new, CLUTTER_LINEAR,500,
                                   "y", new_final_y,
                                   "x", new_final_x,
                                   NULL);
@@ -678,7 +690,7 @@ do_transition(ClutterActor *new, ClutterActor *old, int transition, gfloat final
                 old_final_x = old_final_x * 3;
             }
             clutter_actor_set_position (old, old_start_x, old_start_y);
-            clutter_actor_animate(old, CLUTTER_LINEAR,1000,
+            clutter_actor_animate(old, CLUTTER_LINEAR,500,
                                   "y", old_final_y,
                                   "x", old_final_x,
                                   NULL);
@@ -686,30 +698,31 @@ do_transition(ClutterActor *new, ClutterActor *old, int transition, gfloat final
         case ROTATE:
             if (in_direction & X_AXIS) {
                 clutter_actor_set_rotation (new, CLUTTER_X_AXIS,90,0,0,0);
-                clutter_actor_animate(new, CLUTTER_LINEAR,1000, "rotation-angle-x", 0, NULL);
-                clutter_actor_animate(old, CLUTTER_LINEAR,1000, "rotation-angle-x", (gfloat)-90 , "signal-swapped-after::completed", clear_group, old, NULL);
+                clutter_actor_animate(new, CLUTTER_LINEAR,500, "rotation-angle-x", 0, NULL);
+                clutter_actor_animate(old, CLUTTER_LINEAR,500, "rotation-angle-x", (gfloat)-90 , "signal-swapped-after::completed", clear_group, old, NULL);
             }
             if (in_direction & Y_AXIS) {
                 clutter_actor_set_rotation (new, CLUTTER_Y_AXIS,90,0,0,0);
-                clutter_actor_animate(new, CLUTTER_LINEAR,1000, "rotation-angle-y", 0, NULL);
-                clutter_actor_animate(old, CLUTTER_LINEAR,1000, "rotation-angle-y", (gfloat)-90 , "signal-swapped-after::completed", clear_group, old, NULL);
+                clutter_actor_animate(new, CLUTTER_LINEAR,500, "rotation-angle-y", 0, NULL);
+                clutter_actor_animate(old, CLUTTER_LINEAR,500, "rotation-angle-y", (gfloat)-90 , "signal-swapped-after::completed", clear_group, old, NULL);
             }
             if (in_direction & Z_AXIS) {
                 clutter_actor_set_rotation (new, CLUTTER_Z_AXIS,90,0,0,0);
-                clutter_actor_animate(new, CLUTTER_LINEAR,1000, "rotation-angle-z", 0, NULL);
-                clutter_actor_animate(old, CLUTTER_LINEAR,1000, "rotation-angle-z", (gfloat)-90 , "signal-swapped-after::completed", clear_group, old, NULL);
+                clutter_actor_animate(new, CLUTTER_LINEAR,500, "rotation-angle-z", 0, NULL);
+                clutter_actor_animate(old, CLUTTER_LINEAR,500, "rotation-angle-z", (gfloat)-90 , "signal-swapped-after::completed", clear_group, old, NULL);
             }
-        case WIPE:
-        case CLIP:
-        case NORMAL:
-        default:
+        case FADE:
             clutter_actor_set_opacity(new, 0);
-            clutter_actor_animate(new, CLUTTER_LINEAR,1000,
+            clutter_actor_animate(new, CLUTTER_LINEAR,500,
                           "opacity", 0xff, NULL);
-            clutter_actor_animate(old, CLUTTER_LINEAR,1000,
+            clutter_actor_animate(old, CLUTTER_LINEAR,500,
                           "opacity", 0,
                           "signal-swapped-after::completed", clear_group,
                           old, NULL);
+            break;
+        case NOTRANS:
+        default:
+            clear_group(old);
             break;
     }
 }

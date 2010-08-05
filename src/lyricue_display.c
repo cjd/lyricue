@@ -96,7 +96,11 @@ main (int argc, char *argv[])
 
     ret = create_main_window (argc, argv);
 
-    clutter_main ();
+    if (windowid == 0) {
+        clutter_main ();
+    } else {
+        gtk_main();
+    }
     ret = db_deselect ();
 
     return EXIT_SUCCESS;
@@ -363,6 +367,7 @@ do_display (const char *options)
                 } else {
                     // Jump to next song
                     do_display ("next_song:0");
+                    return;
                 }
             }
 
@@ -509,6 +514,7 @@ do_display (const char *options)
                 result = mysql_store_result (lyricDb);
                 row = mysql_fetch_row (result);
                 do_display (row[0]);
+                return;
             } else {            // Song page
                 do_query (lyricDb,
                           "SELECT title,artist,lyrics,copyright FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid=%s",
