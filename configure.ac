@@ -35,14 +35,15 @@ IT_PROG_INTLTOOL([0.35.0])
 
 AM_PROG_LIBTOOL
 
-PKG_CHECK_MODULES(LYRICUE, [clutter-1.0 clutter-gst-0.10 glib-2.0 gio-2.0])
+PKG_CHECK_MODULES(LYRICUE, [clutter-1.0 gtk+-2.0 clutter-gst-0.10])
 
 
 
 
-PKG_CHECK_MODULES(CLUTTER, clutter-1.0 clutter-gst-0.10)
+PKG_CHECK_MODULES(CLUTTER, clutter-1.0 clutter-gst-0.10 clutter-gtk-0.10)
 PKG_CHECK_MODULES(GLIB, gio-2.0 glib-2.0)
 PKG_CHECK_MODULES(SWORD, sword)
+PKG_CHECK_MODULES(GTK, gtk+-2.0 gdk-2.0)
 AC_OUTPUT([
 Makefile
 src/Makefile

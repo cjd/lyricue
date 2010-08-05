@@ -52,7 +52,9 @@ am_lyricue_display_OBJECTS = lyricue_display.$(OBJEXT) \
 	bible.$(OBJEXT)
 lyricue_display_OBJECTS = $(am_lyricue_display_OBJECTS)
 am__DEPENDENCIES_1 =
-lyricue_display_DEPENDENCIES = $(am__DEPENDENCIES_1)
+lyricue_display_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
@@ -123,6 +125,8 @@ GLIB_LIBS = @GLIB_LIBS@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GREP = @GREP@
+GTK_CFLAGS = @GTK_CFLAGS@
+GTK_LIBS = @GTK_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -235,7 +239,9 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
-	-DPACKAGE_DATA_DIR=\""$(datadir)"\" $(LYRICUE_CFLAGS)
+	-DPACKAGE_DATA_DIR=\""$(datadir)"\" $(CLUTTER_CFLAGS) \
+	$(GLIB_CFLAGS) $(GTK_CFLAGS) \
+	$(SWORD_CFLAGS)
 
 AM_CFLAGS = \
 	 -Wall\
@@ -255,7 +261,10 @@ lyricue_display_SOURCES = \
 	bible.h
 
 lyricue_display_LDADD = \
-	$(LYRICUE_LIBS)
+	$(CLUTTER_LIBS)  \
+	$(GLIB_LIBS)     \
+	$(GTK_LIBS)      \
+	$(SWORD_LIBS)
 
 all: all-am
 

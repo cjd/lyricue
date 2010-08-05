@@ -5,7 +5,9 @@
 AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
-	-DPACKAGE_DATA_DIR=\""$(datadir)"\" $(LYRICUE_CFLAGS)
+	-DPACKAGE_DATA_DIR=\""$(datadir)"\" $(CLUTTER_CFLAGS) \
+	$(GLIB_CFLAGS) $(GTK_CFLAGS) \
+	$(SWORD_CFLAGS)
 
 AM_CFLAGS =\
 	 -Wall\
@@ -28,5 +30,8 @@ lyricue_display_SOURCES = \
 	bible.h
 
 lyricue_display_LDADD = \
-	$(LYRICUE_LIBS)
+	$(CLUTTER_LIBS)  \
+	$(GLIB_LIBS)     \
+	$(GTK_LIBS)      \
+	$(SWORD_LIBS)
 
