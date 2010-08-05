@@ -1,13 +1,28 @@
-Source: lyricue
-Section: unknown
+Source: lyricue3
+Section: x11
 Priority: extra
 Maintainer: Chris Debenham <chris@adebenham.com>
 Build-Depends: debhelper (>= 7), autotools-dev
 Standards-Version: 3.8.3
-Homepage: <insert the upstream URL, if relevant>
+Homepage: http://www.adebenham.com/
 
-Package: lyricue
+Package: lyricue3
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: The GNU Lyric Display System
+ This application is used to edit/display song lyrics on a second
+ screen/projector for use at singing events such as church services.
+ Features
+    * Spellchecking
+    * User access controls 
+    * Networkable (ie run interface and server on different machines)
+    * Multiple Playlists
+    * Copyright info for songs
+    * Automatic Page advance
+    * Re-orderable playlist
+    * Playlist entries to change background
+    * All songs kept in a database and so screens are dynamically generated,
+      allowing you to easily change the backdrop, font etc without having
+      to change all the songs
+    * Can automatically create screens for bible verses
+    * Quick searching for songs
