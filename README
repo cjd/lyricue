@@ -1,0 +1,48 @@
+Lyricue
+-------
+
+Introduction:
+-------------
+
+This is Lyricue.  It is a pair of perl applications that combine to create a way in which to display song lyrics on a screen for use in church etc.
+It was created by Chris Debenham for Gosford Baptist Church.
+
+
+There are two scripts, the first is 'lyricue' which is a interface to add/change/remove songs and to control the playlist. The second is 'lyricue_server' that displays lyrics or bible verses from the playlist.
+
+Requirements:
+-------------
+
+Lyricue requires the following applications to be installed:
+  MySQL version 3 or later
+  Perl 5.6 or later
+
+Lyricue requires the following Perl modules:
+  DBI::MySql
+  GTK2
+  Gtk2::GladeXML
+
+Lyricue recommends the following Perl modules
+  Gnome2::Canvas
+  Gtk2::TrayIcon
+  Gtk2::Spell
+  Locale::gettext
+
+Installation:
+-------------
+
+Check file INSTALL in the docs directory for installation info
+
+Running:
+--------
+
+To use Lyricue you need to have lyricue_server running on one screen and lyricue on the other screen.
+A good idea is to put lyricue_server in your x-session startup so that it is always visble on the second screen. You may need to change its size
+
+Contact Details:
+----------------
+
+The website for Lyricue is http://www.lyricue.org/.
+Check there for updated versions.
+Any complaints, changes, suggestions, praise or whatever then e-mail us:
+lds-users@lists.sourceforge.net
