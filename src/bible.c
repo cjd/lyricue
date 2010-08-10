@@ -62,7 +62,6 @@ do_grab_verse_sword (const gchar * book, int chapter_start, int chapter_end,
     re = g_regex_new("^.*\\s(\\d)", G_REGEX_MULTILINE, 0, NULL);
     gchar *text = NULL;
     text = g_regex_replace(re, output, -1, 0, "\\1", 0, NULL);
-l_debug("%s",text);
     
     return text;
 }
