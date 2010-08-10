@@ -310,6 +310,11 @@ change_backdrop (const gchar * id, gboolean video_loop)
     //reset_timer(video_timer);
     gchar **line = g_strsplit (current_bg, ";", 2);
 
+    if (line[1] == NULL) {
+        line[1] = line[0];
+        line[0] = "dir";
+    }
+
     if (g_strcmp0 (line[0], "db") == 0) {
         do_query(mediaDb, "SELECT format, description, data FROM media WHERE id=%s",line[1]);
         MYSQL_ROW row;

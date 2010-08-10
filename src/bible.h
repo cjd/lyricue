@@ -16,6 +16,11 @@
 
 void bible_load(const gchar *bible);
 gchar * do_grab_verse(const gchar *verse); 
+gchar * do_grab_verse_sword(const gchar *book,
+                            int chapter_start, 
+                            int chapter_end, 
+                            int verse_start, 
+                            int verse_end);
 gchar * do_grab_verse_db(const gchar *book,
                          int chapter_start, 
                          int chapter_end, 

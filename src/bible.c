@@ -38,11 +38,33 @@ do_grab_verse (const gchar * verse)
     chapter_end = atoi (verseref[0]);
     verse_end = atoi (verseref[1]);
     if (is_sword) {
-        return "Not Implemented";
+        return do_grab_verse_sword (book, chapter_start, chapter_end,
+                                    verse_start, verse_end);
     } else {
         return do_grab_verse_db (book, chapter_start, chapter_end,
                                  verse_start, verse_end);
     }
+}
+
+gchar *
+do_grab_verse_sword (const gchar * book, int chapter_start, int chapter_end,
+                     int verse_start, int verse_end)
+{
+    l_debug ("Grabbing verse from sword - %s %d:%d - %d:%d (%s)", book,
+             chapter_start, verse_start, chapter_end, verse_end, bible_table);
+    GString *command = g_string_new (NULL);
+    g_string_printf(command,"diatheke -b %s -e UTF8 -k '%s' %d:%d-%d:%d", bible_table, book, chapter_start, verse_start, chapter_end, verse_end);
+    gchar *output = NULL;
+    l_debug ("Command: %s", command->str);
+    g_spawn_command_line_sync(g_string_free(command, FALSE), &output, NULL, NULL, NULL);
+    g_strchomp(output);
+    GRegex * re = NULL;
+    re = g_regex_new("^.*\\s(\\d)", G_REGEX_MULTILINE, 0, NULL);
+    gchar *text = NULL;
+    text = g_regex_replace(re, output, -1, 0, "\\1", 0, NULL);
+l_debug("%s",text);
+    
+    return text;
 }
 
 gchar *
@@ -86,7 +108,8 @@ bible_load (const gchar * bible)
         bible_table = g_strdup (loc[0]);
         bibleDb = db_connect (loc[1], "error");
     } else {
-        l_debug ("Sword bibles not supported yet");
+        bible_table = g_strdup(line[0]);
+        l_debug ("Loading Sword bibles %s",line[0]);
         is_sword = TRUE;
     }
 }
