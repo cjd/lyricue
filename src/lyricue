@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.400 2010/08/04 05:07:18 cjdebenh Exp $;
+my $ID = q$Id: lyricue,v 1.403 2010/08/09 05:01:05 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -7281,7 +7281,7 @@ sub imgdir_load {
         my $ret = opendir DIR, $dirname;
         if ($ret) {
             foreach $file (sort readdir(DIR)) {
-                if ((!($file =~ /^\./)) && (!(-d $file))) {
+                if ((!($file =~ /^\./)) && (!(-d $dirname."/".$file))) {
                     do_pending();
                     my $iter = $store->append;
                     $file = fromutf($file);
@@ -9070,7 +9070,7 @@ sub select_category {
     my ($widget, $filexml) = @_;
     debug("select category");
     my $hashnum   = 0;
-    my @filenames = $filexml->get_widget('dialogFileChooser')->get_selections;
+    my @filenames = $filexml->get_widget('dialogFileChooser')->get_filenames;
     debug(@filenames);
     my $type = $filexml->get_widget('dialogFileChooser')->{user_data};
     close_dialog($filexml->get_widget('dialogFileChooser'));
@@ -10657,7 +10657,7 @@ sub get_max_verse {
                 $book
             );
             qdebug($command);
-            $line = fromutf(`$command`);
+            $line = `$command`;
             $versenum++;
             if ($versenum > $endverse - 1) { $loop = FALSE; }
             chomp($line);
