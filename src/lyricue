@@ -11501,14 +11501,14 @@ sub db_updatedb_lyricDb {
     if (!defined $table->{'associations'}) {
         debug("Associations table not found\n");
         debug("Upgrading database from < 1.2 to 1.2\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Update_1.2.sql",
+        db_installdb($globals->{'sharedir'} . "Update_1.2.sql",
             "lyricDb");
         debug("Done\n");
     }
     if (!defined $table->{'config'}) {
         debug("Configuration tables not found\n");
         debug("Upgrading database from < 2.4 to 2.4\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Update_2.4.sql",
+        db_installdb($globals->{'sharedir'} . "Update_2.4.sql",
             "lyricDb");
         debug("Done\n");
     }
@@ -11521,7 +11521,7 @@ sub db_updatedb_lyricDb {
         if (!defined $trans->{'transition'}) {
             debug("Transition field not found\n");
             debug("Upgrading database from 1.2 to 1.9\n");
-            db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.sql",
+            db_installdb($globals->{'sharedir'} . "Update_1.9.sql",
                 "lyricDb");
             debug("Done\n");
         }
@@ -11535,7 +11535,7 @@ sub db_updatedb_lyricDb {
             $pl->{$_->[0]} = $_->[1];
         }
         if ($pl->{'data'} ne "varchar(256)") {
-            db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql",
+            db_installdb($globals->{'sharedir'} . "Update_1.9.7.sql",
                 "lyricDb");
         }
     }
@@ -11548,7 +11548,7 @@ sub db_updatedb_lyricDb {
             $page->{$_->[0]} = $_->[1];
         }
         if (!defined $page->{'pagetitle'}) {
-            db_installdb($globals->{'sharedir'} . "mysql/Update_2.1.0.sql",
+            db_installdb($globals->{'sharedir'} . "Update_2.1.0.sql",
                 "lyricDb");
         }
     }
