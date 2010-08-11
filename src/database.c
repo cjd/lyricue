@@ -73,7 +73,7 @@ load_configuration ()
 {
     l_debug ("Loading configuration");
 
-    g_free (config);
+    if (config != NULL) g_hash_table_remove_all(config);
     config = g_hash_table_new (g_str_hash, g_str_equal);
     MYSQL_ROW row;
     MYSQL_RES *result;
