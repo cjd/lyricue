@@ -168,7 +168,7 @@ handle_command (GIOChannel * source, const char *command)
     if (line[1] != NULL) {
         line[0] = g_utf8_strdown (line[0], -1);
         if (g_strcmp0 (line[0], "preview") == 0) {
-            do_preview (command);
+            do_preview (line[1]);
         } else if (g_strcmp0 (line[0], "status") == 0) {
             returnstring = do_status ();
         } else if (g_strcmp0 (line[0], "snapshot") == 0) {
@@ -224,7 +224,17 @@ do_media (const char *options)
 void
 do_preview (const char *options)
 {
-    set_maintext (options, 0, 1);
+    GRegex * re = NULL;
+    gchar **line = g_strsplit (options, ":", 2);
+    gchar *text = NULL;
+    gchar *text2 = NULL;
+    re = g_regex_new("#BREAK#", G_REGEX_MULTILINE, 0, NULL);
+    text = g_regex_replace(re, line[1], -1, 0, "\n", 0, NULL);
+    re = g_regex_new("#SEMI#", G_REGEX_MULTILINE, 0, NULL);
+    text2 = g_regex_replace(re, text, -1, 0, ";", 0, NULL);
+
+    set_headtext (line[0], 0, 1);
+    set_maintext (text, 0, 1);
 }
 
 GString *
