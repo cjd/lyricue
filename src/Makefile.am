@@ -28,7 +28,7 @@ lyricue_display_SOURCES = \
 	display.h \
 	utils.c \
 	utils.h \
-    i18n.h \
+	i18n.h \
 	bible.c \
 	bible.h
 

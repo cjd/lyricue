@@ -234,7 +234,7 @@ do_preview (const char *options)
     text2 = g_regex_replace(re, text, -1, 0, ";", 0, NULL);
 
     set_headtext (line[0], 0, 1);
-    set_maintext (text, 0, 1);
+    set_maintext (text2, 0, 1);
 }
 
 GString *

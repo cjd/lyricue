@@ -3807,49 +3807,22 @@ sub preview_display {
         debug(
             "Preview command: " . $command . ":" . $primary . ":" . $secondary);
 
-      PUPDATE: {
-            if (
-                my $server = IO::Socket::INET->new(
-                    Proto    => "tcp",
-                    PeerAddr => "localhost",
-                    PeerPort => $globals->{'preview_port'}
-                )
-              )
-            {
-                print $server toutf($command . ":" 
-                  . $primary . ":"
-                  . $secondary . "\n");
-                close($server);
-                if (FALSE) {
-                    my $status = "";
+        if (
+            my $server = IO::Socket::INET->new(
+                Proto    => "tcp",
+                PeerAddr => "localhost",
+                PeerPort => $globals->{'preview_port'}
+            )
+          )
+        {
+            print $server toutf($command . ":" 
+              . $primary . ":"
+              . $secondary . "\n");
+            close($server);
+        } else {
 
-                    # if (defined(my $status = <$server>)) {
-                    chomp($status);
-                    if ($status =~ /^pl:/) {
-                        my @line = split(/:/, $status);
-                        $status = fromutf(gettext("Previewed "));
-                        if ($line[1] eq "v") {
-                            $status .= fromutf(gettext(" verses "));
-                        } else {
-                            $status .= fromutf(gettext(" page ")) . $line[3];
-                            $widgets->{'main'}->get_widget('treePlaylist')
-                              ->select_item($line[2]);
-                        }
-                        $widgets->{'main'}->get_widget('statusPlaylist')
-                          ->push(1, $status);
-                    } else {
-
-                        $widgets->{'main'}->get_widget('statusPlaylist')
-                          ->push(1, $status);
-                    }
-                    debug($status);
-                }
-                close($server);
-            } else {
-
-                #tcp/ip socket failure so server must be not running yet!
-                debug("Preview not running?");
-            }
+            #tcp/ip socket failure so server must be not running yet!
+            debug("Preview not running?");
         }
     }
 }
@@ -4535,6 +4508,9 @@ sub show_about {
     my $xml =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowAbout', 'lyricue');
     $xml->signal_autoconnect_from_package('');
+    my $abouttext = $xml->get_widget('labelVersion')->get_text();
+    $abouttext =~ s/#VERSION#/$globals->{'version'}/g;
+    $xml->get_widget('labelVersion')->set_text($abouttext);
     $xml->get_widget('windowAbout')->show();
 }
 
@@ -10599,7 +10575,6 @@ sub do_pending {
 #
 sub get_max_verse {
     my ($book, $chapter, $startverse, $endverse) = @_;
-    debug("Get max verse that fits on screen");
 
     if ($config->{'Main'} eq "") {
         $config = load_config();
@@ -10608,13 +10583,14 @@ sub get_max_verse {
         $config->{'Width'}  = 800;
         $config->{'Height'} = 600;
     }
+    debug("Get max verse that fits within ".$config->{'Width'}."x".$config->{'Height'});
 
     my $pageHeight = 0;
 
     my $layout =
       $widgets->{'main'}->get_widget('windowMain')->create_pango_layout("");
     $layout->set_wrap('word');
-    $layout->set_width($config->{'Width'} * PANGO_SCALE);
+    $layout->set_width(($config->{'Width'} - $config->{'OverscanH'}) * PANGO_SCALE);
     $layout->set_font_description(
         Gtk2::Pango::FontDescription->from_string($config->{'Main'}));
     my $page = "";
@@ -10677,7 +10653,7 @@ sub get_max_verse {
         $layout->set_text($page . "\n" . $line);
         my ($pageWidth, $pageHeight) = $layout->get_pixel_size;
 
-        if ($pageHeight > $config->{'Height'} - 100) {
+        if ($pageHeight > $config->{'Height'} - (100 + $config->{'OverscanV'})) {
             if ($versenum > $startverse) { $versenum--; }
             return $versenum;
         } else {

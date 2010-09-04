@@ -144,6 +144,7 @@ create_main_window (int argc, char *argv[])
     g_signal_connect (stage, "notify::height", G_CALLBACK (size_change),
                       NULL);
 
+    clutter_set_font_flags(CLUTTER_FONT_MIPMAPPING);
     return TRUE;
 }
 
