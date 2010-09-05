@@ -19,6 +19,9 @@
 #include <glib.h>
 #include <utils.h>
 
+GRegex * re_break = NULL;
+GRegex * re_semi = NULL;
+
 void
 l_debug (const gchar * fmt, ...)
 {
@@ -36,3 +39,19 @@ l_debug (const gchar * fmt, ...)
     va_end (argp);
     printf ("\n");
 }
+
+gchar * parse_special (const gchar * text)
+{
+    gchar *tmp = NULL;
+    gchar *tmp2 = NULL;
+    if (re_break == NULL) {
+        re_break = g_regex_new("#BREAK#", G_REGEX_MULTILINE, 0, NULL);
+    }
+    if (re_semi == NULL) {
+        re_semi = g_regex_new("#SEMI#", G_REGEX_MULTILINE, 0, NULL);
+    }
+    tmp = g_regex_replace(re_break, text, -1, 0, "\n", 0, NULL);
+    tmp2 = g_regex_replace(re_semi, tmp, -1, 0, ":", 0, NULL);
+    return tmp2;
+}
+

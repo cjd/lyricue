@@ -224,17 +224,40 @@ do_media (const char *options)
 void
 do_preview (const char *options)
 {
-    GRegex * re = NULL;
     gchar **line = g_strsplit (options, ":", 2);
-    gchar *text = NULL;
-    gchar *text2 = NULL;
-    re = g_regex_new("#BREAK#", G_REGEX_MULTILINE, 0, NULL);
-    text = g_regex_replace(re, line[1], -1, 0, "\n", 0, NULL);
-    re = g_regex_new("#SEMI#", G_REGEX_MULTILINE, 0, NULL);
-    text2 = g_regex_replace(re, text, -1, 0, ";", 0, NULL);
+    gboolean wrap = FALSE;
+    if (g_strcmp0(line[0], "ignore") != 0 ) {
+        gchar **extras = g_strsplit(parse_special(line[0]), "\n", 4);
+        if ((g_strv_length(extras) == 4) && (g_strcmp0(extras[3], "wrap") == 0)) {
+            wrap = TRUE;
+        }
+        set_headtext (parse_special(extras[0]), 0, 1);
 
-    set_headtext (line[0], 0, 1);
-    set_maintext (text2, 0, 1);
+        if (g_strv_length(extras) >= 3) {
+            GString *footer = g_string_new (NULL);
+
+            if (g_utf8_strlen(extras[2],10) != 0) {
+                g_string_printf(footer, "%s %s - %s",
+                   gettext("Written by "),
+                   extras[1],
+                   extras[2]);
+            } else {
+                if (g_utf8_strlen(extras[1],10) != 0) {
+                    g_string_printf(footer, "%s %s",
+                        gettext("Written by "),
+                        extras[1]);
+                } else {
+                    g_string_assign(footer,"");
+                }
+            }
+            set_foottext(footer->str,0,1);
+            g_string_free(footer, TRUE);
+        }
+        g_strfreev(extras);
+
+    }
+    set_maintext (parse_special(line[1]), 0, wrap);
+    g_strfreev(line);
 }
 
 GString *
@@ -277,15 +300,17 @@ void
 do_blank (const char *options)
 {
     l_debug ("do_blank: %s", options);
+    gchar **line = g_strsplit (options, ":", 2);
     set_maintext ("", 0, FALSE);
     set_headtext ("", 0, FALSE);
     set_foottext ("", 0, FALSE);
     if (options != NULL) {
         temp_bg = current_bg;
-        change_backdrop (options, TRUE);
+        change_backdrop (line[0], TRUE);
     } else {
         temp_bg = NULL;
     }
+    g_strfreev(line);
     blanked_state = TRUE;
 }
 
