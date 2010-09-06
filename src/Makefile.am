@@ -6,8 +6,7 @@ AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" $(CLUTTER_CFLAGS) \
-	$(GTK_CFLAGS) \
-	$(SWORD_CFLAGS)
+	$(GTK_CFLAGS)
 
 AM_CFLAGS =\
 	 -Wall\
@@ -34,6 +33,4 @@ lyricue_display_SOURCES = \
 
 lyricue_display_LDADD = \
 	$(CLUTTER_LIBS)  \
-	$(GTK_LIBS)      \
-	$(SWORD_LIBS)
-
+	$(GTK_LIBS)

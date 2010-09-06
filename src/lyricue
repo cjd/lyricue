@@ -709,7 +709,7 @@ sub add_playlist {
             if (/^(.*)\/(.*?)$/) {
                 my $filename = $2;
                 my $dir      = $1;
-                if ($dir =~ /^\/tmp\/lyricue-/) {
+                if ($dir =~ /^\/var\/tmp\/lyricue-/) {
                     $filename =~ s/\..*?$//g;
                     $filename =~ s/_/ /g;
                     $title = "Presentation: " . $filename;
@@ -2849,12 +2849,12 @@ sub remove_single_item {
     $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
-    if (($row[0] eq "file") && ($row[1] =~ /^\/tmp\/lyricue-/)) {
+    if (($row[0] eq "file") && ($row[1] =~ /^\/var\/tmp\/lyricue-/)) {
 
         # Removing temporary file
         my $command = "rm " . $row[1];
         my $dir     = $row[1];
-        $dir =~ s/^(\/tmp\/lyricue-.*\/).*$/$1/g;
+        $dir =~ s/^(\/var\/tmp\/lyricue-.*\/).*$/$1/g;
 
         # Check if used elsewhere
         $query =
@@ -6423,42 +6423,48 @@ sub do_add_file {
             do_pending();
             my $target = $file;
             $target =~ s/^.*\///g;
-            my $tmpdir = tempdir("lyricue-XXXX", TMPDIR => 1, CLEANUP => 0);
+            my $tmpdir = tempdir("lyricue-XXXX", DIR => "/var/tmp", CLEANUP => 0);
             my $command =
               "cp \"" . $file . "\" \"" . $tmpdir . "/" . $target . "\"";
             debug($command);
             system($command);
             do_pending();
-            $command =
-                $globals->{'unoconv'}
-              . " -f html \""
-              . $tmpdir . "/"
-              . $target . "\"";
-            debug($command);
-            system($command);
-            do_pending();
 
-            # Clean up directory
-            my $ret = opendir DIR, $tmpdir;
-            if ($ret) {
-                foreach my $filename (sort readdir(DIR)) {
-                    if (($filename =~ /\.html$/) || ($filename eq $target)) {
-                        unlink $tmpdir . "/" . $filename;
-                    } elsif ($filename =~ /^img.*jpg$/) {
-                        my $count = $filename;
-                        $count =~ s/^.*[^0-9]([0-9]*)\..*$/$1/g;
-                        $count++;
-                        rename $tmpdir . "/" . $filename,
-                          $tmpdir . "/page_" . $count . ".jpg";
+            my $try=0;
+            while ($try <=2) {
+                $try++;
+                $command =
+                    $globals->{'unoconv'}
+                  . " -f html \""
+                  . $tmpdir . "/"
+                  . $target . "\"";
+                debug($command);
+                system($command);
+                do_pending();
+    
+                # Import directory
+                my $ret = opendir DIR, $tmpdir;
+                if ($ret) {
+                    foreach my $filename (sort readdir(DIR)) {
+                        if (($filename =~ /\.html$/) || ($filename eq $target)) {
+                            unlink $tmpdir . "/" . $filename;
+                        } elsif ($filename =~ /^img.*jpg$/) {
+                            my $count = $filename;
+                            $count =~ s/^.*[^0-9]([0-9]*)\..*$/$1/g;
+                            $count++;
+                            rename $tmpdir . "/" . $filename,
+                              $tmpdir . "/page_" . $count . ".jpg";
+                            $try = 10; # Don't retry
+                        }
                     }
+                    closedir DIR;
                 }
-                closedir DIR;
+                $command =
+                  "rm " . $tmpdir . "/*.html \"" . $tmpdir . "/" . $target . "\"";
+                debug($command);
+                system($command);
             }
-            $command =
-              "rm " . $tmpdir . "/*.html \"" . $tmpdir . "/" . $target . "\"";
 
-            debug($command);
-            system($command);
             do_add_directory($tmpdir, $target);
             $dialog->destroy;
             return;
@@ -6477,7 +6483,7 @@ sub do_add_file {
             $dialog->show_all();
             do_pending();
             $target =~ s/^.*\///g;
-            my $tmpdir = tempdir("lyricue-XXXX", TMPDIR => 1, CLEANUP => 0);
+            my $tmpdir = tempdir("lyricue-XXXX", DIR => "/var/tmp", CLEANUP => 0);
             my $command =
               $globals->{'convert'} . " " . $file . " " . $tmpdir . "/temp.jpg";
             debug($command);

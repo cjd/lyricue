@@ -2,6 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl Created by Anjuta application wizard.
 
 AC_INIT(lyricue, 2.9, http://www.lyricue.org)
+AC_CONFIG_AUX_DIR([build-aux])
 
 LIBS=`mysql_config --libs`
 AC_SUBST(LIBS)
