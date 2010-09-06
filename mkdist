@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#Update changelog
+#bzr2cl ???
+
+
+#if [ "$1" = "release" ] 
+#then echo Making release
+CHANGELOG="debian/changelog"
+#cat debian/rules-base | sed -e 's/lyricue-cvs/lyricue/g' > debian/rules
+#chmod +x debian/rules
+#cat debian/menu-base | sed -e 's/lyricue-cvs/lyricue/g' > debian/menu
+#else CHANGELOG="debian/changelog-cvs"
+#cp debian/rules-base debian/rules
+#cp debian/menu-base debian/menu
+#fi
+
+VERSION=`head -1 ${CHANGELOG} |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
+LC_ALL=C;export LC_ALL
+
+CONV="s/##VERSION##/${VERSION}/g"
+for F in src/lyricue
+do sed --in-place -e $CONV $F
+done
+
+DIST=maverick
+echo Building for ${DIST}
+bzr-buildpackage -S
+
+for DIST in jaunty karmic lucid
+do echo Building for ${DIST}
+cat ${CHANGELOG} | head -1 | sed -e "s/maverick/$DIST/g" -e "s/)/${DIST})/g"  > debian/changelog-new
+echo "" >> debian/changelog-new
+echo "  * Build for ${DIST}" >> debian/changelog-new
+echo "" >> debian/changelog-new
+echo " -- Chris Debenham <chris@adebenham.com> " `date -R` >> debian/changelog-new
+echo "" >> debian/changelog-new
+cat $CHANGELOG >> debian/changelog-new
+mv debian/changelog-new debian/changelog
+bzr-buildpackage -S
+bzr revert debian/changelog
+done
+
+bzr revert src/lyricue
+
+echo dput ppa:chris-debenham/lyricue ../*.changes
