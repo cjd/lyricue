@@ -73,8 +73,9 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(sharedir)"
-DATA = $(share_DATA)
+am__installdirs = "$(DESTDIR)$(etcdir)" "$(DESTDIR)$(sharedir)" \
+	"$(DESTDIR)$(sqldir)"
+DATA = $(etc_DATA) $(share_DATA) $(sql_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -219,6 +220,16 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+sql_DATA = \
+	Create_lyricDb.sql\
+	Create_mediaDb.sql \
+	Update_1.2.sql \
+	Update_1.9.7.sql \
+	Update_1.9.sql \
+	Update_2.1.0.sql \
+	Update_2.3.2.sql \
+	Update_2.4.sql
+
 share_DATA = \
 	DownLeft.svg \
 	lyricue.png  \
@@ -232,21 +243,25 @@ share_DATA = \
 	Left.svg   \
 	lyricue-icon.png     \
 	Right.svg\
-	lyricue.glade \
-	Create_lyricDb.sql\
-	Create_mediaDb.sql \
-	Update_1.2.sql \
-	Update_1.9.7.sql \
-	Update_1.9.sql \
-	Update_2.1.0.sql \
-	Update_2.3.2.sql \
-	Update_2.4.sql
+	lyricue.glade
+
+etc_DATA = \
+	default.conf \
+	access.conf
 
 sharedir = \
 	$(pkgdatadir)
 
+sqldir = \
+    $(sharedir)/mysql
+
+etcdir = \
+    $(sysconfdir)/lyricue
+
 EXTRA_DIST = \
-	$(share_DATA)
+	$(share_DATA) \
+	$(sql_DATA) \
+	$(etc_DATA)
 
 all: all-am
 
@@ -287,6 +302,26 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-etcDATA: $(etc_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(etcdir)" || $(MKDIR_P) "$(DESTDIR)$(etcdir)"
+	@list='$(etc_DATA)'; test -n "$(etcdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(etcdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(etcdir)" || exit $$?; \
+	done
+
+uninstall-etcDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(etc_DATA)'; test -n "$(etcdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(etcdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(etcdir)" && rm -f $$files
 install-shareDATA: $(share_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(sharedir)" || $(MKDIR_P) "$(DESTDIR)$(sharedir)"
@@ -307,6 +342,26 @@ uninstall-shareDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(sharedir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(sharedir)" && rm -f $$files
+install-sqlDATA: $(sql_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(sqldir)" || $(MKDIR_P) "$(DESTDIR)$(sqldir)"
+	@list='$(sql_DATA)'; test -n "$(sqldir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(sqldir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(sqldir)" || exit $$?; \
+	done
+
+uninstall-sqlDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(sql_DATA)'; test -n "$(sqldir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(sqldir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(sqldir)" && rm -f $$files
 tags: TAGS
 TAGS:
 
@@ -348,7 +403,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(sharedir)"; do \
+	for dir in "$(DESTDIR)$(etcdir)" "$(DESTDIR)$(sharedir)" "$(DESTDIR)$(sqldir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -396,7 +451,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-shareDATA
+install-data-am: install-etcDATA install-shareDATA install-sqlDATA
 
 install-dvi: install-dvi-am
 
@@ -440,7 +495,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-shareDATA
+uninstall-am: uninstall-etcDATA uninstall-shareDATA uninstall-sqlDATA
 
 .MAKE: install-am install-strip
 
@@ -448,13 +503,14 @@ uninstall-am: uninstall-shareDATA
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-shareDATA \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am uninstall-shareDATA
+	install-etcDATA install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-shareDATA install-sqlDATA install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-etcDATA uninstall-shareDATA uninstall-sqlDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
