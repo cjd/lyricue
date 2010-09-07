@@ -33,6 +33,8 @@
 #include <clutter-gtk/clutter-gtk.h>
 #include <clutter-gst/clutter-gst.h>
 #include <glib.h>
+#include <glib/gprintf.h>
+#include <glib/gstdio.h>
 #include <gio/gio.h>
 #include "i18n.h"
 #include "database.h"

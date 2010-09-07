@@ -276,10 +276,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = src po \
-	data 
-
-lyricuedocdir = ${prefix}/doc/lyricue
+SUBDIRS = src po data 
+lyricuedocdir = $(docdir)
 lyricuedoc_DATA = \
 	README\
 	COPYING\
@@ -288,6 +286,7 @@ lyricuedoc_DATA = \
 	INSTALL\
 	NEWS \
 	Development.txt \
+    song_template.txt \
 	sample_song.xml
 
 INTLTOOL_FILES = intltool-extract.in \

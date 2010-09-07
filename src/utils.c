@@ -17,10 +17,13 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <glib.h>
+#include <lyricue_display.h>
 #include <utils.h>
 
+extern int server_port;
 GRegex * re_break = NULL;
 GRegex * re_semi = NULL;
+FILE * logfile = NULL;
 
 void
 l_debug (const gchar * fmt, ...)
@@ -28,18 +31,43 @@ l_debug (const gchar * fmt, ...)
     va_list argp;
     char timestr[100];
     time_t t;
+    if (logfile == NULL) {
+        gchar logname[32],ologname[32];
+        g_snprintf(logname, 32, "server-%d.log",server_port);
+        g_snprintf(ologname, 32, "server-%d.log.old",server_port);
+        gchar *logpath = g_build_filename(g_get_user_data_dir(),"lyricue",logname,NULL);
+        gchar *ologpath = g_build_filename(g_get_user_data_dir(),"lyricue",ologname,NULL);
+        g_rename(logpath,ologpath);
+        logfile = g_fopen(logpath, "w");
+        g_printf("Logging to %s\n", logpath);
+    }
 
     t = time (NULL);
     if (strftime (timestr, sizeof (timestr), "%H:%M:%S %d/%m", localtime (&t))
         != 0) {
-        printf ("(%s) ", timestr);
+        g_printf ("(%s) ", timestr);
+        g_fprintf (logfile, "(%s) ", timestr);
     }
+
+    // stderr
     va_start (argp, fmt);
-    vprintf (fmt, argp);
-    va_end (argp);
-    printf ("\n");
+    g_vfprintf (stderr, fmt, argp);
+    g_fprintf (stderr, "\n");
+    va_end(argp);
+
+    // logfile
+    va_start (argp, fmt);
+    g_vfprintf (logfile, fmt, argp);
+    g_fprintf (logfile,"\n");
+    va_end(argp);
+
+    fflush(logfile);
 }
 
+void close_log()
+{
+    fclose(logfile);
+}
 gchar * parse_special (const gchar * text)
 {
     gchar *tmp = NULL;

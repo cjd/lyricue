@@ -1,10 +1,10 @@
 ## Process this file with automake to produce Makefile.in
 ## Created by Anjuta
 
-SUBDIRS = src po \
-	data 
+SUBDIRS = src po data 
 
-lyricuedocdir = ${prefix}/doc/lyricue
+lyricuedocdir = $(docdir)
+
 lyricuedoc_DATA = \
 	README\
 	COPYING\
@@ -13,6 +13,7 @@ lyricuedoc_DATA = \
 	INSTALL\
 	NEWS \
 	Development.txt \
+    song_template.txt \
 	sample_song.xml
 
 

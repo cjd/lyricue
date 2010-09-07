@@ -16,4 +16,4 @@
 
 void l_debug(const gchar *text, ...);
 gchar * parse_special (const gchar * text);
-
+void close_log();

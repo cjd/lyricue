@@ -15,7 +15,7 @@ AM_CFLAGS =\
 bin_PROGRAMS = \
 	lyricue_display
 
-bin_SCRIPTS = \
+dist_bin_SCRIPTS = \
 	lyricue
 
 lyricue_display_SOURCES = \

@@ -89,10 +89,12 @@ create_main_window (int argc, char *argv[])
     stage_height = atof ((gchar *) g_hash_table_lookup (config, "Height"));
     if (windowid == 0) {
         window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-        if (!  gtk_window_parse_geometry(GTK_WINDOW (window),geometry)) {
-            l_debug("Failed to parse geometry '%s'", geometry);
-        } else {
-            l_debug("Geometry '%s'", geometry);
+        if (geometry != NULL) {
+            if (!  gtk_window_parse_geometry(GTK_WINDOW (window),geometry)) {
+                l_debug("Failed to parse geometry '%s'", geometry);
+            } else {
+                l_debug("Geometry '%s'", geometry);
+            }
         }
         if (!windowed) gtk_window_fullscreen(GTK_WINDOW (window));
     } else {
@@ -317,7 +319,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
     }
 
     if (g_strcmp0 (line[0], "db") == 0) {
-        do_query(mediaDb, "SELECT format, description, data FROM media WHERE id=%s",line[1]);
+        do_query(mediaDb, "SELECT format, description, data, LENGTH(data) FROM media WHERE id=%s",line[1]);
         MYSQL_ROW row;
         MYSQL_RES *result;
         result = mysql_store_result (mediaDb);
@@ -335,12 +337,19 @@ change_backdrop (const gchar * id, gboolean video_loop)
                 clutter_color_free(bgcolour);
             } else {
                 l_debug ("Changing backdrop to dbimage");
-                gchar *tempname;
-                gint fd = g_file_open_tmp("lyricue-tmp.XXXXX", &tempname, NULL);
+                gchar *dbimage_filename = NULL;
+
+                gint fd = g_file_open_tmp("lyricue-tmp.XXXXXX", &dbimage_filename, NULL);
                 if (fd > 0) {
                     if (bg_is_video) g_source_remove(bg_is_video);
+                    FILE *file = fdopen(fd,"w");
+                    fwrite(row[2], atoi(row[3]), 1, file);
+                    fclose(file);
+                    close(fd);
                     bg_is_video = 0;
-                    background = clutter_texture_new_from_file (tempname, NULL);
+                    background = clutter_texture_new_from_file (dbimage_filename, NULL);
+                    unlink(dbimage_filename);
+                    g_free(dbimage_filename);
                     clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
                                                         (background), TRUE);
                     clutter_actor_set_size (background, stage_width, stage_height);
@@ -349,7 +358,6 @@ change_backdrop (const gchar * id, gboolean video_loop)
                     clutter_actor_set_position (background, stage_width / 2,
                                              stage_height / 2);
                 }
-                g_free(tempname);
             }
         }
     } else if (g_strcmp0 (line[0], "solid") == 0) {
@@ -474,8 +482,9 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
             switch (clutter_event_get_key_symbol (event)) {
                 case CLUTTER_Q:
                 case CLUTTER_Escape:
+                    close_log();
                     clear_group(stage);
-                    gtk_main_quit ();
+                    clutter_main_quit ();
                     handled = TRUE;
                     break;
                 case CLUTTER_Left:
