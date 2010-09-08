@@ -26,8 +26,8 @@
 
 extern MYSQL *lyricDb;
 extern gchar *bible_name;
-extern int stage_width;
-extern int stage_height;
+extern gfloat stage_width;
+extern gfloat stage_height;
 extern gint bg_is_video;
 extern ClutterActor *background;
 
@@ -271,7 +271,7 @@ do_status ()
 {
     l_debug ("Return status");
     GString *ret = g_string_new (NULL);
-    g_string_printf (ret, "Status,W:%d,H:%d,F:%s,B:%s\n", stage_width,
+    g_string_printf (ret, "Status,W:%.0f,H:%.0f,F:%s,B:%s\n", stage_width,
                      stage_height, (gchar *) g_hash_table_lookup (config,
                                                                   "Main"),
                      bible_name);
