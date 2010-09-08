@@ -226,6 +226,12 @@ do_preview (const char *options)
 {
     gchar **line = g_strsplit (options, ":", 2);
     gboolean wrap = FALSE;
+    if (blanked_state && temp_bg) {
+        change_backdrop (temp_bg, TRUE);
+        blanked_state = FALSE;
+        temp_bg = NULL;
+    }
+    blanked_state = FALSE;
     if (g_strcmp0(line[0], "ignore") != 0 ) {
         gchar **extras = g_strsplit(parse_special(line[0]), "\n", 4);
         if ((g_strv_length(extras) == 4) && (g_strcmp0(extras[3], "wrap") == 0)) {

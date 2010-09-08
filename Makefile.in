@@ -798,7 +798,7 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-local uninstall-lyricuedocDATA
+uninstall-am: uninstall-lyricuedocDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) all \
 	ctags-recursive install-am install-strip tags-recursive
@@ -818,13 +818,8 @@ uninstall-am: uninstall-local uninstall-lyricuedocDATA
 	installcheck-am installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
-	uninstall uninstall-am uninstall-local \
-	uninstall-lyricuedocDATA
+	uninstall uninstall-am uninstall-lyricuedocDATA
 
-
-# Remove doc directory on uninstall
-uninstall-local:
-	-rm -r $(lyricuedocdir)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -27,7 +27,7 @@ DIST=maverick
 echo Building for ${DIST}
 bzr-buildpackage -S
 
-for DIST in karmic lucid
+for DIST in jaunty karmic lucid
 do echo Building for ${DIST}
 cat ${CHANGELOG} | head -1 | sed -e "s/maverick/$DIST/g" -e "s/)/${DIST})/g"  > debian/changelog-new
 echo "" >> debian/changelog-new
@@ -42,5 +42,7 @@ bzr revert debian/changelog
 done
 
 bzr revert src/lyricue
+rm src/lyricue.~*~
+rm debian/changelog.~*~
 
 echo dput ppa:chris-debenham/lyricue ../*.changes

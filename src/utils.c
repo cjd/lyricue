@@ -45,7 +45,7 @@ l_debug (const gchar * fmt, ...)
     t = time (NULL);
     if (strftime (timestr, sizeof (timestr), "%H:%M:%S %d/%m", localtime (&t))
         != 0) {
-        g_printf ("(%s) ", timestr);
+        g_fprintf (stderr, "(%s) ", timestr);
         g_fprintf (logfile, "(%s) ", timestr);
     }
 
