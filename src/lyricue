@@ -4782,7 +4782,7 @@ sub execute_app {
             $command =~ s/;$//;
             system($command . " &");
         } else {
-            system($command. " -geometry +" . ($widgets->{'main'}->get_widget('windowMain')->get_screen->get_width - 100) . "+100 &");
+            system($command. " --geometry +" . ($widgets->{'main'}->get_widget('windowMain')->get_screen->get_width - 100) . "+100 &");
         }
     } else {
         system("DISPLAY=:0.1 " . $command . " &");
@@ -8421,6 +8421,7 @@ sub load_access {
         my $accessxml = Gtk2::GladeXML->new($globals->{'gladefile'},
             'dialogConfirm', 'lyricue');
         $accessxml->signal_autoconnect_from_package('');
+### ERROR - change dialog title ##
         my $labelText .= fromutf(
             gettext(
 "This user has no access entry.\nBy default they will have full access.\nTo fix please edit /etc/lyricue/access.conf and add an entry for this user.\nClick OK to continue anyway or Cancel to Exit"
@@ -8587,12 +8588,12 @@ sub init_preview {
             $widgets->{'main'}->get_widget('labelPreview')->show();
             $widgets->{'main'}->get_widget('framePreview')->show();
             $widgets->{'main'}->get_widget('framePreview')
-              ->set_size_request(255, 210);
+              ->set_size_request(100, 75);
             $widgets->{'preview'} = Gtk2::Socket->new;
-            $widgets->{'preview'}->set_size_request(280, 210);
             $widgets->{'preview'}->show;
             $widgets->{'main'}->get_widget('framePreview')
               ->add($widgets->{'preview'});
+            $widgets->{'preview'}->set_size_request(-1, -1);
 
             debug(
                 sprintf(
@@ -8668,7 +8669,7 @@ sub init_miniview {
             $widgets->{'main'}->get_widget('labelCurrent')->show();
             $widgets->{'main'}->get_widget('frameCurrent')->show();
             $widgets->{'miniview'} = Gtk2::Socket->new;
-            $widgets->{'miniview'}->set_size_request(280, 210);
+            $widgets->{'miniview'}->set_size_request(100, 75);
             $widgets->{'miniview'}->show;
             $widgets->{'main'}->get_widget('frameCurrent')
               ->add($widgets->{'miniview'});
@@ -11619,7 +11620,7 @@ sub check_tracker {
         }
     }
     $globals->{'blanked_state'} = FALSE;
-    if ($row[1] ne "") {
+    if (defined($row[1]) && $row[1] ne "") {
         if ($row[1] =~ /^blank/) {
             $globals->{'blanked_state'} = TRUE;
             $row[1] =~ s/^blank//g;
@@ -11863,7 +11864,7 @@ sub db_select {
             "lyric", ""
         ) || db_install_user();
         if ($sqldb) {
-            $sqldb->disconnect();
+            $sqldb->disconnect(); ## ERROR HERE ### Can't call 'disconnect' without a package or object reference
         }
     }
     db_check_databases();
@@ -13268,6 +13269,7 @@ sub firstrun_apply {
     $globals->{'host'}      = $config->{'ProjectorHost'};
     $globals->{'mysqlhost'} = $config->{'DBHost'};
 
+    db_select();
     write_config();
 
     if (!$globals->{'firstrun'}) {
