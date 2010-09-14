@@ -90,9 +90,12 @@ create_main_window (int argc, char *argv[])
 
     stage_width = atof ((gchar *) g_hash_table_lookup (config, "Width"));
     stage_height = atof ((gchar *) g_hash_table_lookup (config, "Height"));
+    if (geometry == NULL) {
+        geometry = (gchar *) g_hash_table_lookup (config, "GeometryOverride");
+    }
     if (windowid == 0) {
         window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-        if (geometry != NULL) {
+        if (geometry != NULL && (g_utf8_strlen(geometry,10) > 0)) {
             if (!  gtk_window_parse_geometry(GTK_WINDOW (window),geometry)) {
                 l_debug("Failed to parse geometry '%s'", geometry);
             } else {
