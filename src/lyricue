@@ -488,6 +488,7 @@ if (-d $globals->{'basedir'}) {
 
     # Open lyricDB, bibleDB and mediaDb
     db_select();
+    write_config(TRUE);
 }
 
 if (defined $config->{'DefBible'} && ($config->{'DefBible'} ne "")) {
@@ -4921,7 +4922,7 @@ sub select_bible_db {
               $line[1] . ":" . $line[0] . ";" . $widget->get('label');
             debug("No default bible set previously, setting to "
                   . $config->{'DefBible'});
-            write_config();
+            write_config(FALSE);
         }
     }
 }
@@ -6271,7 +6272,7 @@ sub save_preferences {
       $widgets->{'prefs'}->get_widget('entryPrefBible')->get_text();
 
     save_state();
-    write_config();
+    write_config(FALSE);
 
     if ($db_changed) {
         db_restart();
@@ -6300,11 +6301,9 @@ sub save_preferences {
 # SOURCE
 #
 sub write_config {
+    my ($dbonly) = @_;
     debug("Writing preferences");
 
-    # Backup file
-    unlink $globals->{'configfile'} . ".bak";
-    rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
     # Backup config table
     my $query = "DELETE FROM config_old";
     my $sth = $lyricDbh->prepare($query)
@@ -6328,12 +6327,21 @@ sub write_config {
       || display_fatal($errorcodes->{'sqlexecute'},
         $! . "\nSQL: " . $query);
 
-    open(CONFIG, ">$globals->{'configfile'}")
-      || display_fatal($errorcodes->{'fileopenwrite'}, $!);
-    binmode(CONFIG, ":utf8");
+    if (!$dbonly) {
+        # Backup file
+        unlink $globals->{'configfile'} . ".bak";
+        rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
+    
+        open(CONFIG, ">$globals->{'configfile'}")
+          || display_fatal($errorcodes->{'fileopenwrite'}, $!);
+        binmode(CONFIG, ":utf8");
+    }
+
     foreach (sort keys(%$config)) {
         if ((!/^Bible/) && (!/^App/) && (!/^LoopText/)) {
-            print CONFIG $_ . " = " . $config->{$_} . "\n";
+            if (!$dbonly) {
+                print CONFIG $_ . " = " . $config->{$_} . "\n";
+            }
             $query = "INSERT INTO config ( config_key, config_value ) VALUES (\"".$_."\", \"".$config->{$_}."\")";
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
@@ -6345,7 +6353,9 @@ sub write_config {
         }
     }
     foreach (0 .. $config->{'AppCount'} - 1) {
-        print CONFIG "App = " . $config->{'App'}[$_] . "\n";
+        if (!$dbonly) {
+            print CONFIG "App = " . $config->{'App'}[$_] . "\n";
+        }
         $query = "INSERT INTO config ( config_key, config_value ) VALUES ( \"App\", \"".$config->{'App'}[$_]."\")";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
@@ -6355,10 +6365,12 @@ sub write_config {
           || display_fatal($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
-    close CONFIG;
-    preview_display("reconfig", "", "");
-    update_display("reconfig", "", "");
-    update_display("status", "", "");
+    if (!$dbonly) {
+        close CONFIG;
+        preview_display("reconfig", "", "");
+        update_display("reconfig", "", "");
+        update_display("status", "", "");
+    }
 }
 
 #***
@@ -13273,7 +13285,7 @@ sub firstrun_apply {
     $globals->{'mysqlhost'} = $config->{'DBHost'};
 
     db_select();
-    write_config();
+    write_config(FALSE);
 
     if (!$globals->{'firstrun'}) {
         init_preview();
