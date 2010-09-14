@@ -16,7 +16,8 @@ bin_PROGRAMS = \
 	lyricue_display
 
 dist_bin_SCRIPTS = \
-	lyricue
+	lyricue \
+	lyricue_remote
 
 lyricue_display_SOURCES = \
 	lyricue_display.c\
