@@ -349,7 +349,22 @@ do_get (const char *options)
 void
 do_osd (const char *options)
 {
-    l_debug ("do_osd not implemented");
+    l_debug ("do_osd");
+    if (options != NULL) {
+        gchar **line = g_strsplit (options, ":", 2);
+        int speed = 10000;
+        if(g_strcmp0(line[0],"slow") == 0) {
+            speed = 20000;
+        } else if(g_strcmp0(line[0],"fast") == 0) {
+            speed = 5000;
+        } else if(g_strcmp0(line[0],"default") == 0) {
+            speed = 10000;
+        } else {
+            speed = atoi(line[0]);
+        }
+        gchar *text = parse_special(line[1]);
+        set_osd(speed, text);
+    }
 }
 
 void

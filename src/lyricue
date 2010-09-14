@@ -6356,6 +6356,9 @@ sub write_config {
             $! . "\nSQL: " . $query);
     }
     close CONFIG;
+    preview_display("reconfig", "", "");
+    update_display("reconfig", "", "");
+    update_display("status", "", "");
 }
 
 #***

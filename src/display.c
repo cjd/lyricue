@@ -39,6 +39,7 @@ gchar *foottext_bgcol = "black";
 gchar *maintext_font = "";
 gchar *headtext_font = "";
 gchar *foottext_font = "";
+gchar *osdtext_font  = "";
 
 GtkWidget *window = NULL;
 GtkWidget *clutter_widget = NULL;
@@ -51,6 +52,8 @@ ClutterActor *foottext = NULL;
 ClutterActor *foottext_old = NULL;
 ClutterActor *background = NULL;
 ClutterActor *background_old = NULL;
+ClutterActor *osdtext = NULL;
+ClutterActor *osdtext_bg = NULL;
 
 gfloat stage_width = 0;
 gfloat stage_height = 0;
@@ -141,6 +144,7 @@ create_main_window (int argc, char *argv[])
     clutter_actor_show_all (stage);
 
     // Setup events
+    g_signal_connect (stage, "destroy", G_CALLBACK (exit), NULL);
     g_signal_connect (stage, "event", G_CALLBACK (input_cb), NULL);
     g_signal_connect (stage, "notify::width", G_CALLBACK (size_change), NULL);
     g_signal_connect (stage, "notify::height", G_CALLBACK (size_change),
@@ -238,6 +242,51 @@ set_foottext (const gchar * text, int transition, gboolean wrap)
                                                  CLUTTER_GRAVITY_SOUTH);
     clutter_actor_set_position (foottext, stage_width / 2, stage_height);
     clear_group(foottext_old);
+}
+
+void set_osd (int speed, const gchar * text)
+{
+    l_debug("Setting OSD at %d speed",speed);
+
+    if (osdtext != NULL) {
+        clutter_actor_destroy(osdtext);
+        clutter_actor_destroy(osdtext_bg);  
+        osdtext = NULL;
+        osdtext_bg = NULL;
+    }
+
+    osdtext = clutter_group_new();
+
+	if (text == NULL || (g_utf8_strlen(text,10)==0)) {
+        return;
+    }
+
+    ClutterColor *bgcolour = clutter_color_new (0x00, 0x00, 0x00, 0xA0);
+    clutter_color_from_string (bgcolour, maintext_bgcol);
+    create_outlined_text(osdtext, text, osdtext_font, maintext_fgcol, maintext_bgcol, FALSE);
+    clutter_actor_set_anchor_point_from_gravity (osdtext, 
+                                                 CLUTTER_GRAVITY_CENTER);
+    osdtext_bg = clutter_rectangle_new_with_color(bgcolour);
+    gfloat osd_height = clutter_actor_get_height(osdtext);
+    gfloat osd_width = clutter_actor_get_width(osdtext);
+    clutter_actor_set_size(osdtext_bg, stage_width, osd_height+5);
+    clutter_actor_set_position(osdtext_bg, 0, stage_height - osd_height+5);
+    clutter_actor_set_opacity(osdtext_bg, 0x80);
+    clutter_container_add (CLUTTER_CONTAINER (stage), osdtext_bg, osdtext, NULL);
+    clutter_actor_raise_top(osdtext_bg);
+    clutter_actor_raise_top(osdtext);
+    gfloat scale = osd_width / stage_width;
+    if (scale < 1) scale = 1;
+    gfloat duration = scale * speed;
+
+    ClutterPath * osd_path = clutter_path_new();
+    clutter_path_add_move_to(osd_path, stage_width + (osd_width/2), stage_height - (osd_height/2) + 3 );
+    clutter_path_add_line_to(osd_path, -(osd_width/2), stage_height - (osd_height/2) + 3 );
+    ClutterTimeline * osd_timeline = clutter_timeline_new(duration);
+    ClutterBehaviour * osd_behaviour = clutter_behaviour_path_new(clutter_alpha_new_full(osd_timeline, CLUTTER_LINEAR), osd_path);
+    clutter_behaviour_apply(osd_behaviour, osdtext);
+    clutter_timeline_set_loop(osd_timeline, TRUE);
+    clutter_timeline_start(osd_timeline);
 }
 
 void
@@ -617,6 +666,7 @@ load_font_defaults()
     maintext_font  = (gchar *) g_hash_table_lookup (config, "Main");
     headtext_font  = (gchar *) g_hash_table_lookup (config, "Header");
     foottext_font  = (gchar *) g_hash_table_lookup (config, "Footer");
+    osdtext_font   = (gchar *) g_hash_table_lookup (config, "OSD");
 }
 
 void

@@ -26,6 +26,9 @@ void set_foottext(const gchar *text,
                   int transition, 
                   gboolean wrap);
 
+void set_osd (int speed,
+              const gchar *text);
+
 int create_main_window(int argc, char *argv[]);
 
 void create_outlined_text (ClutterActor *group,
@@ -57,3 +60,4 @@ void do_transition(ClutterActor *new,
                    int          transition,
                    gfloat       final_x,
                    gfloat       final_y);
+
