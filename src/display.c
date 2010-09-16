@@ -365,7 +365,10 @@ change_backdrop (const gchar * id, gboolean video_loop)
     //reset_timer(video_timer);
     gchar **line = g_strsplit (current_bg, ";", 2);
 
-    if (line[1] == NULL) {
+    if (g_ascii_strncasecmp (line[0], "dvd", 3) == 0) {
+        line[1] = line[0];
+        line[0] = "dvd";
+    } else if (line[1] == NULL) {
         line[1] = line[0];
         line[0] = "dir";
     }
@@ -477,6 +480,29 @@ change_backdrop (const gchar * id, gboolean video_loop)
             return;
         }
         g_object_unref (info);
+    } else if (g_strcmp0 (line[0], "dvd") == 0) {
+        l_debug("playing DVD Video");
+        background = clutter_gst_video_texture_new ();
+        clutter_media_set_uri(CLUTTER_MEDIA (background), "dvd://");
+        clutter_actor_set_anchor_point_from_gravity (background,
+                                                     CLUTTER_GRAVITY_CENTER);
+        clutter_actor_set_position (background, stage_width / 2,
+                                    stage_height / 2);
+        clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
+                                               (background), TRUE);
+        clutter_actor_set_size (background, stage_width, stage_height);
+        if (windowid == 0) {
+            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+            bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
+            //gboolean ret = gst_element_seek_simple(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), gst_format_get_by_nick("title"), GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, 1);
+        gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 30, 0,0);
+
+        } else {
+            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+            clutter_media_set_progress(CLUTTER_MEDIA (background), 0.05);
+            clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
+        }
+
     }
     if (background) {
         clutter_container_add (CLUTTER_CONTAINER (stage), background, NULL);

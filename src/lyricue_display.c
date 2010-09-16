@@ -523,14 +523,12 @@ do_display (const char *options)
 
             gboolean bg_changed = FALSE;
             if (g_strcmp0 (type, "back") == 0) {
-                gchar **line = g_strsplit(data,":",2);
-                default_bg = g_strdup(line[0]);
+                default_bg = g_strdup(data);
                 change_backdrop (default_bg, TRUE);
                 bg_changed = TRUE;
                 g_strfreev(line);
             } else if (g_strcmp0 (type, "file") == 0) {
-                gchar **line = g_strsplit(data,":",2);
-                change_backdrop (line[0], FALSE);
+                change_backdrop (data, FALSE);
                 bg_changed = TRUE;
                 g_strfreev(line);
             } else if (g_strcmp0 (type, "imag") == 0) {
@@ -644,7 +642,7 @@ do_display (const char *options)
 gboolean
 update_tracker ()
 {
-    l_debug ("Updating tracker");
+    //l_debug ("Updating tracker");
 
     // Only do if this is main server
     if (server_port == SERVER_PORT) {

@@ -208,6 +208,7 @@ chomp $globals->{'lyricue_server'};
 $globals->{'server_port'}        = "2346";    #port used for lyric server
 $globals->{'preview_port'}       = "2347";    #port used for preview
 $globals->{'miniview_port'}      = "2348";    #port used for miniview
+$globals->{'editview_port'}      = "2349";    #port used for editview
 $globals->{'update_timer'}       = FALSE;
 $globals->{'nav_update_timer'}   = FALSE;
 $globals->{'timer'}              = FALSE;
@@ -1331,13 +1332,16 @@ sub add_song {
     if ($widgets->{'add'} && $widgets->{'add'}->get_widget('windowEditSong')) {
         if (!$widgets->{'add'}->get_widget('windowEditSong')->visible) {
             $widgets->{'add'}->get_widget('windowEditSong')->destroy;
+        } else {
+            return;
         }
     }
     $widgets->{'add'} =
       Gtk2::GladeXML->new($globals->{'gladefile'}, 'windowEditSong', 'lyricue');
     $widgets->{'add'}->signal_autoconnect_from_package('');
+    start_editview();
     $widgets->{'add'}->get_widget('buttonEditPreviewServer')
-      ->signal_connect("clicked", "preview_page", "MINI");
+      ->signal_connect("clicked", "preview_page");
     $widgets->{'add'}->get_widget('notebookEditPages')->remove_page(0);
     %pageOrder = ();
     add_page();
@@ -1944,6 +1948,7 @@ sub remove_page {
 #
 sub close_add_window {
     debug("Close add window");
+    stop_editview();
     $widgets->{'add'}->get_widget('windowEditSong')->destroy();
     undef $widgets->{'add'};
 }
@@ -2005,8 +2010,9 @@ sub edit_song {
                 $widgets->{'add'} = Gtk2::GladeXML->new($globals->{'gladefile'},
                     'windowEditSong', 'lyricue');
                 $widgets->{'add'}->signal_autoconnect_from_package('');
+                start_editview();
                 $widgets->{'add'}->get_widget('buttonEditPreviewServer')
-                  ->signal_connect("clicked", "preview_page", "MINI");
+                  ->signal_connect("clicked", "preview_page");
                 %pageOrder = ();
                 update_songinfo($songid);
             }
@@ -2015,7 +2021,8 @@ sub edit_song {
                 'windowEditSong', 'lyricue');
             $widgets->{'add'}->signal_autoconnect_from_package('');
             $widgets->{'add'}->get_widget('buttonEditPreviewServer')
-              ->signal_connect("clicked", "preview_page", "MINI");
+              ->signal_connect("clicked", "preview_page");
+            start_editview();
             %pageOrder = ();
             $widgets->{'add'}->get_widget('notebookEditPages')->remove_page(0);
             $widgets->{'add'}->get_widget('windowEditSong')->show();
@@ -3235,7 +3242,7 @@ sub next_point {
 # SOURCE
 #
 sub preview_page {
-    my ($widget, $MODE) = @_;
+    my ($widget) = @_;
     debug("preview page");
     reset_timer($globals->{'timer'});
 
@@ -3266,10 +3273,11 @@ sub preview_page {
     my $songtext = get_buffer_text($widgets->{'textAPageB'}{$current_hash});
     $songtext =~ s/\n/#BREAK#/g;
     $songtext =~ s/:/#SEMI#/g;
-    if ($MODE eq "SERVER") {
-        update_display("preview", $titledata, $songtext);
-    }
-    preview_display("preview", $titledata, $songtext);
+    #if ($MODE eq "SERVER") {
+    #    update_display("preview", $titledata, $songtext);
+    #} else {
+        preview_display("preview", $titledata, $songtext, "EDIT");
+    #}
 }
 
 #***
@@ -3310,7 +3318,7 @@ sub preview_pageid {
         $pagetitle =~ s/\n/#BREAK#/g;
         $pagetitle =~ s/:/#SEMI#/g;
 
-        preview_display("preview", $pagetitle, $songtext);
+        preview_display("preview", $pagetitle, $songtext, "MINI");
     }
 }
 
@@ -3772,10 +3780,10 @@ sub preview_playlist_item {
 
         # set the preview window bg to current bg (is this still needed?)
         my $current = $widgets->{'buttonCurr'}->{user_data};
-        preview_display("backdrop", $current, undef);
+        preview_display("backdrop", $current, undef, "MINI");
 
         # display item
-        preview_display("display", $model->get($iter, 2), undef);
+        preview_display("display", $model->get($iter, 2), undef, "MINI");
     }
 }
 
@@ -3795,8 +3803,18 @@ sub preview_playlist_item {
 # SOURCE
 #
 sub preview_display {
-    my ($command, $primary, $secondary) = @_;
-    if ($config->{'DynamicPreview'}) {
+    my ($command, $primary, $secondary, $mode) = @_;
+    debug("Preview display $mode");
+    if ($config->{'DynamicPreview'} && $mode ne "MINI") {
+        return;
+    }
+    my $port = 0;
+    if ($mode eq "MINI") {
+        $port = $globals->{'preview_port'};
+    } elsif ($mode eq "EDIT") {
+        $port = $globals->{'editview_port'};
+    }
+    if ($port > 0) {
         if (!defined($secondary)) {
             $secondary = "";
         }
@@ -3812,7 +3830,7 @@ sub preview_display {
             my $server = IO::Socket::INET->new(
                 Proto    => "tcp",
                 PeerAddr => "localhost",
-                PeerPort => $globals->{'preview_port'}
+                PeerPort => $port
             )
           )
         {
@@ -4362,7 +4380,7 @@ sub backdrop_clicked {
                 $widgets->{'buttonCurr'}->{user_data} = $prevFile;
             }
             update_display("backdrop", $prevFile, "");
-            preview_display("backdrop", $prevFile, "");
+            preview_display("backdrop", $prevFile, "", "MINI");
         }
     }
 }
@@ -4409,7 +4427,7 @@ sub backdrop_preview_clicked {
             $widgets->{'buttonCurr'}->{user_data} = $prevFile;
         }
         update_display("backdrop", $prevFile, "");
-        preview_display("backdrop", $prevFile, "");
+        preview_display("backdrop", $prevFile, "", "MINI");
     }
 }
 
@@ -6281,9 +6299,9 @@ sub save_preferences {
     init_preview();
     init_miniview();
 
-    preview_display("reconfig", "", "");
+    preview_display("reconfig", "", "", "MINI");
     update_display("reconfig", "", "");
-    preview_display("display", "current", "");
+    preview_display("display", "current", "", "MINI");
     update_display("display", "current", "");
 }
 
@@ -6367,7 +6385,7 @@ sub write_config {
     }
     if (!$dbonly) {
         close CONFIG;
-        preview_display("reconfig", "", "");
+        preview_display("reconfig", "", "", "MINI");
         update_display("reconfig", "", "");
         update_display("status", "", "");
     }
@@ -13291,9 +13309,9 @@ sub firstrun_apply {
         init_preview();
         init_miniview();
 
-        preview_display("reconfig", "", "");
+        preview_display("reconfig", "", "", "MINI");
         update_display("reconfig", "", "");
-        preview_display("display", "current", "");
+        preview_display("display", "current", "", "MINI");
         update_display("display", "current", "");
     }
 }
@@ -13412,3 +13430,45 @@ sub clean_database {
 }
 
 #***
+sub start_editview {
+    if (defined ($widgets->{'EditPreview'})) {
+        stop_editview();
+    }
+    $widgets->{'EditPreview'} = Gtk2::Socket->new;
+    $widgets->{'EditPreview'}->show;
+    $widgets->{'EditPreview'}->set_size_request(-1, -1);
+    $widgets->{'add'}->get_widget('frameEditPreview')->show;
+    $widgets->{'add'}->get_widget('frameEditPreview')->add($widgets->{'EditPreview'});
+    my $command = sprintf( "%s -r %s -m %d -p %d",
+                    $globals->{'lyricue_server'} , $globals->{'mysqlhost'}, $widgets->{'EditPreview'}->get_id, $globals->{'editview_port'});
+    debug($command);
+    $globals->{'editview_pid'} = fork;
+    if ($globals->{'editview_pid'} < 0) {
+        display_fatal(
+          "Unable to start the lyricue server as a preview window",
+          $! . "\nSQL: " . $query);
+    }
+    if ($globals->{'editview_pid'} == 0) {
+        exec($command);
+    }
+    $widgets->{'EditPreview'}->signal_connect(
+        'plug-removed' => sub {
+            debug("Lyricue edit preview died..restarting\n");
+            $widgets->{'main'}->get_widget('frameEditPreview')
+               ->remove($widgets->{'preview'});
+            start_editview();
+            1;
+        }
+    );
+}
+
+sub stop_editview {
+    if (defined ($globals->{'editview_pid'})) {
+        kill 9, $globals->{'editview_pid'};
+    }
+    if (defined ($widgets->{'EditPreview'})) {
+        $widgets->{'EditPreview'}->destroy;
+        undef $widgets->{'EditPreview'};
+    }
+}
+
