@@ -73,9 +73,9 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(etcdir)" "$(DESTDIR)$(sharedir)" \
-	"$(DESTDIR)$(sqldir)"
-DATA = $(etc_DATA) $(share_DATA) $(sql_DATA)
+am__installdirs = "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(etcdir)" \
+	"$(DESTDIR)$(sharedir)" "$(DESTDIR)$(sqldir)"
+DATA = $(desktop_DATA) $(etc_DATA) $(share_DATA) $(sql_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -249,6 +249,10 @@ etc_DATA = \
 	default.conf \
 	access.conf
 
+desktop_DATA = \
+    lyricue.desktop \
+    lyricue_display.desktop
+
 sharedir = \
 	$(pkgdatadir)
 
@@ -258,10 +262,14 @@ sqldir = \
 etcdir = \
     $(sysconfdir)/lyricue
 
+desktopdir = \
+    $(datadir)/applications
+
 EXTRA_DIST = \
 	$(share_DATA) \
 	$(sql_DATA) \
-	$(etc_DATA)
+	$(etc_DATA) \
+    $(desktop_DATA)
 
 all: all-am
 
@@ -302,6 +310,26 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-desktopDATA: $(desktop_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(desktopdir)" || $(MKDIR_P) "$(DESTDIR)$(desktopdir)"
+	@list='$(desktop_DATA)'; test -n "$(desktopdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(desktopdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(desktopdir)" || exit $$?; \
+	done
+
+uninstall-desktopDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(desktop_DATA)'; test -n "$(desktopdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(desktopdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(desktopdir)" && rm -f $$files
 install-etcDATA: $(etc_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(etcdir)" || $(MKDIR_P) "$(DESTDIR)$(etcdir)"
@@ -403,7 +431,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(etcdir)" "$(DESTDIR)$(sharedir)" "$(DESTDIR)$(sqldir)"; do \
+	for dir in "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(etcdir)" "$(DESTDIR)$(sharedir)" "$(DESTDIR)$(sqldir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -451,7 +479,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-etcDATA install-shareDATA install-sqlDATA
+install-data-am: install-desktopDATA install-etcDATA install-shareDATA \
+	install-sqlDATA
 
 install-dvi: install-dvi-am
 
@@ -495,22 +524,24 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-etcDATA uninstall-shareDATA uninstall-sqlDATA
+uninstall-am: uninstall-desktopDATA uninstall-etcDATA \
+	uninstall-shareDATA uninstall-sqlDATA
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-etcDATA install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-shareDATA install-sqlDATA install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	install-data install-data-am install-desktopDATA install-dvi \
+	install-dvi-am install-etcDATA install-exec install-exec-am \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-shareDATA install-sqlDATA install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-etcDATA uninstall-shareDATA uninstall-sqlDATA
+	uninstall-desktopDATA uninstall-etcDATA uninstall-shareDATA \
+	uninstall-sqlDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

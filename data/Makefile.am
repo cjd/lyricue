@@ -28,6 +28,10 @@ etc_DATA = \
 	default.conf \
 	access.conf
 
+desktop_DATA = \
+    lyricue.desktop \
+    lyricue_display.desktop
+
 sharedir = \
 	$(pkgdatadir)
 
@@ -37,10 +41,14 @@ sqldir = \
 etcdir = \
     $(sysconfdir)/lyricue
 
+desktopdir = \
+    $(datadir)/applications
+
 EXTRA_DIST = \
 	$(share_DATA) \
 	$(sql_DATA) \
-	$(etc_DATA)
+	$(etc_DATA) \
+    $(desktop_DATA)
 
 ## File created by the gnome-build tools
 
