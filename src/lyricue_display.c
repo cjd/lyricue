@@ -518,7 +518,7 @@ do_display (const char *options)
             gchar *lyrics = "";
             gchar *header = "";
             gchar *footer = "";
-            gboolean wrap = FALSE;
+            gboolean wrap = TRUE;
             int transition = atoi (row[2]);
 
             gboolean bg_changed = FALSE;
