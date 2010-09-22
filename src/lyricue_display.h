@@ -37,6 +37,7 @@
 #include <glib/gprintf.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
+#include <string.h>
 #include "i18n.h"
 #include "database.h"
 #include "display.h"

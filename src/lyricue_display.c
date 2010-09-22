@@ -419,7 +419,9 @@ do_display (const char *options)
                     result = mysql_store_result (lyricDb);
                     row = mysql_fetch_row (result);
                     mysql_free_result (result);
-                    current_item = atoi (row[0]);
+                    if (row[0] != NULL) {
+                        current_item = atoi (row[0]);
+                    }
                 } else {
                     // Jump to next song
                     do_display ("next_song:0");
@@ -444,7 +446,9 @@ do_display (const char *options)
                     result = mysql_store_result (lyricDb);
                     row = mysql_fetch_row (result);
                     mysql_free_result (result);
-                    current_item = atoi (row[0]);
+                    if (row[0] != NULL) {
+                        current_item = atoi (row[0]);
+                    }
                 }
             }
 

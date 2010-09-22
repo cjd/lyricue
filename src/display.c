@@ -25,6 +25,7 @@ extern gchar *default_bg;
 extern gchar *current_bg;
 extern MYSQL *mediaDb;
 extern unsigned long windowid;
+extern int server_port;
 
 
 const ClutterColor black_colour = { 0x00, 0x00, 0x00, 0xff };
@@ -87,7 +88,6 @@ create_main_window (int argc, char *argv[])
 {
     clutter_gst_init (&argc, &argv);
     gtk_init (&argc, &argv);
-
     stage_width = atof ((gchar *) g_hash_table_lookup (config, "Width"));
     stage_height = atof ((gchar *) g_hash_table_lookup (config, "Height"));
     if (geometry == NULL) {
@@ -106,6 +106,7 @@ create_main_window (int argc, char *argv[])
     } else {
         window = gtk_plug_new(windowid);
     }
+    g_snprintf(argv[0],strlen(argv[0]),"lyricue_dis:%d",server_port);
     /* Create the clutter widget: */
     clutter_widget = gtk_clutter_embed_new ();
     gtk_container_add(GTK_CONTAINER(window), clutter_widget);
@@ -495,7 +496,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
             //gboolean ret = gst_element_seek_simple(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), gst_format_get_by_nick("title"), GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, 1);
-        gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 30, 0,0);
+        gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 10 * GST_SECOND, 0,0);
 
         } else {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
