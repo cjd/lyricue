@@ -359,7 +359,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
         return;
     }
     g_free(current_bg);
-    current_bg = g_strdup(id);
+    current_bg = parse_special(id);
     destroy_actor(background_old);
     background_old = background;
     background = NULL;
@@ -498,6 +498,25 @@ change_backdrop (const gchar * id, gboolean video_loop)
             //gboolean ret = gst_element_seek_simple(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), gst_format_get_by_nick("title"), GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, 1);
         gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 10 * GST_SECOND, 0,0);
 
+        } else {
+            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+            clutter_media_set_progress(CLUTTER_MEDIA (background), 0.05);
+            clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
+        }
+    } else if (g_strcmp0 (line[0], "uri") == 0) {
+        l_debug("playing direct uri %s", line[1]);
+        background = clutter_gst_video_texture_new ();
+        clutter_media_set_uri(CLUTTER_MEDIA (background), line[1]);
+        clutter_actor_set_anchor_point_from_gravity (background,
+                                                     CLUTTER_GRAVITY_CENTER);
+        clutter_actor_set_position (background, stage_width / 2,
+                                    stage_height / 2);
+        clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
+                                               (background), TRUE);
+        clutter_actor_set_size (background, stage_width, stage_height);
+        if (windowid == 0) {
+            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+            bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
         } else {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             clutter_media_set_progress(CLUTTER_MEDIA (background), 0.05);

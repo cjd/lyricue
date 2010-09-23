@@ -297,7 +297,7 @@ do_backdrop (const char *options)
     l_debug ("do_backdrop: %s", options);
     gchar **line = g_strsplit (options, ":", 2);
     temp_bg = NULL;
-    default_bg = g_strdup(line[0]);
+    default_bg = parse_special(line[0]);
     change_backdrop (default_bg, TRUE);
     g_strfreev (line);
 }

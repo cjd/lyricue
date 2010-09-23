@@ -12141,7 +12141,7 @@ sub pause_media {
 #
 sub media_v4l {
     debug("Starting Live Video");
-    update_display("backdrop", "dir", "v4l2:///dev/video2");
+    update_display("backdrop", "uri;v4l2#SEMI#//");
 }
 
 #***
