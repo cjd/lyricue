@@ -411,7 +411,7 @@ do_display (const char *options)
                 current_item = atoi (row[0]);
             } else {
                 // End of song reached
-                if (g_strcmp0 (line[1], "loop")) {
+                if (g_strcmp0 (line[1], "loop") == 0) {
                     // Looping
                     do_query (lyricDb,
                               "SELECT MIN(playorder) FROM playlist WHERE playlist=%d",
