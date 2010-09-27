@@ -3777,11 +3777,6 @@ sub preview_playlist_item {
       $widgets->{'main'}->get_widget('treePlaylist')->get_selection;
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
-
-        # set the preview window bg to current bg (is this still needed?)
-        my $current = $widgets->{'buttonCurr'}->{user_data};
-        preview_display("backdrop", $current, undef, "MINI");
-
         # display item
         preview_display("display", $model->get($iter, 2), undef, "MINI");
     }
