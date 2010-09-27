@@ -353,6 +353,9 @@ create_outlined_text (ClutterActor *group, const gchar * text, const gchar * fon
 void
 change_backdrop (const gchar * id, gboolean video_loop)
 {
+    if (strlen(id) == 0) {
+        return;
+    }
     l_debug ("change backdrop to %s", id);
     if (g_strcmp0 (id, current_bg) == 0) {
         l_debug ("Backdrop ID same - not changing");
