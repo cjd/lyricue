@@ -85,6 +85,8 @@ main (int argc, char *argv[])
     GSocketService *service = g_socket_service_new ();
     GInetAddress *address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
     l_debug ("Listening on %d", server_port);
+    g_snprintf(argv[0],29,"Lyricue Display on port %04d",server_port);
+
     if (!g_socket_listener_add_inet_port
         (G_SOCKET_LISTENER (service), server_port, NULL, NULL)) {
         l_debug ("Unable to listen on port %d", server_port);

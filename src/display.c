@@ -106,7 +106,6 @@ create_main_window (int argc, char *argv[])
     } else {
         window = gtk_plug_new(windowid);
     }
-    g_snprintf(argv[0],strlen(argv[0]),"lyricue_dis:%d",server_port);
     /* Create the clutter widget: */
     clutter_widget = gtk_clutter_embed_new ();
     gtk_container_add(GTK_CONTAINER(window), clutter_widget);
