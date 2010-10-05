@@ -21,6 +21,7 @@
 #include <utils.h>
 
 extern int server_port;
+extern gboolean debugging;
 GRegex * re_break = NULL;
 GRegex * re_semi = NULL;
 FILE * logfile = NULL;
@@ -39,21 +40,27 @@ l_debug (const gchar * fmt, ...)
         gchar *ologpath = g_build_filename(g_get_user_data_dir(),"lyricue",ologname,NULL);
         g_rename(logpath,ologpath);
         logfile = g_fopen(logpath, "w");
-        g_printf("Logging to %s\n", logpath);
+        if (debugging) {
+            g_printf("Logging to %s\n", logpath);
+        }
     }
 
     t = time (NULL);
     if (strftime (timestr, sizeof (timestr), "%H:%M:%S %d/%m", localtime (&t))
         != 0) {
-        g_fprintf (stderr, "(%s) ", timestr);
+        if (debugging) {
+            g_fprintf (stderr, "(%s) ", timestr);
+        }
         g_fprintf (logfile, "(%s) ", timestr);
     }
 
-    // stderr
-    va_start (argp, fmt);
-    g_vfprintf (stderr, fmt, argp);
-    g_fprintf (stderr, "\n");
-    va_end(argp);
+    if (debugging) {
+        // stderr
+        va_start (argp, fmt);
+        g_vfprintf (stderr, fmt, argp);
+        g_fprintf (stderr, "\n");
+        va_end(argp);
+    }
 
     // logfile
     va_start (argp, fmt);

@@ -43,6 +43,7 @@ GHashTable *config = NULL;
 
 // Command line options
 gboolean windowed = FALSE;
+gboolean debugging = FALSE;
 int server_port = SERVER_PORT;
 gchar *dbhostname = NULL;
 gchar *geometry = NULL;
@@ -54,6 +55,7 @@ static GOptionEntry entries[] = {
     {"geometry", 'g', 0, G_OPTION_ARG_STRING, &geometry, "Window Geometry", NULL},
     {"port", 'p', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on", NULL},
     {"miniview", 'm', 0, G_OPTION_ARG_INT, &windowid, "Embed in windowid", NULL},
+    {"debug", 'd', 0, G_OPTION_ARG_NONE, &debugging, "Enable debug output", NULL},
     {NULL}
 };
 
@@ -84,8 +86,8 @@ main (int argc, char *argv[])
     // Setup network
     GSocketService *service = g_socket_service_new ();
     GInetAddress *address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
-    l_debug ("Listening on %d", server_port);
     g_snprintf(argv[0],29,"Lyricue Display on port %04d",server_port);
+    l_debug("Process Name:%s",argv[0]);
 
     if (!g_socket_listener_add_inet_port
         (G_SOCKET_LISTENER (service), server_port, NULL, NULL)) {
