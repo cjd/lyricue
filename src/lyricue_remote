@@ -36,7 +36,7 @@ if ($ARGV[0]) {
             print "\t-v:      Prints Lyricue version information & exits\n";
             print "\t-s:      Specify the host on which the lyric server is located\n";
             print "\tcommand: Can be any of next_page, prev_page, next_song, prev_song,\n";
-            print "\t         next_point, blank, osd or custom\n";
+            print "\t         next_point, blank, osd, close or custom\n";
             print "\t         If custom then the next 3 arguments will be sent without parsing\n";
             print "\t         to the server\n";
             exit;
@@ -55,6 +55,9 @@ if ($ARGV[0]) {
             update_display("blank", "", "");
         } elsif ($ARGV[$_] eq "next_point") {
             update_display("next_point", "", "");
+        } elsif ($ARGV[$_] eq "close") {
+            system("pkill -f \"Lyricue.*2346\"");
+            system("pkill -9 -f \"Lyricue.*2346\"");
         } elsif ($ARGV[$_] eq "osd") {
             my $osd = "";
             if ($ARGV[$_+1]) {

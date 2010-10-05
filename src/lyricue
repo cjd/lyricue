@@ -5970,6 +5970,8 @@ sub load_config {
     debug("Loading Preferences");
     my $bibleCount = 0;
     my $appCount   = 0;
+    $conf->{'App'}[$appCount++] = "Load Lyricue Display;lyricue_display";
+    $conf->{'App'}[$appCount++] = "Close Lyricue Display;lyricue_remote close";
     open(CONFIG, $globals->{'configfile'})
       || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
         $! . "\nSQL: " . $query);
@@ -5997,6 +5999,7 @@ sub load_config {
         }
     }
     close CONFIG;
+
     $conf->{'BibleCount'} = $bibleCount;
     $conf->{'AppCount'}   = $appCount;
     $conf->{'Bibles'}     = get_bibles();
