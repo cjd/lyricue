@@ -8449,22 +8449,23 @@ sub load_access {
         close ACCESS;
     }
     if ($access eq "blank") {
-        my $accessxml = Gtk2::GladeXML->new($globals->{'gladefile'},
-            'dialogConfirm', 'lyricue');
-        $accessxml->signal_autoconnect_from_package('');
-### ERROR - change dialog title ##
-        my $labelText .= fromutf(
-            gettext(
-"This user has no access entry.\nBy default they will have full access.\nTo fix please edit /etc/lyricue/access.conf and add an entry for this user.\nClick OK to continue anyway or Cancel to Exit"
-            )
-        );
-        $accessxml->get_widget('labelDelete')->set_text($labelText);
-        my $confirm = $accessxml->get_widget('dialogConfirm')->run();
-        if ($confirm ne "ok") {
-            close_main();
-        }
         $access = "spade";
-        close_dialog($accessxml->get_widget('dialogConfirm'));
+        #my $accessxml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        #    'dialogConfirm', 'lyricue');
+        #$accessxml->signal_autoconnect_from_package('');
+        #my $labelText .= fromutf(
+        #    gettext(
+# "This user has no access entry.\nBy default they will have full access.\nTo fix please edit /etc/lyricue/access.conf and add an entry for this user.\nClick OK to continue anyway or Cancel to Exit"
+        #    )
+        #);
+        #$accessxml->get_widget('labelDelete')->set_text($labelText);
+        #$accessxml->get_widget('dialogConfirm')->set_title(fromutf(gettext("User access level")));
+
+        #my $confirm = $accessxml->get_widget('dialogConfirm')->run();
+        #if ($confirm ne "ok") {
+        #    close_main();
+        #}
+        #close_dialog($accessxml->get_widget('dialogConfirm'));
     }
     debug("Access set at " . $access);
 
