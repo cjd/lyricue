@@ -4,27 +4,30 @@
 bzr log --gnu > Changelog
 
 
-if [ "$1" = "release" ] 
-then echo Making release
-CHANGELOG="debian/changelog-release"
-else CHANGELOG="debian/changelog-dev"
-fi
-
 VERSION=`head -1 ${CHANGELOG} |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
 LC_ALL=C;export LC_ALL
 
 CONV="s/##VERSION##/${VERSION}/g"
-for F in src/lyricue
+for F in src/lyricue data/lyricue.glade
 do sed --in-place -e $CONV $F
 done
 
-DIST=maverick
-echo Building for ${DIST}
-bzr-buildpackage -S
+#DIST=maverick
+#echo Building for ${DIST}
+#bzr-buildpackage -S
 
-for DIST in karmic lucid
+if [ "$1" = "release" ] 
+then echo Making release
+fi
+
+for DIST in maverick karmic lucid
 do echo Building for ${DIST}
-cat ${CHANGELOG} | head -1 | sed -e "s/maverick/$DIST/g" -e "s/)/${DIST})/g"  > debian/changelog-new
+
+if [ "$1" = "release" ] 
+then cat ${CHANGELOG} | head -1 | sed -e "s/maverick/$DIST/g" -e "s/)/${DIST})/g" sed -e "s/lyricue3/lyricue/g"  > debian/changelog-new
+else cat ${CHANGELOG} | head -1 | sed -e "s/maverick/$DIST/g" -e "s/)/${DIST})/g"  > debian/changelog-new
+fi
+
 echo "" >> debian/changelog-new
 echo "  * Build for ${DIST}" >> debian/changelog-new
 echo "" >> debian/changelog-new
