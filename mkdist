@@ -1,19 +1,14 @@
 #!/bin/bash
 
 #Update changelog
-#bzr2cl ???
+bzr log --gnu > Changelog
 
 
-#if [ "$1" = "release" ] 
-#then echo Making release
-CHANGELOG="debian/changelog"
-#cat debian/rules-base | sed -e 's/lyricue-cvs/lyricue/g' > debian/rules
-#chmod +x debian/rules
-#cat debian/menu-base | sed -e 's/lyricue-cvs/lyricue/g' > debian/menu
-#else CHANGELOG="debian/changelog-cvs"
-#cp debian/rules-base debian/rules
-#cp debian/menu-base debian/menu
-#fi
+if [ "$1" = "release" ] 
+then echo Making release
+CHANGELOG="debian/changelog-release"
+else CHANGELOG="debian/changelog-dev"
+fi
 
 VERSION=`head -1 ${CHANGELOG} |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
 LC_ALL=C;export LC_ALL
