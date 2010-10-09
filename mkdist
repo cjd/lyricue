@@ -40,6 +40,11 @@ bzr-buildpackage -S
 bzr revert debian/changelog
 done
 
+# Put things back to how they were
+if [ "$1" = "release" ] 
+then bzr revert debian/control
+fi
+
 bzr revert src/lyricue
 rm src/lyricue.~*~
 rm debian/changelog.~*~
