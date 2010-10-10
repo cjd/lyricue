@@ -4412,8 +4412,8 @@ http://www.lyricue.org/bibles</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-directory</property>
     <property name="type_hint">dialog</property>
-    <property name="do_overwrite_confirmation">True</property>
     <property name="action">select-folder</property>
+    <property name="do_overwrite_confirmation">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -5400,7 +5400,6 @@ Duration</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Select File</property>
     <property name="type_hint">normal</property>
-    <property name="has_separator">False</property>
     <property name="select_multiple">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox17">
@@ -5464,6 +5463,9 @@ Duration</property>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <signal name="close" handler="firstrun_close"/>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <placeholder/>
     </child>
@@ -7206,7 +7208,7 @@ If you need to make any changes, or for more options, select Preferences from th
                 <child>
                   <widget class="GtkTable" id="tablePrefServer">
                     <property name="visible">True</property>
-                    <property name="n_rows">13</property>
+                    <property name="n_rows">12</property>
                     <property name="n_columns">2</property>
                     <child>
                       <widget class="GtkLabel" id="labelPrefWidth">
@@ -7380,63 +7382,6 @@ Bottom</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkLabel" id="label111">
-                        <property name="visible">True</property>
-                        <property name="xalign">0</property>
-                        <property name="label" translatable="yes">Server Type</property>
-                      </widget>
-                      <packing>
-                        <property name="top_attach">11</property>
-                        <property name="bottom_attach">12</property>
-                        <property name="x_options">GTK_FILL</property>
-                        <property name="y_options"></property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkVBox" id="vbox11">
-                        <property name="visible">True</property>
-                        <child>
-                          <widget class="GtkRadioButton" id="radioPrefServerClutter">
-                            <property name="label" translatable="yes">OpenGL</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="use_underline">True</property>
-                            <property name="draw_indicator">True</property>
-                          </widget>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <widget class="GtkRadioButton" id="radioPrefServerFast">
-                            <property name="label" translatable="yes">Simple - depreciated</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="use_underline">True</property>
-                            <property name="draw_indicator">True</property>
-                            <property name="group">radioPrefServerClutter</property>
-                          </widget>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">2</property>
-                          </packing>
-                        </child>
-                      </widget>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="right_attach">2</property>
-                        <property name="top_attach">11</property>
-                        <property name="bottom_attach">12</property>
-                        <property name="x_options">GTK_FILL</property>
-                        <property name="y_options">GTK_FILL</property>
-                      </packing>
-                    </child>
-                    <child>
                       <widget class="GtkLabel" id="label121">
                         <property name="visible">True</property>
                         <property name="xalign">0</property>
@@ -7525,8 +7470,8 @@ Right</property>
                         </child>
                       </widget>
                       <packing>
-                        <property name="top_attach">12</property>
-                        <property name="bottom_attach">13</property>
+                        <property name="top_attach">11</property>
+                        <property name="bottom_attach">12</property>
                         <property name="x_options"></property>
                         <property name="y_options"></property>
                       </packing>
@@ -8828,7 +8773,6 @@ Fade</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Select Category</property>
     <property name="type_hint">normal</property>
-    <property name="has_separator">False</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox15">
         <property name="visible">True</property>
@@ -9104,7 +9048,6 @@ Fade</property>
     <property name="modal">True</property>
     <property name="window_position">center</property>
     <property name="type_hint">normal</property>
-    <property name="has_separator">False</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox23">
         <property name="visible">True</property>

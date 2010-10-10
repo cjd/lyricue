@@ -4620,23 +4620,6 @@ sub create_dialog_prefs {
     }
     $widgets->{'prefs'}->get_widget('comboPrefDefTrans')->set_active(0);
 
-    if (defined($config->{'ServerType'})) {
-        if ($config->{'ServerType'} eq "simple") {
-            $widgets->{'prefs'}->get_widget('radioPrefServerFast')
-              ->set_active(TRUE);
-        } else {
-            $widgets->{'prefs'}->get_widget('radioPrefServerClutter')
-              ->set_active(TRUE);
-        }
-    } else {
-        if ($config->{'FastServer'}) {
-            $widgets->{'prefs'}->get_widget('radioPrefServerFast')
-              ->set_active(TRUE);
-        } else {
-            $widgets->{'prefs'}->get_widget('radioPrefServerClutter')
-              ->set_active(TRUE);
-        }
-    }
     $widgets->{'prefs'}->get_widget('entryPrefHeader')
       ->set_text($config->{'Header'});
     $widgets->{'prefs'}->get_widget('entryPrefMain')
@@ -6245,16 +6228,6 @@ sub save_preferences {
     }
     $config->{'DefaultTransition'} = $set;
 
-    if ($widgets->{'prefs'}->get_widget('radioPrefServerClutter')->get_active())
-    {
-        $config->{'ServerType'} = "clutter";
-    } elsif (
-        $widgets->{'prefs'}->get_widget('radioPrefServerFast')->get_active())
-    {
-        $config->{'ServerType'} = "simple";
-    } else {
-        $config->{'ServerType'} = "clutter";
-    }
     $config->{'BGImage'} =
       $widgets->{'prefs'}->get_widget('imagePrefBG')->{user_data};
     $config->{'SpecialSong'} =
