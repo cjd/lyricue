@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Update changelog
-bzr log --gnu > ChangeLog
+#bzr log --gnu > ChangeLog
 
 CHANGELOG=debian/changelog
 VERSION=`head -1 ${CHANGELOG} |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
