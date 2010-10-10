@@ -18,17 +18,18 @@ done
 
 if [ "$1" = "release" ] 
 then echo Making release
-sed --in-place -e "s/lyricue3/lyricue/g" -e "s/lyricue,/lyricue3,/g" debian/control 
+sed --in-place -e "s/lyricue3/lyricue/g" -e "s/lyricue,/lyricue3,/g" debian/control
 fi
 
 for DIST in maverick karmic lucid
 do echo Building for ${DIST}
+if [ "$1" = "release" ]
+then echo Making release
+sed --in-place -e "s/lyricue3/lyricue/g" -e "s/lyricue,/lyricue3,/g" ${CHANGELOG}
+fi 
 
-if [ "$1" = "release" ] 
-then cat ${CHANGELOG} | head -1 | sed -e "s/maverick/$DIST/g" -e "s/)/${DIST})/g" -e "s/lyricue3/lyricue/g"  > debian/changelog-new
-else cat ${CHANGELOG} | head -1 | sed -e "s/maverick/$DIST/g" -e "s/)/${DIST})/g"  > debian/changelog-new
-fi
-
+if [ "$DIST" != "maverick" ]
+then cat ${CHANGELOG} | head -1 | sed -e "s/maverick/$DIST/g" -e "s/)/${DIST})/g"  > debian/changelog-new
 echo "" >> debian/changelog-new
 echo "  * Build for ${DIST}" >> debian/changelog-new
 echo "" >> debian/changelog-new
@@ -36,6 +37,7 @@ echo " -- Chris Debenham <chris@adebenham.com> " `date -R` >> debian/changelog-n
 echo "" >> debian/changelog-new
 cat $CHANGELOG >> debian/changelog-new
 mv debian/changelog-new debian/changelog
+fi
 bzr-buildpackage -S
 bzr revert debian/changelog
 done
@@ -49,4 +51,5 @@ bzr revert src/lyricue
 rm src/lyricue.~*~
 rm debian/changelog.~*~
 
-echo dput ppa:chris-debenham/lyricue ../*.changes
+echo dput ppa:chris-debenham/lyricue `ls -r ../*.changes`
+
