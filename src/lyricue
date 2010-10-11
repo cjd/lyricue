@@ -1341,7 +1341,7 @@ sub add_song {
     $widgets->{'add'}->signal_autoconnect_from_package('');
     start_editview();
     $widgets->{'add'}->get_widget('buttonEditPreviewServer')
-      ->signal_connect("clicked", "preview_page");
+      ->signal_connect("clicked", "preview_page","SERVER");
     $widgets->{'add'}->get_widget('notebookEditPages')->remove_page(0);
     %pageOrder = ();
     add_page();
@@ -2012,7 +2012,7 @@ sub edit_song {
                 $widgets->{'add'}->signal_autoconnect_from_package('');
                 start_editview();
                 $widgets->{'add'}->get_widget('buttonEditPreviewServer')
-                  ->signal_connect("clicked", "preview_page");
+                  ->signal_connect("clicked", "preview_page", "SERVER");
                 %pageOrder = ();
                 update_songinfo($songid);
             }
@@ -2021,7 +2021,7 @@ sub edit_song {
                 'windowEditSong', 'lyricue');
             $widgets->{'add'}->signal_autoconnect_from_package('');
             $widgets->{'add'}->get_widget('buttonEditPreviewServer')
-              ->signal_connect("clicked", "preview_page");
+              ->signal_connect("clicked", "preview_page", "SERVER");
             start_editview();
             %pageOrder = ();
             $widgets->{'add'}->get_widget('notebookEditPages')->remove_page(0);
@@ -3242,8 +3242,8 @@ sub next_point {
 # SOURCE
 #
 sub preview_page {
-    my ($widget) = @_;
-    debug("preview page");
+    my ($widget, $type) = @_;
+    debug("preview page $type");
     reset_timer($globals->{'timer'});
 
     my $current_page =
@@ -3268,16 +3268,17 @@ sub preview_page {
       . "#BREAK#"
       . $widgets->{'add'}->get_widget('entryEditArtist')->get_text()
       . "#BREAK#"
-      . $widgets->{'add'}->get_widget('entryEditCopyright')->get_text();
+      . $widgets->{'add'}->get_widget('entryEditCopyright')->get_text()
+      . "#BREAK#wrap";
     $titledata =~ s/:/#SEMI#/g;
     my $songtext = get_buffer_text($widgets->{'textAPageB'}{$current_hash});
     $songtext =~ s/\n/#BREAK#/g;
     $songtext =~ s/:/#SEMI#/g;
-    #if ($MODE eq "SERVER") {
-    #    update_display("preview", $titledata, $songtext);
-    #} else {
+    if ($type eq "SERVER") {
+        update_display("preview", $titledata, $songtext);
+    } else {
         preview_display("preview", $titledata, $songtext, "EDIT");
-    #}
+    }
 }
 
 #***
@@ -3800,7 +3801,7 @@ sub preview_playlist_item {
 sub preview_display {
     my ($command, $primary, $secondary, $mode) = @_;
     debug("Preview display $mode");
-    if ($config->{'DynamicPreview'} && $mode ne "MINI") {
+    if ($config->{'DynamicPreview'} && $mode eq "MINI") {
         return;
     }
     my $port = 0;
@@ -3809,6 +3810,7 @@ sub preview_display {
     } elsif ($mode eq "EDIT") {
         $port = $globals->{'editview_port'};
     }
+
     if ($port > 0) {
         if (!defined($secondary)) {
             $secondary = "";
