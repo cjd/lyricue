@@ -5978,7 +5978,12 @@ sub load_config {
         }
         $line[1] =~ s/^ *//g;
         if ($line[0] eq "App") {
-            $conf->{'App'}[$appCount++] = $line[1];
+            if (($line[1] =~ /^Load Lyricue Display;/)
+               || ($line[1] =~ /^Close Lyricue Display;/)) {
+                # Skip
+            } else {
+                $conf->{'App'}[$appCount++] = $line[1];
+            }
         } else {
             $conf->{$line[0]} = $line[1];
         }
