@@ -3801,7 +3801,7 @@ sub preview_playlist_item {
 sub preview_display {
     my ($command, $primary, $secondary, $mode) = @_;
     debug("Preview display $mode");
-    if ($config->{'DynamicPreview'} && $mode eq "MINI") {
+    if (!$config->{'DynamicPreview'} && $mode eq "MINI") {
         return;
     }
     my $port = 0;
