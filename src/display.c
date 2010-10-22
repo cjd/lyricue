@@ -536,6 +536,14 @@ change_backdrop (const gchar * id, gboolean video_loop)
     }
 
     // Set text colours
+    if ((g_strcmp0(maintext_fgcol,(gchar *) g_hash_table_lookup (config, "Colour")) != 0) || (g_strcmp0(maintext_bgcol, (gchar *) g_hash_table_lookup (config, "ShadowColour")) != 0)) {
+        maintext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
+        maintext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
+        headtext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
+        headtext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
+        foottext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
+        foottext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
+    }
     do_query(mediaDb,"SELECT textcolour, shadowcolour FROM media WHERE id=\"%s\" OR CONCAT(\"db;\", id)=\"%s\"", current_bg, current_bg);
     MYSQL_RES *result;
     MYSQL_ROW row;
@@ -543,21 +551,16 @@ change_backdrop (const gchar * id, gboolean video_loop)
     row = mysql_fetch_row (result);
     if (row != NULL) {
         if ((g_strcmp0(maintext_fgcol,row[0]) != 0) || (g_strcmp0(maintext_bgcol, row[1]) != 0)) {
-            maintext_fgcol = g_strdup(row[0]);
-            headtext_fgcol = g_strdup(row[0]);
-            foottext_fgcol = g_strdup(row[0]);
-            maintext_bgcol = g_strdup(row[1]);
-            headtext_bgcol = g_strdup(row[1]);
-            foottext_bgcol = g_strdup(row[1]);
-        }
-    } else {
-        if ((g_strcmp0(maintext_fgcol,(gchar *) g_hash_table_lookup (config, "Colour")) != 0) || (g_strcmp0(maintext_bgcol, (gchar *) g_hash_table_lookup (config, "ShadowColour")) != 0)) {
-            maintext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
-            maintext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
-            headtext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
-            headtext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
-            foottext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
-            foottext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
+            if (strlen(row[0]) > 0) {
+                maintext_fgcol = g_strdup(row[0]);
+                headtext_fgcol = g_strdup(row[0]);
+                foottext_fgcol = g_strdup(row[0]);
+            }
+            if (strlen(row[1]) > 0) {
+                maintext_bgcol = g_strdup(row[1]);
+                headtext_bgcol = g_strdup(row[1]);
+                foottext_bgcol = g_strdup(row[1]);
+            }
         }
     }
     
