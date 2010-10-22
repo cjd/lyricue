@@ -581,6 +581,18 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
 
     gboolean handled = FALSE;
     switch (event->type) {
+        case CLUTTER_BUTTON_RELEASE:
+            switch (clutter_event_get_button (event)) {
+                case 1:
+                    do_display ("next_page:");
+                case 2:
+                    do_display ("prev_song:");
+                case 3:
+                    do_display ("prev_page:");
+                default:
+                    break;
+            }
+            break;
         case CLUTTER_KEY_PRESS:
             switch (clutter_event_get_key_symbol (event)) {
                 case CLUTTER_Q:
