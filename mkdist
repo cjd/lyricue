@@ -48,7 +48,7 @@ then bzr revert debian/control
 echo Update archive
 VER=`echo $VERSION | sed -e 's/-[0-9]//g'`
 cp ../lyricue_${VER}.orig.tar.gz /var/www/local/lyricue.org/archive/lyricue_${VER}.tar.gz
-cd /var/www/local/lyricue.org/archive
+pushd /var/www/local/lyricue.org/archive
 echo "<html><body><h1>Lyricue source archive</h1><table>" > index.php
 
 echo "<tr><td>Size</td><td>Filename</td></tr>" >> index.php
@@ -70,6 +70,8 @@ do SIZE=`du -k $F | cut -f1`K
 echo "<tr><td>${SIZE}</td><td><a href='${F}'>${F}</a></td></tr>" >> index.php
 done
 fi
+
+popd
 
 bzr revert src/lyricue
 rm src/lyricue.~*~
