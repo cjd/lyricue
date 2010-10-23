@@ -410,7 +410,13 @@ change_backdrop (const gchar * id, gboolean video_loop)
                     g_free(dbimage_filename);
                     clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
                                                         (background), TRUE);
-                    clutter_actor_set_size (background, stage_width, stage_height);
+                    gint w,h;
+                    clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
+                    if ( (w/h) < (stage_width/stage_height) ) {
+                        clutter_actor_set_size (background, -1 , stage_height);
+                    } else {
+                        clutter_actor_set_size (background, stage_width, -1);
+                    }
                     clutter_actor_set_anchor_point_from_gravity (background,
                                                                 CLUTTER_GRAVITY_CENTER);
                     clutter_actor_set_position (background, stage_width / 2,
@@ -452,7 +458,13 @@ change_backdrop (const gchar * id, gboolean video_loop)
                                         stage_height / 2);
             clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
                                                    (background), TRUE);
-            clutter_actor_set_size (background, stage_width, stage_height);
+            gint w,h;
+            clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
+            if ( (w/h) < (stage_width/stage_height) ) {
+                clutter_actor_set_size (background, -1 , stage_height);
+            } else {
+                clutter_actor_set_size (background, stage_width, -1);
+            }
             if (windowid == 0) {
                 clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
                 g_signal_connect (background, "eos", G_CALLBACK(loop_video), &video_loop);
@@ -472,7 +484,13 @@ change_backdrop (const gchar * id, gboolean video_loop)
             background = clutter_texture_new_from_file (line[1], NULL);
             clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
                                                    (background), TRUE);
-            clutter_actor_set_size (background, stage_width, stage_height);
+            gint w,h;
+            clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
+            if ( (w/h) < (stage_width/stage_height) ) {
+                clutter_actor_set_size (background, -1 , stage_height);
+            } else {
+                clutter_actor_set_size (background, stage_width, -1);
+            }
             clutter_actor_set_anchor_point_from_gravity (background,
                                                          CLUTTER_GRAVITY_CENTER);
             clutter_actor_set_position (background, stage_width / 2,
@@ -493,7 +511,13 @@ change_backdrop (const gchar * id, gboolean video_loop)
                                     stage_height / 2);
         clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
                                                (background), TRUE);
-        clutter_actor_set_size (background, stage_width, stage_height);
+        gint w,h;
+        clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
+        if ( (w/h) < (stage_width/stage_height) ) {
+            clutter_actor_set_size (background, -1 , stage_height);
+        } else {
+            clutter_actor_set_size (background, stage_width, -1);
+        }
         if (windowid == 0) {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
@@ -515,7 +539,13 @@ change_backdrop (const gchar * id, gboolean video_loop)
                                     stage_height / 2);
         clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
                                                (background), TRUE);
-        clutter_actor_set_size (background, stage_width, stage_height);
+        gint w,h;
+        clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
+        if ( (w/h) < (stage_width/stage_height) ) {
+            clutter_actor_set_size (background, -1 , stage_height);
+        } else {
+            clutter_actor_set_size (background, stage_width, -1);
+        }
         if (windowid == 0) {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
