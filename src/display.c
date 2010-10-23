@@ -412,7 +412,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
                                                         (background), TRUE);
                     gint w,h;
                     clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
-                    if ( (w/h) < (stage_width/stage_height) ) {
+                    if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
                         clutter_actor_set_size (background, -1 , stage_height);
                     } else {
                         clutter_actor_set_size (background, stage_width, -1);
@@ -460,7 +460,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
                                                    (background), TRUE);
             gint w,h;
             clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
-            if ( (w/h) < (stage_width/stage_height) ) {
+            if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
                 clutter_actor_set_size (background, -1 , stage_height);
             } else {
                 clutter_actor_set_size (background, stage_width, -1);
@@ -486,7 +486,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
                                                    (background), TRUE);
             gint w,h;
             clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
-            if ( (w/h) < (stage_width/stage_height) ) {
+            if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
                 clutter_actor_set_size (background, -1 , stage_height);
             } else {
                 clutter_actor_set_size (background, stage_width, -1);
@@ -513,7 +513,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
                                                (background), TRUE);
         gint w,h;
         clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
-        if ( (w/h) < (stage_width/stage_height) ) {
+        if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
             clutter_actor_set_size (background, -1 , stage_height);
         } else {
             clutter_actor_set_size (background, stage_width, -1);
@@ -541,7 +541,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
                                                (background), TRUE);
         gint w,h;
         clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
-        if ( (w/h) < (stage_width/stage_height) ) {
+        if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
             clutter_actor_set_size (background, -1 , stage_height);
         } else {
             clutter_actor_set_size (background, stage_width, -1);
