@@ -585,10 +585,13 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
             switch (clutter_event_get_button (event)) {
                 case 1:
                     do_display ("next_page:");
+                    break;
                 case 2:
                     do_display ("prev_song:");
+                    break;
                 case 3:
                     do_display ("prev_page:");
+                    break;
                 default:
                     break;
             }
