@@ -6600,6 +6600,7 @@ sub create_sublist {
 sub new_sublist_from_xml {
     my ($widget, $sublistxml) = @_;
     new_sublist($sublistxml->get_widget('entryPromptE')->get_text());
+    close_dialog($sublistxml->get_widget('dialogPromptEntry'));
 }
 
 #***
