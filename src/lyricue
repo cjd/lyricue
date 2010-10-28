@@ -13452,3 +13452,18 @@ sub stop_editview {
     }
 }
 
+sub toggle_blur {
+    debug("Toggle Blur");
+    my ($widget) = @_;
+    if ($widget->get_active()) {
+        update_display("blur",1);
+    } else {
+        update_display("blur",0);
+    }
+}
+
+sub change_fade {
+    debug("Changing fade amount");
+    my ($widget) = @_;
+    update_display("fade",$widget->get_value());
+}

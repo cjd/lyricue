@@ -40,6 +40,10 @@ void create_outlined_text (ClutterActor *group,
 
 void change_backdrop (const gchar * id, gboolean loop);
 
+void fade_backdrop(gint amount);
+
+void blur_backdrop(gint amount);
+
 gboolean input_cb (ClutterStage *stage, 
                    ClutterEvent *event,
                    gpointer      user_data);
@@ -61,3 +65,4 @@ void do_transition(ClutterActor *new,
                    gfloat       final_x,
                    gfloat       final_y);
 
+static void set_shader_num (ClutterActor *actor, gint new_no);

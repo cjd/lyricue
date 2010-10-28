@@ -197,6 +197,10 @@ handle_command (GIOChannel * source, const char *command)
             do_osd (line[1]);
         } else if (g_strcmp0 (line[0], "media") == 0) {
             do_media (line[1]);
+        } else if (g_strcmp0 (line[0], "fade") == 0) {
+            do_fade (line[1]);
+        } else if (g_strcmp0 (line[0], "blur") == 0) {
+            do_blur (line[1]);
         }
     }
     g_strfreev (line);
@@ -223,6 +227,18 @@ do_media (const char *options)
         } else if (g_strcmp0 (options, "skip")) {
         }
     }
+}
+
+void
+do_fade (const char *options)
+{
+    fade_backdrop(atoi(options));
+}
+
+void
+do_blur (const char *options)
+{
+    blur_backdrop(atoi(options));
 }
 
 void

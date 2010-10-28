@@ -55,6 +55,7 @@ ClutterActor *background = NULL;
 ClutterActor *background_old = NULL;
 ClutterActor *osdtext = NULL;
 ClutterActor *osdtext_bg = NULL;
+ClutterShader *shader = NULL;
 
 gfloat stage_width = 0;
 gfloat stage_height = 0;
@@ -82,6 +83,46 @@ guint bg_is_video = 0;
 #define FADE       2
 #define SLIDE_TEXT 3
 #define ROTATE     4
+
+// Setup shaders
+typedef struct
+{
+  gchar *name;
+  gchar *source;
+} ShaderSource;
+
+static ShaderSource shaders[]=
+  {
+    {"box-blur",
+     "uniform sampler2D tex;"					\
+     "uniform float x_step, y_step;"				\
+
+     "vec4 get_rgba_rel(sampler2D tex, float dx, float dy)"
+     "{"
+     "  return texture2D (tex, gl_TexCoord[0].st "
+     "                         + vec2(dx, dy) * 2.0);"
+     "}"
+
+     "void main (){"						\
+     "  vec4 color = texture2D (tex, vec2(gl_TexCoord[0]));"
+     "  float count = 1.0;"
+     "  color += get_rgba_rel (tex, -x_step, -y_step); count++;"
+     "  color += get_rgba_rel (tex, -x_step,  0.0);    count++;"
+     "  color += get_rgba_rel (tex, -x_step,  y_step); count++;"
+     "  color += get_rgba_rel (tex,  0.0,    -y_step); count++;"
+     "  color += get_rgba_rel (tex,  0.0,     0.0);    count++;"
+     "  color += get_rgba_rel (tex,  0.0,     y_step); count++;"
+     "  color += get_rgba_rel (tex,  x_step, -y_step); count++;"
+     "  color += get_rgba_rel (tex,  x_step,  0.0);    count++;"
+     "  color += get_rgba_rel (tex,  x_step,  y_step); count++;"
+     "  color = color / count;"
+      "  gl_FragColor = color;"    \
+      "  gl_FragColor = gl_FragColor * gl_Color;" \
+      "}"
+    },
+    /* Terminating NULL sentinel */
+    {NULL, NULL}
+};
 
 int
 create_main_window (int argc, char *argv[])
@@ -154,6 +195,25 @@ create_main_window (int argc, char *argv[])
                       NULL);
 
     clutter_set_font_flags(CLUTTER_FONT_MIPMAPPING);
+  shader = clutter_shader_new ();
+
+    GError *error;
+
+  error = NULL;
+  gint shader_no = 0;
+
+  clutter_shader_set_fragment_source (shader, shaders[shader_no].source, -1);
+  clutter_shader_compile (shader, &error);
+  if (error)
+    {
+      g_print ("unable to load shaders[%d] named '%s': %s\n",
+               shader_no,
+               shaders[shader_no].name,
+               error->message);
+      g_error_free (error);
+
+      return EXIT_FAILURE;
+    }
     return TRUE;
 }
 
@@ -605,6 +665,24 @@ change_backdrop (const gchar * id, gboolean video_loop)
 
 }
 
+void
+fade_backdrop(gint amount)
+{
+    clutter_actor_set_opacity(background, amount);
+    clutter_actor_show(background);
+}
+
+void
+blur_backdrop(gint amount)
+{
+    if (amount == 0) {
+        clutter_actor_set_shader(background,NULL);
+    } else {
+        set_shader_num (background, 0);
+    }
+    clutter_actor_show(background);
+}
+
 gboolean
 input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
 {
@@ -890,3 +968,73 @@ do_transition(ClutterActor *new, ClutterActor *old, int transition, gfloat final
             break;
     }
 }
+
+static int
+next_p2 (gint a)
+{
+  int rval = 1;
+
+  while (rval < a)
+    rval <<= 1;
+
+  return rval;
+}
+
+static void
+set_shader_num (ClutterActor *actor, gint new_no)
+{
+    int  tex_width;
+    int  tex_height;
+    gint shader_no;
+
+    if (new_no >= 0 && shaders[new_no].name) {
+        ClutterShader *shader;
+        GError *error;
+        shader_no = new_no;
+      
+        l_debug ("setting shaders[%i] named '%s'\n",
+               shader_no,
+               shaders[shader_no].name);
+
+        shader = clutter_shader_new ();
+      
+        error = NULL;
+        g_object_set (G_OBJECT (shader),
+                    "fragment-source", shaders[shader_no].source,
+                    NULL);
+
+        /* try to bind the shader, provoking an error we catch if there is issues
+         * with the shader sources we've provided. At a later stage it should be
+         * possible to iterate through a set of alternate shader sources (glsl ->
+         * asm -> cg?) and the one that succesfully compiles is used.
+         */
+        clutter_shader_compile (shader, &error);
+        if (error) {
+            l_debug ("unable to set shaders[%i] named '%s': %s",
+                   shader_no, shaders[shader_no].name,
+                   error->message);
+            g_error_free (error);
+            clutter_actor_set_shader (actor, NULL);
+        } else {
+            clutter_actor_set_shader (actor, NULL);
+            clutter_actor_set_shader (actor, shader);
+
+	        if (CLUTTER_IS_TEXTURE (actor)) {
+                /* XXX - this assumes *a lot* about how things are done
+                 * internally on *some* hardware and driver
+                 */
+	            tex_width = clutter_actor_get_width (actor);
+	            tex_width = next_p2 (tex_width);
+
+	            tex_height = clutter_actor_get_height (actor);
+	            tex_height = next_p2 (tex_height);
+
+	            clutter_actor_set_shader_param_float (actor, "x_step",
+					            1.0f / tex_width);
+	            clutter_actor_set_shader_param_float (actor, "y_step",
+					            1.0f / tex_height);
+  	        }
+        }
+    }
+}
+

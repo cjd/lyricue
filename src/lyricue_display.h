@@ -56,6 +56,8 @@ gboolean network_read(GIOChannel *source,
 
 void handle_command (GIOChannel *source, const char *command);
 void do_media (const char* options);
+void do_fade (const char* options);
+void do_blur (const char* options);
 void do_preview (const char* options);
 GString * do_status ();
 void do_snapshot();
