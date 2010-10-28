@@ -473,9 +473,9 @@ change_backdrop (const gchar * id, gboolean video_loop)
                     gint w,h;
                     clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
                     if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
-                        clutter_actor_set_size (background, -1 , stage_height);
+                        clutter_actor_set_size (background, (w * (stage_height/h)) , stage_height);
                     } else {
-                        clutter_actor_set_size (background, stage_width, -1);
+                        clutter_actor_set_size (background, stage_width, (h * (stage_width/w)));
                     }
                     clutter_actor_set_anchor_point_from_gravity (background,
                                                                 CLUTTER_GRAVITY_CENTER);
@@ -521,9 +521,9 @@ change_backdrop (const gchar * id, gboolean video_loop)
             gint w,h;
             clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
             if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
-                clutter_actor_set_size (background, -1 , stage_height);
+                clutter_actor_set_size (background, (w * (stage_height/h)) , stage_height);
             } else {
-                clutter_actor_set_size (background, stage_width, -1);
+                clutter_actor_set_size (background, stage_width, (h * (stage_width/w)));
             }
             if (windowid == 0) {
                 clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
@@ -547,9 +547,9 @@ change_backdrop (const gchar * id, gboolean video_loop)
             gint w,h;
             clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
             if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
-                clutter_actor_set_size (background, -1 , stage_height);
+                clutter_actor_set_size (background, (w * (stage_height/h)) , stage_height);
             } else {
-                clutter_actor_set_size (background, stage_width, -1);
+                clutter_actor_set_size (background, stage_width, (h * (stage_width/w)));
             }
             clutter_actor_set_anchor_point_from_gravity (background,
                                                          CLUTTER_GRAVITY_CENTER);
@@ -574,9 +574,9 @@ change_backdrop (const gchar * id, gboolean video_loop)
         gint w,h;
         clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
         if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
-            clutter_actor_set_size (background, -1 , stage_height);
+            clutter_actor_set_size (background, (w * (stage_height/h)) , stage_height);
         } else {
-            clutter_actor_set_size (background, stage_width, -1);
+            clutter_actor_set_size (background, stage_width, (h * (stage_width/w)));
         }
         if (windowid == 0) {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
@@ -602,9 +602,9 @@ change_backdrop (const gchar * id, gboolean video_loop)
         gint w,h;
         clutter_texture_get_base_size(CLUTTER_TEXTURE(background), &w, &h);
         if ( ((gfloat)w/(gfloat)h) < (stage_width/stage_height) ) {
-            clutter_actor_set_size (background, -1 , stage_height);
+            clutter_actor_set_size (background, (w * (stage_height/h)) , stage_height);
         } else {
-            clutter_actor_set_size (background, stage_width, -1);
+            clutter_actor_set_size (background, stage_width, (h * (stage_width/w)));
         }
         if (windowid == 0) {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
