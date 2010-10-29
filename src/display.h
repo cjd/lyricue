@@ -65,4 +65,4 @@ void do_transition(ClutterActor *new,
                    gfloat       final_x,
                    gfloat       final_y);
 
-static void set_shader_num (ClutterActor *actor, gint new_no);
+void set_shader_num (ClutterActor *actor, gint new_no);

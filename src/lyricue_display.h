@@ -63,6 +63,7 @@ GString * do_status ();
 void do_snapshot();
 void do_reconfig();
 void do_backdrop(const char* options);
+void unblank();
 void do_blank(const char* options);
 void do_change_to_db(const char* options);
 void do_next_point(const char* options);
@@ -71,3 +72,8 @@ void do_get(const char* options);
 void do_display(const char* options);
 void do_osd(const char* options);
 gboolean update_tracker();
+
+#define BLANK_NONE 0
+#define BLANK_TEXT 1
+#define BLANK_BG 2
+

@@ -31,7 +31,7 @@ extern gfloat stage_height;
 extern gint bg_is_video;
 extern ClutterActor *background;
 
-gboolean blanked_state = FALSE;
+gint blanked_state = BLANK_NONE;
 gchar *default_bg = NULL;
 gchar *current_bg = NULL;
 gchar *temp_bg = NULL;
@@ -246,12 +246,7 @@ do_preview (const char *options)
 {
     gchar **line = g_strsplit (options, ":", 2);
     gboolean wrap = TRUE;
-    if (blanked_state && temp_bg) {
-        change_backdrop (temp_bg, TRUE);
-        blanked_state = FALSE;
-        temp_bg = NULL;
-    }
-    blanked_state = FALSE;
+    unblank();
     if (g_strcmp0(line[0], "ignore") != 0 ) {
         gchar **extras = g_strsplit(parse_special(line[0]), "\n", 4);
         if ((g_strv_length(extras) == 6) && (g_strcmp0(extras[3], "nowrap") == 0)) {
@@ -323,21 +318,50 @@ do_backdrop (const char *options)
 }
 
 void
+unblank()
+{
+    if (blanked_state == BLANK_BG) {
+        change_backdrop (temp_bg, TRUE);
+    }
+    blanked_state = BLANK_NONE;
+}
+
+void
 do_blank (const char *options)
 {
     l_debug ("do_blank: %s", options);
     gchar **line = g_strsplit (options, ":", 2);
-    set_maintext ("", 0, FALSE);
-    set_headtext ("", 0, FALSE);
-    set_foottext ("", 0, FALSE);
-    if (options != NULL) {
+    if (strlen(options) <= 1) {
+        options = NULL;
+    }
+
+    if (blanked_state == BLANK_BG) {
+        l_debug("Re-show text");
+        do_display("current");
+    } else if ((blanked_state == BLANK_TEXT) && options != NULL) {
+        l_debug("clear text and set BG");
         temp_bg = current_bg;
         change_backdrop (line[0], TRUE);
+        blanked_state = BLANK_BG;
+    } else if ((blanked_state == BLANK_TEXT) && options == NULL) {
+        l_debug("Re-show text - 2");
+        do_display("current");
+    } else if (options != NULL) {
+        l_debug("clear text and set BG - 2");
+        temp_bg = current_bg;
+        change_backdrop (line[0], TRUE);
+        set_maintext ("", 0, FALSE);
+        set_headtext ("", 0, FALSE);
+        set_foottext ("", 0, FALSE);
+        blanked_state = BLANK_BG;
     } else {
-        temp_bg = NULL;
+        l_debug("Clear text");
+        set_maintext ("", 0, FALSE);
+        set_headtext ("", 0, FALSE);
+        set_foottext ("", 0, FALSE);
+        blanked_state = BLANK_TEXT;
     }
     g_strfreev(line);
-    blanked_state = TRUE;
 }
 
 void
@@ -393,12 +417,7 @@ do_display (const char *options)
     l_debug ("do_display");
     if (options != NULL) {
         gchar **line = g_strsplit (options, ":", 2);
-        if (blanked_state && temp_bg) {
-            change_backdrop (temp_bg, TRUE);
-            blanked_state = FALSE;
-            temp_bg = NULL;
-        }
-        blanked_state = FALSE;
+        unblank();
         MYSQL_ROW row;
         MYSQL_RES *result;
         do_query (lyricDb, "SELECT playlist FROM playlist WHERE playorder=%d",
@@ -417,7 +436,6 @@ do_display (const char *options)
 
         } else if (g_strcmp0 (command, "current") == 0) {
             // Ignore and just display same page
-            blanked_state = FALSE;
 
         } else if (g_strcmp0 (command, "next_page") == 0) {
             do_query (lyricDb,
@@ -671,7 +689,7 @@ update_tracker ()
     // Only do if this is main server
     if (server_port == SERVER_PORT) {
         GString *title = g_string_new (NULL);
-        if (blanked_state) {
+        if (blanked_state != BLANK_NONE) {
             g_string_assign (title, "blank");
         }
         if (bg_is_video) {

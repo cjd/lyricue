@@ -20,7 +20,7 @@ extern GHashTable *config;
 extern gboolean windowed;
 extern gchar *dbhostname;
 extern gchar *geometry;
-extern gboolean blanked_state;
+extern gint blanked_state;
 extern gchar *default_bg;
 extern gchar *current_bg;
 extern MYSQL *mediaDb;
@@ -736,17 +736,17 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
                 case CLUTTER_KP_Insert:
                 case CLUTTER_c:
                 case CLUTTER_x:
-                    if (blanked_state) {
-                        do_display ("current:");
-                    } else {
+                    if (blanked_state==BLANK_NONE) {
                         do_blank (NULL);
+                    } else {
+                        do_display ("current:");
                     }
                     break;
                 case CLUTTER_b:
-                    if (blanked_state) {
-                        do_display ("current:");
-                    } else {
+                    if (blanked_state==BLANK_NONE) {
                         do_blank ("solid;black:");
+                    } else {
+                        do_display ("current:");
                     }
                     break;
                 case CLUTTER_p:
@@ -980,7 +980,7 @@ next_p2 (gint a)
   return rval;
 }
 
-static void
+void
 set_shader_num (ClutterActor *actor, gint new_no)
 {
     int  tex_width;
