@@ -11393,8 +11393,8 @@ sub db_installdb {
               . " | mysql -f -h "
               . $globals->{'mysqlhost'} . " -u "
               . $globals->{'db_adminuser'}
-              . " --password="
-              . $globals->{'db_adminpassword'});
+              . " --password=\""
+              . $globals->{'db_adminpassword'}."\"");
     } else {
         my $dbh = db_connect($db_name, "Unable to create DB:" . $db_name);
         open(DB, $db_file);
