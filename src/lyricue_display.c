@@ -501,18 +501,19 @@ do_display (const char *options)
             result = mysql_store_result (lyricDb);
             row = mysql_fetch_row (result);
             mysql_free_result (result);
+                
 			if (row && (row[0] != NULL)) {
             	current_item = atoi (row[0]);
             	current_list = atoi (row[1]);
-	            do_query (lyricDb,
-                      "SELECT MIN(playorder) FROM playlist WHERE playorder > %d AND playlist=%d",
-                      current_item, current_list);
-	            result = mysql_store_result (lyricDb);
-    	        row = mysql_fetch_row (result);
-    	        mysql_free_result (result);
-				if (row[0] != NULL) {
-	    	        current_item = atoi (row[0]);
-				}
+            }
+	        do_query (lyricDb,
+                  "SELECT MIN(playorder) FROM playlist WHERE playorder > %d AND playlist=%d",
+                  current_item, current_list);
+	        result = mysql_store_result (lyricDb);
+    	    row = mysql_fetch_row (result);
+    	    mysql_free_result (result);
+			if (row[0] != NULL) {
+	    	    current_item = atoi (row[0]);
 			}
 
         } else if (g_strcmp0 (command, "prev_song") == 0) {
@@ -525,15 +526,15 @@ do_display (const char *options)
 			if (row && (row[0] != NULL)) {
 	            current_item = atoi (row[0]);
     	        current_list = atoi (row[1]);
-    	        do_query (lyricDb,
-                      "SELECT MAX(playorder) FROM playlist WHERE playorder < %d AND playlist=%d",
-                      current_item, current_list);
-    	        result = mysql_store_result (lyricDb);
-    	        row = mysql_fetch_row (result);
-    	        mysql_free_result (result);
-				if (row[0] != NULL) {
- 	    	        current_item = atoi (row[0]);
-				}
+            }
+    	    do_query (lyricDb,
+                  "SELECT MAX(playorder) FROM playlist WHERE playorder < %d AND playlist=%d",
+                  current_item, current_list);
+    	    result = mysql_store_result (lyricDb);
+    	    row = mysql_fetch_row (result);
+    	    mysql_free_result (result);
+			if (row[0] != NULL) {
+ 	    	    current_item = atoi (row[0]);
 			}
 
         } else if (g_strcmp0 (command, "page") == 0) {

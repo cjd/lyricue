@@ -92,7 +92,7 @@ gchar * parse_special (const gchar * text)
     }
     tmp = g_regex_replace(re_break, text, -1, 0, "\n", 0, NULL);
     tmp2 = g_regex_replace(re_semi, tmp, -1, 0, ":", 0, NULL);
-    tmp3 = g_regex_replace(re_amp, tmp, -1, 0, "&amp;", 0, NULL);
+    tmp3 = g_regex_replace(re_amp, tmp2, -1, 0, "&amp;", 0, NULL);
     return tmp3;
 }
 
