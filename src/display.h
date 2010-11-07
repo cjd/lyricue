@@ -54,6 +54,8 @@ void loop_video (ClutterActor *video, gboolean *video_loop);
 
 void media_pause ();
 
+void media_skip (gint duration);
+
 void load_font_defaults ();
 
 void clear_group(ClutterActor *actor);

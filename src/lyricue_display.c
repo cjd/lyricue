@@ -222,10 +222,13 @@ void
 do_media (const char *options)
 {
     if (bg_is_video) {
-        if (g_strcmp0 (options, "pause")) {
+        gchar **line = g_strsplit (options, ":", 2);
+        if (g_ascii_strncasecmp (line[0], "pause", 5) == 0) {
             media_pause ();
-        } else if (g_strcmp0 (options, "skip")) {
+        } else if (g_ascii_strncasecmp (line[0], "skip", 4) == 0) {
+            media_skip (atoi(line[1]));
         }
+        g_strfreev (line);
     }
 }
 

@@ -838,6 +838,15 @@ media_pause ()
 }
 
 void
+media_skip(gint duration)
+{
+    if (bg_is_video) {
+        l_debug("Skipping to %d",duration);
+        gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, duration * GST_SECOND, 0,0);
+    }
+}
+
+void
 load_font_defaults()
 {
     maintext_font  = (gchar *) g_hash_table_lookup (config, "Main");
