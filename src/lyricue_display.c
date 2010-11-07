@@ -167,6 +167,7 @@ void
 handle_command (GIOChannel * source, const char *command)
 {
     l_debug ("Received: %s", command);
+    update_miniview(command);
     GString *returnstring = NULL;
     gchar **line = g_strsplit (command, ":", 2);
     if (line[1] != NULL) {
@@ -675,9 +676,9 @@ do_display (const char *options)
                 }
             }
 
-            set_maintext(lyrics, transition, wrap);
-            set_headtext(header, transition, wrap);
-            set_foottext(footer, transition, wrap);
+            set_maintext(parse_special(lyrics), transition, wrap);
+            set_headtext(parse_special(header), transition, wrap);
+            set_foottext(parse_special(footer), transition, wrap);
         }
     }
 
@@ -714,4 +715,21 @@ update_tracker ()
                   current_item, g_string_free (title, FALSE));
     }
 	return TRUE;
+}
+
+void
+update_miniview (const char *command)
+{
+    if (server_port == SERVER_PORT) {
+l_debug("miniview time");
+        GSocketClient *client = g_socket_client_new();
+        GSocketConnection *conn = g_socket_client_connect_to_host ( client, "localhost", 2348, NULL, NULL);
+        if (conn != NULL) {
+            GOutputStream *out = g_io_stream_get_output_stream (G_IO_STREAM(conn));
+            g_output_stream_write(out, command, strlen(command), NULL, NULL);
+            g_object_unref(out);
+            g_object_unref(conn);
+        }
+        g_object_unref(client);
+    }
 }

@@ -24,6 +24,7 @@ extern int server_port;
 extern gboolean debugging;
 GRegex * re_break = NULL;
 GRegex * re_semi = NULL;
+GRegex * re_amp = NULL;
 FILE * logfile = NULL;
 
 void
@@ -79,14 +80,19 @@ gchar * parse_special (const gchar * text)
 {
     gchar *tmp = NULL;
     gchar *tmp2 = NULL;
+    gchar *tmp3 = NULL;
     if (re_break == NULL) {
         re_break = g_regex_new("#BREAK#", G_REGEX_MULTILINE, 0, NULL);
     }
     if (re_semi == NULL) {
         re_semi = g_regex_new("#SEMI#", G_REGEX_MULTILINE, 0, NULL);
     }
+    if (re_amp == NULL) {
+        re_amp = g_regex_new("&", G_REGEX_MULTILINE, 0, NULL);
+    }
     tmp = g_regex_replace(re_break, text, -1, 0, "\n", 0, NULL);
     tmp2 = g_regex_replace(re_semi, tmp, -1, 0, ":", 0, NULL);
-    return tmp2;
+    tmp3 = g_regex_replace(re_amp, tmp, -1, 0, "&amp;", 0, NULL);
+    return tmp3;
 }
 

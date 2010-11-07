@@ -692,13 +692,13 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
         case CLUTTER_BUTTON_RELEASE:
             switch (clutter_event_get_button (event)) {
                 case 1:
-                    do_display ("next_page:");
+                    handle_command(NULL,"display:next_page:");
                     break;
                 case 2:
-                    do_display ("prev_song:");
+                    handle_command(NULL,"display:prev_song:");
                     break;
                 case 3:
-                    do_display ("prev_page:");
+                    handle_command(NULL,"display:prev_page:");
                     break;
                 default:
                     break;
@@ -716,20 +716,20 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
                 case CLUTTER_Left:
                 case CLUTTER_KP_Left:
                 case CLUTTER_Page_Up:
-                    do_display ("prev_page:");
+                    handle_command(NULL,"display:prev_page:");
                     break;
                 case CLUTTER_Right:
                 case CLUTTER_KP_Right:
                 case CLUTTER_Page_Down:
-                    do_display ("next_page:");
+                    handle_command(NULL,"display:next_page:");
                     break;
                 case CLUTTER_Up:
                 case CLUTTER_KP_Up:
-                    do_display ("prev_song:");
+                    handle_command(NULL,"display:prev_song:");
                     break;
                 case CLUTTER_Down:
                 case CLUTTER_KP_Down:
-                    do_display ("next_song:");
+                    handle_command(NULL,"display:next_song:");
                     break;
                 case CLUTTER_0:
                 case CLUTTER_KP_0:
@@ -737,57 +737,57 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
                 case CLUTTER_c:
                 case CLUTTER_x:
                     if (blanked_state==BLANK_NONE) {
-                        do_blank (NULL);
+                        handle_command(NULL,"blank::");
                     } else {
-                        do_display ("current:");
+                        handle_command(NULL,"display:current:");
                     }
                     break;
                 case CLUTTER_b:
                     if (blanked_state==BLANK_NONE) {
-                        do_blank ("solid;black:");
+                        handle_command(NULL,"blank:solid;black:");
                     } else {
-                        do_display ("current:");
+                        handle_command(NULL,"display:current:");
                     }
                     break;
                 case CLUTTER_p:
                 case CLUTTER_space:
-                    media_pause ();
+                    handle_command(NULL,"media:pause:");
                     break;
                 case CLUTTER_1:
                 case CLUTTER_KP_1:
-                    do_display ("page:1");
+                    handle_command(NULL,"display:page:1");
                     break;
                 case CLUTTER_2:
                 case CLUTTER_KP_2:
-                    do_display ("page:2");
+                    handle_command(NULL,"display:page:2");
                     break;
                 case CLUTTER_3:
                 case CLUTTER_KP_3:
-                    do_display ("page:3");
+                    handle_command(NULL,"display:page:3");
                     break;
                 case CLUTTER_4:
                 case CLUTTER_KP_4:
-                    do_display ("page:4");
+                    handle_command(NULL,"display:page:4");
                     break;
                 case CLUTTER_5:
                 case CLUTTER_KP_5:
-                    do_display ("page:5");
+                    handle_command(NULL,"display:page:5");
                     break;
                 case CLUTTER_6:
                 case CLUTTER_KP_6:
-                    do_display ("page:6");
+                    handle_command(NULL,"display:page:6");
                     break;
                 case CLUTTER_7:
                 case CLUTTER_KP_7:
-                    do_display ("page:7");
+                    handle_command(NULL,"display:page:7");
                     break;
                 case CLUTTER_8:
                 case CLUTTER_KP_8:
-                    do_display ("page:8");
+                    handle_command(NULL,"display:page:8");
                     break;
                 case CLUTTER_9:
                 case CLUTTER_KP_9:
-                    do_display ("page:9");
+                    handle_command(NULL,"display:page:9");
                     break;
                 default:
                     l_debug ("Unknown key");

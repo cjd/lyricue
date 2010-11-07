@@ -72,6 +72,7 @@ void do_get(const char* options);
 void do_display(const char* options);
 void do_osd(const char* options);
 gboolean update_tracker();
+void update_miniview (const char *command);
 
 #define BLANK_NONE 0
 #define BLANK_TEXT 1
