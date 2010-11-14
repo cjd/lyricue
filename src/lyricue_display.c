@@ -724,7 +724,7 @@ update_miniview (const char *command)
     if (server_port == SERVER_PORT) {
 l_debug("miniview time");
         GSocketClient *client = g_socket_client_new();
-        GSocketConnection *conn = g_socket_client_connect_to_host ( client, "localhost", 2348, NULL, NULL);
+        GSocketConnection *conn = g_socket_client_connect_to_host ( client, dbhostname, 2348, NULL, NULL);
         if (conn != NULL) {
             GOutputStream *out = g_io_stream_get_output_stream (G_IO_STREAM(conn));
             g_output_stream_write(out, command, strlen(command), NULL, NULL);

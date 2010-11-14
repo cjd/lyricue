@@ -19,6 +19,7 @@
 MYSQL *lyricDb = NULL;
 MYSQL *mediaDb = NULL;
 extern GHashTable *config;
+extern char *dbhostname;
 
 int
 db_select ()
@@ -49,7 +50,7 @@ db_connect (const char *dbname, const char *dberror)
     mysql_options (tempDb, MYSQL_OPT_RECONNECT, &reconnect);
 
     if (mysql_real_connect
-        (tempDb, "localhost", "lyric", "", dbname, 0, NULL, 0) == NULL) {
+        (tempDb, dbhostname, "lyric", "", dbname, 0, NULL, 0) == NULL) {
         g_warning ("Error %u: %s", mysql_errno (tempDb),
                    mysql_error (tempDb));
         exit (1);
