@@ -45,7 +45,7 @@ GHashTable *config = NULL;
 gboolean windowed = FALSE;
 gboolean debugging = FALSE;
 int server_port = SERVER_PORT;
-gchar *dbhostname = NULL;
+gchar *dbhostname = "localhost";
 gchar *geometry = NULL;
 unsigned long windowid = 0;
 
@@ -626,6 +626,7 @@ do_display (const char *options)
                 if (row != NULL) {
                     gchar *title = g_strdup (row[0]);
                     gchar *artist = g_strdup (row[1]);
+                    gchar *lyrictmp = g_strdup (row[2]);
                     gchar *copyright = g_strdup (row[3]);
                     GString *foot = g_string_new (NULL);
                     if (g_utf8_strlen (artist, 10) != 0) {
@@ -634,7 +635,7 @@ do_display (const char *options)
                     if (g_utf8_strlen (copyright, 10) != 0) {
                         g_string_append_printf (foot, " - %s", copyright);
                     }
-                    lyrics = g_strdup(row[2]);
+                    lyrics = g_strdup(lyrictmp);
                     header = g_strdup(title);
                     footer = g_strdup(foot->str);
                     g_string_free (foot, TRUE);
