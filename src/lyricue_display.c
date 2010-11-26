@@ -63,6 +63,8 @@ static GOptionEntry entries[] = {
 int
 main (int argc, char *argv[])
 {
+    unsetenv("LIBGL_ALWAYS_INDIRECT");
+    setenv("CLUTTER_DISABLE_MIPMAPPED_TEXT","1",0);
     bindtextdomain (GETTEXT_PACKAGE, NULL);
     bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
     textdomain (GETTEXT_PACKAGE);
