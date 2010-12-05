@@ -64,6 +64,8 @@ gfloat window_height = 0;
 gfloat text_maxwidth = 0;
 gfloat text_maxheight = 0;
 guint bg_is_video = 0;
+guint cursor_timeout = 0;
+gboolean video_loop = FALSE;
 
 // Transition directions
 #define NONE   0;
@@ -410,7 +412,7 @@ create_outlined_text (ClutterActor *group, const gchar * text, const gchar * fon
 }
 
 void
-change_backdrop (const gchar * id, gboolean video_loop)
+change_backdrop (const gchar * id, gboolean loop)
 {
     if (strlen(id) == 0) {
         return;
@@ -527,7 +529,8 @@ change_backdrop (const gchar * id, gboolean video_loop)
             }
             if (windowid == 0) {
                 clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
-                g_signal_connect (background, "eos", G_CALLBACK(loop_video), &video_loop);
+                video_loop = loop;
+                g_signal_connect (background, "eos", G_CALLBACK(loop_video), NULL);
                 bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
             } else {
                 clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
@@ -581,6 +584,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
         if (windowid == 0) {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
+            video_loop = loop;
             //gboolean ret = gst_element_seek_simple(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), gst_format_get_by_nick("title"), GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, 1);
         gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 10 * GST_SECOND, 0,0);
 
@@ -609,6 +613,7 @@ change_backdrop (const gchar * id, gboolean video_loop)
         if (windowid == 0) {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
+            video_loop = loop;
         } else {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             clutter_media_set_progress(CLUTTER_MEDIA (background), 0.05);
@@ -794,6 +799,11 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
                     break;
             }
             break;
+        case CLUTTER_MOTION:
+                clutter_stage_show_cursor(CLUTTER_STAGE(stage));
+                if (cursor_timeout) g_source_remove(cursor_timeout);
+                cursor_timeout = g_timeout_add_seconds(3, (GSourceFunc) hide_cursor, NULL);
+            break;
         default:
             break;
     }
@@ -818,7 +828,7 @@ size_change (ClutterActor * myactor)
 }
 
 void
-loop_video (ClutterActor * video, gboolean * video_loop)
+loop_video (ClutterActor * video)
 {
     if (video_loop) {
         clutter_media_set_progress (CLUTTER_MEDIA (video), 0);
@@ -1047,3 +1057,9 @@ set_shader_num (ClutterActor *actor, gint new_no)
     }
 }
 
+gboolean
+hide_cursor ()
+{
+    clutter_stage_hide_cursor(CLUTTER_STAGE(stage));
+    return FALSE;
+}

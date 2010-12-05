@@ -50,7 +50,7 @@ gboolean input_cb (ClutterStage *stage,
 
 void size_change (ClutterActor *myactor);
 
-void loop_video (ClutterActor *video, gboolean *video_loop);
+void loop_video (ClutterActor *video);
 
 void media_pause ();
 
@@ -68,3 +68,5 @@ void do_transition(ClutterActor *new,
                    gfloat       final_y);
 
 void set_shader_num (ClutterActor *actor, gint new_no);
+
+gboolean hide_cursor ();
