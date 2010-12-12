@@ -414,7 +414,7 @@ create_outlined_text (ClutterActor *group, const gchar * text, const gchar * fon
 void
 change_backdrop (const gchar * id, gboolean loop)
 {
-    if (strlen(id) == 0) {
+    if ((id == NULL) || (strlen(id) == 0)) {
         return;
     }
     l_debug ("change backdrop to %s", id);
