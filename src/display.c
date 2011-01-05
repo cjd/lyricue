@@ -422,13 +422,17 @@ change_backdrop (const gchar * id, gboolean loop)
         l_debug ("Backdrop ID same - not changing");
         return;
     }
+    //reset_timer(video_timer);
+    gchar **line = g_strsplit (parse_special(id), ";", 2);
+    if ((line[1] != NULL) && (strlen(line[1]) == 0)) {
+        return;
+    }
+
     g_free(current_bg);
     current_bg = parse_special(id);
     destroy_actor(background_old);
     background_old = background;
     background = NULL;
-    //reset_timer(video_timer);
-    gchar **line = g_strsplit (current_bg, ";", 2);
 
     if (g_ascii_strncasecmp (line[0], "dvd", 3) == 0) {
         line[1] = line[0];
@@ -437,6 +441,7 @@ change_backdrop (const gchar * id, gboolean loop)
         line[1] = line[0];
         line[0] = "dir";
     }
+
 
     if (g_strcmp0 (line[0], "db") == 0) {
         do_query(mediaDb, "SELECT format, description, data, LENGTH(data) FROM media WHERE id=%s",line[1]);
