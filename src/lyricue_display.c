@@ -129,7 +129,7 @@ network_read (GIOChannel * source, GIOCondition cond, gpointer data)
         // Remove the event source
         return FALSE;
     } else {
-        s->str = g_strchomp (s->str);
+        s->str = g_strstrip(s->str);
         if (g_utf8_strlen (s->str, -1) > 0) {
             handle_command (source, s->str);
         }
@@ -731,7 +731,6 @@ l_debug("miniview time");
         if (conn != NULL) {
             GOutputStream *out = g_io_stream_get_output_stream (G_IO_STREAM(conn));
             g_output_stream_write(out, command, strlen(command), NULL, NULL);
-            g_object_unref(out);
             g_object_unref(conn);
         }
         g_object_unref(client);
