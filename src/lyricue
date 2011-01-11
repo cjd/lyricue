@@ -6418,7 +6418,7 @@ sub do_add_file {
     my ($file, $playlist) = @_;
     debug("do_add_file: file=" . $file);
     if ($globals->{'unoconv'} ne "") {
-        if (($file =~ /ppt$/i) || ($file =~ /odp$/i)) {
+        if (($file =~ /ppt$/i) || ($file =~ /odp$/i) || ($file =~ /pptx$/)) {
 
             # Add presentation
             debug("Adding ppt/odp presentation");
