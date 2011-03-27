@@ -875,6 +875,12 @@ load_font_defaults()
     headtext_font  = (gchar *) g_hash_table_lookup (config, "Header");
     foottext_font  = (gchar *) g_hash_table_lookup (config, "Footer");
     osdtext_font   = (gchar *) g_hash_table_lookup (config, "OSD");
+    maintext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
+    headtext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
+    foottext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
+    maintext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
+    headtext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
+    foottext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
 }
 
 void
