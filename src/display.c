@@ -591,8 +591,11 @@ change_backdrop (const gchar * id, gboolean loop)
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
             video_loop = loop;
             //gboolean ret = gst_element_seek_simple(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), gst_format_get_by_nick("title"), GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, 1);
-        gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 10 * GST_SECOND, 0,0);
-
+            #if CLUTTER_GST_MAJOR_VERSION == 1
+                gst_element_seek(clutter_gst_video_texture_get_pipeline(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 10 * GST_SECOND, 0,0);
+            #else
+                gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 10 * GST_SECOND, 0,0);
+            #endif
         } else {
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             clutter_media_set_progress(CLUTTER_MEDIA (background), 0.05);
@@ -857,7 +860,11 @@ media_skip(gint duration)
 {
     if (bg_is_video) {
         l_debug("Skipping to %d",duration);
-        gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, duration * GST_SECOND, 0,0);
+        #if CLUTTER_GST_MAJOR_VERSION == 1
+            gst_element_seek(clutter_gst_video_texture_get_pipeline(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, duration * GST_SECOND, 0,0);
+        #else
+            gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, duration * GST_SECOND, 0,0);
+        #endif
     }
 }
 

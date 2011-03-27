@@ -55,7 +55,7 @@ am_lyricue_display_OBJECTS = lyricue_display.$(OBJEXT) \
 lyricue_display_OBJECTS = $(am_lyricue_display_OBJECTS)
 am__DEPENDENCIES_1 =
 lyricue_display_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
@@ -126,6 +126,8 @@ CATOBJEXT = @CATOBJEXT@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CLUTTERGST_CFLAGS = @CLUTTERGST_CFLAGS@
+CLUTTERGST_LIBS = @CLUTTERGST_LIBS@
 CLUTTER_CFLAGS = @CLUTTER_CFLAGS@
 CLUTTER_LIBS = @CLUTTER_LIBS@
 CPP = @CPP@
@@ -146,6 +148,8 @@ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
 GMOFILES = @GMOFILES@
 GMSGFMT = @GMSGFMT@
 GREP = @GREP@
+GSTREAMER_CFLAGS = @GSTREAMER_CFLAGS@
+GSTREAMER_LIBS = @GSTREAMER_LIBS@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_LIBS = @GTK_LIBS@
 INSTALL = @INSTALL@
@@ -259,7 +263,7 @@ AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" $(CLUTTER_CFLAGS) \
-	$(GTK_CFLAGS)
+	$(GTK_CFLAGS) $(CLUTTERGST_CFLAGS) $(GSTREAMER_CFLAGS)
 
 AM_CFLAGS = \
 	 -Wall\
@@ -284,7 +288,8 @@ lyricue_display_SOURCES = \
 
 lyricue_display_LDADD = \
 	$(CLUTTER_LIBS)  \
-	$(GTK_LIBS)
+	$(GTK_LIBS) \
+	$(CLUTTERGST_LIBS)
 
 all: all-am
 
@@ -644,6 +649,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_binSCRIPTS
 	tags uninstall uninstall-am uninstall-binPROGRAMS \
 	uninstall-dist_binSCRIPTS
 
+	$(GSTREAMER_CFLAGS)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

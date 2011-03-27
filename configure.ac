@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl Created by Anjuta application wizard.
 
-AC_INIT(lyricue, 3.0.8, http://www.lyricue.org)
+AC_INIT(lyricue, 3.0.27, http://www.lyricue.org)
 AC_CONFIG_AUX_DIR([build-aux])
 
 LIBS=`mysql_config --libs`
@@ -36,7 +36,9 @@ IT_PROG_INTLTOOL([0.35.0])
 
 AM_PROG_LIBTOOL
 
-PKG_CHECK_MODULES(CLUTTER, clutter-1.0 clutter-gst-0.10 clutter-gtk-0.10)
+PKG_CHECK_MODULES(CLUTTER, clutter-1.0 clutter-gtk-0.10)
+PKG_CHECK_MODULES(CLUTTERGST, clutter-gst-0.10,, [ PKG_CHECK_MODULES(CLUTTERGST, clutter-gst-1.0)])
+PKG_CHECK_MODULES(GSTREAMER, gstreamer-0.10)
 PKG_CHECK_MODULES(GTK, gtk+-2.0 gdk-2.0 gio-2.0 glib-2.0 gdk-pixbuf-2.0)
 AC_OUTPUT([
 Makefile
