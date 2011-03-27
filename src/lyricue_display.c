@@ -37,7 +37,6 @@ gchar *current_bg = NULL;
 gchar *temp_bg = NULL;
 int current_item = 0;
 int current_list = 0;
-int loop_parent = 0;
 GHashTable *config = NULL;
 #define SERVER_PORT 2346
 
@@ -190,8 +189,6 @@ handle_command (GIOChannel * source, const char *command)
             do_change_to_db (line[1]);
         } else if (g_strcmp0 (line[0], "next_point") == 0) {
             do_next_point (line[1]);
-        } else if (g_strcmp0 (line[0], "loopparent") == 0) {
-            do_loopparent (line[1]);
         } else if (g_strcmp0 (line[0], "get") == 0) {
             do_get (line[1]);
         } else if (g_strcmp0 (line[0], "display") == 0) {
@@ -384,13 +381,6 @@ do_next_point (const char *options)
 }
 
 void
-do_loopparent (const char *options)
-{
-    l_debug ("do_loopparent %s", options);
-    loop_parent = atoi (options);
-}
-
-void
 do_get (const char *options)
 {
     l_debug ("do_get not implemented");
@@ -455,16 +445,45 @@ do_display (const char *options)
                 current_item = atoi (row[0]);
             } else {
                 // End of song reached
-                if (g_strcmp0 (line[1], "loop") == 0) {
+                gchar **loop = g_strsplit (line[1], ";", 2);
+                if (g_strcmp0(loop[0], "loop") == 0) {
                     // Looping
-                    do_query (lyricDb,
+                    int loop_parent = 0;
+                    if (loop[1] != NULL) {
+                        loop_parent = atoi(loop[1]);
+                    }
+                    if (loop_parent == 0) {
+                        l_debug ("Looping a song, back to page 1");
+                        do_query (lyricDb,
                               "SELECT MIN(playorder) FROM playlist WHERE playlist=%d",
-                              current_list);
-                    result = mysql_store_result (lyricDb);
-                    row = mysql_fetch_row (result);
-                    mysql_free_result (result);
-                    if (row[0] != NULL) {
-                        current_item = atoi (row[0]);
+                                current_list);
+                        result = mysql_store_result (lyricDb);
+                        row = mysql_fetch_row (result);
+                        mysql_free_result (result);
+                        if (row[0] != NULL) {
+                            current_item = atoi (row[0]);
+                        }
+                    } else {
+                        l_debug ("Looping a sublist");
+                        do_query (lyricDb,
+                              "SELECT MIN(p1.playorder) FROM playlist AS p1, playlist AS p2 WHERE p1.playorder>p2.playorder AND p2.type='play' AND p2.data=%d AND p1.playlist=%d", current_list, loop_parent);
+                        result = mysql_store_result (lyricDb);
+                        row = mysql_fetch_row (result);
+                        mysql_free_result (result);
+                        if (row[0] != NULL) {
+                            current_item = atoi (row[0]);
+                        } else {
+                            // Loop back to top of parent
+                            do_query (lyricDb,
+                              "SELECT MIN(playorder) FROM playlist WHERE playlist=%d",
+                                loop_parent);
+                            result = mysql_store_result (lyricDb);
+                            row = mysql_fetch_row (result);
+                            mysql_free_result (result);
+                            if (row[0] != NULL) {
+                                current_item = atoi (row[0]);
+                            }
+                        }
                     }
                 } else {
                     // Jump to next song

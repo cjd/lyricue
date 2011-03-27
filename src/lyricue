@@ -5900,9 +5900,8 @@ sub establish_timer {
 
     update_display("display", $loopxml->get_widget('dialogLoop')->{user_data},
         "");
-    update_display("loopparent", $parent, "");
 
-    my @data = ("display", "next_page", "loop");
+    my @data = ("display", "next_page", "loop;".$parent);
 
     $globals->{'timer'} = Glib::Timeout->add($interval, \&update_loop, \@data);
     debug("Set loop advance timer to " . $interval . " milliseconds.");
