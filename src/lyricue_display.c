@@ -431,7 +431,10 @@ do_display (const char *options)
             current_list = atoi (line[1]);
 
         } else if (g_strcmp0 (command, "current") == 0) {
-            // Ignore and just display same page
+            // Clear text and then redisplay same page
+            set_maintext ("", 0, FALSE);
+            set_headtext ("", 0, FALSE);
+            set_foottext ("", 0, FALSE);
 
         } else if (g_strcmp0 (command, "next_page") == 0) {
             do_query (lyricDb,
