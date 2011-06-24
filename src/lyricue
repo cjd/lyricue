@@ -6429,6 +6429,11 @@ sub do_add_file {
             do_pending();
             my $target = $file;
             $target =~ s/^.*\///g;
+
+            # Add 'ppt' to end of 'pptx' files so unoconv will handle them
+            if ($target =~ /pptx$/ ) {
+                $target .= ".ppt");
+            }
             my $tmpdir = tempdir("lyricue-XXXX", DIR => "/var/tmp", CLEANUP => 0);
             my $command =
               "cp \"" . $file . "\" \"" . $tmpdir . "/" . $target . "\"";
