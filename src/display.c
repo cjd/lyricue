@@ -45,6 +45,7 @@ gchar *osdtext_font  = "";
 GtkWidget *window = NULL;
 GtkWidget *clutter_widget = NULL;
 ClutterActor *stage = NULL;
+ClutterActor *actors = NULL;
 ClutterActor *maintext = NULL;
 ClutterActor *maintext_old = NULL;
 ClutterActor *headtext = NULL;
@@ -155,6 +156,9 @@ create_main_window (int argc, char *argv[])
     gtk_widget_show_all (window);
 
     stage = gtk_clutter_embed_get_stage (GTK_CLUTTER_EMBED (clutter_widget));
+    actors = clutter_group_new();
+    clutter_container_add (CLUTTER_CONTAINER (stage), actors, NULL);
+
     clutter_stage_set_color (CLUTTER_STAGE (stage), &black_colour);
     default_bg = (gchar *) g_hash_table_lookup (config, "BGImage");
     change_backdrop(default_bg, TRUE);
@@ -162,7 +166,7 @@ create_main_window (int argc, char *argv[])
       (double) clutter_actor_get_width (stage) / (double) stage_width;
     double window_scale_h =
       (double) clutter_actor_get_height (stage) / (double) stage_height;
-    clutter_actor_set_scale (stage, window_scale_w, window_scale_h);
+    clutter_actor_set_scale (actors, window_scale_w, window_scale_h);
     text_maxheight =
       stage_height -
       (atoi ((gchar *) g_hash_table_lookup (config, "OverscanV")) * 2);
@@ -181,20 +185,19 @@ create_main_window (int argc, char *argv[])
     foottext = clutter_group_new();
     foottext_old = clutter_group_new();
 
-    clutter_container_add (CLUTTER_CONTAINER (stage), maintext, NULL);
-    clutter_container_add (CLUTTER_CONTAINER (stage), headtext, NULL);
-    clutter_container_add (CLUTTER_CONTAINER (stage), foottext, NULL);
-    clutter_container_add (CLUTTER_CONTAINER (stage), maintext_old, NULL);
-    clutter_container_add (CLUTTER_CONTAINER (stage), headtext_old, NULL);
-    clutter_container_add (CLUTTER_CONTAINER (stage), foottext_old, NULL);
+    clutter_container_add (CLUTTER_CONTAINER (actors), maintext, NULL);
+    clutter_container_add (CLUTTER_CONTAINER (actors), headtext, NULL);
+    clutter_container_add (CLUTTER_CONTAINER (actors), foottext, NULL);
+    clutter_container_add (CLUTTER_CONTAINER (actors), maintext_old, NULL);
+    clutter_container_add (CLUTTER_CONTAINER (actors), headtext_old, NULL);
+    clutter_container_add (CLUTTER_CONTAINER (actors), foottext_old, NULL);
     clutter_actor_show_all (stage);
 
     // Setup events
     g_signal_connect (stage, "destroy", G_CALLBACK (exit), NULL);
     g_signal_connect (stage, "event", G_CALLBACK (input_cb), NULL);
     g_signal_connect (stage, "notify::width", G_CALLBACK (size_change), NULL);
-    g_signal_connect (stage, "notify::height", G_CALLBACK (size_change),
-                      NULL);
+    g_signal_connect (stage, "notify::height", G_CALLBACK (size_change), NULL);
 
     clutter_set_font_flags(CLUTTER_FONT_MIPMAPPING);
   shader = clutter_shader_new ();
@@ -337,7 +340,7 @@ void set_osd (int speed, const gchar * text)
     clutter_actor_set_size(osdtext_bg, stage_width, osd_height+5);
     clutter_actor_set_position(osdtext_bg, 0, stage_height - osd_height+5);
     clutter_actor_set_opacity(osdtext_bg, 0x80);
-    clutter_container_add (CLUTTER_CONTAINER (stage), osdtext_bg, osdtext, NULL);
+    clutter_container_add (CLUTTER_CONTAINER (actors), osdtext_bg, osdtext, NULL);
     clutter_actor_raise_top(osdtext_bg);
     clutter_actor_raise_top(osdtext);
     gfloat scale = osd_width / stage_width;
@@ -515,7 +518,7 @@ change_backdrop (const gchar * id, gboolean loop)
             return;
         }
         if (g_content_type_is_a
-            (g_file_info_get_content_type (info), "video/*")) {
+            (g_file_info_get_content_type (info), "video/*") || g_content_type_is_a(g_file_info_get_content_type (info), "audio/*")) {
             l_debug ("Backdrop is a video");
             background = clutter_gst_video_texture_new ();
             clutter_media_set_filename (CLUTTER_MEDIA (background), line[1]);
@@ -630,7 +633,7 @@ change_backdrop (const gchar * id, gboolean loop)
 
     }
     if (background) {
-        clutter_container_add (CLUTTER_CONTAINER (stage), background, NULL);
+        clutter_container_add (CLUTTER_CONTAINER (actors), background, NULL);
         clutter_actor_lower_bottom (background);
     } else {
         background = background_old;
@@ -831,7 +834,7 @@ size_change (ClutterActor * myactor)
         gfloat window_scale_h = new_window_height / stage_height;
         l_debug ("Resizing main window to %.0fx%.0f", new_window_width,
                  new_window_height);
-        clutter_actor_set_scale (stage, window_scale_w, window_scale_h);
+        clutter_actor_set_scale (actors, window_scale_w, window_scale_h);
     }
 }
 
