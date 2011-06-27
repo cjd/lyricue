@@ -519,7 +519,7 @@ change_backdrop (const gchar * id, gboolean loop)
         }
         if (g_content_type_is_a
             (g_file_info_get_content_type (info), "video/*") || g_content_type_is_a(g_file_info_get_content_type (info), "audio/*")) {
-            l_debug ("Backdrop is a video");
+            l_debug ("Backdrop is media");
             background = clutter_gst_video_texture_new ();
             clutter_media_set_filename (CLUTTER_MEDIA (background), line[1]);
             clutter_actor_set_anchor_point_from_gravity (background,
@@ -843,6 +843,7 @@ loop_video (ClutterActor * video)
 {
     if (video_loop) {
         clutter_media_set_progress (CLUTTER_MEDIA (video), 0);
+        clutter_media_set_playing (CLUTTER_MEDIA (video), 1);
     } else {
         if (bg_is_video) g_source_remove(bg_is_video);
     }
