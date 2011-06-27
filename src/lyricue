@@ -116,6 +116,7 @@ use URI::file;
 use XML::Simple;
 use Gnome2;
 use File::Temp qw/tempdir/;
+use File::MimeInfo;
 
 eval { require Locale::gettext };
 
@@ -7494,12 +7495,10 @@ sub do_add_directory {
 
     my (@files, $file);
     opendir DIR, $dirname || return 0;
-    my @fileexts = qw(jpg gif png jpeg tif bmp);
     foreach $file (sort readdir(DIR)) {
-        foreach my $fileobj (@fileexts) {
-            if ($file =~ /$fileobj$/i) {
-                push @files, $dirname . "/" . $file;
-            }
+        my $type = mimetype($dirname . "/" . $file);
+        if (($type =~ /^audio/) || ($type =~ /^video/) || ($type =~ /^image/)) {
+            push @files, $dirname . "/" . $file;
         }
     }
     closedir DIR;
