@@ -9806,16 +9806,17 @@ sub import_songs {
     $widgets->{'select_songs'}->get_widget('treeSongImport')
       ->append_column($column5);
 
-    foreach my $songnum (0 .. (@$songs - 1)) {
-        debug("Adding " . $songnum . ":" . @$songs[$songnum]->{'name'});
+    my @sorted_songs = sort {$a->{'name'} cmp $b->{'name'}} @$songs;
+    foreach my $songnum (0 .. (@sorted_songs - 1)) {
+        debug("Adding " . $songnum . ":" . @sorted_songs[$songnum]->{'name'});
         my $iter = $model->append;
         $model->set(
             $iter,                         0,
             TRUE,                          1,
-            @$songs[$songnum]->{'name'},   2,
-            @$songs[$songnum]->{'artist'}, 3,
-            @$songs[$songnum]->{'book'},   4,
-            @$songs[$songnum]->{'number'}, 5,
+            $sorted_songs[$songnum]->{'name'},   2,
+            $sorted_songs[$songnum]->{'artist'}, 3,
+            $sorted_songs[$songnum]->{'book'},   4,
+            $sorted_songs[$songnum]->{'number'}, 5,
             $songnum
         );
     }
