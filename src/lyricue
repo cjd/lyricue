@@ -2264,6 +2264,7 @@ sub import_song_text {
     my ($artist, $name, $keywords, $number, $book, $copyright) = "";
     my $hashnum = 0;
     open(SONG, $filename) || return;
+    binmode SONG, ":encoding(utf8)";
     while (<SONG>) {
         if (/^Name:/) {
             if (!$name) {
