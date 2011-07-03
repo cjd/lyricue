@@ -116,7 +116,7 @@ use URI::file;
 use XML::Simple;
 use Gnome2;
 use File::Temp qw/tempdir/;
-use File::MimeInfo;
+use File::MimeInfo qw/globs/;
 
 eval { require Locale::gettext };
 
@@ -7497,7 +7497,7 @@ sub do_add_directory {
     my (@files, $file);
     opendir DIR, $dirname || return 0;
     foreach $file (sort readdir(DIR)) {
-        my $type = mimetype($dirname . "/" . $file);
+        my $type = globs($dirname . "/" . $file);
         if (($type =~ /^audio/) || ($type =~ /^video/) || ($type =~ /^image/)) {
             push @files, $dirname . "/" . $file;
         }
