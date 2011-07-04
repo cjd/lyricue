@@ -8581,6 +8581,30 @@ sub search_changed {
 
 #***
 
+#****f* lyricue/search_activated
+# NAME
+#   search_activated
+# SYNOPSIS
+#   search_activated()
+# FUNCTION
+#   Search activated
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+sub search_activated{
+    debug("Search activated");
+    my $model  = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
+    my $iter   = $model->get_iter_first;
+    if (defined $iter) {
+        my $songid = $model->get($iter, 3);
+        add_single_song($songid);
+        update_playlist();
+    }
+}
+
+#***
+
 #****f* lyricue/init_preview
 # NAME
 #   init_preview
@@ -9809,7 +9833,7 @@ sub import_songs {
 
     my @sorted_songs = sort {$a->{'name'} cmp $b->{'name'}} @$songs;
     foreach my $songnum (0 .. (@sorted_songs - 1)) {
-        debug("Adding " . $songnum . ":" . @sorted_songs[$songnum]->{'name'});
+        debug("Adding " . $songnum . ":" . $sorted_songs[$songnum]->{'name'});
         my $iter = $model->append;
         $model->set(
             $iter,                         0,
