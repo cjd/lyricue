@@ -10,7 +10,7 @@ LC_ALL=C;export LC_ALL
 CONV="s/##VERSION##/${VERSION}/g"
 sed --in-place -e $CONV src/lyricue
 
-for DIST in maverick karmic lucid natty
+for DIST in maverick lucid natty
 do echo Building for ${DIST}
 
 if [ "$DIST" != "maverick" ]
