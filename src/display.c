@@ -535,16 +535,16 @@ change_backdrop (const gchar * id, gboolean loop)
             } else {
                 clutter_actor_set_size (background, stage_width, (h * (stage_width/w)));
             }
+            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+            video_loop = loop;
             if (windowid == 0) {
-                clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
-                video_loop = loop;
                 g_signal_connect (background, "eos", G_CALLBACK(loop_video), NULL);
                 bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
             } else {
-                clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
-                clutter_media_set_progress(CLUTTER_MEDIA (background), 0.05);
-                clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
+                clutter_media_set_audio_volume(CLUTTER_MEDIA(background),0);
+                bg_is_video = g_timeout_add_seconds(3, (GSourceFunc) stop_media, NULL);
             }
+            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             
         } else
           if (g_content_type_is_a
@@ -589,20 +589,13 @@ change_backdrop (const gchar * id, gboolean loop)
         } else {
             clutter_actor_set_size (background, stage_width, (h * (stage_width/w)));
         }
+        clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+        video_loop = loop;
         if (windowid == 0) {
-            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
-            video_loop = loop;
-            //gboolean ret = gst_element_seek_simple(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), gst_format_get_by_nick("title"), GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, 1);
-            #if CLUTTER_GST_MAJOR_VERSION == 1
-                gst_element_seek(clutter_gst_video_texture_get_pipeline(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 10 * GST_SECOND, 0,0);
-            #else
-                gst_element_seek(clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background)), 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, 10 * GST_SECOND, 0,0);
-            #endif
         } else {
-            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
-            clutter_media_set_progress(CLUTTER_MEDIA (background), 0.05);
-            clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
+            clutter_media_set_audio_volume(CLUTTER_MEDIA(background),0);
+            bg_is_video = g_timeout_add_seconds(3, (GSourceFunc) stop_media, NULL);
         }
     } else if (g_strcmp0 (line[0], "uri") == 0) {
         l_debug("playing direct uri %s", line[1]);
@@ -621,14 +614,13 @@ change_backdrop (const gchar * id, gboolean loop)
         } else {
             clutter_actor_set_size (background, stage_width, (h * (stage_width/w)));
         }
+        clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+        video_loop = loop;
         if (windowid == 0) {
-            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
-            video_loop = loop;
         } else {
-            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
-            clutter_media_set_progress(CLUTTER_MEDIA (background), 0.05);
-            clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
+            clutter_media_set_audio_volume(CLUTTER_MEDIA(background),0);
+            bg_is_video = g_timeout_add_seconds(3, (GSourceFunc) stop_media, NULL);
         }
 
     }
@@ -1083,5 +1075,14 @@ gboolean
 hide_cursor ()
 {
     clutter_stage_hide_cursor(CLUTTER_STAGE(stage));
+    return FALSE;
+}
+
+gboolean
+stop_media ()
+{
+    l_debug("Stop media");
+    clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
+    if (bg_is_video) g_source_remove(bg_is_video);
     return FALSE;
 }
