@@ -376,6 +376,8 @@ create_outlined_text (ClutterActor *group, const gchar * text, const gchar * fon
 
     // Get justification
     gchar *justify = (gchar *) g_hash_table_lookup (config, "Justification");
+    // Get shadow offset
+    int shadow_offset = atoi ((gchar *) g_hash_table_lookup (config, "ShadowSize"));
 
     for (i = 0; i <= 5; i++) {
         if (i == 2) {
@@ -399,7 +401,7 @@ create_outlined_text (ClutterActor *group, const gchar * text, const gchar * fon
                                                      CLUTTER_GRAVITY_NORTH_WEST);
         clutter_container_add (CLUTTER_CONTAINER (group), textline[i], NULL);
         if (i == 5) {
-            clutter_actor_set_position (textline[i], 4, 4);
+            clutter_actor_set_position (textline[i], 3+shadow_offset, 3+shadow_offset);
         } else {
             clutter_actor_set_position (textline[i], ((i * 2) % 3),
                                         ((i * 2) / 3));
