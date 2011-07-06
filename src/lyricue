@@ -1213,10 +1213,6 @@ sub popup_avail_menu {
         $factory->popup($event->x_root, $event->y_root, $event->button,
             $event->time);
         return (TRUE);
-    } elsif ($event->button == 1 && $event->type eq '2button-press') {
-        debug("Add song");
-        add_to_playlist();
-        return (TRUE);
     } else {
         my $path   = $widget->get_path_at_pos($event->x, $event->y);
         if (!defined $path) {
