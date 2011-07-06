@@ -1128,6 +1128,27 @@ sub update_available {
 
 #***
 
+#****f* lyricue/treeAvailable_row_activated
+# NAME
+#   treeAvailable_row_activated
+# SYNOPSIS
+#   treeAvailable_row_activated ($widget, $event)
+# FUNCTION
+#   Add the currently selected song to the playlist
+# INPUTS
+#   $widget - Calling widget
+#   $event - Calling event
+# OUTPUT
+#   New song on playlist
+# SOURCE
+#
+sub treeAvailable_row_activated {
+    my ($widget, $event) = @_;
+    debug("Song activated from available songs list");
+    add_to_playlist();
+}
+#***
+
 #****f* lyricue/popup_avail_menu
 # NAME
 #   popup_avail_menu
@@ -1197,8 +1218,11 @@ sub popup_avail_menu {
         add_to_playlist();
         return (TRUE);
     } else {
-        debug("song selected");
         my $path   = $widget->get_path_at_pos($event->x, $event->y);
+        if (!defined $path) {
+            return FALSE;
+        }
+        debug("song selected");
         my $model  = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
         my $iter   = $model->get_iter($path);
         my $songid = $model->get($iter, 3);

@@ -13,12 +13,6 @@
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
     <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
       <widget class="GtkLabel" id="labelFRIntro">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -8347,6 +8341,7 @@ http://www.lyricue.org/bibles</property>
                                 <property name="can_focus">True</property>
                                 <property name="rules_hint">True</property>
                                 <signal name="button_press_event" handler="popup_avail_menu"/>
+                                <signal name="row_activated" handler="treeAvailable_row_activated"/>
                                 <signal name="drag_data_get" handler="on_treeAvailable_drag_data_get"/>
                               </widget>
                             </child>
