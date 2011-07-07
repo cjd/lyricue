@@ -539,11 +539,15 @@ change_backdrop (const gchar * id, gboolean loop)
             }
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             video_loop = loop;
+            #if CLUTTER_GST_MAJOR_VERSION == 1
+                GstElement *playbin = clutter_gst_video_texture_get_pipeline(CLUTTER_GST_VIDEO_TEXTURE(background));
+            #else
+                GstElement *playbin = clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background));
+            #endif
             if (windowid == 0) {
                 g_signal_connect (background, "eos", G_CALLBACK(loop_video), NULL);
                 bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
             } else {
-                GstElement *playbin = clutter_gst_video_texture_get_pipeline(CLUTTER_GST_VIDEO_TEXTURE(background));
                 g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
                 bg_is_video = g_timeout_add_seconds(3, (GSourceFunc) stop_media, NULL);
             }
