@@ -543,7 +543,8 @@ change_backdrop (const gchar * id, gboolean loop)
                 g_signal_connect (background, "eos", G_CALLBACK(loop_video), NULL);
                 bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
             } else {
-                clutter_media_set_audio_volume(CLUTTER_MEDIA(background),0);
+                GstElement *playbin = clutter_gst_video_texture_get_pipeline(CLUTTER_GST_VIDEO_TEXTURE(background));
+                g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
                 bg_is_video = g_timeout_add_seconds(3, (GSourceFunc) stop_media, NULL);
             }
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
