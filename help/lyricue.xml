@@ -166,7 +166,9 @@
 
       <para>The user chosen must have full access to the database.  This user
       is normally called 'root' and has no password by default.
-      <emphasis>Note: this user is different to the 'root' login on the
+      <emphasis></emphasis></para>
+
+      <para><emphasis>Note: this user is different to the 'root' login on the
       computer</emphasis></para>
 
       <para><inlinemediaobject>
@@ -948,7 +950,7 @@
           <title>How to install SQL format Manually</title>
 
           <para>To install a bible translation download one of the files
-          listed below and then run gzip -dc bible.sql.gz | mysql -uroot -p
+          listed below and then run <screen>gzip -dc bible.sql.gz | mysql -uroot -p</screen>
           Replace bible.sql.gz with the file you downloaded previously.</para>
 
           <para>This should ask for your mysql root user password then install
@@ -960,8 +962,7 @@
         <section>
           <title>How to install Sword format Manually</title>
 
-          <para>To install a sword format manually run unzip bible.zip -d
-          ~/.sword</para>
+          <para>To install a sword format manually run <screen>unzip bible.zip -d ~/.sword</screen></para>
 
           <para>Replace bible.zip with the file you downloaded previously. 
           You will also need to ensure that the 'diatheke' utility is
@@ -1013,11 +1014,10 @@
       the user logs in. This might be easier for unexperienced users. How this
       is done depends on your desktop environment.</para>
 
-      <para>Generally you can edit ~/.xinitrc and add display=:0.1
-      /usr/bin/lyricue_server &amp; to just above where your desktop is loaded
-      (generally just above the last line) and then lyricue_server will
-      automatically run on the second screen (for when you are using xinerama)
-      when you login.</para>
+      <para>Generally you can edit ~/.xinitrc and add <screen>display=:0.1 /usr/bin/lyricue_server &amp;</screen>
+      to just above where your desktop is loaded (generally just above the
+      last line) and then lyricue_server will automatically run on the second
+      screen (for when you are using xinerama) when you login.</para>
     </section>
 
     <section id="keys">
@@ -1118,7 +1118,7 @@ gconftool-2 --type string --set /apps/metacity/keybinding_commands/command_5 "ly
 
       <para>There are a few restrictions on this though.</para>
 
-      <orderedlist>
+      <itemizedlist>
         <listitem>
           <para>The lyricue package must be installed on both machines</para>
         </listitem>
@@ -1134,24 +1134,22 @@ gconftool-2 --type string --set /apps/metacity/keybinding_commands/command_5 "ly
         </listitem>
 
         <listitem>
-          <para>Both machines must either share the ~/.local/share/lyricue
-          directory, or you will need to manually copy the config2 file from
-          the interface computer to the server whenever you make configuration
-          changes.</para>
-        </listitem>
-
-        <listitem>
           <para>MySQL must be configured to listen on the network interface,
           not just locally</para>
         </listitem>
-      </orderedlist>
+      </itemizedlist>
 
       <para>The first thing to do is ensure that MySQL is setup for remote
       access as by default it is normally only setup for local access. MySQL
       should be setup/installed on the server (hostB).To do this check your
       /etc/mysql/my.cnf and ensure you don't have either of the
-      following:bind-address = 127.0.0.1skip-networkingIf either of these
-      exist, then remove them and restart the mysql server.</para>
+      following:</para>
+
+      <para><screen>bind-address = 127.0.0.1
+skip-networking</screen></para>
+
+      <para>If either of these exist, then remove them and restart the mysql
+      server.</para>
 
       <para>The next thing to do is to ensure that both machines can access
       the same image/background directories.To make this easier you should use
@@ -1179,7 +1177,7 @@ gconftool-2 --type string --set /apps/metacity/keybinding_commands/command_5 "ly
       lyricue_server use '-r' to say where the mysql server is running.</para>
 
       <para>For example run lyricue -s hostB -r hostB on the interface
-      computer and jsut lyricue_server on the server computer.</para>
+      computer and just lyricue_server on the server computer.</para>
     </section>
   </chapter>
 </book>
