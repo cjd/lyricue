@@ -82,7 +82,7 @@ This program is released under the GPL (http://www.gnu.org/copyleft/gpl.html)
 
 =head1 VERSION
 
-Lyric_interface Version 3.0.26-2
+Lyric_interface Version ##VERSION##
 
 =cut
 
@@ -165,7 +165,7 @@ if ($^O eq 'MSWin32') {
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}     = "3.0.26-2";
+$globals->{'version'}     = "##VERSION##";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
 $globals->{'configfile'}  = $globals->{'basedir'} . "config2";
@@ -5972,8 +5972,8 @@ sub load_config {
     debug("Loading Preferences");
     my $bibleCount = 0;
     my $appCount   = 0;
-    $conf->{'App'}[$appCount++] = "Load Lyricue Display;lyricue_display";
-    $conf->{'App'}[$appCount++] = "Close Lyricue Display;lyricue_remote close";
+    $conf->{'App'}[$appCount++] = gettext("Load Lyricue Display").";lyricue_display";
+    $conf->{'App'}[$appCount++] = gettext("Close Lyricue Display").";lyricue_remote close";
     open(CONFIG, $globals->{'configfile'})
       || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
         $! . "\nSQL: " . $query);
@@ -5995,10 +5995,13 @@ sub load_config {
         }
         $line[1] =~ s/^ *//g;
         if ($line[0] eq "App") {
-            if (($line[1] =~ /^Load Lyricue Display;/)
-               || ($line[1] =~ /^Close Lyricue Display;/)) {
-                # Skip
-            } else {
+            my $found = FALSE;
+            foreach my $app (gettext("Load Lyricue Display"), gettext("Close Lyricue Display"), "Load Lyricue Display", "Close Lyricue Display") {
+                if ($line[1] =~ /^$app;/) {
+                    $found=TRUE;
+                }
+            }
+            if (!$found) {
                 $conf->{'App'}[$appCount++] = $line[1];
             }
         } else {

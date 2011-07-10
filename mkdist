@@ -8,7 +8,8 @@ VERSION=`head -1 ${CHANGELOG} |sed -e 's/^.*(\(.*\)).*$/\1/g'|sed -e 's/^.://g'`
 LC_ALL=C;export LC_ALL
 
 CONV="s/##VERSION##/${VERSION}/g"
-sed --in-place -e $CONV src/lyricue
+sed --in-place -e $CONV src/lyricue 
+sed --in-place -e $CONV help/lyricue.xml
 
 for DIST in maverick lucid natty
 do echo Building for ${DIST}
@@ -56,6 +57,7 @@ done
 popd
 
 bzr revert src/lyricue
+bzr revert help/lyricue.xml
 rm src/lyricue.~*~
 rm debian/changelog.~*~
 
