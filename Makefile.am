@@ -1,7 +1,6 @@
 ## Process this file with automake to produce Makefile.in
-## Created by Anjuta
 
-SUBDIRS = src po data 
+SUBDIRS = src po data help
 
 lyricuedocdir = $(docdir)
 

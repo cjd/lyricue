@@ -8089,19 +8089,12 @@ http://www.lyricue.org/bibles</property>
                     <property name="can_focus">False</property>
                     <child>
                       <widget class="GtkImageMenuItem" id="onlinehelp">
-                        <property name="label" translatable="yes">Online Documentation</property>
+                        <property name="label">gtk-help</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>
-                        <property name="use_stock">False</property>
+                        <property name="use_stock">True</property>
                         <signal name="activate" handler="online_help"/>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="image39">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="stock">gtk-help</property>
-                          </widget>
-                        </child>
                       </widget>
                     </child>
                     <child>

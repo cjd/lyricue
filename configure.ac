@@ -45,4 +45,5 @@ Makefile
 src/Makefile
 po/Makefile.in
 data/Makefile
+help/Makefile
 ])
