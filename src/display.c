@@ -598,12 +598,24 @@ change_backdrop (const gchar * id, gboolean loop)
         }
         clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
         video_loop = loop;
+        #if CLUTTER_GST_MAJOR_VERSION == 1
+            GstElement *playbin = clutter_gst_video_texture_get_pipeline(CLUTTER_GST_VIDEO_TEXTURE(background));
+        #else
+            GstElement *playbin = clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background));
+        #endif
+
+        GstElement *resindvd = gst_bin_get_by_name(GST_BIN(playbin), "dvdsrc");
+        int title = atoi(line[1]+6);
+        gst_element_seek_simple(resindvd, gst_format_get_by_nick("title"), GST_SEEK_FLAG_NONE, title);
+        l_debug("Playing DVD title:%d", title);
+
         if (windowid == 0) {
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
         } else {
-            clutter_media_set_audio_volume(CLUTTER_MEDIA(background),0);
+            g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
             bg_is_video = g_timeout_add_seconds(3, (GSourceFunc) stop_media, NULL);
         }
+        
     } else if (g_strcmp0 (line[0], "uri") == 0) {
         l_debug("playing direct uri %s", line[1]);
         background = clutter_gst_video_texture_new ();
@@ -623,10 +635,16 @@ change_backdrop (const gchar * id, gboolean loop)
         }
         clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
         video_loop = loop;
+        #if CLUTTER_GST_MAJOR_VERSION == 1
+            GstElement *playbin = clutter_gst_video_texture_get_pipeline(CLUTTER_GST_VIDEO_TEXTURE(background));
+        #else
+            GstElement *playbin = clutter_gst_video_texture_get_playbin(CLUTTER_GST_VIDEO_TEXTURE(background));
+        #endif
+
         if (windowid == 0) {
             bg_is_video = g_timeout_add_seconds(1, (GSourceFunc) update_tracker, NULL);
         } else {
-            clutter_media_set_audio_volume(CLUTTER_MEDIA(background),0);
+            g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
             bg_is_video = g_timeout_add_seconds(3, (GSourceFunc) stop_media, NULL);
         }
 
