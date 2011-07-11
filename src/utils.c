@@ -81,6 +81,9 @@ gchar * parse_special (const gchar * text)
     gchar *tmp = NULL;
     gchar *tmp2 = NULL;
     gchar *tmp3 = NULL;
+    if (text == NULL) {
+        return NULL;
+    }
     if (re_break == NULL) {
         re_break = g_regex_new("#BREAK#", G_REGEX_MULTILINE, 0, NULL);
     }
