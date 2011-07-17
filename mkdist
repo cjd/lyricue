@@ -11,7 +11,7 @@ CONV="s/##VERSION##/${VERSION}/g"
 sed --in-place -e $CONV src/lyricue 
 sed --in-place -e $CONV help/lyricue.xml
 
-for DIST in maverick lucid natty
+for DIST in maverick lucid natty oneiric
 do echo Building for ${DIST}
 
 if [ "$DIST" != "maverick" ]
@@ -28,7 +28,6 @@ bzr-buildpackage -S
 bzr revert debian/changelog
 done
 
-# Put things back to how they were
 echo Update archive
 VER=`echo $VERSION | sed -e 's/-[0-9]//g'`
 cp ../lyricue_${VER}.orig.tar.gz /var/www/local/lyricue.org/archive/lyricue_${VER}.tar.gz
@@ -56,6 +55,11 @@ done
 
 popd
 
+echo Rebuild documentation
+cp help/lyricue.xml /var/www/local/lyricue.org/documentation
+cd /var/www/local/lyricue.org/documentation
+./build_wp.sh
+# Put things back to how they were
 bzr revert src/lyricue
 bzr revert help/lyricue.xml
 rm src/lyricue.~*~
