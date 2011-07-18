@@ -667,7 +667,7 @@ change_backdrop (const gchar * id, gboolean loop)
         foottext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
         foottext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
     }
-    do_query(mediaDb,"SELECT textcolour, shadowcolour FROM media WHERE id=\"%s\" OR CONCAT(\"db;\", id)=\"%s\"", current_bg, current_bg);
+    do_query(mediaDb,"SELECT textcolour, shadowcolour FROM media WHERE id=\"%s\" OR (format=\"file\" AND category=\"%s\"", current_bg, line[1]);
     MYSQL_RES *result;
     MYSQL_ROW row;
     result = mysql_store_result (mediaDb);

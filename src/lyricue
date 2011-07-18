@@ -4167,10 +4167,15 @@ sub change_preview {
             debug("sub change_preview: create_pixbuf");
             my $scaled = create_pixbuf($data, 480, 360);
             if ($scaled) {
-                my $row;
-                my $query =
-                  "SELECT textcolour, shadowcolour FROM media WHERE id=\"" 
-                  . $id . "\"";
+                my $row, $query;
+                if ($type eq "db") {
+                    $query =
+                      "SELECT textcolour, shadowcolour FROM media WHERE id=\"" 
+                      . $id . "\"";
+                } else {
+                    $query =
+                      "SELECT textcolour, shadowcolour FROM media WHERE format=\"file\" AND category=\"" . $id . "\"";
+                }
                 qdebug($query);
                 my $sth = $mediaDbh->prepare($query)
                   || display_fatal($errorcodes->{'sqlprepare'},
@@ -8950,8 +8955,24 @@ sub create_pixbuf {
                 $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_scale($id, $width,
                     $height, TRUE);
             };
+            # Try thumbnailing with video thumbnailer
+            my $thumbfile = "/tmp/lyricue-tmpthumb.png";
+            if (-e $thumbfile) {
+                unlink $thumbfile;
+            }
             if ($@) {
-                return;
+                my $command =
+                        $globals->{'video-thumbnailer'}
+                      . " --time=2 \""
+                      . $id . "\" \""
+                      . $thumbfile . "\"";
+                system($command);
+                if (-e $thumbfile) {
+                    $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($thumbfile);
+                    $pixbuf = $pixbuf->scale_simple($width, $height, 'bilinear');
+                } else {
+                    return undef;
+                }
             } else {
                 return $pixbuf;
             }
@@ -9647,7 +9668,7 @@ sub change_colour_media {
         }
         $id = substr $id, -100;
 
-        if (($type eq "db") || ($type eq "file")) {
+        if ($type eq "db") {
             debug("change_colour_media: $fontcolour, $shadowcolour, $id");
             my $query =
 "UPDATE media SET textcolour=\"$fontcolour\", shadowcolour=\"$shadowcolour\" WHERE id=$id";
@@ -9656,6 +9677,24 @@ sub change_colour_media {
               || display_fatal($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             my $rv = $sth->execute
+              || display_fatal($errorcodes->{'sqlexecute'},
+                $! . "\nSQL: " . $query);
+        } elsif ($type eq "dir") {
+            debug("change_colour_media: $fontcolour, $shadowcolour, $id");
+            my $query = "DELETE FROM media WHERE format=\"file\" AND category=\"".$id."\"";
+            qdebug($query);
+            my $sth = $mediaDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'},
+                $! . "\nSQL: " . $query);
+            my $rv = $sth->execute
+              || display_fatal($errorcodes->{'sqlexecute'},
+                $! . "\nSQL: " . $query);
+            $query = "INSERT INTO media (format, category, textcolour, shadowcolour) VALUES (\"file\", \"$id\", \"$fontcolour\", \"$shadowcolour\")";
+            qdebug($query);
+            $sth = $mediaDbh->prepare($query)
+              || display_fatal($errorcodes->{'sqlprepare'},
+                $! . "\nSQL: " . $query);
+            $rv = $sth->execute
               || display_fatal($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
         }
