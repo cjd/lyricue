@@ -4167,7 +4167,7 @@ sub change_preview {
             debug("sub change_preview: create_pixbuf");
             my $scaled = create_pixbuf($data, 480, 360);
             if ($scaled) {
-                my $row, $query;
+                my ($row, $query);
                 if ($type eq "db") {
                     $query =
                       "SELECT textcolour, shadowcolour FROM media WHERE id=\"" 
