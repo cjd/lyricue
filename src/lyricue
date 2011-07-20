@@ -4984,6 +4984,7 @@ sub do_change_bible {
         $globals->{'usesword'} = TRUE;
     }
     update_display("change_to_db", $bibledb, $type);
+    preview_display("change_to_db", $bibledb, $type, "MINI");
 }
 
 #***

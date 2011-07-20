@@ -57,8 +57,9 @@ popd
 
 echo Rebuild documentation
 cp help/lyricue.xml /var/www/local/lyricue.org/documentation
-cd /var/www/local/lyricue.org/documentation
+pushd /var/www/local/lyricue.org/documentation
 ./build_wp.sh
+popd
 # Put things back to how they were
 bzr revert src/lyricue
 bzr revert help/lyricue.xml
