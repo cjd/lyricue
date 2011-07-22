@@ -420,6 +420,7 @@ do_display (const char *options)
         unblank();
         MYSQL_ROW row;
         MYSQL_RES *result;
+        gboolean bg_changed = FALSE;
         do_query (lyricDb, "SELECT playlist FROM playlist WHERE playorder=%d",
                   current_item);
         result = mysql_store_result (lyricDb);
@@ -439,7 +440,9 @@ do_display (const char *options)
             set_maintext ("", 0, FALSE);
             set_headtext ("", 0, FALSE);
             set_foottext ("", 0, FALSE);
-
+            if (g_strcmp0(line[1], "nobg") == 0) {
+                bg_changed=TRUE;
+            }
         } else if (g_strcmp0 (command, "next_page") == 0) {
             do_query (lyricDb,
                       "SELECT MIN(playorder) FROM playlist WHERE playlist=%d AND playorder > %d ORDER BY playorder",
@@ -596,7 +599,6 @@ do_display (const char *options)
             gboolean wrap = TRUE;
             int transition = atoi (row[2]);
 
-            gboolean bg_changed = FALSE;
             if (g_strcmp0 (type, "back") == 0) {
                 default_bg = g_strdup(data);
                 change_backdrop (default_bg, TRUE);

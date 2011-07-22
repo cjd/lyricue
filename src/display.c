@@ -36,6 +36,12 @@ gchar *headtext_fgcol = "white";
 gchar *headtext_bgcol = "black";
 gchar *foottext_fgcol = "white";
 gchar *foottext_bgcol = "black";
+gchar *maintext_fgcol_old = "white";
+gchar *maintext_bgcol_old = "black";
+gchar *headtext_fgcol_old = "white";
+gchar *headtext_bgcol_old = "black";
+gchar *foottext_fgcol_old = "white";
+gchar *foottext_bgcol_old = "black";
 
 gchar *maintext_font = "";
 gchar *headtext_font = "";
@@ -226,7 +232,7 @@ void
 set_maintext (const gchar * text, int transition, gboolean wrap)
 {
     l_debug("Setting maintext");
-    if (g_strcmp0(g_object_get_data(G_OBJECT(maintext), "text"), text) == 0) {
+    if (!G_IS_OBJECT(maintext) || g_strcmp0(g_object_get_data(G_OBJECT(maintext), "text"), text) == 0) {
         l_debug("No change to text - returning");
         return;
     }
@@ -277,7 +283,7 @@ set_maintext (const gchar * text, int transition, gboolean wrap)
 void
 set_headtext (const gchar * text, int transition, gboolean wrap)
 {
-    if (g_strcmp0(g_object_get_data(G_OBJECT(headtext), "text"), text) == 0) {
+    if (!G_IS_OBJECT(headtext) || g_strcmp0(g_object_get_data(G_OBJECT(headtext), "text"), text) == 0) {
         return;
     }
     g_object_set_data(G_OBJECT(headtext_old), "text", (gpointer) text);
@@ -296,7 +302,7 @@ set_headtext (const gchar * text, int transition, gboolean wrap)
 void
 set_foottext (const gchar * text, int transition, gboolean wrap)
 {
-    if (g_strcmp0(g_object_get_data(G_OBJECT(foottext), "text"), text) == 0) {
+    if (!G_IS_OBJECT(foottext) || g_strcmp0(g_object_get_data(G_OBJECT(foottext), "text"), text) == 0) {
         return;
     }
     g_object_set_data(G_OBJECT(foottext_old), "text", (gpointer) text);
@@ -658,6 +664,13 @@ change_backdrop (const gchar * id, gboolean loop)
         clutter_actor_lower_bottom (background);
     }
 
+    maintext_fgcol_old = g_strdup(maintext_fgcol);
+    maintext_bgcol_old = g_strdup(maintext_bgcol);
+    headtext_fgcol_old = g_strdup(headtext_fgcol);
+    headtext_bgcol_old = g_strdup(headtext_bgcol);
+    foottext_fgcol_old = g_strdup(foottext_fgcol);
+    foottext_bgcol_old = g_strdup(foottext_bgcol);
+
     // Set text colours
     if ((g_strcmp0(maintext_fgcol,(gchar *) g_hash_table_lookup (config, "Colour")) != 0) || (g_strcmp0(maintext_bgcol, (gchar *) g_hash_table_lookup (config, "ShadowColour")) != 0)) {
         maintext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
@@ -667,7 +680,7 @@ change_backdrop (const gchar * id, gboolean loop)
         foottext_fgcol = (gchar *) g_hash_table_lookup (config, "Colour");
         foottext_bgcol = (gchar *) g_hash_table_lookup (config, "ShadowColour");
     }
-    do_query(mediaDb,"SELECT textcolour, shadowcolour FROM media WHERE id=\"%s\" OR (format=\"file\" AND category=\"%s\")", current_bg, line[1]);
+    do_query(mediaDb,"SELECT textcolour, shadowcolour FROM media WHERE CONCAT(\"db;\",id)=\"%s\" OR (format=\"file\" AND category=\"%s\")", current_bg, line[1]);
     MYSQL_RES *result;
     MYSQL_ROW row;
     result = mysql_store_result (mediaDb);
@@ -687,7 +700,9 @@ change_backdrop (const gchar * id, gboolean loop)
         }
     }
     
-
+    if (g_strcmp0(maintext_bgcol, maintext_bgcol_old) != 0) {
+        do_display("current:nobg");
+    }
     // Fade out old background
     if (CLUTTER_IS_ACTOR(background_old)) {
     clutter_actor_animate(background_old, CLUTTER_LINEAR,500,
