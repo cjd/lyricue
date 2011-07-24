@@ -5142,7 +5142,7 @@ sub do_adv_search {
               ->append_column($column);
         }
         my $query =
-"SELECT id,title,songnum,book,artist,count(id) as count FROM lyricMain,page WHERE lyricMain.id=page.songid AND page.lyrics LIKE \"%"
+"SELECT id,title,songnum,book,artist,count(id) as count FROM lyricMain,page WHERE lyricMain.id=page.songid AND page.lyrics LIKE (\"%"
           . $search_text
           . "%\" OR title LIKE \"%"
           . $search_text
@@ -5150,7 +5150,7 @@ sub do_adv_search {
           . $search_text
           . "%\" OR keywords LIKE \"%"
           . $search_text
-          . "%\" GROUP BY id ORDER BY count DESC";
+          . "%\") GROUP BY id ORDER BY count DESC";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
