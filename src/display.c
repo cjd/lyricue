@@ -434,13 +434,13 @@ change_backdrop (const gchar * id, gboolean loop)
         return;
     }
     //reset_timer(video_timer);
-    gchar **line = g_strsplit (parse_special(id), ";", 2);
+    gchar **line = g_strsplit (id, ";", 2);
     if ((line[1] != NULL) && (strlen(line[1]) == 0)) {
         return;
     }
 
     g_free(current_bg);
-    current_bg = parse_special(id);
+    current_bg = g_strdup(id);
     destroy_actor(background_old);
     background_old = background;
     background = NULL;
@@ -450,7 +450,7 @@ change_backdrop (const gchar * id, gboolean loop)
         line[0] = "dvd";
     } else if (strlen(line[0]) > 5) {
         line[0] = "dir";
-        line[1] = parse_special(id);
+        line[1] = g_strdup(id);
     } else if (line[1] == NULL) {
         line[1] = line[0];
         line[0] = "dir";
@@ -523,7 +523,7 @@ change_backdrop (const gchar * id, gboolean loop)
                                              G_FILE_QUERY_INFO_NONE, NULL,
                                              NULL);
         if (!info) {
-            l_debug ("Backdrop not loadable");
+            l_debug ("Backdrop not loadable:%s",line[1]);
             background = background_old;
             background_old = NULL;
             return;
