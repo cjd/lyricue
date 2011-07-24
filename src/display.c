@@ -448,6 +448,9 @@ change_backdrop (const gchar * id, gboolean loop)
     if (g_ascii_strncasecmp (line[0], "dvd", 3) == 0) {
         line[1] = line[0];
         line[0] = "dvd";
+    } else if (strlen(line[0]) > 5) {
+        line[0] = "dir";
+        line[1] = parse_special(id);
     } else if (line[1] == NULL) {
         line[1] = line[0];
         line[0] = "dir";
