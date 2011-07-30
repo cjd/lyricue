@@ -9154,6 +9154,7 @@ sub select_category {
     my @row;
     my $model = Gtk2::ListStore->new('Glib::String');
     $choosexml->get_widget('comboSelectCategory')->set_model($model);
+    $choosexml->get_widget('comboSelectCategory')->set_text_column(0);
 
     while (@row = $sth->fetchrow_array()) {
         $choosexml->get_widget('comboSelectCategory')->append_text($row[0]);
@@ -9568,6 +9569,7 @@ sub media_delete {
             if ($confirm eq "ok") {
 
                 foreach (@id) {
+                    $_ =~ s/^db;//g;
                     my $query = "DELETE FROM media WHERE id=" . $_;
                     qdebug($query);
                     my $sth = $mediaDbh->prepare($query)
