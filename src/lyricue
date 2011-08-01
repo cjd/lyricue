@@ -4202,6 +4202,8 @@ sub change_preview {
                 #      ->set_sensitive(FALSE);
                 #    $widgets->{'image'}->get_widget('hboxImageColour')->hide;
                 #}
+                my $fg_span = "";
+                my $bg_span = "";
                 if (   ($row->{'textcolour'} ne "")
                     && ($row->{'textcolour'} ne "NULL")
                     && ($row->{'textcolour'} ne "Default"))
@@ -4211,11 +4213,13 @@ sub change_preview {
                     $widgets->{'image'}->get_widget('colorbuttonFontColour')
                       ->set_color(
                         Gtk2::Gdk::Color->parse($row->{'textcolour'}));
+                    $fg_span="<span color=\"".$row->{'textcolour'}."\">";
                 } else {
                     $widgets->{'image'}->get_widget('entryImageFontColour')
                       ->set_text("Default");
                     $widgets->{'image'}->get_widget('colorbuttonFontColour')
                       ->set_color(Gtk2::Gdk::Color->parse($config->{'Colour'}));
+                    $fg_span="<span color=\"".$config->{'Colour'}."\">";
                 }
                 if (   ($row->{'shadowcolour'} ne "")
                     && ($row->{'shadowcolour'} ne "NULL")
@@ -4226,15 +4230,29 @@ sub change_preview {
                     $widgets->{'image'}->get_widget('colorbuttonShadowColour')
                       ->set_color(
                         Gtk2::Gdk::Color->parse($row->{'shadowcolour'}));
+                    $bg_span="<span color=\"".$row->{'shadowcolour'}."\">";
                 } else {
                     $widgets->{'image'}->get_widget('entryImageShadowColour')
                       ->set_text("Default");
                     $widgets->{'image'}->get_widget('colorbuttonShadowColour')
                       ->set_color(
                         Gtk2::Gdk::Color->parse($config->{'ShadowColour'}));
+                    $bg_span="<span color=\"".$config->{'ShadowColour'}."\">";
                 }
+                # Add text overlay to $scaled 
+                my $pixmap = $scaled->render_pixmap_and_mask(127);
+                my $pango_layout = $widgets->{'image'}->get_widget('imageImage')->create_pango_layout("");
+                $pango_layout->set_font_description( Gtk2::Pango::FontDescription->from_string($config->{'Main'}));
+                my $gc = Gtk2::Gdk::GC->new($pixmap);
+                $pango_layout->set_markup($bg_span.fromutf(gettext("Song Contents"))."</span>");
+                my ($text_w, $text_h) = $pango_layout->get_pixel_size();
+                my $text_x = (480-$text_w)/2;
+                my $text_y = (360-$text_h)/2;
+                $pixmap->draw_layout($gc, $text_x+2, $text_y+2, $pango_layout);
+                $pango_layout->set_markup($fg_span.fromutf(gettext("Song Contents"))."</span>");
+                $pixmap->draw_layout($gc, $text_x, $text_y, $pango_layout);
                 $widgets->{'image'}->get_widget('imageImage')
-                  ->set_from_pixbuf($scaled);
+                  ->set_from_pixmap($pixmap,undef);
                 $widgets->{'image'}->get_widget('imageImage')->{user_data} =
                   $data;
             }
@@ -6460,6 +6478,7 @@ sub do_add_file {
             do_pending();
             my $target = $file;
             $target =~ s/^.*\///g;
+            $target =~ s/'//g; # fix handling of ' in filename
 
             # Add 'ppt' to end of 'pptx' files so unoconv will handle them
             if ($target =~ /pptx$/ ) {
@@ -6525,9 +6544,10 @@ sub do_add_file {
             $dialog->show_all();
             do_pending();
             $target =~ s/^.*\///g;
+            $target =~ s/'//g; # fix handling of ' in filename
             my $tmpdir = tempdir("lyricue-XXXX", DIR => "/var/tmp", CLEANUP => 0);
             my $command =
-              $globals->{'convert'} . " " . $file . " " . $tmpdir . "/temp.jpg";
+              $globals->{'convert'} . " \"" . $file . "\" " . $tmpdir . "/temp.jpg";
             debug($command);
             system($command);
 
@@ -9702,6 +9722,7 @@ sub change_colour_media {
                 $! . "\nSQL: " . $query);
         }
     }
+    change_preview();
 }
 
 #***
