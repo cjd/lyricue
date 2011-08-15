@@ -725,8 +725,10 @@ update_tracker ()
     // Only do if this is main server
     if (server_port == SERVER_PORT) {
         GString *title = g_string_new (NULL);
-        if (blanked_state != BLANK_NONE) {
-            g_string_assign (title, "blank");
+        if (blanked_state == BLANK_BG) {
+            g_string_assign (title, "blank_bg");
+        } else if (blanked_state == BLANK_TEXT) {
+            g_string_assign (title, "blank_text");
         }
         if (bg_is_video) {
             g_string_append_printf (title, "%.0f;%.0f;%d",

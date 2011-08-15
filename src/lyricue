@@ -3193,6 +3193,12 @@ sub next_song {
 # SOURCE
 #
 sub blank_page {
+    my ($widget) = @_;
+    if ($globals->{'ignore_blank'}) {
+        debug("ignore blank");
+        $globals->{'ignore_blank'} = FALSE;
+        return;
+    }
     debug("Blank page clicked");
     reset_timer($globals->{'timer'});
     update_display("blank", $config->{'BGImage'}, "");
@@ -3214,6 +3220,12 @@ sub blank_page {
 # SOURCE
 #
 sub clear_text {
+    my ($widget) = @_;
+    if ($globals->{'ignore_clear'}) {
+        $globals->{'ignore_clear'} = FALSE;
+        debug("ignore clear");
+        return;
+    }
     debug("Clear text clicked");
     reset_timer($globals->{'timer'});
     update_display("blank", "", "");
@@ -4810,8 +4822,13 @@ sub change_pref_xinerama {
 #
 sub execute_app {
     my ($widget, $app) = @_;
-    my $command = $config->{'App'}[$app];
-    $command =~ s/^.*?;//g;
+    my $command = "";
+    if ($widget eq "") {
+        $command = $app;
+    } else {
+        $command = $config->{'App'}[$app];
+        $command =~ s/^.*?;//g;
+    }
     debug("Executing app: " . $command);
     if ($config->{'Xinerama'}) {
         if ($command =~ /;$/) {
@@ -8907,11 +8924,12 @@ sub quick_show {
 # SOURCE
 #
 sub quick_osd {
+    my ($widget) = @_;
     debug("Update OSD");
+debug($widget->get_name);
     my $songtext = "";
-    if ($widgets->{'main'}->get_widget('buttonQuickOSD')->get_active()) {
-        my $buffer = $widgets->{'main'}->get_widget('textQuick')->get_buffer();
-        $songtext = $buffer->get_text($buffer->get_bounds, FALSE);
+    if (($widgets->{'main'}->get_widget('buttonQuickOSD')->get_active()) || ($widget->get_name eq "entryMainOSD")) {
+        $songtext = $widgets->{'main'}->get_widget('entryMainOSD')->get_text;
         $songtext =~ s/\n/#BREAK#/g;
         $songtext =~ s/:/#SEMI#/g;
     }
@@ -11740,12 +11758,33 @@ sub check_tracker {
                         }
                     }
                 }
-            }
+            FALSE}
         }
     }
     if (defined($row[1]) && $row[1] ne "") {
-        if ($row[1] =~ /^blank/) {
-            $row[1] =~ s/^blank//g;
+        my $blank_text = $widgets->{'main'}->get_widget('buttonMainClear')->get_active();
+        my $blank_bg = $widgets->{'main'}->get_widget('buttonMainBlank')->get_active();
+        my $blank_text_new = $blank_text;
+        my $blank_bg_new = $blank_bg;
+        if ($row[1] =~ /^blank_bg/) {
+            $row[1] =~ s/^blank_bg//g;
+            $blank_bg_new = TRUE;
+            $blank_text_new = FALSE;
+        } elsif ($row[1] =~ /^blank_text/) {
+            $row[1] =~ s/^blank_text//g;
+            $blank_bg_new = FALSE;
+            $blank_text_new = TRUE;
+        } else {
+            $blank_bg_new = FALSE;
+            $blank_text_new = FALSE;
+        }
+        if ($blank_bg != $blank_bg_new) {
+            $globals->{'ignore_blank'} = TRUE;
+            $widgets->{'main'}->get_widget('buttonMainBlank')->set_active($blank_bg_new);
+        }
+        if ($blank_text != $blank_text_new) {
+            $globals->{'ignore_clear'} = TRUE;
+            $widgets->{'main'}->get_widget('buttonMainClear')->set_active($blank_text_new);
         }
         my ($position, $duration, $status) = split(/;/, $row[1], 3);
         my $hscale = $widgets->{'main'}->get_widget('hscaleMediaPosition');
@@ -13573,4 +13612,9 @@ sub change_fade {
     debug("Changing fade amount");
     my ($widget) = @_;
     update_display("fade",$widget->get_value());
+}
+
+sub start_display {
+    debug("Start lyricue display");
+    execute_app("",$globals->{'lyricue_server'});
 }
