@@ -9000,6 +9000,7 @@ sub create_pixbuf {
                 unlink $thumbfile;
             }
             if ($@) {
+                $id =~  s/\/*/\//g;
                 my $command =
                         $globals->{'video-thumbnailer'}
                       . " --time=2 \""
@@ -9017,6 +9018,7 @@ sub create_pixbuf {
             }
         }
         my $mtime = (stat($id))[9];
+        $id =~  s/\/+/\//g;
         my $filename =
           $globals->{'thumbnail_factory'}->lookup("file://" . $id, $mtime);
         if (!defined $filename) {
