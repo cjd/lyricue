@@ -5177,7 +5177,7 @@ sub do_adv_search {
               ->append_column($column);
         }
         my $query =
-"SELECT id,title,songnum,book,artist,count(id) as count FROM lyricMain,page WHERE lyricMain.id=page.songid AND page.lyrics LIKE (\"%"
+"SELECT id,title,songnum,book,artist,count(id) as count FROM lyricMain,page WHERE lyricMain.id=page.songid AND (page.lyrics LIKE \"%"
           . $search_text
           . "%\" OR title LIKE \"%"
           . $search_text

@@ -877,7 +877,7 @@ void
 loop_video (ClutterActor * video)
 {
     if (video_loop) {
-        clutter_media_set_progress (CLUTTER_MEDIA (video), 0);
+        clutter_media_set_progress (CLUTTER_MEDIA (video), 0.0);
         clutter_media_set_playing (CLUTTER_MEDIA (video), 1);
     } else {
         if (bg_is_video) g_source_remove(bg_is_video);
