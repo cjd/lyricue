@@ -1389,12 +1389,65 @@ sub delete_song {
     debug("Delete song selected");
     my $selection =
       $widgets->{'main'}->get_widget('treeAvailable')->get_selection;
-    my $model = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
+    my $modelTree = $widgets->{'main'}->get_widget('treeAvailable')->get_model;
     my @sel   = $selection->get_selected_rows;
+    my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogSelectSongs', 'lyricue');
+    $deletexml->signal_autoconnect_from_package('');
+    $deletexml->get_widget('labelSelectSongs')->set_text(gettext("Are you sure you wish to delete "));
+    my $model = Gtk2::ListStore->new(
+        'Glib::Boolean', 'Glib::String', 'Glib::String', 'Glib::String',
+        'Glib::Uint',    'Glib::Uint'
+    );
+    my $renderer = Gtk2::CellRendererToggle->new;
+    $renderer->signal_connect(
+        toggled => sub {
+            my ($cell, $path_str, $model) = @_;
+            my $path   = Gtk2::TreePath->new_from_string($path_str);
+            my $column = 0;
+            my $iter   = $model->get_iter($path);
+            my ($toggle_item) = $model->get($iter, $column);
+            $toggle_item ^= 1;
+            debug('setting ' . $path_str . ' to ' . $toggle_item);
+
+            # set new value
+            $model->set($iter, $column, $toggle_item);
+        },
+        $model
+    );
+    my $column1 =
+      Gtk2::TreeViewColumn->new_with_attributes("", $renderer, active => 0);
+    my $column2 =
+      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Title")),
+        Gtk2::CellRendererText->new, text => 1);
+    my $column3 =
+      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Artist")),
+        Gtk2::CellRendererText->new, text => 2);
+    my $column4 =
+      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Book")),
+        Gtk2::CellRendererText->new, text => 3);
+    my $column5 =
+      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Song Number")),
+        Gtk2::CellRendererText->new, text => 4);
+    $column1->set_resizable(TRUE);
+    $column2->set_resizable(TRUE);
+    $column3->set_resizable(TRUE);
+    $column4->set_resizable(TRUE);
+    $column5->set_resizable(TRUE);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column1);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column2);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column3);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column4);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')
+      ->append_column($column5);
     foreach my $path (@sel) {
-        my $iter = $model->get_iter($path);
+        my $iter = $modelTree->get_iter($path);
         my $songid = $model->get($iter, 3);
-        if (!($model->get($iter, 1) eq $config->{'SpecialSong'})) {
+        if (!($modelTree->get($iter, 1) eq $config->{'SpecialSong'})) {
             $query = "SELECT title,songnum,book,artist FROM lyricMain WHERE id="
               . $songid;
             qdebug($query);
@@ -1405,29 +1458,29 @@ sub delete_song {
               || display_fatal($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             $row = $sth->fetchrow_hashref();
-            my $labelText =
-              fromutf(gettext("Are you sure you wish to delete "))
-              . $row->{'title'} . "\n";
-
-            if ($row->{'book'} ne "") {
-                $labelText .=
-                  fromutf(gettext("from the book \""))
-                  . $row->{'book'} . "\"\n";
-            }
-            $labelText .=
-              fromutf(gettext("which was written by \""))
-              . $row->{'artist'} . "\"";
-            my $deletexml = Gtk2::GladeXML->new($globals->{'gladefile'},
-                'dialogConfirm', 'lyricue');
-            $deletexml->signal_autoconnect_from_package('');
-            $deletexml->get_widget('labelDelete')->set_text($labelText);
-            my $confirm = $deletexml->get_widget('dialogConfirm')->run();
-            if ($confirm eq "ok") {
-                do_delete_song($songid);
-                close_dialog($deletexml->get_widget('dialogConfirm'));
-            }
+            
         }
+    
+        my $newiter = $model->append;
+        $model->set(
+            $newiter,                         0,
+            TRUE,                          1,
+            $->{'title'},   2,
+            $->{'artist'}, 3,
+            $->{'book'},   4,
+            $->{'songnum'}, 5,
+            $songid
+        );
     }
+    $widgets->{'select_songs'}->get_widget('treeSongImport')->set_model($model);
+    $widgets->{'select_songs'}->get_widget('treeSongImport')->set_headers_clickable(TRUE);
+    my $confirm =
+      $widgets->{'select_songs'}->get_widget('dialogSelectSongs')->run();
+    if ($confirm == 1) {
+        ###$model->foreach(\&do_delete_song);
+        debug("dodelete");
+    }
+    close_dialog($widgets->{'select_songs'}->get_widget('dialogSelectSongs'));
     update_available();
 }
 
@@ -3865,6 +3918,11 @@ sub preview_display {
 
             #tcp/ip socket failure so server must be not running yet!
             debug("Preview not running?");
+            if (defined $widgets->{'preview'}) {
+                $widgets->{'main'}->get_widget('framePreview')->remove($widgets->{'preview'});
+                undef $widgets->{'preview'};
+            }
+            init_preview();
         }
     }
 }
