@@ -1434,19 +1434,19 @@ sub delete_song {
     $column3->set_resizable(TRUE);
     $column4->set_resizable(TRUE);
     $column5->set_resizable(TRUE);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')
+    $deletexml->get_widget('treeSongImport')
       ->append_column($column1);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')
+    $deletexml->get_widget('treeSongImport')
       ->append_column($column2);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')
+    $deletexml->get_widget('treeSongImport')
       ->append_column($column3);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')
+    $deletexml->get_widget('treeSongImport')
       ->append_column($column4);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')
+    $deletexml->get_widget('treeSongImport')
       ->append_column($column5);
     foreach my $path (@sel) {
         my $iter = $modelTree->get_iter($path);
-        my $songid = $model->get($iter, 3);
+        my $songid = $modelTree->get($iter, 3);
         if (!($modelTree->get($iter, 1) eq $config->{'SpecialSong'})) {
             $query = "SELECT title,songnum,book,artist FROM lyricMain WHERE id="
               . $songid;
@@ -1459,28 +1459,26 @@ sub delete_song {
                 $! . "\nSQL: " . $query);
             $row = $sth->fetchrow_hashref();
             
+            my $newiter = $model->append;
+            $model->set(
+                $newiter,
+                0, TRUE,
+                1, $row->{'title'},
+                2, $row->{'artist'},
+                3, $row->{'book'},
+                4, $row->{'songnum'},
+                5, $songid
+            );
         }
-    
-        my $newiter = $model->append;
-        $model->set(
-            $newiter,                         0,
-            TRUE,                          1,
-            $->{'title'},   2,
-            $->{'artist'}, 3,
-            $->{'book'},   4,
-            $->{'songnum'}, 5,
-            $songid
-        );
     }
-    $widgets->{'select_songs'}->get_widget('treeSongImport')->set_model($model);
-    $widgets->{'select_songs'}->get_widget('treeSongImport')->set_headers_clickable(TRUE);
+    $deletexml->get_widget('treeSongImport')->set_model($model);
+    $deletexml->get_widget('treeSongImport')->set_headers_clickable(TRUE);
     my $confirm =
-      $widgets->{'select_songs'}->get_widget('dialogSelectSongs')->run();
+      $deletexml->get_widget('dialogSelectSongs')->run();
     if ($confirm == 1) {
-        ###$model->foreach(\&do_delete_song);
-        debug("dodelete");
+        $model->foreach(\&do_delete_song);
     }
-    close_dialog($widgets->{'select_songs'}->get_widget('dialogSelectSongs'));
+    close_dialog($deletexml->get_widget('dialogSelectSongs'));
     update_available();
 }
 
@@ -1500,9 +1498,13 @@ sub delete_song {
 # SOURCE
 #
 sub do_delete_song {
-    my ($songid) = @_;
+    my ($store, $path, $iter) = @_;
     my ($query, $sth, $rv);
-    debug("do delete song");
+    if ($store->get($iter,0) == FALSE) {
+        return;
+    }
+    my $songid = $store->get($iter,5);
+    debug("do delete song $songid");
 
     start_transaction();
     $query = "DELETE FROM lyricMain WHERE id=" . $songid;
