@@ -1,12 +1,10 @@
 ## Process this file with automake to produce Makefile.in
 
-## Created by Anjuta
-
 AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" $(CLUTTER_CFLAGS) \ 
-	$(GTK_CFLAGS) $(CLUTTERGST_CFLAGS) $(GSTREAMER_CFLAGS)
+	$(GTK_CFLAGS) $(CLUTTERGTK_CFLAGS) $(CLUTTERGST_CFLAGS) $(GSTREAMER_CFLAGS)
 
 AM_CFLAGS =\
 	 -Wall\
@@ -35,6 +33,7 @@ lyricue_display_SOURCES = \
 lyricue_display_LDADD = \
 	$(CLUTTER_LIBS)  \
 	$(GTK_LIBS) \
-	$(CLUTTERGST_LIBS)
+	$(CLUTTERGTK_LIBS) \
+	$(CLUTTERGST_LIBS) \
 	$(GSTREAMER_CFLAGS)
 

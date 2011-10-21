@@ -30,6 +30,9 @@
 #include <math.h>
 #include <unistd.h>
 #include <gtk/gtk.h>
+#if GTK_MAJOR_VERSION == 3
+#include <gtk/gtkx.h>
+#endif
 #include <clutter/clutter.h>
 #include <clutter-gtk/clutter-gtk.h>
 #include <clutter-gst/clutter-gst.h>

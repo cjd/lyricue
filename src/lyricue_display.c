@@ -80,6 +80,9 @@ main (int argc, char *argv[])
         exit (1);
     }
     int ret = db_select ();
+    if (ret) {
+        // Really should handle this ;)
+    }
     load_configuration (lyricDb);
     bible_load ((gchar *) g_hash_table_lookup (config, "DefBible"));
 
