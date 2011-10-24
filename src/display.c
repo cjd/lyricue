@@ -136,8 +136,8 @@ static ShaderSource shaders[]=
 int
 create_main_window (int argc, char *argv[])
 {
+    gtk_clutter_init (&argc, &argv);
     clutter_gst_init (&argc, &argv);
-    gtk_init (&argc, &argv);
     stage_width = atof ((gchar *) g_hash_table_lookup (config, "Width"));
     stage_height = atof ((gchar *) g_hash_table_lookup (config, "Height"));
     if (geometry == NULL) {
@@ -145,6 +145,9 @@ create_main_window (int argc, char *argv[])
     }
     if (windowid == 0) {
         window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+        clutter_widget = gtk_clutter_embed_new ();
+        gtk_container_add(GTK_CONTAINER(window), clutter_widget);
+        gtk_widget_show_all (window);
         if (geometry != NULL && (g_utf8_strlen(geometry,10) > 0)) {
             if (!  gtk_window_parse_geometry(GTK_WINDOW (window),geometry)) {
                 l_debug("Failed to parse geometry '%s'", geometry);
@@ -155,11 +158,10 @@ create_main_window (int argc, char *argv[])
         if (!windowed) gtk_window_fullscreen(GTK_WINDOW (window));
     } else {
         window = gtk_plug_new(windowid);
+        clutter_widget = gtk_clutter_embed_new ();
+        gtk_container_add(GTK_CONTAINER(window), clutter_widget);
+        gtk_widget_show_all (window);
     }
-    /* Create the clutter widget: */
-    clutter_widget = gtk_clutter_embed_new ();
-    gtk_container_add(GTK_CONTAINER(window), clutter_widget);
-    gtk_widget_show_all (window);
 
     stage = gtk_clutter_embed_get_stage (GTK_CLUTTER_EMBED (clutter_widget));
     actors = clutter_group_new();
