@@ -938,6 +938,9 @@ void
 destroy_actor(ClutterActor *actor)
 {
     if (actor != NULL) {
+        if (CLUTTER_IS_MEDIA(actor)) {
+            clutter_media_set_playing(CLUTTER_MEDIA(actor), FALSE);
+        }
         if (CLUTTER_IS_ACTOR(actor)) {
             clutter_actor_destroy(actor);
             actor=NULL;
