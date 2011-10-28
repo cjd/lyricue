@@ -72,3 +72,4 @@ void set_shader_num (ClutterActor *actor, gint new_no);
 gboolean hide_cursor ();
 
 gboolean stop_media ();
+gboolean take_snapshot (const char *);

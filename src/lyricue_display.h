@@ -63,7 +63,7 @@ void do_fade (const char* options);
 void do_blur (const char* options);
 void do_preview (const char* options);
 GString * do_status ();
-void do_snapshot();
+void do_snapshot(const char* options);
 void do_reconfig();
 void do_backdrop(const char* options);
 void unblank();
@@ -74,6 +74,7 @@ void do_loopparent(const char* options);
 void do_get(const char* options);
 void do_display(const char* options);
 void do_osd(const char* options);
+void do_save(const char* options);
 gboolean update_tracker();
 void update_miniview (const char *command);
 

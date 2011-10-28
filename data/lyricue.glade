@@ -6978,6 +6978,21 @@ http://www.lyricue.org/bibles</property>
                         </child>
                       </widget>
                     </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="export_playlist1">
+                        <property name="label" translatable="yes">_Export Playlist as PDF</property>
+                        <property name="visible">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="export_playlist"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="imagep17">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-save</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
                   </widget>
                 </child>
               </widget>

@@ -185,7 +185,7 @@ handle_command (GIOChannel * source, const char *command)
         } else if (g_strcmp0 (line[0], "status") == 0) {
             returnstring = do_status ();
         } else if (g_strcmp0 (line[0], "snapshot") == 0) {
-            do_snapshot ();
+            do_snapshot (line[1]);
         } else if (g_strcmp0 (line[0], "reconfig") == 0) {
             do_reconfig ();
         } else if (g_strcmp0 (line[0], "backdrop") == 0) {
@@ -208,6 +208,8 @@ handle_command (GIOChannel * source, const char *command)
             do_fade (line[1]);
         } else if (g_strcmp0 (line[0], "blur") == 0) {
             do_blur (line[1]);
+        } else if (g_strcmp0 (line[0], "save") == 0) {
+            do_save (line[1]);
         }
     }
     g_strfreev (line);
@@ -304,9 +306,12 @@ do_status ()
 }
 
 void
-do_snapshot ()
+do_snapshot (const char *options)
 {
-    l_debug ("do_snapshot not implemented");
+    l_debug ("do_snapshot");
+    gchar **line = g_strsplit (options, ":", 2);
+    take_snapshot(line[0]);
+    g_strfreev (line);
 }
 
 void
@@ -769,3 +774,30 @@ l_debug("miniview time");
         g_object_unref(client);
     }
 }
+
+void
+do_save (const char *options)
+{
+    l_debug ("Save as presentation");
+    gchar **line = g_strsplit (options, ":", 2);
+    gchar *cmd = g_strdup_printf("playlist:%d",atoi(line[0]));
+    do_display(cmd);
+    do_display("display:0");
+    do_display("next_page:0");
+    g_usleep(1*G_USEC_PER_SEC);
+    g_free(cmd);
+    int count = 1;
+    int last_item = -1;
+    while (last_item < current_item) {
+        l_debug("%d",current_item);
+        gchar *filename = g_strdup_printf("%s/slide-%d.jpg",line[1],count);
+        last_item=current_item;
+        do_display("next_page:0");
+        g_usleep(1*G_USEC_PER_SEC);
+        take_snapshot(filename);
+        g_free(filename);
+        count++;
+    }
+    g_strfreev (line);
+}
+

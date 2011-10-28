@@ -1134,3 +1134,14 @@ stop_media ()
     if (bg_is_video) g_source_remove(bg_is_video);
     return FALSE;
 }
+
+gboolean
+take_snapshot (const char *filename)
+{
+    l_debug("Saving snapshot to %s",filename);
+    guchar *data = clutter_stage_read_pixels(CLUTTER_STAGE(stage),0,0,-1,-1);
+    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB, TRUE, 8, clutter_actor_get_width(stage), clutter_actor_get_height(stage), clutter_actor_get_width(stage)*4, NULL,NULL);
+    gdk_pixbuf_save(pixbuf, filename, "jpeg", NULL, "quality", "90", NULL);
+    g_free(data);
+    return TRUE;
+}

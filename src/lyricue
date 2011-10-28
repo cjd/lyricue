@@ -13679,3 +13679,62 @@ sub start_display {
     debug("Start lyricue display");
     execute_app("",$globals->{'lyricue_server'});
 }
+
+#****f* lyricue/export_playlist
+# NAME
+#   export_playlist
+# SYNOPSIS
+#   export_playlist ()
+# FUNCTION
+#   Show a dialog to choose where to save an exported playlist to
+# OUTPUT
+#   File dialog displayed
+# SOURCE
+#
+sub export_playlist {
+    debug("Export playlist");
+    my $filexml = Gtk2::GladeXML->new($globals->{'gladefile'},
+        'dialogFileChooser', 'lyricue');
+    $filexml->signal_autoconnect_from_package('');
+    $filexml->get_widget('buttonFileOK')
+      ->signal_connect("clicked", "complete_export_playlist", $filexml);
+    my $filter = Gtk2::FileFilter->new;
+    $filter->add_pattern("*.pdf");
+    $filexml->get_widget('dialogFileChooser')->set_filter($filter);
+    $filexml->get_widget('dialogFileChooser')->set_filename("presentation.pdf");
+    $filexml->get_widget('dialogFileChooser')->show_all();
+}
+
+#***
+
+#****f* lyricue/complete_export_playlist
+# NAME
+#   complete_export_playlist
+# SYNOPSIS
+#   complete_export_playlist ($widget, $filexml)
+# FUNCTION
+#   Export a playlist to the chosen filename
+# INPUTS
+#   $widget - Calling widget
+#   $filexml - File dialog
+# OUTPUT
+#   File containing playlist 
+# SOURCE
+#
+sub complete_export_playlist {
+    my ($widget, $filexml) = @_;
+    debug("Exporting playlist");
+    my $export = $filexml->get_widget('dialogFileChooser')->get_filename;
+    close_dialog($widget);
+    my $playlist = $widgets->{'main'}->get_widget('labelCurrentPlaylist')->{user_data};
+    my $tmpdir = tempdir("lyricue-XXXX", DIR => "/var/tmp", CLEANUP => 0);
+    update_display("save", $playlist,$tmpdir);
+    my $command = "convert \"".$tmpdir."/*\" \"".$export."\"";
+    debug ($command);
+    system($command);
+    $command = "rm -rf \"".$tmpdir."\"";
+    debug ($command);
+    system($command);
+}
+
+#***
