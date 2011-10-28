@@ -9931,7 +9931,6 @@ sub import_songs {
     } else {
         open $fh, $filename;
     }
-    binmode($fh, ":utf8");
 
     my $xml = XMLin(
         $fh,
