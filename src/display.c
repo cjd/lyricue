@@ -427,9 +427,6 @@ create_outlined_text (ClutterActor * group, const gchar * text,
 void
 change_backdrop (const gchar * id, gboolean loop, gint transition)
 {
-    if (transition == NOTRANS) {    // backgrounds not working when exporting :(
-        return;
-    }
     if ((id == NULL) || (strlen (id) == 0)) {
         return;
     }
@@ -771,7 +768,21 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
     }
 
     if (g_strcmp0 (maintext_bgcol, maintext_bgcol_old) != 0) {
-        do_display ("current:nobg");
+        ClutterColor *fgcolour = clutter_color_new (0xFF, 0xFF, 0xFF, 0xFF);
+        ClutterColor *bgcolour = clutter_color_new (0x00, 0x00, 0x00, 0xA0);
+        clutter_color_from_string (bgcolour, maintext_bgcol);
+        bgcolour->alpha = 0xA0;
+        clutter_color_from_string (fgcolour, maintext_fgcol);
+
+        int n_kids = clutter_group_get_n_children(CLUTTER_GROUP(maintext));
+        int i;
+        for (i = 0; i<n_kids; i++) {
+            if (i == 2) {
+                clutter_text_set_color(CLUTTER_TEXT(clutter_group_get_nth_child(CLUTTER_GROUP(maintext),i)), fgcolour);
+            } else {
+                clutter_text_set_color(CLUTTER_TEXT(clutter_group_get_nth_child(CLUTTER_GROUP(maintext),i)), bgcolour);
+            }
+        }
     }
     // Fade out old background
     if (CLUTTER_IS_ACTOR (background_old)) {
