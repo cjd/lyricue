@@ -38,7 +38,7 @@ void create_outlined_text (ClutterActor *group,
                            const gchar *shadow_colour,
                            gboolean wrap);
 
-void change_backdrop (const gchar * id, gboolean loop);
+void change_backdrop (const gchar * id, gboolean loop, gint transition);
 
 void fade_backdrop(gint amount);
 

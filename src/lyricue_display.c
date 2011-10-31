@@ -38,6 +38,7 @@ gchar *temp_bg = NULL;
 int current_item = 0;
 int current_list = 0;
 GHashTable *config = NULL;
+gboolean transition_skip = FALSE;
 #define SERVER_PORT 2346
 
 // Command line options
@@ -328,7 +329,7 @@ do_backdrop (const char *options)
     gchar **line = g_strsplit (options, ":", 2);
     temp_bg = NULL;
     default_bg = parse_special(line[0]);
-    change_backdrop (default_bg, TRUE);
+    change_backdrop (default_bg, TRUE, DEFAULT);
     g_strfreev (line);
 }
 
@@ -336,7 +337,7 @@ void
 unblank()
 {
     if (blanked_state == BLANK_BG) {
-        change_backdrop (temp_bg, TRUE);
+        change_backdrop (temp_bg, TRUE,DEFAULT);
     }
     blanked_state = BLANK_NONE;
 }
@@ -356,7 +357,7 @@ do_blank (const char *options)
     } else if ((blanked_state == BLANK_TEXT) && options != NULL) {
         l_debug("clear text and set BG");
         temp_bg = current_bg;
-        change_backdrop (line[0], TRUE);
+        change_backdrop (line[0], TRUE,DEFAULT);
         blanked_state = BLANK_BG;
     } else if ((blanked_state == BLANK_TEXT) && options == NULL) {
         l_debug("Re-show text - 2");
@@ -364,7 +365,7 @@ do_blank (const char *options)
     } else if (options != NULL) {
         l_debug("clear text and set BG - 2");
         temp_bg = current_bg;
-        change_backdrop (line[0], TRUE);
+        change_backdrop (line[0], TRUE,DEFAULT);
         set_maintext ("", 0, FALSE);
         set_headtext ("", 0, FALSE);
         set_foottext ("", 0, FALSE);
@@ -606,18 +607,21 @@ do_display (const char *options)
             gchar *footer = "";
             gboolean wrap = TRUE;
             int transition = atoi (row[2]);
+            if (transition_skip) {
+                transition = NOTRANS;
+            }
 
             if (g_strcmp0 (type, "back") == 0) {
                 default_bg = g_strdup(data);
-                change_backdrop (default_bg, TRUE);
+                change_backdrop (default_bg, TRUE,transition);
                 bg_changed = TRUE;
                 g_strfreev(line);
             } else if (g_strcmp0 (type, "file") == 0) {
-                change_backdrop (data, FALSE);
+                change_backdrop (data, FALSE,transition);
                 bg_changed = TRUE;
                 g_strfreev(line);
             } else if (g_strcmp0 (type, "imag") == 0) {
-                change_backdrop (data, FALSE);
+                change_backdrop (data, FALSE,transition);
                 bg_changed = TRUE;
             } else if (g_strcmp0 (type, "vers") == 0) {
                 do_query (lyricDb,
@@ -690,7 +694,7 @@ do_display (const char *options)
                     result = mysql_store_result (lyricDb);
                     row = mysql_fetch_row (result);
                     if (row != NULL) {
-                        change_backdrop (row[0], TRUE);
+                        change_backdrop (row[0], TRUE,transition);
                         bg_changed = TRUE;
                     }
                     mysql_free_result (result);
@@ -705,14 +709,14 @@ do_display (const char *options)
                         row = mysql_fetch_row (result);
                         mysql_free_result (result);
                         if (row != NULL) {
-                            change_backdrop (row[0], TRUE);
+                            change_backdrop (row[0], TRUE,transition);
                             bg_changed = TRUE;
                         }
                     }
                 }
                 if (!bg_changed && (g_strcmp0(default_bg, current_bg) != 0)) {
                     l_debug("Reset bg to default");
-                    change_backdrop(default_bg, TRUE);
+                    change_backdrop(default_bg, TRUE,transition);
                 }
             }
 
@@ -781,10 +785,10 @@ do_save (const char *options)
     l_debug ("Save as presentation");
     gchar **line = g_strsplit (options, ":", 2);
     gchar *cmd = g_strdup_printf("playlist:%d",atoi(line[0]));
+    transition_skip = TRUE;
     do_display(cmd);
     do_display("display:0");
     do_display("next_page:0");
-    g_usleep(1*G_USEC_PER_SEC);
     g_free(cmd);
     int count = 1;
     int last_item = -1;
@@ -793,11 +797,11 @@ do_save (const char *options)
         gchar *filename = g_strdup_printf("%s/slide-%d.jpg",line[1],count);
         last_item=current_item;
         do_display("next_page:0");
-        g_usleep(1*G_USEC_PER_SEC);
         take_snapshot(filename);
         g_free(filename);
         count++;
     }
     g_strfreev (line);
+    transition_skip = FALSE;
 }
 

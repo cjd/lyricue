@@ -82,3 +82,22 @@ void update_miniview (const char *command);
 #define BLANK_TEXT 1
 #define BLANK_BG 2
 
+// Transition directions
+#define NONE   0;
+#define WAIT   1
+#define UP     2
+#define DOWN   4
+#define RIGHT  8
+#define LEFT   16
+#define X_AXIS 32
+#define Y_AXIS 64
+#define Z_AXIS 128
+#define NUM_TRANS 8
+
+// Transition types
+#define DEFAULT    0
+#define NOTRANS    1
+#define FADE       2
+#define SLIDE_TEXT 3
+#define ROTATE     4
+

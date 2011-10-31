@@ -74,25 +74,6 @@ guint bg_is_video = 0;
 guint cursor_timeout = 0;
 gboolean video_loop = FALSE;
 
-// Transition directions
-#define NONE   0;
-#define WAIT   1
-#define UP     2
-#define DOWN   4
-#define RIGHT  8
-#define LEFT   16
-#define X_AXIS 32
-#define Y_AXIS 64
-#define Z_AXIS 128
-#define NUM_TRANS 8
-
-// Transition types
-#define DEFAULT    0
-#define NOTRANS    1
-#define FADE       2
-#define SLIDE_TEXT 3
-#define ROTATE     4
-
 // Setup shaders
 typedef struct
 {
@@ -169,7 +150,7 @@ create_main_window (int argc, char *argv[])
 
     clutter_stage_set_color (CLUTTER_STAGE (stage), &black_colour);
     default_bg = (gchar *) g_hash_table_lookup (config, "BGImage");
-    change_backdrop(default_bg, TRUE);
+    change_backdrop(default_bg, TRUE, DEFAULT);
     double window_scale_w =
       (double) clutter_actor_get_width (stage) / (double) stage_width;
     double window_scale_h =
@@ -425,8 +406,11 @@ create_outlined_text (ClutterActor *group, const gchar * text, const gchar * fon
 }
 
 void
-change_backdrop (const gchar * id, gboolean loop)
+change_backdrop (const gchar * id, gboolean loop, gint transition)
 {
+    if (transition==NOTRANS) { // backgrounds not working when exporting :(
+        return;
+    }
     if ((id == NULL) || (strlen(id) == 0)) {
         return;
     }
@@ -710,10 +694,14 @@ change_backdrop (const gchar * id, gboolean loop)
     }
     // Fade out old background
     if (CLUTTER_IS_ACTOR(background_old)) {
-    clutter_actor_animate(background_old, CLUTTER_LINEAR,500,
+        if (transition == NOTRANS) {
+            destroy_actor(background_old);
+        } else {
+            clutter_actor_animate(background_old, CLUTTER_LINEAR,500,
                           "opacity", 0,
                           "signal-swapped-after::completed", destroy_actor, background_old,
                           NULL);
+        }
     }
 
 }
