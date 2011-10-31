@@ -74,7 +74,8 @@ load_configuration ()
 {
     l_debug ("Loading configuration");
 
-    if (config != NULL) g_hash_table_remove_all(config);
+    if (config != NULL)
+        g_hash_table_remove_all (config);
     config = g_hash_table_new (g_str_hash, g_str_equal);
     MYSQL_ROW row;
     MYSQL_RES *result;
@@ -84,17 +85,17 @@ load_configuration ()
         return;
     }
     result = mysql_store_result (lyricDb);
-    gboolean conf_found=FALSE;
+    gboolean conf_found = FALSE;
     while ((row = mysql_fetch_row (result))) {
-	conf_found=TRUE;
+        conf_found = TRUE;
         g_hash_table_insert (config, g_strdup (row[0]), g_strdup (row[1]));
         l_debug ("Config \"%s\" set to \"%s\"", row[0], row[1]);
     }
     if (!conf_found) {
-        l_debug("No configuration found - load lyricue to setup");
-        exit(1);
+        l_debug ("No configuration found - load lyricue to setup");
+        exit (1);
     }
-    load_font_defaults();
+    load_font_defaults ();
     mysql_free_result (result);
 }
 

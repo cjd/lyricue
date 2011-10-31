@@ -51,11 +51,16 @@ unsigned long windowid = 0;
 
 static GOptionEntry entries[] = {
     {"window", 'w', 0, G_OPTION_ARG_NONE, &windowed, "Run in a window", NULL},
-    {"remote", 'r', 0, G_OPTION_ARG_STRING, &dbhostname, "Database hostname", NULL},
-    {"geometry", 'g', 0, G_OPTION_ARG_STRING, &geometry, "Window Geometry", NULL},
-    {"port", 'p', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on", NULL},
-    {"miniview", 'm', 0, G_OPTION_ARG_INT, &windowid, "Embed in windowid", NULL},
-    {"debug", 'd', 0, G_OPTION_ARG_NONE, &debugging, "Enable debug output", NULL},
+    {"remote", 'r', 0, G_OPTION_ARG_STRING, &dbhostname, "Database hostname",
+     NULL},
+    {"geometry", 'g', 0, G_OPTION_ARG_STRING, &geometry, "Window Geometry",
+     NULL},
+    {"port", 'p', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on",
+     NULL},
+    {"miniview", 'm', 0, G_OPTION_ARG_INT, &windowid, "Embed in windowid",
+     NULL},
+    {"debug", 'd', 0, G_OPTION_ARG_NONE, &debugging, "Enable debug output",
+     NULL},
     {NULL}
 };
 
@@ -63,8 +68,8 @@ static GOptionEntry entries[] = {
 int
 main (int argc, char *argv[])
 {
-    unsetenv("LIBGL_ALWAYS_INDIRECT");
-    setenv("CLUTTER_DISABLE_MIPMAPPED_TEXT","1",0);
+    unsetenv ("LIBGL_ALWAYS_INDIRECT");
+    setenv ("CLUTTER_DISABLE_MIPMAPPED_TEXT", "1", 0);
     bindtextdomain (GETTEXT_PACKAGE, NULL);
     bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
     textdomain (GETTEXT_PACKAGE);
@@ -75,7 +80,7 @@ main (int argc, char *argv[])
 
     context = g_option_context_new ("- Lyricue display");
     g_option_context_add_main_entries (context, entries, GETTEXT_PACKAGE);
-    g_option_context_set_ignore_unknown_options(context, TRUE);
+    g_option_context_set_ignore_unknown_options (context, TRUE);
     if (!g_option_context_parse (context, &argc, &argv, &error)) {
         g_print ("option parsing failed: %s\n", error->message);
         exit (1);
@@ -91,8 +96,8 @@ main (int argc, char *argv[])
     // Setup network
     GSocketService *service = g_socket_service_new ();
     GInetAddress *address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
-    g_snprintf(argv[0],29,"Lyricue Display on port %04d",server_port);
-    l_debug("Process Name:%s",argv[0]);
+    g_snprintf (argv[0], 29, "Lyricue Display on port %04d", server_port);
+    l_debug ("Process Name:%s", argv[0]);
 
     if (!g_socket_listener_add_inet_port
         (G_SOCKET_LISTENER (service), server_port, NULL, NULL)) {
@@ -104,15 +109,15 @@ main (int argc, char *argv[])
     g_signal_connect (service, "incoming", G_CALLBACK (new_connection), NULL);
 
     // Setup tracker entry in DB
-    do_query(lyricDb, "DELETE FROM playlists WHERE id=-1");
-    do_query(lyricDb, "INSERT INTO playlists SET id=-1,ref=0,title=''");
+    do_query (lyricDb, "DELETE FROM playlists WHERE id=-1");
+    do_query (lyricDb, "INSERT INTO playlists SET id=-1,ref=0,title=''");
 
     ret = create_main_window (argc, argv);
 
     if (windowid == 0) {
         clutter_main ();
     } else {
-        gtk_main();
+        gtk_main ();
     }
     ret = db_deselect ();
 
@@ -136,7 +141,7 @@ network_read (GIOChannel * source, GIOCondition cond, gpointer data)
         // Remove the event source
         return FALSE;
     } else {
-        s->str = g_strstrip(s->str);
+        s->str = g_strstrip (s->str);
         if (g_utf8_strlen (s->str, -1) > 0) {
             handle_command (source, s->str);
         }
@@ -176,7 +181,7 @@ void
 handle_command (GIOChannel * source, const char *command)
 {
     l_debug ("Received: %s", command);
-    update_miniview(command);
+    update_miniview (command);
     GString *returnstring = NULL;
     gchar **line = g_strsplit (command, ":", 2);
     if (line[1] != NULL) {
@@ -215,7 +220,7 @@ handle_command (GIOChannel * source, const char *command)
     }
     g_strfreev (line);
     if (returnstring != NULL) {
-        l_debug("The status message sent is: %s",returnstring->str);
+        l_debug ("The status message sent is: %s", returnstring->str);
         GIOStatus res = g_io_channel_write_chars (source, returnstring->str,
                                                   returnstring->len, NULL,
                                                   NULL);
@@ -225,7 +230,7 @@ handle_command (GIOChannel * source, const char *command)
         /* force flushing of the write buffer */
         res = g_io_channel_flush (source, NULL);
     }
-    update_tracker();
+    update_tracker ();
 }
 
 void
@@ -236,7 +241,7 @@ do_media (const char *options)
         if (g_ascii_strncasecmp (line[0], "pause", 5) == 0) {
             media_pause ();
         } else if (g_ascii_strncasecmp (line[0], "skip", 4) == 0) {
-            media_skip (atoi(line[1]));
+            media_skip (atoi (line[1]));
         }
         g_strfreev (line);
     }
@@ -245,13 +250,13 @@ do_media (const char *options)
 void
 do_fade (const char *options)
 {
-    fade_backdrop(atoi(options));
+    fade_backdrop (atoi (options));
 }
 
 void
 do_blur (const char *options)
 {
-    blur_backdrop(atoi(options));
+    blur_backdrop (atoi (options));
 }
 
 void
@@ -259,39 +264,38 @@ do_preview (const char *options)
 {
     gchar **line = g_strsplit (options, ":", 2);
     gboolean wrap = TRUE;
-    unblank();
-    if (g_strcmp0(line[0], "ignore") != 0 ) {
-        gchar **extras = g_strsplit(parse_special(line[0]), "\n", 4);
-        if ((g_strv_length(extras) == 6) && (g_strcmp0(extras[3], "nowrap") == 0)) {
+    unblank ();
+    if (g_strcmp0 (line[0], "ignore") != 0) {
+        gchar **extras = g_strsplit (parse_special (line[0]), "\n", 4);
+        if ((g_strv_length (extras) == 6)
+            && (g_strcmp0 (extras[3], "nowrap") == 0)) {
             wrap = FALSE;
         }
-        set_headtext (parse_special(extras[0]), 0, 1);
+        set_headtext (parse_special (extras[0]), 0, 1);
 
-        if (g_strv_length(extras) >= 3) {
+        if (g_strv_length (extras) >= 3) {
             GString *footer = g_string_new (NULL);
 
-            if (g_utf8_strlen(extras[2],10) != 0) {
-                g_string_printf(footer, "%s %s - %s",
-                   gettext("Written by "),
-                   extras[1],
-                   extras[2]);
+            if (g_utf8_strlen (extras[2], 10) != 0) {
+                g_string_printf (footer, "%s %s - %s",
+                                 gettext ("Written by "), extras[1],
+                                 extras[2]);
             } else {
-                if (g_utf8_strlen(extras[1],10) != 0) {
-                    g_string_printf(footer, "%s %s",
-                        gettext("Written by "),
-                        extras[1]);
+                if (g_utf8_strlen (extras[1], 10) != 0) {
+                    g_string_printf (footer, "%s %s",
+                                     gettext ("Written by "), extras[1]);
                 } else {
-                    g_string_assign(footer,"");
+                    g_string_assign (footer, "");
                 }
             }
-            set_foottext(footer->str,0,1);
-            g_string_free(footer, TRUE);
+            set_foottext (footer->str, 0, 1);
+            g_string_free (footer, TRUE);
         }
-        g_strfreev(extras);
+        g_strfreev (extras);
 
     }
-    set_maintext (parse_special(line[1]), 0, wrap);
-    g_strfreev(line);
+    set_maintext (parse_special (line[1]), 0, wrap);
+    g_strfreev (line);
 }
 
 GString *
@@ -311,7 +315,7 @@ do_snapshot (const char *options)
 {
     l_debug ("do_snapshot");
     gchar **line = g_strsplit (options, ":", 2);
-    take_snapshot(line[0]);
+    take_snapshot (line[0]);
     g_strfreev (line);
 }
 
@@ -328,16 +332,16 @@ do_backdrop (const char *options)
     l_debug ("do_backdrop: %s", options);
     gchar **line = g_strsplit (options, ":", 2);
     temp_bg = NULL;
-    default_bg = parse_special(line[0]);
+    default_bg = parse_special (line[0]);
     change_backdrop (default_bg, TRUE, DEFAULT);
     g_strfreev (line);
 }
 
 void
-unblank()
+unblank ()
 {
     if (blanked_state == BLANK_BG) {
-        change_backdrop (temp_bg, TRUE,DEFAULT);
+        change_backdrop (temp_bg, TRUE, DEFAULT);
     }
     blanked_state = BLANK_NONE;
 }
@@ -347,37 +351,37 @@ do_blank (const char *options)
 {
     l_debug ("do_blank: %s", options);
     gchar **line = g_strsplit (options, ":", 2);
-    if (strlen(options) <= 1) {
+    if (strlen (options) <= 1) {
         options = NULL;
     }
 
     if (blanked_state == BLANK_BG) {
-        l_debug("Re-show text");
-        do_display("current");
+        l_debug ("Re-show text");
+        do_display ("current");
     } else if ((blanked_state == BLANK_TEXT) && options != NULL) {
-        l_debug("clear text and set BG");
+        l_debug ("clear text and set BG");
         temp_bg = current_bg;
-        change_backdrop (line[0], TRUE,DEFAULT);
+        change_backdrop (line[0], TRUE, DEFAULT);
         blanked_state = BLANK_BG;
     } else if ((blanked_state == BLANK_TEXT) && options == NULL) {
-        l_debug("Re-show text - 2");
-        do_display("current");
+        l_debug ("Re-show text - 2");
+        do_display ("current");
     } else if (options != NULL) {
-        l_debug("clear text and set BG - 2");
+        l_debug ("clear text and set BG - 2");
         temp_bg = current_bg;
-        change_backdrop (line[0], TRUE,DEFAULT);
+        change_backdrop (line[0], TRUE, DEFAULT);
         set_maintext ("", 0, FALSE);
         set_headtext ("", 0, FALSE);
         set_foottext ("", 0, FALSE);
         blanked_state = BLANK_BG;
     } else {
-        l_debug("Clear text");
+        l_debug ("Clear text");
         set_maintext ("", 0, FALSE);
         set_headtext ("", 0, FALSE);
         set_foottext ("", 0, FALSE);
         blanked_state = BLANK_TEXT;
     }
-    g_strfreev(line);
+    g_strfreev (line);
 }
 
 void
@@ -406,17 +410,17 @@ do_osd (const char *options)
     if (options != NULL) {
         gchar **line = g_strsplit (options, ":", 2);
         int speed = 10000;
-        if(g_strcmp0(line[0],"slow") == 0) {
+        if (g_strcmp0 (line[0], "slow") == 0) {
             speed = 20000;
-        } else if(g_strcmp0(line[0],"fast") == 0) {
+        } else if (g_strcmp0 (line[0], "fast") == 0) {
             speed = 5000;
-        } else if(g_strcmp0(line[0],"default") == 0) {
+        } else if (g_strcmp0 (line[0], "default") == 0) {
             speed = 10000;
         } else {
-            speed = atoi(line[0]);
+            speed = atoi (line[0]);
         }
-        gchar *text = parse_special(line[1]);
-        set_osd(speed, text);
+        gchar *text = parse_special (line[1]);
+        set_osd (speed, text);
     }
 }
 
@@ -426,7 +430,7 @@ do_display (const char *options)
     l_debug ("do_display");
     if (options != NULL) {
         gchar **line = g_strsplit (options, ":", 2);
-        unblank();
+        unblank ();
         MYSQL_ROW row;
         MYSQL_RES *result;
         gboolean bg_changed = FALSE;
@@ -434,9 +438,9 @@ do_display (const char *options)
                   current_item);
         result = mysql_store_result (lyricDb);
         row = mysql_fetch_row (result);
-		if (row != NULL) {
-        	current_list = atoi (row[0]);
-		}
+        if (row != NULL) {
+            current_list = atoi (row[0]);
+        }
         mysql_free_result (result);
 
         gchar *command = g_utf8_strdown (line[0], -1);
@@ -449,8 +453,8 @@ do_display (const char *options)
             set_maintext ("", 0, FALSE);
             set_headtext ("", 0, FALSE);
             set_foottext ("", 0, FALSE);
-            if (g_strcmp0(line[1], "nobg") == 0) {
-                bg_changed=TRUE;
+            if (g_strcmp0 (line[1], "nobg") == 0) {
+                bg_changed = TRUE;
             }
         } else if (g_strcmp0 (command, "next_page") == 0) {
             do_query (lyricDb,
@@ -465,17 +469,17 @@ do_display (const char *options)
             } else {
                 // End of song reached
                 gchar **loop = g_strsplit (line[1], ";", 2);
-                if (g_strcmp0(loop[0], "loop") == 0) {
+                if (g_strcmp0 (loop[0], "loop") == 0) {
                     // Looping
                     int loop_parent = 0;
                     if (loop[1] != NULL) {
-                        loop_parent = atoi(loop[1]);
+                        loop_parent = atoi (loop[1]);
                     }
                     if (loop_parent == 0) {
                         l_debug ("Looping a song, back to page 1");
                         do_query (lyricDb,
-                              "SELECT MIN(playorder) FROM playlist WHERE playlist=%d",
-                                current_list);
+                                  "SELECT MIN(playorder) FROM playlist WHERE playlist=%d",
+                                  current_list);
                         result = mysql_store_result (lyricDb);
                         row = mysql_fetch_row (result);
                         mysql_free_result (result);
@@ -485,7 +489,8 @@ do_display (const char *options)
                     } else {
                         l_debug ("Looping a sublist");
                         do_query (lyricDb,
-                              "SELECT MIN(p1.playorder) FROM playlist AS p1, playlist AS p2 WHERE p1.playorder>p2.playorder AND p2.type='play' AND p2.data=%d AND p1.playlist=%d", current_list, loop_parent);
+                                  "SELECT MIN(p1.playorder) FROM playlist AS p1, playlist AS p2 WHERE p1.playorder>p2.playorder AND p2.type='play' AND p2.data=%d AND p1.playlist=%d",
+                                  current_list, loop_parent);
                         result = mysql_store_result (lyricDb);
                         row = mysql_fetch_row (result);
                         mysql_free_result (result);
@@ -494,8 +499,8 @@ do_display (const char *options)
                         } else {
                             // Loop back to top of parent
                             do_query (lyricDb,
-                              "SELECT MIN(playorder) FROM playlist WHERE playlist=%d",
-                                loop_parent);
+                                      "SELECT MIN(playorder) FROM playlist WHERE playlist=%d",
+                                      loop_parent);
                             result = mysql_store_result (lyricDb);
                             row = mysql_fetch_row (result);
                             mysql_free_result (result);
@@ -541,20 +546,20 @@ do_display (const char *options)
             result = mysql_store_result (lyricDb);
             row = mysql_fetch_row (result);
             mysql_free_result (result);
-                
-			if (row && (row[0] != NULL)) {
-            	current_item = atoi (row[0]);
-            	current_list = atoi (row[1]);
+
+            if (row && (row[0] != NULL)) {
+                current_item = atoi (row[0]);
+                current_list = atoi (row[1]);
             }
-	        do_query (lyricDb,
-                  "SELECT MIN(playorder) FROM playlist WHERE playorder > %d AND playlist=%d",
-                  current_item, current_list);
-	        result = mysql_store_result (lyricDb);
-    	    row = mysql_fetch_row (result);
-    	    mysql_free_result (result);
-			if (row[0] != NULL) {
-	    	    current_item = atoi (row[0]);
-			}
+            do_query (lyricDb,
+                      "SELECT MIN(playorder) FROM playlist WHERE playorder > %d AND playlist=%d",
+                      current_item, current_list);
+            result = mysql_store_result (lyricDb);
+            row = mysql_fetch_row (result);
+            mysql_free_result (result);
+            if (row[0] != NULL) {
+                current_item = atoi (row[0]);
+            }
 
         } else if (g_strcmp0 (command, "prev_song") == 0) {
             do_query (lyricDb,
@@ -563,19 +568,19 @@ do_display (const char *options)
             result = mysql_store_result (lyricDb);
             row = mysql_fetch_row (result);
             mysql_free_result (result);
-			if (row && (row[0] != NULL)) {
-	            current_item = atoi (row[0]);
-    	        current_list = atoi (row[1]);
+            if (row && (row[0] != NULL)) {
+                current_item = atoi (row[0]);
+                current_list = atoi (row[1]);
             }
-    	    do_query (lyricDb,
-                  "SELECT MAX(playorder) FROM playlist WHERE playorder < %d AND playlist=%d",
-                  current_item, current_list);
-    	    result = mysql_store_result (lyricDb);
-    	    row = mysql_fetch_row (result);
-    	    mysql_free_result (result);
-			if (row[0] != NULL) {
- 	    	    current_item = atoi (row[0]);
-			}
+            do_query (lyricDb,
+                      "SELECT MAX(playorder) FROM playlist WHERE playorder < %d AND playlist=%d",
+                      current_item, current_list);
+            result = mysql_store_result (lyricDb);
+            row = mysql_fetch_row (result);
+            mysql_free_result (result);
+            if (row[0] != NULL) {
+                current_item = atoi (row[0]);
+            }
 
         } else if (g_strcmp0 (command, "page") == 0) {
             do_query (lyricDb,
@@ -612,16 +617,16 @@ do_display (const char *options)
             }
 
             if (g_strcmp0 (type, "back") == 0) {
-                default_bg = g_strdup(data);
-                change_backdrop (default_bg, TRUE,transition);
+                default_bg = g_strdup (data);
+                change_backdrop (default_bg, TRUE, transition);
                 bg_changed = TRUE;
-                g_strfreev(line);
+                g_strfreev (line);
             } else if (g_strcmp0 (type, "file") == 0) {
-                change_backdrop (data, FALSE,transition);
+                change_backdrop (data, FALSE, transition);
                 bg_changed = TRUE;
-                g_strfreev(line);
+                g_strfreev (line);
             } else if (g_strcmp0 (type, "imag") == 0) {
-                change_backdrop (data, FALSE,transition);
+                change_backdrop (data, FALSE, transition);
                 bg_changed = TRUE;
             } else if (g_strcmp0 (type, "vers") == 0) {
                 do_query (lyricDb,
@@ -644,10 +649,10 @@ do_display (const char *options)
                 }
 
                 if (verse != NULL) {
-                    lyrics = g_strdup(verse);
+                    lyrics = g_strdup (verse);
                 }
-                header = g_strdup(row[0]);
-                footer = g_strdup(bible_name);
+                header = g_strdup (row[0]);
+                footer = g_strdup (bible_name);
                 wrap = TRUE;
             } else if ((g_strcmp0 (type, "play") == 0) ||
                        (g_strcmp0 (type, "sub") == 0)) {
@@ -677,9 +682,9 @@ do_display (const char *options)
                     if (g_utf8_strlen (copyright, 10) != 0) {
                         g_string_append_printf (foot, " - %s", copyright);
                     }
-                    lyrics = g_strdup(lyrictmp);
-                    header = g_strdup(title);
-                    footer = g_strdup(foot->str);
+                    lyrics = g_strdup (lyrictmp);
+                    header = g_strdup (title);
+                    footer = g_strdup (foot->str);
                     g_string_free (foot, TRUE);
                 }
             }
@@ -694,7 +699,7 @@ do_display (const char *options)
                     result = mysql_store_result (lyricDb);
                     row = mysql_fetch_row (result);
                     if (row != NULL) {
-                        change_backdrop (row[0], TRUE,transition);
+                        change_backdrop (row[0], TRUE, transition);
                         bg_changed = TRUE;
                     }
                     mysql_free_result (result);
@@ -709,20 +714,20 @@ do_display (const char *options)
                         row = mysql_fetch_row (result);
                         mysql_free_result (result);
                         if (row != NULL) {
-                            change_backdrop (row[0], TRUE,transition);
+                            change_backdrop (row[0], TRUE, transition);
                             bg_changed = TRUE;
                         }
                     }
                 }
-                if (!bg_changed && (g_strcmp0(default_bg, current_bg) != 0)) {
-                    l_debug("Reset bg to default");
-                    change_backdrop(default_bg, TRUE,transition);
+                if (!bg_changed && (g_strcmp0 (default_bg, current_bg) != 0)) {
+                    l_debug ("Reset bg to default");
+                    change_backdrop (default_bg, TRUE, transition);
                 }
             }
 
-            set_maintext(parse_special(lyrics), transition, wrap);
-            set_headtext(parse_special(header), transition, wrap);
-            set_foottext(parse_special(footer), transition, wrap);
+            set_maintext (parse_special (lyrics), transition, wrap);
+            set_headtext (parse_special (header), transition, wrap);
+            set_foottext (parse_special (footer), transition, wrap);
         }
     }
 
@@ -760,22 +765,26 @@ update_tracker ()
                   "UPDATE playlists SET ref = %d, title = \"%s\" WHERE id=-1",
                   current_item, g_string_free (title, FALSE));
     }
-	return TRUE;
+    return TRUE;
 }
 
 void
 update_miniview (const char *command)
 {
     if (server_port == SERVER_PORT) {
-l_debug("miniview time");
-        GSocketClient *client = g_socket_client_new();
-        GSocketConnection *conn = g_socket_client_connect_to_host ( client, dbhostname, 2348, NULL, NULL);
+        l_debug ("miniview time");
+        GSocketClient *client = g_socket_client_new ();
+        GSocketConnection *conn =
+          g_socket_client_connect_to_host (client, dbhostname, 2348, NULL,
+                                           NULL);
         if (conn != NULL) {
-            GOutputStream *out = g_io_stream_get_output_stream (G_IO_STREAM(conn));
-            g_output_stream_write(out, command, strlen(command), NULL, NULL);
-            g_object_unref(conn);
+            GOutputStream *out =
+              g_io_stream_get_output_stream (G_IO_STREAM (conn));
+            g_output_stream_write (out, command, strlen (command), NULL,
+                                   NULL);
+            g_object_unref (conn);
         }
-        g_object_unref(client);
+        g_object_unref (client);
     }
 }
 
@@ -784,24 +793,23 @@ do_save (const char *options)
 {
     l_debug ("Save as presentation");
     gchar **line = g_strsplit (options, ":", 2);
-    gchar *cmd = g_strdup_printf("playlist:%d",atoi(line[0]));
+    gchar *cmd = g_strdup_printf ("playlist:%d", atoi (line[0]));
     transition_skip = TRUE;
-    do_display(cmd);
-    do_display("display:0");
-    do_display("next_page:0");
-    g_free(cmd);
+    do_display (cmd);
+    do_display ("display:0");
+    do_display ("next_page:0");
+    g_free (cmd);
     int count = 1;
     int last_item = -1;
     while (last_item < current_item) {
-        l_debug("%d",current_item);
-        gchar *filename = g_strdup_printf("%s/slide-%d.jpg",line[1],count);
-        last_item=current_item;
-        do_display("next_page:0");
-        take_snapshot(filename);
-        g_free(filename);
+        l_debug ("%d", current_item);
+        gchar *filename = g_strdup_printf ("%s/slide-%d.jpg", line[1], count);
+        last_item = current_item;
+        do_display ("next_page:0");
+        take_snapshot (filename);
+        g_free (filename);
         count++;
     }
     g_strfreev (line);
     transition_skip = FALSE;
 }
-
