@@ -584,7 +584,7 @@ sub close_main {
     close CONFIG;
 
     $lyricDbh->disconnect;
-    if (!$globals->{'usesword'}) {
+    if ((!$globals->{'usesword'}) && ($bibleDbh != NULL)) {
         $bibleDbh->disconnect;
     }
     $mediaDbh->disconnect;
@@ -4389,7 +4389,7 @@ sub set_default_backdrop {
 sub print_songs {
     debug("Print html formatted song list");
     my $lyricDbh =
-      db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
+      db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'}, TRUE);
     my $query = "SELECT COUNT(id) FROM lyricMain WHERE id > 0;";
     my $sth   = $lyricDbh->prepare($query)
       || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -5079,7 +5079,7 @@ sub do_change_bible {
             $table                = "verse";
             $globals->{'bibledb'} = $table . "@" . $dbname;
         }
-        $bibleDbh = db_connect($dbname, $errorcodes->{'bibledbopen'} . $dbname);
+        $bibleDbh = db_connect($dbname, $errorcodes->{'bibledbopen'} . $dbname, FALSE);
     } else {
         $globals->{'usesword'} = TRUE;
     }
@@ -8102,8 +8102,17 @@ sub display_message {
 #
 sub display_fatal {
     my ($message, $error) = @_;
+    display_error($message, $error, TRUE);
+}
+
+sub display_error {
+    my ($message, $error, $fatal) = @_;
     print STDERR "\n\n-------------\n";
-    print STDERR "FATAL ERROR!!\n";
+    if ($fatal) {
+        print STDERR "FATAL ERROR!!\n";
+    } else {
+        print STDERR "ERROR!!\n";
+    }
     print STDERR "-------------\n";
     print STDERR "Error description\n";
     print STDERR $message . "\n";
@@ -8122,7 +8131,9 @@ sub display_fatal {
     close_dialog($errorxml->get_widget('dialogError'));
     print STDERR "Full error message\n";
     print STDERR "------------------\n";
-    die($error);
+    if ($fatal) {
+        die($error);
+    }
 }
 
 #***
@@ -10310,7 +10321,7 @@ sub get_bibles {
     my $dbs = $globals->{'db_available_db'};
     foreach (keys %$dbs) {
         my $dbname = $_;
-        my $db = db_connect($dbname, $errorcodes->{'bibledbopen'});
+        my $db = db_connect($dbname, $errorcodes->{'bibledbopen'}, FALSE);
         if (defined $db) {
             my @tables = $db->tables;
             my $table;
@@ -11599,7 +11610,7 @@ sub db_installdb {
               . " --password=\""
               . $globals->{'db_adminpassword'}."\"");
     } else {
-        my $dbh = db_connect($db_name, "Unable to create DB:" . $db_name);
+        my $dbh = db_connect($db_name, "Unable to create DB:" . $db_name, TRUE);
         open(DB, $db_file);
         my $query = "";
         while (<DB>) {
@@ -11649,7 +11660,7 @@ sub db_installdb {
 #
 sub db_updatedb_mediaDb {
     debug("Update the mediaDb table if needed");
-    my $dbh = db_connect($globals->{'mediadb'}, "");
+    my $dbh = db_connect($globals->{'mediadb'}, "", TRUE);
     if ($config->{'DatabaseType'} eq "mysql") {
         my $fields = $dbh->selectall_arrayref("describe media");
         my $trans;
@@ -11681,7 +11692,7 @@ sub db_updatedb_mediaDb {
 #
 sub db_updatedb_lyricDb {
     debug("Update the lyricDb table if needed");
-    my $dbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
+    my $dbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'}, TRUE);
     my @tables = $dbh->tables;
     my $table;
     foreach (@tables) {
@@ -11964,7 +11975,7 @@ sub clear_search {
 # NAME
 #   db_connect
 # SYNOPSIS
-#   db_connect($dbname, $dberror)
+#   db_connect($dbname, $dberror, $fatal)
 # FUNCTION
 #
 # INPUTS
@@ -11974,13 +11985,13 @@ sub clear_search {
 # SOURCE
 #
 sub db_connect {
-    my ($dbname, $dberror) = @_;
+    my ($dbname, $dberror, $fatal) = @_;
     my ($dbh);
     if ($config->{'DatabaseType'} eq "SQLite") {
         $dbh =
           DBI->connect("dbi:SQLite:" . $globals->{'basedir'} . $dbname . ".db",
             "", "")
-          || display_fatal($dberror, $DBI::errstr);
+          || display_error($dberror, $DBI::errstr, $fatal);
     } else {
         $dbh = DBI->connect(
             "DBI:"
@@ -11989,8 +12000,10 @@ sub db_connect {
             "lyric",
             "",
             {mysql_enable_utf8 => 1}
-        ) || display_fatal($dberror, $DBI::errstr);
-        $dbh->do('SET NAMES utf8');
+        ) || display_error($dberror, $DBI::errstr, $fatal);
+        if ($dbh != NULL) {
+            $dbh->do('SET NAMES utf8');
+        }
     }
     return $dbh;
 }
@@ -12093,13 +12106,13 @@ sub db_select {
         }
     }
     db_check_databases();
-    $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'});
+    $lyricDbh = db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'}, TRUE);
     if ($config->{'DatabaseType'} eq "SQLite") {
 
         # Define a NOW command in sqlite
         $lyricDbh->func('NOW', 0, sub { return time }, 'create_function');
     }
-    $mediaDbh = db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'});
+    $mediaDbh = db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'}, TRUE);
     $config->{'Bibles'} = get_bibles();
 }
 
