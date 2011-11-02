@@ -73,9 +73,11 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(etcdir)" \
+am__installdirs = "$(DESTDIR)$(apportdir)" "$(DESTDIR)$(crashdbdir)" \
+	"$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(etcdir)" \
 	"$(DESTDIR)$(sharedir)" "$(DESTDIR)$(sqldir)"
-DATA = $(desktop_DATA) $(etc_DATA) $(share_DATA) $(sql_DATA)
+DATA = $(apport_DATA) $(crashdb_DATA) $(desktop_DATA) $(etc_DATA) \
+	$(share_DATA) $(sql_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALL_LINGUAS = @ALL_LINGUAS@
@@ -271,10 +273,16 @@ etcdir = \
 desktopdir = \
     $(datadir)/applications
 
+apportdir = $(datadir)/apport/package-hooks
+apport_DATA = source_lyricue.py
+crashdbdir = $(sysconfdir)/apport/crashdb.conf.d
+crashdb_DATA = lyricue-crashdb.conf
 EXTRA_DIST = \
 	$(share_DATA) \
 	$(sql_DATA) \
 	$(etc_DATA) \
+	$(apport_DATA) \
+	$(crashdb_DATA) \
     $(desktop_DATA)
 
 all: all-am
@@ -316,6 +324,46 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-apportDATA: $(apport_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(apportdir)" || $(MKDIR_P) "$(DESTDIR)$(apportdir)"
+	@list='$(apport_DATA)'; test -n "$(apportdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(apportdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(apportdir)" || exit $$?; \
+	done
+
+uninstall-apportDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(apport_DATA)'; test -n "$(apportdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(apportdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(apportdir)" && rm -f $$files
+install-crashdbDATA: $(crashdb_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(crashdbdir)" || $(MKDIR_P) "$(DESTDIR)$(crashdbdir)"
+	@list='$(crashdb_DATA)'; test -n "$(crashdbdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(crashdbdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(crashdbdir)" || exit $$?; \
+	done
+
+uninstall-crashdbDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(crashdb_DATA)'; test -n "$(crashdbdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(crashdbdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(crashdbdir)" && rm -f $$files
 install-desktopDATA: $(desktop_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(desktopdir)" || $(MKDIR_P) "$(DESTDIR)$(desktopdir)"
@@ -437,7 +485,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(etcdir)" "$(DESTDIR)$(sharedir)" "$(DESTDIR)$(sqldir)"; do \
+	for dir in "$(DESTDIR)$(apportdir)" "$(DESTDIR)$(crashdbdir)" "$(DESTDIR)$(desktopdir)" "$(DESTDIR)$(etcdir)" "$(DESTDIR)$(sharedir)" "$(DESTDIR)$(sqldir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -485,7 +533,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-desktopDATA install-etcDATA install-shareDATA \
+install-data-am: install-apportDATA install-crashdbDATA \
+	install-desktopDATA install-etcDATA install-shareDATA \
 	install-sqlDATA
 
 install-dvi: install-dvi-am
@@ -530,22 +579,25 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-desktopDATA uninstall-etcDATA \
-	uninstall-shareDATA uninstall-sqlDATA
+uninstall-am: uninstall-apportDATA uninstall-crashdbDATA \
+	uninstall-desktopDATA uninstall-etcDATA uninstall-shareDATA \
+	uninstall-sqlDATA
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-desktopDATA install-dvi \
-	install-dvi-am install-etcDATA install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-shareDATA install-sqlDATA install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	install-apportDATA install-crashdbDATA install-data \
+	install-data-am install-desktopDATA install-dvi install-dvi-am \
+	install-etcDATA install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-shareDATA install-sqlDATA install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-apportDATA uninstall-crashdbDATA \
 	uninstall-desktopDATA uninstall-etcDATA uninstall-shareDATA \
 	uninstall-sqlDATA
 

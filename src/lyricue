@@ -13756,3 +13756,10 @@ sub complete_export_playlist {
 }
 
 #***
+
+sub gather_debug {
+    debug("Saving troubleshooting info");
+    my $command = "apport-bug lyricue";
+    debug ($command);
+    system($command);
+}
