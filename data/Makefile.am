@@ -44,10 +44,19 @@ etcdir = \
 desktopdir = \
     $(datadir)/applications
 
+apportdir = $(datadir)/apport/package-hooks
+apport_DATA = source_lyricue.py
+
+crashdbdir = $(sysconfdir)/apport/crashdb.conf.d
+crashdb_DATA = lyricue-crashdb.conf
+
+
 EXTRA_DIST = \
 	$(share_DATA) \
 	$(sql_DATA) \
 	$(etc_DATA) \
+	$(apport_DATA) \
+	$(crashdb_DATA) \
     $(desktop_DATA)
 
 ## File created by the gnome-build tools
