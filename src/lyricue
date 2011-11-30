@@ -2281,6 +2281,7 @@ sub import_song {
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "do_import_song", $filexml);
+    $filexml->get_widget('dialogFileChooser')->set_title(gettext("Select song to import"));
     $filexml->get_widget('dialogFileChooser')->show_all();
 }
 
@@ -5141,6 +5142,7 @@ sub export_song {
     $filexml->signal_autoconnect_from_package('');
     $filexml->get_widget('buttonFileOK')
       ->signal_connect("clicked", "complete_export_song", $filexml);
+    $filexml->get_widget('dialogFileChooser')->set_title(gettext("Enter filename for export"));
     $filexml->get_widget('dialogFileChooser')->show_all();
 }
 
@@ -12832,6 +12834,7 @@ sub export_db {
     $filter->add_pattern("*.xmlz");
     $exportxml->get_widget('dialogFileChooser')->set_filter($filter);
     $exportxml->get_widget('dialogFileChooser')->set_filename("lyricue.xmlz");
+    $exportxml->get_widget('dialogFileChooser')->set_title(gettext("Enter filename for export"));
     my $confirm = $exportxml->get_widget('dialogFileChooser')->run();
 
     if ($confirm) {
@@ -13734,6 +13737,7 @@ sub export_playlist {
     $filter->add_pattern("*.pdf");
     $filexml->get_widget('dialogFileChooser')->set_filter($filter);
     $filexml->get_widget('dialogFileChooser')->set_filename("presentation.pdf");
+    $filexml->get_widget('dialogFileChooser')->set_title(gettext("Enter filename for export"));
     $filexml->get_widget('dialogFileChooser')->show_all();
 }
 
