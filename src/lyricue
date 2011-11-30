@@ -4404,14 +4404,28 @@ sub print_songs {
     $rv = $sth->execute
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
-    print "<HTML>\n<HEAD><TITLE>Lyricue Song List</TITLE></HEAD>\n";
-    print "<CENTER><H1>Lyricue Song List</H1></CENTER><BR>\n";
-    print "<H2>Total number of songs available : <B>"
+    print "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\">\n";
+    print "<HTML>\n<HEAD><TITLE>Lyricue".gettext("Available songs")."</TITLE>\n";
+    print "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n";
+    print "<style type=\"text/css\">\n";
+    print "body {font-family: 'Ubuntu', sans; color: #555;}\n";
+    print "#wrapper {max-width: 800px; margin: 0 auto; text-align: center;}\n";
+    print "table {width: 100%; border-collapse: collapse; box-shadow: 0 0 10px #aaa; margin: 20px 0;}\n";
+    print "td, th {padding: 8px; vertical-align: middle; border: 1px solid #ddd;}\n";
+    print "tr:nth-child(even) {background-color: #eee;}\n";
+    print "th {background-color: #eee;}\n";
+    print "td:first-child {text-align: left;}\n";
+    print "</style>\n</head>\n";
+    print "<body><div id=wrapper\n";
+    print "<CENTER><H1>Lyricue ".gettext("Available songs")."</H1></CENTER><BR>\n";
+    print "<H2>".gettext("Total number of songs available")." : <B>"
       . $totals[0]
       . "</B></H2>\n";
     print "<TABLE WIDTH=100% BORDER=1>\n";
-    print
-"<TR><TH>Song Name</TH><TH>Song Book</TH><TH>Song Number</TH><TH>Artist</TH></TR>\n";
+    print "<TR><TH>".gettext("Song Name")."</TH>";
+    print "<TH>".gettext("Song Book")."</TH>";
+    print "<TH>".gettext("Song Number")."</TH>";
+    print "<TH>".gettext("Artist")."</TH></TR>\n";
     my @row;
 
     while (@row = $sth->fetchrow_array()) {
