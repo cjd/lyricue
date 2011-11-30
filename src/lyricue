@@ -5084,7 +5084,10 @@ sub do_change_bible {
     debug("Change bible");
     $globals->{'bibledb'} = $bibledb;
     if (!$globals->{'usesword'}) {
-        $bibleDbh->disconnect;
+        if ($bibleDbh != NULL) {
+            $bibleDbh->disconnect;
+            $bibleDbh = NULL;
+        }
     }
     if ($type eq "db") {
         $globals->{'usesword'} = FALSE;
