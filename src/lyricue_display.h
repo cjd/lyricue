@@ -83,7 +83,7 @@ void update_miniview (const char *command);
 #define BLANK_BG 2
 
 // Transition directions
-#define NONE   0;
+#define NONE   0
 #define WAIT   1
 #define UP     2
 #define DOWN   4
@@ -100,4 +100,5 @@ void update_miniview (const char *command);
 #define FADE       2
 #define SLIDE_TEXT 3
 #define ROTATE     4
+#define RANDOM     5
 

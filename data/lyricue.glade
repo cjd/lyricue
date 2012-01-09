@@ -9069,6 +9069,24 @@ http://www.lyricue.org/bibles</property>
                                 <property name="position">4</property>
                               </packing>
                             </child>
+                            <child>
+                              <widget class="GtkRadioButton" id="radioTransRandom">
+                                <property name="label" translatable="yes">Random</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="use_underline">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">radioTransDefault</property>
+                                <signal name="toggled" handler="transition_type_changed"/>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">5</property>
+                              </packing>
+                            </child>
                           </widget>
                           <packing>
                             <property name="expand">False</property>

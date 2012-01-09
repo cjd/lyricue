@@ -1068,6 +1068,10 @@ do_transition (ClutterActor * new, ClutterActor * old, int transition,
         } else {
             effect = NOTRANS;
         }
+    } else if (effect == RANDOM) {
+        effect = (rand() % (RANDOM-2)) + 2;
+        in_direction = rand() % (2 << NUM_TRANS);
+        out_direction = rand() % (2 << NUM_TRANS);
     }
     // Default positioning
     clutter_actor_set_position (new, new_final_x, new_final_y);

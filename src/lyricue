@@ -252,6 +252,7 @@ use constant NOTRANS     =>  1;
 use constant FADE        =>  2;
 use constant SLIDE_TEXT  =>  3;
 use constant ROTATE_TEXT =>  4;
+use constant RANDOM      =>  5;
 
 # Transition directions
 use constant NONE      => 0;
@@ -883,10 +884,22 @@ sub add_playlist {
 
         # Set sub-item if transition associated
         if (($row->{'transition'} >> (NUM_TRANS*2)) != 0) {
+            my $transtext = $row->{'transition'} >> (NUM_TRANS*2);
+            if ($transtext == FADE) {
+                $transtext = "radioTransFade";
+            } elsif ($transtext == SLIDE_TEXT) {
+                $transtext = "radioTransSlide";
+            } elsif ($transtext == ROTATE_TEXT) {
+                $transtext = "radioTransRotate";
+            } elsif ($transtext == RANDOM) {
+                $transtext = "radioTransRandom";
+            } else {
+                $transtext = "None";
+            }
             my $transiter = $model->append($newiter);
             $model->set(
                 $transiter,
-                0 => "* Page Transition Set",
+                0 => "* Transition: ".$widgets->{'main'}->get_widget($transtext)->get_label(),
                 1 => "",
                 2 => $row->{'playorder'},
                 3 => $row->{'transition'}
@@ -3083,6 +3096,8 @@ sub treePlaylist_cursor_changed {
         } elsif ($effect == ROTATE_TEXT) {
             $widgets->{'main'}->get_widget('radioTransRotate')
               ->set_active(TRUE);
+        } elsif ($effect == RANDOM) {
+            $widgets->{'main'}->get_widget('radioTransRandom')->set_active(TRUE);
         } else {
             $widgets->{'main'}->get_widget('radioTransDefault')->set_active(TRUE);
         }
@@ -8309,6 +8324,8 @@ sub calculate_transition {
         $trans_type = SLIDE_TEXT;
     } elsif ($widgets->{'main'}->get_widget('radioTransRotate')->get_active()) {
         $trans_type = ROTATE_TEXT;
+    } elsif ($widgets->{'main'}->get_widget('radioTransRandom')->get_active()) {
+        $trans_type = RANDOM;
     }
 
     my @dirs = (
