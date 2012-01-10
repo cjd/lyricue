@@ -49,6 +49,13 @@ def add_info(report):
                                   "LyricueServerOldLog")
     attach_file_if_exists(report, lyricue_preview_old_log,
                                   "LyricuePreviewOldLog")
+    attach_file_if_exists(report, '/var/log/Xorg.0.log', 'XorgLog')
+
+    if os.environ.get('DISPLAY'):
+        log = command_output(['xrandr', '-q'])
+        if not log or log[:5] == "Error":
+            return
+        report['Xrandr'] = log
 
     if not apport.packaging.is_distro_package(report['Package'].split()[0]):
         report['ThirdParty'] = 'True'
