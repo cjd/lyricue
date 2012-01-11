@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <glade-interface>
-  <!-- interface-requires gtk+ 2.16 -->
+  <!-- interface-requires gtk+ 2.20 -->
   <!-- interface-naming-policy project-wide -->
   <widget class="GtkAssistant" id="assistantFirstRun">
     <property name="can_focus">False</property>
@@ -12,9 +12,6 @@
     <signal name="apply" handler="firstrun_apply"/>
     <signal name="prepare" handler="firstrun_prepare"/>
     <signal name="cancel" handler="firstrun_cancel"/>
-    <child>
-      <placeholder/>
-    </child>
     <child>
       <widget class="GtkLabel" id="labelFRIntro">
         <property name="visible">True</property>
@@ -8785,15 +8782,23 @@ http://www.lyricue.org/bibles</property>
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkEntry" id="entryNavVerse">
+                              <widget class="GtkComboBoxEntry" id="entryNavVerse">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="primary_icon_activatable">False</property>
-                                <property name="secondary_icon_activatable">False</property>
-                                <property name="primary_icon_sensitive">True</property>
-                                <property name="secondary_icon_sensitive">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="text_column">0</property>
                                 <signal name="changed" handler="navigator_changed"/>
-                                <signal name="activate" handler="navigator_enter"/>
+                                <child internal-child="entry">
+                                  <widget class="GtkEntry" id="entryNavVerseText">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="invisible_char">•</property>
+                                    <property name="primary_icon_activatable">False</property>
+                                    <property name="secondary_icon_activatable">False</property>
+                                    <property name="primary_icon_sensitive">True</property>
+                                    <property name="secondary_icon_sensitive">True</property>
+                                    <signal name="activate" handler="navigator_activated"/>
+                                  </widget>
+                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">True</property>

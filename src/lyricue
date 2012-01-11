@@ -4167,11 +4167,11 @@ sub changeVerseStatus {
                 $end                     = $globals->{'verseStart'};
             }
             my $book =
-              $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+              $widgets->{'main'}->get_widget('entryNavVerse')->get_active_text();
             my $verse = "";
             $book =~ s/:.*$//g;
             $verse = $book . ":" . $begin . "-" . $end;
-            $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
+            $widgets->{'main'}->get_widget('entryNavVerseText')->set_text($verse);
         } elsif ($event->type eq 'enter-notify') {
             $begin = 0;
             if ((defined $globals->{'verseStart'}) 
@@ -8783,6 +8783,30 @@ sub search_activated{
 
 #***
 
+#****f* lyricue/navigator_activated
+# NAME
+#   navigator_activated
+# SYNOPSIS
+#   navigator_activated()
+# FUNCTION
+#   Navigator activated
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+sub navigator_activated{
+    debug("Navigator activated");
+    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_active_text();
+    my $store = $widgets->{'main'}->get_widget('entryNavVerse')->get_model();
+    if (!defined $store) {
+        $store=Gtk2::ListStore->new('Glib::String');
+        $widgets->{'main'}->get_widget('entryNavVerse')->set_model($store);
+    }
+    $store->set($store->prepend,0,$verse);
+}
+
+#***
+
 #****f* lyricue/init_preview
 # NAME
 #   init_preview
@@ -10442,7 +10466,7 @@ sub navigator_update {
     my $buffer = Gtk2::TextBuffer->new();
     $buffer->set_text("");
     my $iter  = $buffer->get_iter_at_offset(0);
-    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+    my $verse = $widgets->{'main'}->get_widget('entryNavVerse')->get_active_text();
     $verse =~ s/ (\D)/_$1/g;
     my ($book, $chapter, $startverse, $endverse) =
       split(/[ :\-,]/, $verse, 4);
@@ -10514,10 +10538,10 @@ sub navigator_update {
             my $command_out = fromutf(`$command`);
             ($newbook, undef) = split(/\s\d/, $command_out, 2);
         }
-        my $text = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+        my $text = $widgets->{'main'}->get_widget('entryNavVerse')->get_active_text();
         $text =~ s/$book[ :\-]/$newbook /i;
-        $widgets->{'main'}->get_widget('entryNavVerse')->set_text($text);
-        $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
+        $widgets->{'main'}->get_widget('entryNavVerseText')->set_text($text);
+        $widgets->{'main'}->get_widget('entryNavVerseText')->set_position(-1);
         biblebrowser_verse(NULL, 0, "entry");
         foreach my $num ($startverse .. $endverse) {
             my $button = "button" . ($num - 1);
@@ -10739,7 +10763,7 @@ sub navigator_next {
     }
 
     $verse = $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
-    $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
+    $widgets->{'main'}->get_widget('entryNavVerseText')->set_text($verse);
     navigator_update();
     navigator_show();
 }
@@ -10771,7 +10795,7 @@ sub navigator_prev {
     }
     $endverse = get_max_verse($book, $chapter, $startverse, $endverse);
     $verse = $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
-    $widgets->{'main'}->get_widget('entryNavVerse')->set_text($verse);
+    $widgets->{'main'}->get_widget('entryNavVerseText')->set_text($verse);
     navigator_update();
     navigator_show();
 }
@@ -13014,9 +13038,9 @@ sub biblebrowser_chapter {
         }
         biblebrowser_loaditems("verse", \@items, 8);
         if ($source ne "entry") {
-            $widgets->{'main'}->get_widget('entryNavVerse')
+            $widgets->{'main'}->get_widget('entryNavVerseText')
               ->set_text($book . " ");
-            $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
+            $widgets->{'main'}->get_widget('entryNavVerseText')->set_position(-1);
         }
     }
 }
@@ -13040,7 +13064,7 @@ sub biblebrowser_chapter {
 sub biblebrowser_verse {
     my ($widget, $chapter, $source) = @_;
     debug("biblebrowser_verse called from " . $source . ":" . $chapter);
-    my $book = $widgets->{'main'}->get_widget('entryNavVerse')->get_text();
+    my $book = $widgets->{'main'}->get_widget('entryNavVerse')->get_active_text();
     $book =~ s/ *$//g;
     if ($chapter == 0) {
         $chapter = $book;
@@ -13054,9 +13078,9 @@ sub biblebrowser_verse {
         }
     }
     if ($source ne "entry") {
-        $widgets->{'main'}->get_widget('entryNavVerse')
+        $widgets->{'main'}->get_widget('entryNavVerseText')
           ->set_text($book . " " . $chapter);
-        $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
+        $widgets->{'main'}->get_widget('entryNavVerseText')->set_position(-1);
     }
     debug("Looking up book " . $book . " chapter " . $chapter);
     my $maxverse = 0;
@@ -13098,9 +13122,9 @@ sub biblebrowser_verse {
         }
         biblebrowser_loaditems("verses", \@items, 8);
         if ($source ne "entry") {
-            $widgets->{'main'}->get_widget('entryNavVerse')
+            $widgets->{'main'}->get_widget('entryNavVerseText')
               ->set_text($book . " " . $chapter);
-            $widgets->{'main'}->get_widget('entryNavVerse')->set_position(-1);
+            $widgets->{'main'}->get_widget('entryNavVerseText')->set_position(-1);
         }
     }
 }
