@@ -10,19 +10,11 @@ sql_DATA = \
 	Update_2.4.sql
 
 share_DATA = \
-	DownLeft.svg \
 	lyricue.png  \
-	UpLeft.svg \
-	DownRight.svg  \
 	Lyricue-first-run-header.svg  \
 	Lyricue-first-run-sidebar.png \
-	UpRight.svg \
-	Down.svg  \
-	Up.svg \
-	Left.svg   \
 	lyricue-icon.png     \
-	Right.svg \
-	lyricue.glade
+	*.ui
 
 etc_DATA = \
 	default.conf \

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="2.24"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkFontSelectionDialog" id="dialogFont">
+    <property name="can_focus">False</property>
+    <property name="border_width">4</property>
+    <property name="title" translatable="yes">Select Font</property>
+    <property name="modal">True</property>
+    <property name="window_position">center</property>
+    <property name="icon">lyricue-icon.png</property>
+    <property name="type_hint">dialog</property>
+    <child internal-child="font_selection">
+      <object class="GtkFontSelection" id="selectFont">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="border_width">4</property>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">buttonFontOK</action-widget>
+      <action-widget response="0">buttonFontApply</action-widget>
+      <action-widget response="0">buttonFontCancel</action-widget>
+    </action-widgets>
+    <child internal-child="cancel_button">
+      <object class="GtkButton" id="buttonFontCancel">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="can_default">True</property>
+        <property name="receives_default">False</property>
+        <property name="use_action_appearance">False</property>
+        <signal name="clicked" handler="close_dialog" swapped="no"/>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">buttonFontOK</action-widget>
+      <action-widget response="0">buttonFontApply</action-widget>
+      <action-widget response="0">buttonFontCancel</action-widget>
+    </action-widgets>
+    <child internal-child="apply_button">
+      <object class="GtkButton" id="buttonFontApply">
+        <property name="label">gtk-apply</property>
+        <property name="can_focus">True</property>
+        <property name="can_default">True</property>
+        <property name="receives_default">False</property>
+        <property name="use_action_appearance">False</property>
+        <property name="use_stock">True</property>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">buttonFontOK</action-widget>
+      <action-widget response="0">buttonFontApply</action-widget>
+      <action-widget response="0">buttonFontCancel</action-widget>
+    </action-widgets>
+    <child internal-child="ok_button">
+      <object class="GtkButton" id="buttonFontOK">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="can_default">True</property>
+        <property name="receives_default">False</property>
+        <property name="use_action_appearance">False</property>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">buttonFontOK</action-widget>
+      <action-widget response="0">buttonFontApply</action-widget>
+      <action-widget response="0">buttonFontCancel</action-widget>
+    </action-widgets>
+  </object>
+</interface>

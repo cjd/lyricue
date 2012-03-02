@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="2.24"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="windowTray">
+    <property name="can_focus">False</property>
+    <property name="type">popup</property>
+    <property name="title" translatable="yes">You should never read this</property>
+    <child>
+      <object class="GtkToolbar" id="trayBar">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="toolbar_style">icons</property>
+        <property name="show_arrow">False</property>
+        <child>
+          <object class="GtkToolButton" id="trayUp">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="use_action_appearance">False</property>
+            <property name="is_important">True</property>
+            <property name="label" translatable="yes">Previous Song</property>
+            <property name="use_underline">True</property>
+            <property name="stock_id">gtk-media-previous</property>
+            <signal name="clicked" handler="prev_song" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="homogeneous">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToolButton" id="trayDown">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="use_action_appearance">False</property>
+            <property name="is_important">True</property>
+            <property name="label" translatable="yes">Next Song</property>
+            <property name="use_underline">True</property>
+            <property name="stock_id">gtk-media-next</property>
+            <signal name="clicked" handler="next_song" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="homogeneous">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToolButton" id="trayLeft">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="use_action_appearance">False</property>
+            <property name="is_important">True</property>
+            <property name="label" translatable="yes">Previous Page</property>
+            <property name="use_underline">True</property>
+            <property name="stock_id">gtk-go-back</property>
+            <signal name="clicked" handler="prev_page" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="homogeneous">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToolButton" id="trayRight">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="use_action_appearance">False</property>
+            <property name="is_important">True</property>
+            <property name="label" translatable="yes">Next Page</property>
+            <property name="use_underline">True</property>
+            <property name="stock_id">gtk-go-forward</property>
+            <signal name="clicked" handler="next_page" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="homogeneous">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToolButton" id="trayClear">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="use_action_appearance">False</property>
+            <property name="is_important">True</property>
+            <property name="label" translatable="yes">Clear Screen</property>
+            <property name="use_underline">True</property>
+            <property name="stock_id">gtk-clear</property>
+            <signal name="clicked" handler="blank_page" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="homogeneous">True</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
