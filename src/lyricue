@@ -630,8 +630,7 @@ sub update_playlist {
     my ($expanded);
     my $model = $widgets->{'main'}->get_object('treePlaylist')->get_model();
     if ($model) {
-        $widgets->{'main'}->get_object('treePlaylist')
-          ->map_expanded_rows(\&save_expanded, \$expanded);
+        $model->foreach(\&save_expanded, \$expanded);
         $model->clear;
     } else {
 
@@ -904,7 +903,7 @@ sub add_playlist {
                 $expanded);
         }
 
-        if ($$expanded->{$playorder}) {
+        if (($$expanded->{$playorder}) || !(defined $$expanded->{$playorder})){
             $widgets->{'main'}->get_object('treePlaylist')
               ->expand_to_path($model->get_path($newiter));
         }
@@ -944,10 +943,10 @@ sub add_playlist {
 # SOURCE
 #
 sub save_expanded {
-    debug("Save expanded");
-    my ($tree, $path, $expanded) = @_;
-    my $iter = $tree->get_model->get_iter($path);
-    $$expanded->{$tree->get_model->get($iter, 2)} = TRUE;
+    my ($store, $path, $iter, $expanded) = @_;
+    if(!(defined $$expanded->{$store->get($iter, 2)})) {
+        $$expanded->{$store->get($iter, 2)} = $widgets->{'main'}->get_object('treePlaylist')->row_expanded($path);
+    }
     return FALSE;
 }
 
@@ -5729,6 +5728,47 @@ sub new_playlist {
 
 #***
 
+#****f* lyricue/copy_playlist
+# NAME
+#   copy_playlist
+# SYNOPSIS
+#   copy_playlist ($widget)
+# FUNCTION
+#   Copy a playlist
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Closed
+# SOURCE
+sub copy_playlist {
+    my ($widget) = @_;
+    debug("Copying playlist");
+    my $playlist = "";
+    my $playlistid = 0;
+    my $selection =
+      $widgets->{'main'}->get_object('treeChoosePlay')->get_selection;
+    if ($selection) {
+        my ($m, $i) = $selection->get_selected;
+        if ($m) {
+            $playlist = $m->get($i, 0);
+            $playlistid = $m->get($i, 1);
+        }
+    }
+
+    if ($playlistid>0) {
+        my $copyxml = load_window("dialogPromptEntry");
+        my $labelText = fromutf(gettext("Copying ")) . $playlist;
+        $copyxml->get_object('dialogPromptEntry')->set_title($labelText);
+        $copyxml->get_object('labelPromptE')->set_text($labelText);
+        $copyxml->get_object('labelPromptE')->{user_data} = $playlistid;
+        $copyxml->get_object('entryPromptE')->{user_data} = $playlist;
+        $copyxml->get_object('entryPromptE')->set_text($playlist);
+        $copyxml->get_object('buttonPromptEOK')
+          ->signal_connect("clicked", "do_copy_playlist", $copyxml);
+    }
+}
+#***
+
 #****f* lyricue/rename_playlist
 # NAME
 #   rename_playlist
@@ -5745,37 +5785,148 @@ sub rename_playlist {
     my ($widget) = @_;
     debug("Renaming playlist");
     my $playlist = "";
+    my $playlistid = 0;
     my $selection =
       $widgets->{'main'}->get_object('treeChoosePlay')->get_selection;
     if ($selection) {
         my ($m, $i) = $selection->get_selected;
         if ($m) {
             $playlist = $m->get($i, 0);
+            $playlistid = $m->get($i, 1);
         }
     }
 
-    if ($playlist eq "") {
-        return;
-    }
-
-    my $query = "SELECT id FROM playlists WHERE title=\"" . $playlist . "\"";
-    my $sth   = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
-    my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    my @row = $sth->fetchrow_array();
-    if ($row[0]) {
+    if ($playlistid>0) {
         my $renamexml = load_window("dialogPromptEntry");
         my $labelText = fromutf(gettext("Renaming ")) . $playlist;
         $renamexml->get_object('dialogPromptEntry')->set_title($labelText);
         $renamexml->get_object('labelPromptE')->set_text($labelText);
-        $renamexml->get_object('labelPromptE')->{user_data} = $row[0];
+        $renamexml->get_object('labelPromptE')->{user_data} = $playlistid;
         $renamexml->get_object('entryPromptE')->set_text($playlist);
         $renamexml->get_object('buttonPromptEOK')
           ->signal_connect("clicked", "do_rename_playlist", $renamexml);
     }
 }
 
+#***
+
+#****f* lyricue/do_copy_playlist
+# NAME
+#   do_copy_playlist
+# SYNOPSIS
+#   do_copy_playlist ($widget, $copyxml)
+# FUNCTION
+#   Copy a playlist
+# INPUTS
+#   $widget - Calling widget
+#   $copyxml - Dialog widgets
+# OUTPUT
+#   Closed
+# SOURCE
+#
+sub do_copy_playlist {
+    my ($widget, $copyxml) = @_;
+    debug("Do copy playlist");
+    my $playlist = $copyxml->get_object('entryPromptE')->get_text;
+    my $playlistid_src = $copyxml->get_object('labelPromptE')->{user_data};
+
+    if ($playlist eq $copyxml->get_object('entryPromptE')->{user_data}) {
+        debug("Name unchanged");
+        return;
+    }
+    my $query = "SELECT id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 AND title='".$playlist."' ORDER BY id";
+    qdebug($query);
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    if($sth->fetchrow_array()){
+        debug("Duplicate");
+        update_cplayclist();
+        close_dialog($widget);
+    } else {
+        debug("Copying playlist");
+        my $query = "SELECT MAX(id)+1 FROM playlists";
+        my $sth   = $lyricDbh->prepare($query)
+          || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+        my $rv = $sth->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+        my @row = $sth->fetchrow_array();
+        my $playlistid_dst = $row[0];
+        $widgets->{'main'}->get_object('labelCurrentPlaylist')
+          ->set_text($playlist);
+        $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data} =
+          $playlistid_dst;
+
+        # iterate through source playlist and create new one
+        copy_playlist2($playlistid_src, $playlistid_dst, $playlist);
+
+        # Load the new playlist
+        update_playlist();
+        close_playlist_chooser();
+    }
+}
+
+sub copy_playlist2 {
+    my ($playlistid_src, $playlistid_dst, $playlist) = @_;
+    my $query =
+        "INSERT INTO playlists (id,title) VALUES ("
+      . $playlistid_dst . ", \""
+      . $playlist . "\")";
+    my $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    my $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+
+    $query = "SELECT playorder,data,type,transition FROM playlist WHERE playlist=".$playlistid_src." ORDER BY playorder";
+    
+    $sth = $lyricDbh->prepare($query)
+      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: ".$query);
+    $rv = $sth->execute
+      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: ".$query);
+    while (my $row = $sth->fetchrow_hashref()) {
+        my $query2 = "SELECT MAX(playorder) FROM playlist";
+        my $sth2 = $lyricDbh->prepare($query2)
+          || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query2);
+        my $rv2 = $sth2->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query2);
+        my @row2 = $sth2->fetchrow_array();
+        my $playorder = $row2[0]+1;
+
+        my $data = $row->{'data'};
+        my $transition = $row->{'transition'};
+        my $playlistid_dst2 = 0;
+        my $newplaylist = "";
+        if ($row->{'type'} eq "play") { # Playlist
+            my $query3 = "SELECT MAX(id)+1 FROM playlists";
+            my $sth3   = $lyricDbh->prepare($query3)
+              || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query3);
+            my $rv3 = $sth3->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query3);
+            my @row3 = $sth3->fetchrow_array();
+            $playlistid_dst2 = $row3[0];
+            $query3 = "SELECT title FROM playlists WHERE id=".$row->{'data'};
+            $sth3   = $lyricDbh->prepare($query3)
+              || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query3);
+            $rv3 = $sth3->execute
+              || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query3);
+            @row3 = $sth3->fetchrow_array();
+            $newplaylist=$row3[0];
+            $data=$playlistid_dst2;
+        }
+
+        $query2="INSERT INTO playlist (playorder, playlist, data, type, transition) VALUES (".$playorder.", ".$playlistid_dst.", '".$data."', '".$row->{'type'}."', ".$transition.")";
+        $sth2   = $lyricDbh->prepare($query2)
+          || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query2);
+        $rv2 = $sth2->execute
+          || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query2);
+
+        if ($row->{'type'} eq "play") { # Playlist
+            my $playlistid_src2=$row->{'data'};
+            copy_playlist2($playlistid_src2,$playlistid_dst2,$newplaylist);
+        }
+    }
+}
 #***
 
 #****f* lyricue/do_rename_playlist
