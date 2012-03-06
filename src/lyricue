@@ -116,6 +116,9 @@ use XML::Simple;
 use Gnome2;
 use File::Temp qw/tempdir/;
 use File::MimeInfo qw/globs/;
+use Cwd qw(abs_path);
+use File::Basename;
+
 
 eval { require Locale::gettext };
 
@@ -145,15 +148,26 @@ my ($globals);
 
 my %lsdvd;
 
+$globals->{'execdir'} = dirname(abs_path($0));
+
 if ($^O eq 'MSWin32') {
     $globals->{'etcdir'}   = "etc/lyricue/";
     $globals->{'basedir'}  = ".lyricue/";
     $globals->{'sharedir'} = "";
 } else {
-    $globals->{'etcdir'}     = "/etc/lyricue/";
+    $globals->{'etcdir'}     = abs_path($globals->{'execdir'}."/../../etc/lyricue/");
+    if (! -d $globals->{'etcdir'}) {
+        $globals->{'etcdir'}     = abs_path($globals->{'execdir'}."/../etc/lyricue/");
+        if (! -d $globals->{'etcdir'}) {
+            $globals->{'etcdir'}     = "/etc/lyricue/";
+        }
+    }
+    $globals->{'sharedir'}   = abs_path($globals->{'execdir'}."/../share/lyricue/");
+    if (! -d $globals->{'sharedir'}) {
+        $globals->{'sharedir'}   = "/usr/share/lyricue/";
+    }
     $globals->{'basedir'}    = Glib::get_user_data_dir . "/lyricue/";
     $globals->{'oldbasedir'} = $ENV{'HOME'} . "/.lyricue/";
-    $globals->{'sharedir'}   = "/usr/share/lyricue/";
 }
 
 #
@@ -377,7 +391,7 @@ my @admin_items = ("user_administration1");
 if ($ARGV[0]) {
     foreach (0 .. (@ARGV - 1)) {
         if ($ARGV[$_] eq "-v") {
-            print "Lyric Interface version " . $globals->{'version'} . "\n";
+            print "Lyricue Interface version " . $globals->{'version'} . "\n";
             exit;
         } elsif ($ARGV[$_] eq "-l") {
             $globals->{'print_songs'} = TRUE;
@@ -464,7 +478,8 @@ rename($logname, $logname . ".old")
   or system("mv", $logname, $logname . ".old");
 open(LOG, ">" . $logname);
 binmode LOG, ":utf8";
-debug("Lyric Interface version " . $globals->{'version'} . "\n" . $ID);
+debug("Lyricue Interface version " . $globals->{'version'} . "\n" . $ID);
+debug("Running from ". $globals->{'execdir'});
 $widgets->{'main'} = load_window("windowMain");
 
 # Load the config file
