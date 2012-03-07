@@ -149,23 +149,26 @@ my ($globals);
 my %lsdvd;
 
 $globals->{'execdir'} = dirname(abs_path($0));
+print $globals->{'execdir'}." - etc\n";
 
 if ($^O eq 'MSWin32') {
     $globals->{'etcdir'}   = "etc/lyricue/";
     $globals->{'basedir'}  = ".lyricue/";
     $globals->{'sharedir'} = "";
 } else {
-    $globals->{'etcdir'}     = abs_path($globals->{'execdir'}."/../../etc/lyricue/");
-    if (! -d $globals->{'etcdir'}) {
-        $globals->{'etcdir'}     = abs_path($globals->{'execdir'}."/../etc/lyricue/");
-        if (! -d $globals->{'etcdir'}) {
-            $globals->{'etcdir'}     = "/etc/lyricue/";
+    $globals->{'etcdir'} = abs_path($globals->{'execdir'}."/../../etc/lyricue/");
+    if ((! defined $globals->{'etcdir'}) || (! -d "$globals->{'etcdir'}")) {
+        $globals->{'etcdir'} = abs_path($globals->{'execdir'}."/../etc/lyricue/");
+        if ((! defined $globals->{'etcdir'}) || (! -d "$globals->{'etcdir'}")) {
+            $globals->{'etcdir'} = "/etc/lyricue";
         }
     }
-    $globals->{'sharedir'}   = abs_path($globals->{'execdir'}."/../share/lyricue/");
-    if (! -d $globals->{'sharedir'}) {
-        $globals->{'sharedir'}   = "/usr/share/lyricue/";
+    $globals->{'etcdir'} = $globals->{'etcdir'}."/";
+    $globals->{'sharedir'} = abs_path($globals->{'execdir'}."/../share/lyricue/");
+    if ((! defined $globals->{'sharedir'}) || (! -d $globals->{'sharedir'})) {
+        $globals->{'sharedir'} = "/usr/share/lyricue";
     }
+    $globals->{'sharedir'} = $globals->{'sharedir'}."/";
     $globals->{'basedir'}    = Glib::get_user_data_dir . "/lyricue/";
     $globals->{'oldbasedir'} = $ENV{'HOME'} . "/.lyricue/";
 }

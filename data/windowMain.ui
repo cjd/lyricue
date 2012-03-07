@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.24"/>
+  <requires lib="gtk+" version="2.20"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkAdjustment" id="adjustmentFade">
     <property name="upper">255</property>
@@ -1129,11 +1129,22 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="entryNavVerse">
+                              <object class="GtkComboBoxEntry" id="entryNavVerse">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="has_entry">True</property>
+                                <property name="text_column">0</property>
                                 <signal name="changed" handler="navigator_changed" swapped="no"/>
+                                <child internal-child="entry">
+                                  <object class="GtkEntry" id="entryNavVerseText">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="primary_icon_activatable">False</property>
+                                    <property name="secondary_icon_activatable">False</property>
+                                    <property name="primary_icon_sensitive">True</property>
+                                    <property name="secondary_icon_sensitive">True</property>
+                                    <signal name="activate" handler="navigator_activated" swapped="no"/>
+                                  </object>
+                                </child>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
