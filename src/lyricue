@@ -8924,6 +8924,7 @@ sub navigator_activated{
         $widgets->{'main'}->get_object('entryNavVerse')->set_model($store);
     }
     $store->set($store->prepend,0,$verse);
+    navigator_add();
 }
 
 #***
