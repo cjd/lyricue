@@ -1807,6 +1807,29 @@ sub save_song {
 
 #***
 
+#****f* lyricue/save_song_as
+# NAME
+#   save_song_as
+# SYNOPSIS
+#   save_song_as ()
+# FUNCTION
+#   Save the song as new name, close the add window
+#   and update the available songs
+# INPUTS
+# OUTPUT
+#   Calls a few others to do anything
+# SOURCE
+#
+sub save_song_as {
+    debug("save song as new");
+    $widgets->{'add'}->get_object('windowEditSong')->{user_data}=0;
+    do_save_song();
+    close_add_window();
+    update_available();
+}
+
+#***
+
 #****f* lyricue/add_page
 # NAME
 #   add_page
