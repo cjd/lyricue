@@ -149,7 +149,6 @@ my ($globals);
 my %lsdvd;
 
 $globals->{'execdir'} = dirname(abs_path($0));
-print $globals->{'execdir'}." - etc\n";
 
 if ($^O eq 'MSWin32') {
     $globals->{'etcdir'}   = "etc/lyricue/";
@@ -4444,7 +4443,7 @@ sub print_songs {
       || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     print "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\">\n";
-    print "<HTML>\n<HEAD><TITLE>Lyricue: ".toutf(gettext("Available songs"))."</TITLE>\n";
+    print "<HTML>\n<HEAD><TITLE>Lyricue: ".fromutf(gettext("Available songs"))."</TITLE>\n";
     print "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n";
     print "<style type=\"text/css\">\n";
     print "body {font-family: 'Droid Sans', 'Ubuntu', 'Canarell', sans; color: #555;}\n";
@@ -4456,15 +4455,15 @@ sub print_songs {
     print "td:first-child {text-align: left;}\n";
     print "</style>\n</head>\n";
     print "<body><div id=wrapper>\n";
-    print "<H1>Lyricue: ".toutf(gettext("Available songs"))."</H1>\n";
+    print "<H1>Lyricue: ".fromutf(gettext("Available songs"))."</H1>\n";
     print "<H2>".gettext("Total number of songs available")." : "
       . $totals[0]
       . "</H2>\n";
     print "<table>\n";
-    print "<TR><TH>".toutf(gettext("Song Name"))."</TH>";
-    print "<TH>".toutf(gettext("Song Book"))."</TH>";
-    print "<TH>".toutf(gettext("Song Number"))."</TH>";
-    print "<TH>".toutf(gettext("Artist"))."</TH></TR>\n";
+    print "<TR><TH>".fromutf(gettext("Song Name"))."</TH>";
+    print "<TH>".fromutf(gettext("Song Book"))."</TH>";
+    print "<TH>".fromutf(gettext("Song Number"))."</TH>";
+    print "<TH>".fromutf(gettext("Artist"))."</TH></TR>\n";
     my @row;
 
     while (@row = $sth->fetchrow_array()) {
