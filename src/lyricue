@@ -3976,7 +3976,7 @@ sub open_dialogColour {
     debug("Opening Colour dialog");
     debug("open_dialogColour: item=" . $item);
     debug("open_dialogColour: widget=" . $widget->get_name());
-    my $colourxml = load_widow("dialogColour");
+    my $colourxml = load_window("dialogColour");
     $colourxml->get_object('dialogColour')
       ->set_title(
         fromutf(gettext("Select ")) . $item . fromutf(gettext(" Colour")));
