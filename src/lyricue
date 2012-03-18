@@ -11302,6 +11302,8 @@ sub import_song_songselect {
     my ($filename) = @_;
     debug("import songselect song");
     open(SONG, $filename) || return;
+    binmode SONG, ":encoding(utf8)";
+
     my $hashnum = 0;
 
     while (<SONG>) {
