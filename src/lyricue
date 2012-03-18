@@ -5410,10 +5410,16 @@ sub move_item {
 
     if ($placement eq "before") {
         $destitem--;
+        if ($destitem<0) {
+            $destitem=0;
+        }
     } elsif ($placement eq "after") {
         $destitem++;
     }
     $dest = $items[$destitem];
+    if (! defined($dest)){
+        return;
+    }
     debug($source . ":" . $dest);
 
     while ($source != $dest) {
