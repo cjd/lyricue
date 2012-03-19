@@ -19,6 +19,13 @@ Communications are not case sensitive other than filenames/db names
 Commands
 --------
 
+Command - 'query'
+First parameter - database to query (lyricDb/mediaDb/bibleDb)
+Second parameter - SQL query
+Purpose - To do a SQL query and return results in JSON format
+Response - JSON formatted results
+Example - 'query:lyricDb:SELECT * FROM playlists'
+
 Command - 'osd'
 First parameter - slow,fast,time in milliseconds or left blank
 Second parameter - OSD text to display

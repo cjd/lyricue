@@ -25,6 +25,8 @@
 #include "lyricue_display.h"
 
 extern MYSQL *lyricDb;
+extern MYSQL *mediaDb;
+extern MYSQL *bibleDb;
 extern gchar *bible_name;
 extern gfloat stage_width;
 extern gfloat stage_height;
@@ -217,6 +219,8 @@ handle_command (GIOChannel * source, const char *command)
             do_blur (line[1]);
         } else if (g_strcmp0 (line[0], "save") == 0) {
             do_save (line[1]);
+        } else if (g_strcmp0 (line[0], "query") == 0) {
+            returnstring = do_query_json (line[1]);
         }
     }
     g_strfreev (line);
@@ -813,4 +817,61 @@ do_save (const char *options)
     }
     g_strfreev (line);
     transition_skip = FALSE;
+}
+
+GString *
+do_query_json (const char *options)
+{
+    l_debug ("Query with response as JSON");
+    gchar **line = g_strsplit (options, ":", 2);
+    if (line[1] != NULL) {
+        line[0] = g_utf8_strdown (line[0], -1);
+        MYSQL_ROW row;
+        MYSQL_RES *result;
+
+        if (g_strcmp0(line[0],"lyricdb") == 0) {
+            do_query (lyricDb,line[1]);
+            result = mysql_store_result (lyricDb);
+        } else if (g_strcmp0(line[0],"mediadb") == 0) {
+            do_query (mediaDb,line[1]);
+            result = mysql_store_result (mediaDb);
+        } else if (g_strcmp0(line[0],"bibledb") == 0) {
+            do_query (bibleDb,line[1]);
+            result = mysql_store_result (bibleDb);
+        } else {
+            g_strfreev (line);
+            return NULL;
+        }
+
+        JsonBuilder *builder = json_builder_new();
+        json_builder_begin_object (builder);
+    
+        unsigned int num_fields = mysql_num_fields(result);
+        unsigned int i;
+        json_builder_set_member_name(builder,"results");
+        json_builder_begin_array(builder);
+        while ((row = mysql_fetch_row (result))) {
+            json_builder_begin_array(builder);
+            for(i = 0; i < num_fields; i++) {
+                json_builder_add_string_value(builder,row[i] ? row[i] : "NULL");
+            }
+            json_builder_end_array(builder);
+        }
+        mysql_free_result (result);
+        json_builder_end_array(builder);
+        json_builder_end_object(builder);
+
+        JsonGenerator *gen = json_generator_new ();
+        json_generator_set_root (gen, json_builder_get_root (builder));
+        gchar *str = json_generator_to_data (gen,NULL);
+
+        GString *ret = g_string_new(str);
+        g_object_unref (gen);
+        g_object_unref (builder);
+        g_strfreev (line);
+        return ret;
+    }
+    
+    g_strfreev (line);
+    return NULL;
 }

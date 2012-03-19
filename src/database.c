@@ -114,5 +114,5 @@ do_query (MYSQL * dbconnection, const gchar * format, ...)
                  mysql_error (dbconnection));
     }
     g_string_free (query, TRUE);
-    return mysql_errno (lyricDb);
+    return mysql_errno (dbconnection);
 }
