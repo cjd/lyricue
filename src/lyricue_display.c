@@ -847,13 +847,19 @@ do_query_json (const char *options)
         json_builder_begin_object (builder);
     
         unsigned int num_fields = mysql_num_fields(result);
+        MYSQL_FIELD *fields;
+        fields = mysql_fetch_fields(result);
+
         unsigned int i;
         json_builder_set_member_name(builder,"results");
         json_builder_begin_array(builder);
         while ((row = mysql_fetch_row (result))) {
             json_builder_begin_array(builder);
             for(i = 0; i < num_fields; i++) {
+                json_builder_begin_object (builder);
+                json_builder_set_member_name(builder,fields[i].name);
                 json_builder_add_string_value(builder,row[i] ? row[i] : "NULL");
+                json_builder_end_object (builder);
             }
             json_builder_end_array(builder);
         }
