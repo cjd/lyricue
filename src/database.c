@@ -100,7 +100,7 @@ load_configuration ()
 }
 
 int
-do_query (MYSQL * dbconnection, const gchar * format, ...)
+do_query (MYSQL * dbconnection, const char * format, ...)
 {
     GString *query = g_string_new (NULL);
     va_list argp;

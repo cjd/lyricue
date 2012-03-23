@@ -184,9 +184,9 @@ void
 handle_command (GIOChannel * source, const char *command)
 {
     l_debug ("Received: %s", command);
-    update_miniview (command);
     GString *returnstring = NULL;
     gchar **line = g_strsplit (command, ":", 2);
+    update_miniview (command);
     if (line[1] != NULL) {
         line[0] = g_utf8_strdown (line[0], -1);
         if (g_strcmp0 (line[0], "preview") == 0) {
@@ -830,13 +830,13 @@ do_query_json (const char *options)
         MYSQL_RES *result;
 
         if (g_strcmp0(line[0],"lyricdb") == 0) {
-            do_query (lyricDb,line[1]);
+            do_query (lyricDb,"%s",line[1]);
             result = mysql_store_result (lyricDb);
         } else if (g_strcmp0(line[0],"mediadb") == 0) {
-            do_query (mediaDb,line[1]);
+            do_query (mediaDb,"%s",line[1]);
             result = mysql_store_result (mediaDb);
         } else if (g_strcmp0(line[0],"bibledb") == 0) {
-            do_query (bibleDb,line[1]);
+            do_query (bibleDb,"%s",line[1]);
             result = mysql_store_result (bibleDb);
         } else {
             g_strfreev (line);
@@ -854,14 +854,12 @@ do_query_json (const char *options)
         json_builder_set_member_name(builder,"results");
         json_builder_begin_array(builder);
         while ((row = mysql_fetch_row (result))) {
-            json_builder_begin_array(builder);
+            json_builder_begin_object (builder);
             for(i = 0; i < num_fields; i++) {
-                json_builder_begin_object (builder);
                 json_builder_set_member_name(builder,fields[i].name);
                 json_builder_add_string_value(builder,row[i] ? row[i] : "NULL");
-                json_builder_end_object (builder);
             }
-            json_builder_end_array(builder);
+            json_builder_end_object (builder);
         }
         mysql_free_result (result);
         json_builder_end_array(builder);
