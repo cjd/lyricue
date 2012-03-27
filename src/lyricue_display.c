@@ -843,35 +843,36 @@ do_query_json (const char *options)
             return NULL;
         }
 
-        JsonBuilder *builder = json_builder_new();
-        json_builder_begin_object (builder);
+        JsonGenerator *generator = json_generator_new();
+        JsonNode *rootnode = json_node_new(JSON_NODE_OBJECT);
+
+        JsonObject *resultnode = json_object_new();
+
+        JsonArray *resultarray = json_array_new();
+
     
         unsigned int num_fields = mysql_num_fields(result);
         MYSQL_FIELD *fields;
         fields = mysql_fetch_fields(result);
 
         unsigned int i;
-        json_builder_set_member_name(builder,"results");
-        json_builder_begin_array(builder);
         while ((row = mysql_fetch_row (result))) {
-            json_builder_begin_object (builder);
+            JsonObject *newobject = json_object_new();
             for(i = 0; i < num_fields; i++) {
-                json_builder_set_member_name(builder,fields[i].name);
-                json_builder_add_string_value(builder,row[i] ? row[i] : "NULL");
+                json_object_set_string_member(newobject,fields[i].name,row[i] ? row[i] : "NULL");
             }
-            json_builder_end_object (builder);
+            json_array_add_object_element(resultarray, newobject);
         }
         mysql_free_result (result);
-        json_builder_end_array(builder);
-        json_builder_end_object(builder);
+        json_object_set_array_member(resultnode, "results",resultarray);
+        json_node_set_object(rootnode,resultnode);
+        json_generator_set_root(generator, rootnode);
 
-        JsonGenerator *gen = json_generator_new ();
-        json_generator_set_root (gen, json_builder_get_root (builder));
-        gchar *str = json_generator_to_data (gen,NULL);
+        gchar *str = json_generator_to_data (generator,NULL);
 
         GString *ret = g_string_new(str);
-        g_object_unref (gen);
-        g_object_unref (builder);
+        json_array_unref (resultarray);
+        g_object_unref (generator);
         g_strfreev (line);
         return ret;
     }
