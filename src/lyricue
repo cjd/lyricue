@@ -6607,8 +6607,10 @@ sub save_preferences {
     }
 
     my $iter = $widgets->{'prefs'}->get_object('comboPrefBible')->get_active_iter;
-    $config->{'DefBible'} =  
-      $widgets->{'prefs'}->get_object('comboPrefBible')->get_model->get($iter,1);
+    if (defined $iter) {
+        $config->{'DefBible'} =  
+          $widgets->{'prefs'}->get_object('comboPrefBible')->get_model->get($iter,1);
+    }
 
     save_state();
     write_config(FALSE);
