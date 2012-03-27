@@ -100,7 +100,9 @@ do_grab_verse_db (const gchar * book, int chapter_start, int chapter_end,
 void
 bible_load (const gchar * bible)
 {
+    if (bible == NULL) return;
     gchar **line = g_strsplit (bible, ":", 2);
+    if (line[1] == NULL) return;
     gchar **desc = g_strsplit (line[1], ";", 2);
     bible_name = g_strdup (desc[1]);
     if (g_strcmp0 (desc[0], "db") == 0) {
