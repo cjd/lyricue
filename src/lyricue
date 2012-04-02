@@ -9524,7 +9524,7 @@ q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate,
     close_dialog($choosexml->get_object('dialogSelectCategory'));
     my $category =
       $widgets->{'image'}->get_object('optionImageCategory')
-      ->get_menu->get_active->{user_data};
+      ->{user_data};
     update_imagedir(
         $widgets->{'image'}->get_object('optionImageCategory')->{'user_data'},
         $category);
