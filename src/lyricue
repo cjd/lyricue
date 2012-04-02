@@ -130,11 +130,7 @@ if ($@) {
     }
 } else {
     import Locale::gettext;
-
-    #my $old_locale = setlocale(LC_ALL);
-    #setlocale(LC_ALL,"sv_SE.UTF-8");
     textdomain('lyricue');
-
     bind_textdomain_codeset('lyricue', "UTF-8");
 }
 binmode(STDOUT, ":utf8");
@@ -920,7 +916,7 @@ sub add_playlist {
                 $expanded);
         }
 
-        if (($$expanded->{$playorder}) || !(defined $$expanded->{$playorder})){
+        if (($$expanded->{$playorder}) || ($config->{'ExpandNew'} && !(defined $$expanded->{$playorder}))){
             $widgets->{'main'}->get_object('treePlaylist')
               ->expand_to_path($model->get_path($newiter));
         }
@@ -4799,6 +4795,8 @@ sub create_dialog_prefs {
       ->set_value($config->{'ShadowSize'});
     $widgets->{'prefs'}->get_object('checkPrefLoop')
       ->set_active($config->{'Loop'});
+    $widgets->{'prefs'}->get_object('checkPrefExpandNew')
+      ->set_active($config->{'ExpandNew'});
     $widgets->{'prefs'}->get_object('checkPrefAudit')
       ->set_active($config->{'Audit'});
     $widgets->{'prefs'}->get_object('checkPrefView')
@@ -6491,6 +6489,8 @@ sub save_preferences {
       $widgets->{'prefs'}->get_object('spinPrefOverscanV')->get_value();
     $config->{'Loop'} =
       $widgets->{'prefs'}->get_object('checkPrefLoop')->get_active() ? 1 : 0;
+    $config->{'ExpandNew'} =
+      $widgets->{'prefs'}->get_object('checkPrefExpandNew')->get_active() ? 1 : 0;
     $config->{'Audit'} =
       $widgets->{'prefs'}->get_object('checkPrefAudit')->get_active() ? 1 : 0;
     $config->{'DynamicPreview'} =
@@ -6610,6 +6610,8 @@ sub save_preferences {
     if (defined $iter) {
         $config->{'DefBible'} =  
           $widgets->{'prefs'}->get_object('comboPrefBible')->get_model->get($iter,1);
+    } else {
+        debug("No default bible selected");
     }
 
     save_state();
@@ -8818,14 +8820,12 @@ sub load_access {
     }
 
     foreach my $item (@show_items) {
-        debug("Showing $item");
         if (defined $widgets->{'main'}->get_object($item)) {
             $widgets->{'main'}->get_object($item)->show();
         }
     }
 
     foreach my $item (@remove_items) {
-        debug("Hiding $item");
         if (defined $widgets->{'main'}->get_object($item)) {
             $widgets->{'main'}->get_object($item)->hide();
         }
@@ -13961,7 +13961,9 @@ sub gather_debug {
 sub load_window {
     my ($ui_name) = @_;
     my $builder = Gtk2::Builder->new();
+    $builder->set_translation_domain('lyricue');
     $builder->add_from_file($globals->{'sharedir'}.$ui_name.".ui");
     $builder->connect_signals(undef);
+
     return $builder;
 }
