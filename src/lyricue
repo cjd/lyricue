@@ -898,7 +898,7 @@ sub add_playlist {
             } elsif ($transtext == RANDOM) {
                 $transtext = "radioTransRandom";
             } else {
-                $transtext = "None";
+                $transtext = "radioTransNone";
             }
             my $transiter = $model->append($newiter);
             $model->set(
@@ -5137,7 +5137,7 @@ sub do_change_bible {
     if ($type eq "db") {
         $globals->{'usesword'} = FALSE;
         my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
-        if ($dbname eq "") {
+        if ((!(defined $dbname)) || ($dbname eq "")) {
             $dbname               = $table;
             $table                = "verse";
             $globals->{'bibledb'} = $table . "@" . $dbname;
