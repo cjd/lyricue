@@ -531,10 +531,33 @@ do_display (const char *options)
             if (row[0]) {
                 current_item = atoi (row[0]);
             } else {
-                if (g_strcmp0 (line[1], "loop")) {
+                if (g_strcmp0 (line[1], "loop") == 0) {
+                    // Loop back to end of playlist
                     do_query (lyricDb,
                               "SELECT MAX(playorder) FROM playlist WHERE playlist=%d",
                               current_list);
+                    result = mysql_store_result (lyricDb);
+                    row = mysql_fetch_row (result);
+                    mysql_free_result (result);
+                    if (row[0] != NULL) {
+                        current_item = atoi (row[0]);
+                    }
+                } else {
+                    // Jump back to last page of previous song
+                    do_query(lyricDb,
+                             "SELECT MAX(playorder) FROM playlist "
+                             "WHERE playlist="
+                             "(SELECT data FROM playlist "
+                             " WHERE playorder= "
+                             "  (SELECT MAX(playorder) FROM playlist "
+                             "   WHERE playorder < "
+                             "   (SELECT playorder FROM playlist "
+                             "    WHERE type='play' AND data=%d) "
+                             "    AND playlist = "
+                             "    (SELECT playlist FROM playlist "
+                             "     WHERE type='play' AND data=%d)))",
+                             current_list,
+                             current_list);
                     result = mysql_store_result (lyricDb);
                     row = mysql_fetch_row (result);
                     mysql_free_result (result);
