@@ -7604,7 +7604,9 @@ sub imgdir_load {
         my $query =
             "SELECT id,description FROM media WHERE category=\""
           . $category
-          . "\" AND type=\"bg\" ORDER BY description";
+          . "\" AND type=\""
+          . $section
+          . "\" ORDER BY description";
         my $sth = $mediaDbh->prepare($query)
           || display_fatal($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
