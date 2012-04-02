@@ -7442,6 +7442,7 @@ sub bgdir_list {
         $special = $config->{'SpecialImage'};
         $dirname = $config->{'ImageDirectory'};
     }
+    $combo->clear();
     $combo->set_model($store);
     my $renderer = Gtk2::CellRendererText->new;
     $combo->pack_start($renderer, TRUE);
@@ -13968,4 +13969,15 @@ sub load_window {
     $builder->connect_signals(undef);
 
     return $builder;
+}
+
+sub change_notebook_page {
+    my ($widget);
+    my $page = $widgets->{'main'}->get_object('notebookSources')->get_current_page;
+    my $current_page = $widgets->{'main'}->get_object('notebookSources')->get_nth_page($page);
+    if ($current_page == $widgets->{'main'}->get_object('vboxBGDir') ) {
+        bgdir_list("bg");
+    } elsif ($current_page == $widgets->{'main'}->get_object('vboxImgDir') ) {
+        bgdir_list("img");
+    }
 }
