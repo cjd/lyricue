@@ -78,6 +78,8 @@ do_grab_verse_db (const gchar * book, int chapter_start, int chapter_end,
     MYSQL_ROW row;
     MYSQL_RES *result;
 
+    if (bibleDb == NULL) return "";
+
     if (chapter_start == chapter_end) {
         do_query (bibleDb,
                   "SELECT chapternum,versenum,verse FROM %s WHERE book LIKE \"%s\%\" AND chapternum=%d AND versenum >=%d AND versenum <=%d",
@@ -100,9 +102,13 @@ do_grab_verse_db (const gchar * book, int chapter_start, int chapter_end,
 void
 bible_load (const gchar * bible)
 {
-    if (bible == NULL) return;
+    if ((bible == NULL) || (g_strcmp0(bible,"")==0)) {
+        is_sword=FALSE;
+        bibleDb=NULL;
+        return;
+    }
     gchar **line = g_strsplit (bible, ":", 2);
-    if (line[1] == NULL) return;
+    if ((line[1] == NULL) || (g_strcmp0(line[1],"") == 0)) return;
     gchar **desc = g_strsplit (line[1], ";", 2);
     bible_name = g_strdup (desc[1]);
     if (g_strcmp0 (desc[0], "db") == 0) {

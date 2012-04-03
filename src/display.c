@@ -112,7 +112,7 @@ static ShaderSource shaders[] = {
 int
 create_main_window (int argc, char *argv[])
 {
-    gtk_clutter_init (&argc, &argv);
+    int ret = gtk_clutter_init (&argc, &argv);
     clutter_gst_init (&argc, &argv);
     stage_width = atof ((gchar *) g_hash_table_lookup (config, "Width"));
     stage_height = atof ((gchar *) g_hash_table_lookup (config, "Height"));
