@@ -479,6 +479,7 @@ binmode LOG, ":utf8";
 debug("Lyricue Interface version " . $globals->{'version'} . "\n" . $ID);
 debug("Running from ". $globals->{'execdir'});
 $widgets->{'main'} = load_window("windowMain");
+fix_widget_names(); # Needed since gtk2::builder is not setting widget names
 
 # Load the config file
 if (-d $globals->{'basedir'}) {
@@ -7935,7 +7936,7 @@ sub change_bgimage {
     {
         $widgets->{'image'}->get_object('treeImage')->{data} = ();
     } else {
-        if ($widget->get_name() eq "buttonPrefBackground") {
+        if (defined $widgets->{'prefs'} && ($widget eq $widgets->{'prefs'}->get_object('buttonPrefBackground'))) {
             $bgimage =
               $widgets->{'prefs'}->get_object('imagePrefBG')->{user_data};
             $widgets->{'image'}->get_object('buttonImageOK')
@@ -8361,16 +8362,15 @@ sub display_error {
 sub transition_type_changed {
     my ($widget) = @_;
     debug("Transition type changed");
-    my $item = $widget->get_name;
-    if ($item eq "radioTransFade") {
-    } elsif ($item eq "radioTransWipe") {
-    } elsif ($item eq "radioTransSlide") {
+    if ($widget eq $widgets->{'main'}->get_object('radioTransFade')) {
+    } elsif ($widget eq $widgets->{'main'}->get_object('radioTransWipe')) {
+    } elsif ($widget eq $widgets->{'main'}->get_object('radioTransSlide')) {
         if ($widget->get_active) {
             $widgets->{'main'}->get_object('tableTransDir')->show_all();
         } else {
             $widgets->{'main'}->get_object('tableTransDir')->hide();
         }
-    } elsif ($item eq "radioTransRotate") {
+    } elsif ($widget eq $widgets->{'main'}->get_object('radioTransRotate')) {
         if ($widget->get_active) {
             $widgets->{'main'}->get_object('tableTransRot')->show_all();
         } else {
@@ -9217,9 +9217,8 @@ sub quick_show {
 sub quick_osd {
     my ($widget) = @_;
     debug("Update OSD");
-debug($widget->get_name);
     my $songtext = "";
-    if (($widgets->{'main'}->get_object('buttonQuickOSD')->get_active()) || ($widget->get_name eq "entryMainOSD")) {
+    if (($widgets->{'main'}->get_object('buttonQuickOSD')->get_active()) || ($widget eq $widgets->{'main'}->get_object('entryMainOSD'))) {
         $songtext = $widgets->{'main'}->get_object('entryMainOSD')->get_text;
         $songtext =~ s/\n/#BREAK#/g;
         $songtext =~ s/:/#SEMI#/g;
@@ -10260,7 +10259,7 @@ sub import_selection {
     my $model =
       $widgets->{'select_songs'}->get_object('treeSongImport')->get_model;
     my $toggle = FALSE;
-    if ($widget->get_name() eq "buttonImportAll") {
+    if ($widget eq $widgets->{'select_songs'}->get_object('buttonImportAll')) {
         $toggle = TRUE;
     }
     $model->foreach(
@@ -13979,5 +13978,16 @@ sub change_notebook_page {
         bgdir_list("bg");
     } elsif ($current_page == $widgets->{'main'}->get_object('vboxImgDir') ) {
         bgdir_list("img");
+    }
+}
+
+sub fix_widget_names {
+    my @dirs = (
+        'UpLeft',   'Up',   'UpRight', 'Left', 'None', 'Right',
+        'DownLeft', 'Down', 'DownRight'
+    );
+    foreach (@dirs) {
+        $widgets->{'main'}->get_object("toggleIn".$_)->set_name("toggleIn".$_);
+        $widgets->{'main'}->get_object("toggleOut".$_)->set_name("toggleOut".$_);
     }
 }
