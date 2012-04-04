@@ -6366,21 +6366,6 @@ sub load_config {
         $conf->{'BGDirectory'} = Glib::get_user_special_dir('pictures') . "/";
     }
 
-    if ($conf->{'CentreX'}) {
-        if ($conf->{'CentreX'}) {
-            $conf->{'HorizontalLocation'} = "Centre";
-        } else {
-            $conf->{'HorizontalLocation'} = "Left";
-        }
-    }
-
-    if ($conf->{'CentreY'}) {
-        if ($conf->{'CentreY'}) {
-            $conf->{'VerticalLocation'} = "Centre";
-        } else {
-            $conf->{'VerticalLocation'} = "Top";
-        }
-    }
     if(!defined $conf->{'DefaultTransition'}) {
         $conf->{'DefaultTransition'} = "Fade";
     }
