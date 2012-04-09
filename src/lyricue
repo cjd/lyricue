@@ -3545,7 +3545,7 @@ sub add_image {
         $widgets->{'image'}->get_object('treeImage')
           ->get_selection->set_mode('multiple');
         $widgets->{'image'}->get_object('buttonImageOK')
-          ->signal_connect('clicked', "do_add_image");
+          ->signal_connect('clicked', "close_dialog");
     }
 
     # Fill sublists dropbox
