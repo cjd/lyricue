@@ -866,6 +866,8 @@ do_query_json (const char *options)
             return NULL;
         }
 
+        if (result == NULL) return NULL;
+
         JsonGenerator *generator = json_generator_new();
         JsonNode *rootnode = json_node_new(JSON_NODE_OBJECT);
 
