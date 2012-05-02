@@ -28,6 +28,7 @@ extern MYSQL *lyricDb;
 extern MYSQL *mediaDb;
 extern MYSQL *bibleDb;
 extern gchar *bible_name;
+extern gchar *bible_table;
 extern gfloat stage_width;
 extern gfloat stage_height;
 extern gint bg_is_video;
@@ -308,10 +309,10 @@ do_status ()
 {
     l_debug ("Return status");
     GString *ret = g_string_new (NULL);
-    g_string_printf (ret, "Status,W:%.0f,H:%.0f,F:%s,B:%s\n", stage_width,
+    g_string_printf (ret, "Status,W:%.0f,H:%.0f,F:%s,T:%s,B:%s\n", stage_width,
                      stage_height, (gchar *) g_hash_table_lookup (config,
                                                                   "Main"),
-                     bible_name);
+                     bible_table, bible_name);
     return ret;
 }
 
