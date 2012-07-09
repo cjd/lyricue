@@ -1108,7 +1108,9 @@ do_transition (ClutterActor * new, ClutterActor * old, int transition,
             }
             clutter_actor_set_position (old, old_start_x, old_start_y);
             clutter_actor_animate (old, CLUTTER_LINEAR, 500,
-                                   "y", old_final_y, "x", old_final_x, NULL);
+                                   "y", old_final_y, "x", old_final_x,
+                                   "signal-swapped-after::completed",
+                                   clear_group, old, NULL);
             break;
         case ROTATE:
             if (in_direction & X_AXIS) {
