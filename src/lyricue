@@ -573,7 +573,7 @@ sub close_main {
     # Save current state
     unlink $globals->{'configfile'} . ".bak";
     open(CONFIG, "$globals->{'configfile'}")
-      || display_fatal($errorcodes->{'fileopenread'}, $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'fileopenread'}, $!);
     my $config = "";
     binmode(CONFIG, ":utf8");
     while (<CONFIG>) {
@@ -584,7 +584,7 @@ sub close_main {
     close CONFIG;
     rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
     open(CONFIG, ">$globals->{'configfile'}")
-      || display_fatal($errorcodes->{'fileopenwrite'}, $! . "\nSQL: " . $query);
+      || display_fatal($errorcodes->{'fileopenwrite'}, $!);
     binmode(CONFIG, ":utf8");
     print CONFIG $config;
     print CONFIG save_state();
@@ -699,9 +699,9 @@ sub add_playlist {
 
     #qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while (my $row = $sth->fetchrow_hashref()) {
 
         my $title = "";
@@ -711,10 +711,10 @@ sub add_playlist {
 
             #qdebug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query2);
             my $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query2);
             my $row2 = $sth2->fetchrow_hashref();
             $title = "Background : " . $row2->{'description'};
@@ -753,10 +753,10 @@ sub add_playlist {
 
                 #qdebug($query2);
                 my $sth2 = $mediaDbh->prepare($query2)
-                  || display_fatal($errorcodes->{'sqlprepare'},
+                  || database_failure($errorcodes->{'sqlprepare'},
                     $! . "\nSQL: " . $query2);
                 my $rv2 = $sth2->execute
-                  || display_fatal($errorcodes->{'sqlexecute'},
+                  || database_failure($errorcodes->{'sqlexecute'},
                     $! . "\nSQL: " . $query2);
                 my $row2 = $sth2->fetchrow_hashref();
                 $title = "Image: " . $row2->{'description'};
@@ -769,10 +769,10 @@ sub add_playlist {
 
             #qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             my $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             my $row2   = $sth2->fetchrow_hashref();
             my $lyrics = $row2->{'lyrics'};
@@ -794,10 +794,10 @@ sub add_playlist {
 
             #qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             my $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             my $row2 = $sth2->fetchrow_hashref();
 
@@ -809,10 +809,10 @@ sub add_playlist {
 
                 #qdebug($query2);
                 $sth2 = $lyricDbh->prepare($query2)
-                  || display_fatal($errorcodes->{'sqlprepare'},
+                  || database_failure($errorcodes->{'sqlprepare'},
                     $! . "\nSQL: " . $query2);
                 $rv2 = $sth2->execute
-                  || display_fatal($errorcodes->{'sqlexecute'},
+                  || database_failure($errorcodes->{'sqlexecute'},
                     $! . "\nSQL: " . $query2);
                 $row2 = $sth2->fetchrow_hashref();
                 if ($row2->{'songnum'} != 0) {
@@ -829,10 +829,10 @@ sub add_playlist {
 
         #qdebug($query3);
         my $sth3 = $lyricDbh->prepare($query3)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query3);
         my $rv3 = $sth3->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query3);
         my $imagename = "";
         while (my $row3 = $sth3->fetchrow_hashref()) {
@@ -860,10 +860,10 @@ sub add_playlist {
 
                 #qdebug($query2);
                 my $sth2 = $mediaDbh->prepare($query2)
-                  || display_fatal($errorcodes->{'sqlprepare'},
+                  || database_failure($errorcodes->{'sqlprepare'},
                     $! . "\nSQL: " . $query2);
                 my $rv2 = $sth2->execute
-                  || display_fatal($errorcodes->{'sqlexecute'},
+                  || database_failure($errorcodes->{'sqlexecute'},
                     $! . "\nSQL: " . $query2);
                 my $row2    = $sth2->fetchrow_hashref();
                 my $imgiter = $model->append($newiter);
@@ -1061,10 +1061,10 @@ sub update_available {
           . $config->{'SpecialSong'} . "%\"";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         $row = $sth->fetchrow_hashref();
         my $iter = $store->append;
@@ -1097,9 +1097,9 @@ sub update_available {
     $query .= " ORDER BY " . $globals->{'sortby'};
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     while ($row = $sth->fetchrow_hashref()) {
         my $iter = $store->append;
@@ -1118,10 +1118,10 @@ sub update_available {
           . $globals->{'sortby'};
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
         while ($row = $sth->fetchrow_hashref()) {
@@ -1251,10 +1251,10 @@ sub popup_avail_menu {
           . " ORDER BY pagenum";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @row = $sth->fetchrow_array();
 
@@ -1296,9 +1296,9 @@ sub popup_play_menu {
       . " AND type = 'sub'";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my (@list);
 
     while ($row = $sth->fetchrow_hashref()) {
@@ -1312,10 +1312,10 @@ sub popup_play_menu {
             my $query2 = "SELECT title FROM playlists WHERE id=" . $_;
             qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query2);
             my $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query2);
             my $row2 = $sth2->fetchrow_hashref();
             my ($text);
@@ -1471,10 +1471,10 @@ sub delete_song {
               . $songid;
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             $row = $sth->fetchrow_hashref();
             
@@ -1529,25 +1529,25 @@ sub do_delete_song {
     $query = "DELETE FROM lyricMain WHERE id=" . $songid;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query = "DELETE FROM page WHERE songid=" . $songid;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query =
 "SELECT playorder FROM playlist,page WHERE playlist.data=page.pageid AND playlist.type=\"song\" AND page.songid="
       . $songid;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my $disable = 0;
 
     while (my @row = $sth->fetchrow_array()) {
@@ -1555,10 +1555,10 @@ sub do_delete_song {
         my $query2 = "DELETE FROM playlist WHERE playorder=" . $row[0];
         qdebug($query2);
         my $sth2 = $lyricDbh->prepare($query2)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query2);
         my $rv2 = $sth2->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query2);
         $disable = 1;
     }
@@ -1611,10 +1611,10 @@ sub do_save_song {
           . $numpages;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
         $query =
@@ -1624,10 +1624,10 @@ sub do_save_song {
           . $numpages;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
         # Update lyricMain with new info
@@ -1658,10 +1658,10 @@ sub do_save_song {
         $query .= " WHERE id=" . $songid;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     } else {
 
@@ -1669,10 +1669,10 @@ sub do_save_song {
         $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @row = $sth->fetchrow_array;
         $songid = $row[0];
@@ -1713,10 +1713,10 @@ sub do_save_song {
         ) . ", NOW(), NOW() )";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
     foreach my $pagenum (1 .. $numpages) {
@@ -1743,10 +1743,10 @@ sub do_save_song {
               . $pagenum;
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             debug("Page Edit : " . $pagenum . "|" . $title);
-            $rv = $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
+            $rv = $sth->execute || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             my @row = $sth->fetchrow_array();
             if (defined $row[0]) {
@@ -1771,9 +1771,9 @@ sub do_save_song {
         }
         qdebug($pagequery);
         $sth = $lyricDbh->prepare($pagequery)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $pagequery);
-        $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
+        $sth->execute || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $pagequery);
     }
     end_transaction();
@@ -2214,9 +2214,9 @@ sub insert_verse {
     my $query = "SELECT MAX(playorder) FROM playlist";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     if ($row = $sth->fetchrow_hashref()) {
         if ($row->{'MAX(playorder)'}) {
@@ -2232,9 +2232,9 @@ sub insert_verse {
     $query = "SELECT MAX(id) FROM playlists";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     $row      = $sth->fetchrow_hashref();
     $playlist = $row->{'MAX(id)'} + 1;
 
@@ -2247,10 +2247,10 @@ sub insert_verse {
       . $playlist . ")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
 
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     $playorder++;
 
     # Add entry to playlists table
@@ -2260,10 +2260,10 @@ sub insert_verse {
       . toutf($verse) . "\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
 
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     # Get current settings
     update_display("status", "", "");
@@ -2283,11 +2283,11 @@ sub insert_verse {
         $playorder++;
         qdebug($query);
         my $sth2 = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
 
         my $rv2 = $sth2->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         if ($maxv >= $end) {
             $loop = FALSE;
@@ -2648,10 +2648,10 @@ sub update_songinfo {
           . "\" ORDER BY pagenum";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
         while ($row = $sth->fetchrow_hashref()) {
@@ -2669,10 +2669,10 @@ sub update_songinfo {
           . $songid;
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         if ($row = $sth->fetchrow_hashref()) {
             $widgets->{'add'}->get_object('entryEditName')
@@ -2756,9 +2756,9 @@ sub add_single_song {
 
     my $query = "SELECT MAX(playorder) FROM playlist";
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     if ($row = $sth->fetchrow_hashref()) {
         if ($row->{'MAX(playorder)'}) {
             $playorder = $row->{'MAX(playorder)'} + 1;
@@ -2773,9 +2773,9 @@ sub add_single_song {
     $query = "SELECT MAX(id) FROM playlists";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     $row = $sth->fetchrow_hashref();
     my $playlist = $row->{'MAX(id)'} + 1;
 
@@ -2788,9 +2788,9 @@ sub add_single_song {
       . ",\"play\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     # Find song info
     my $title = "";
@@ -2800,9 +2800,9 @@ sub add_single_song {
       . " ORDER BY pagenum";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my $audit = TRUE;
     while ($row = $sth->fetchrow_hashref()) {
 
@@ -2821,10 +2821,10 @@ sub add_single_song {
           . ", \"song\")";
         qdebug($query2);
         my $sth2 = $lyricDbh->prepare($query2)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query2);
         my $rv2 = $sth2->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query2);
     }
 
@@ -2835,9 +2835,9 @@ sub add_single_song {
       . $title . "\","
       . $availableSelection . ")";
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     # audit this addition
     # currently always runs due to problem with passing in widgets
@@ -2846,10 +2846,10 @@ sub add_single_song {
         $query = "SELECT MAX(id)+1 FROM audit";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @row = $sth->fetchrow_array;
         if (!defined $row[0]) {
@@ -2862,10 +2862,10 @@ sub add_single_song {
           . ", NOW())";
         debug("Auditing with: " . $query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
 }
@@ -2925,19 +2925,19 @@ sub remove_single_item {
     my $query = "SELECT type,data  FROM playlist WHERE playorder=" . $item;
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array;
 
     if ($row[0] eq "play" | $row[0] eq "sub") {
         $query = "SELECT playorder FROM playlist WHERE playlist=" . $row[1];
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         while (my @row2 = $sth->fetchrow_array) {
             remove_single_item($row2[0]);
@@ -2946,35 +2946,35 @@ sub remove_single_item {
         $query = "DELETE FROM playlist WHERE playlist=" . $row[1];
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
         $query = "DELETE FROM playlists WHERE id=" . $row[1];
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
 
     $query = "DELETE FROM playlist WHERE playorder=" . $item;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query = "DELETE FROM associations WHERE playlist=" . $item;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     if (($row[0] eq "file") && ($row[1] =~ /^\/var\/tmp\/lyricue-/)) {
 
@@ -2988,10 +2988,10 @@ sub remove_single_item {
           "SELECT playorder FROM playlist WHERE data=\"" . $row[1] . "\"";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         if (@row = $sth->fetchrow_array) {
             debug("Temporary file used elsewhere - not removing");
@@ -3053,10 +3053,10 @@ sub clear_playlist {
         my $query =
           "SELECT playorder FROM playlist WHERE playlist=" . $main_playlist;
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         while (my @row = $sth->fetchrow_array()) {
             remove_single_item($row[0]);
@@ -3427,9 +3427,9 @@ sub preview_pageid {
     my $query = "SELECT lyrics, pagetitle FROM page WHERE pageid=" . $pageid;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     $row = $sth->fetchrow_hashref();
     if (defined $row) {
 
@@ -3571,9 +3571,9 @@ sub add_image {
       . " AND type = 'sub'";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     $store->set($store->append,0,"Main",1,$playlist);
     $widgets->{'image'}->get_object('optionImageSublist')->set_active(0);
 
@@ -3585,10 +3585,10 @@ sub add_image {
             my $query2 = "SELECT title FROM playlists WHERE id=" . $_;
             qdebug($query2);
             my $sth2 = $lyricDbh->prepare($query2)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query2);
             my $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query2);
             my $row2 = $sth2->fetchrow_hashref();
             $store->set($store->append,0,$row2->{'title'},1,$row2->{'data'});
@@ -3665,9 +3665,9 @@ sub update_imagedir {
       . "\" ORDER BY category";
     qdebug($query);
     $sth = $mediaDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     while ($row = $sth->fetchrow_hashref()) {
         $store->set($store->append,0,$row->{'category'},1,"db;" . $row->{'category'});
@@ -3730,10 +3730,10 @@ debug($file);
           . "\" ORDER BY description";
         qdebug($query);
         $sth = $mediaDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         while ($row = $sth->fetchrow_hashref()) {
             $iter = $store->append;
@@ -4290,10 +4290,10 @@ sub change_preview {
                 }
                 qdebug($query);
                 my $sth = $mediaDbh->prepare($query)
-                  || display_fatal($errorcodes->{'sqlprepare'},
+                  || database_failure($errorcodes->{'sqlprepare'},
                     $! . "\nSQL: " . $query);
                 my $rv = $sth->execute
-                  || display_fatal($errorcodes->{'sqlexecute'},
+                  || database_failure($errorcodes->{'sqlexecute'},
                     $! . "\nSQL: " . $query);
                 $row = $sth->fetchrow_hashref();
                 if ($row) {
@@ -4427,17 +4427,17 @@ sub print_songs {
       db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'}, TRUE);
     my $query = "SELECT COUNT(id) FROM lyricMain WHERE id > 0;";
     my $sth   = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @totals = $sth->fetchrow_array();
 
     $query =
 "SELECT title,book,songnum,artist FROM lyricMain WHERE id > 0 ORDER BY title;";
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     print "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\">\n";
     print "<HTML>\n<HEAD><TITLE>Lyricue: ".fromutf(gettext("Available songs"))."</TITLE>\n";
@@ -4643,9 +4643,9 @@ sub add_image_item {
     my $query = "SELECT MAX(playorder) FROM playlist";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     if ($row = $sth->fetchrow_hashref()) {
         if ($row->{'MAX(playorder)'}) {
@@ -4662,9 +4662,9 @@ sub add_image_item {
       . $image . "\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     $playorder++;
 
 }
@@ -5316,10 +5316,10 @@ sub do_adv_search {
           . "%\") GROUP BY id ORDER BY count DESC";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         while ($row = $sth->fetchrow_hashref()) {
             my $iter = $store->append;
@@ -5360,10 +5360,10 @@ sub update_adv_search {
           . $songid
           . " ORDER BY pagenum";
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my $lyrics = "";
 
@@ -5396,9 +5396,9 @@ sub move_item {
     my $query = "SELECT playlist FROM playlist WHERE playorder=" . $source;
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @playlist = $sth->fetchrow_array;
 
     # Get list of items in this playlist
@@ -5408,9 +5408,9 @@ sub move_item {
       . " ORDER BY playorder";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @items = ();
     while (my @row = $sth->fetchrow_array) {
         push @items, $row[0];
@@ -5538,18 +5538,18 @@ sub renumber_item {
     my $query = "SELECT * FROM playlist WHERE playorder=" . $before;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     $row = $sth->fetchrow_hashref();
 
     $query =
       "UPDATE playlist SET playorder=" . $after . " WHERE playorder=" . $before;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query =
         "UPDATE associations SET playlist=" 
@@ -5558,9 +5558,9 @@ sub renumber_item {
       . $before;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 }
 
 #***
@@ -5742,23 +5742,23 @@ sub new_playlist {
 
     my $query = "SELECT MAX(id)+1 FROM playlists";
     my $sth   = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array();
     $query =
         "INSERT INTO playlists (id,title) VALUES ("
       . $row[0] . ", \""
       . $playlist . "\")";
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     $query = "SELECT id FROM playlists WHERE title LIKE \"" . $playlist . "\"";
     $sth   = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     @row = $sth->fetchrow_array();
 
     if ($row[0]) {
@@ -5882,9 +5882,9 @@ sub do_copy_playlist {
     my $query = "SELECT id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 AND title='".$playlist."' ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     if($sth->fetchrow_array()){
         debug("Duplicate");
         update_cplayclist();
@@ -5893,9 +5893,9 @@ sub do_copy_playlist {
         debug("Copying playlist");
         my $query = "SELECT MAX(id)+1 FROM playlists";
         my $sth   = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+          || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+          || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
         my @row = $sth->fetchrow_array();
         my $playlistid_dst = $row[0];
         $widgets->{'main'}->get_object('labelCurrentPlaylist')
@@ -5919,22 +5919,22 @@ sub copy_playlist2 {
       . $playlistid_dst . ", \""
       . $playlist . "\")";
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query = "SELECT playorder,data,type,transition FROM playlist WHERE playlist=".$playlistid_src." ORDER BY playorder";
     
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: ".$query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: ".$query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: ".$query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: ".$query);
     while (my $row = $sth->fetchrow_hashref()) {
         my $query2 = "SELECT MAX(playorder) FROM playlist";
         my $sth2 = $lyricDbh->prepare($query2)
-          || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query2);
+          || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query2);
         my $rv2 = $sth2->execute
-          || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query2);
+          || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query2);
         my @row2 = $sth2->fetchrow_array();
         my $playorder = $row2[0]+1;
 
@@ -5945,16 +5945,16 @@ sub copy_playlist2 {
         if ($row->{'type'} eq "play") { # Playlist
             my $query3 = "SELECT MAX(id)+1 FROM playlists";
             my $sth3   = $lyricDbh->prepare($query3)
-              || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query3);
+              || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query3);
             my $rv3 = $sth3->execute
-              || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query3);
+              || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query3);
             my @row3 = $sth3->fetchrow_array();
             $playlistid_dst2 = $row3[0];
             $query3 = "SELECT title FROM playlists WHERE id=".$row->{'data'};
             $sth3   = $lyricDbh->prepare($query3)
-              || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query3);
+              || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query3);
             $rv3 = $sth3->execute
-              || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query3);
+              || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query3);
             @row3 = $sth3->fetchrow_array();
             $newplaylist=$row3[0];
             $data=$playlistid_dst2;
@@ -5962,9 +5962,9 @@ sub copy_playlist2 {
 
         $query2="INSERT INTO playlist (playorder, playlist, data, type, transition) VALUES (".$playorder.", ".$playlistid_dst.", '".$data."', '".$row->{'type'}."', ".$transition.")";
         $sth2   = $lyricDbh->prepare($query2)
-          || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query2);
+          || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query2);
         $rv2 = $sth2->execute
-          || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query2);
+          || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query2);
 
         if ($row->{'type'} eq "play") { # Playlist
             my $playlistid_src2=$row->{'data'};
@@ -5998,9 +5998,9 @@ sub do_rename_playlist {
       . $renamexml->get_object('labelPromptE')->{user_data};
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     update_cplayclist();
     close_dialog($widget);
 }
@@ -6040,24 +6040,24 @@ sub delete_playlist {
     my $query = "DELETE FROM playlists WHERE id=" . $playlist;
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query =
       "DELETE FROM playlist WHERE data=" . $playlist . " AND type=\"play\"";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query = "SELECT playorder FROM playlist WHERE playlist=" . $playlist;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while (my @row = $sth->fetchrow_array()) {
         remove_single_item($row[0]);
     }
@@ -6102,9 +6102,9 @@ sub update_cplayclist {
 "SELECT title,id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row;
     while (@row = $sth->fetchrow_array()) {
         my $iter = $store->append;
@@ -6135,20 +6135,20 @@ sub copy_item {
         my $item  = $model->get($iter, 2);
         my $query = "SELECT * FROM playlist WHERE playorder=" . $item;
         my $sth   = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my $row = $sth->fetchrow_hashref();
 
         if ($row->{'type'} ne "play") {
             my $query = "SELECT MAX(playorder) FROM playlist";
             my $sth   = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             my $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             my @row2 = $sth->fetchrow_array();
             $row2[0]++;
@@ -6162,10 +6162,10 @@ sub copy_item {
               . $row->{'type'} . "\")";
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
         }
 
@@ -6235,9 +6235,9 @@ sub establish_timer {
       . $loopxml->get_object('dialogLoop')->{user_data};
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row    = $sth->fetchrow_array();
     my $parent = $row[0];
 
@@ -6636,24 +6636,24 @@ sub write_config {
     # Backup config table
     my $query = "DELETE FROM config_old";
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
+      || database_failure($errorcodes->{'sqlprepare'},
         $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
+      || database_failure($errorcodes->{'sqlexecute'},
         $! . "\nSQL: " . $query);
     $query = "INSERT config_old SELECT * from config";
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
+      || database_failure($errorcodes->{'sqlprepare'},
         $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
+      || database_failure($errorcodes->{'sqlexecute'},
         $! . "\nSQL: " . $query);
     $query = "DELETE FROM config";
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'},
+      || database_failure($errorcodes->{'sqlprepare'},
         $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'},
+      || database_failure($errorcodes->{'sqlexecute'},
         $! . "\nSQL: " . $query);
 
     if (!$dbonly) {
@@ -6674,10 +6674,10 @@ sub write_config {
             $query = "INSERT INTO config ( config_key, config_value ) VALUES (\"".$_."\", \"".$config->{$_}."\")";
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
         }
     }
@@ -6688,10 +6688,10 @@ sub write_config {
         $query = "INSERT INTO config ( config_key, config_value ) VALUES ( \"App\", \"".$config->{'App'}[$_]."\")";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
     if (!$dbonly) {
@@ -6868,10 +6868,10 @@ sub do_add_file {
         my $query     = "SELECT MAX(playorder) FROM playlist";
         qdebug($query);
         my $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @row;
         if (@row = $sth->fetchrow_array()) {
@@ -6892,10 +6892,10 @@ sub do_add_file {
           . $file . "\")";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
 }
@@ -6973,9 +6973,9 @@ sub new_sublist {
     my $playlistsid = 1;
     $query = "SELECT MAX(id) FROM playlists";
     $sth   = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     if ($row = $sth->fetchrow_hashref()) {
         if ($row->{'MAX(id)'}) {
             $playlistsid = $row->{'MAX(id)'} + 1;
@@ -6986,9 +6986,9 @@ sub new_sublist {
     my $playorder = 1;
     $query = "SELECT MAX(playorder) FROM playlist";
     $sth   = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     if ($row = $sth->fetchrow_hashref()) {
         if ($row->{'MAX(playorder)'}) {
             $playorder = $row->{'MAX(playorder)'} + 1;
@@ -7001,9 +7001,9 @@ sub new_sublist {
       . $playlistsid . " ,'"
       . $sublist . "','')";
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     #link sublist to main playlist
     $query =
@@ -7014,9 +7014,9 @@ sub new_sublist {
       . $playlistsid . " ,0)";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     update_playlist();
     return $playlistsid;
@@ -7056,10 +7056,10 @@ sub move_item_to_sublist {
           . $plitem;
         qdebug($query);
         my $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
         update_playlist();
@@ -7093,9 +7093,9 @@ sub find_more_children {
 
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while ($row = $sth->fetchrow_hashref()) {
         @kiddies = (@kiddies, $row->{'data'});
         @kiddies = (@kiddies, find_more_children($row->{'data'}));
@@ -7126,9 +7126,9 @@ sub associate_bg {
 
     my $query = "DELETE FROM associations WHERE playlist=" . $ASSOCIATE[0];
     my $sth   = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query =
 "INSERT INTO associations (id,playlist,imagename, absoluteparent) VALUES(0, "
@@ -7136,9 +7136,9 @@ sub associate_bg {
       . $imagefile . "',"
       . $ASSOCIATE[1] . ")";
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     update_playlist();
     @ASSOCIATE = ();
@@ -7203,10 +7203,10 @@ sub disassociate_bg {
           "DELETE FROM associations WHERE playlist=" . $model->get($iter, 2);
 
         my $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
         update_playlist();
@@ -7236,9 +7236,9 @@ sub clear_associations {
     my $query = "DELETE FROM associations WHERE absoluteparent=" . $parentid;
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     update_playlist();
 }
@@ -7457,9 +7457,9 @@ sub bgdir_list {
       . $special
       . "\" ORDER BY category";
     my $sth = $mediaDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while ($row = $sth->fetchrow_hashref()) {
         push @dbcategories, $row->{'category'};
     }
@@ -7595,10 +7595,10 @@ sub imgdir_load {
           . $section
           . "\" ORDER BY description";
         my $sth = $mediaDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         while ($row = $sth->fetchrow_hashref()) {
 
@@ -8303,6 +8303,11 @@ sub display_fatal {
     display_error($message, $error, TRUE);
 }
 
+sub database_failure {
+    my ($message, $error) = @_;
+    display_error($message, $error, TRUE);
+}
+
 sub display_error {
     my ($message, $error, $fatal) = @_;
     print STDERR "\n\n-------------\n";
@@ -8452,9 +8457,9 @@ sub apply_transition_playlist {
     my $query = "SELECT playorder FROM playlist WHERE playlist=" . $playlist;
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while (my @row = $sth->fetchrow_array()) {
         apply_transition($row[0], $trans_type);
     }
@@ -8576,9 +8581,9 @@ sub apply_transition {
     my $query = "SELECT type,data FROM playlist WHERE playorder=" . $item;
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array();
     if ($row[0] eq "play") {
         $query =
@@ -8597,9 +8602,9 @@ sub apply_transition {
     }
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 }
 
 #***
@@ -9125,9 +9130,9 @@ sub quick_save {
     my $query = "SELECT data,type FROM playlist WHERE playorder=" . $playorder;
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array();
 
     if ($row[1] eq "play") {
@@ -9137,10 +9142,10 @@ sub quick_save {
           . " ORDER BY playorder";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         @row = $sth->fetchrow_array();
     }
@@ -9155,10 +9160,10 @@ sub quick_save {
           . $row[0];
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
 }
@@ -9341,10 +9346,10 @@ sub create_pixbuf {
           . $id . "\"";
         qdebug($query);
         my $sth = $mediaDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my $row = $sth->fetchrow_hashref();
         if ($row->{'format'} eq "bg") {
@@ -9460,9 +9465,9 @@ sub select_category {
       . "\" ORDER BY category";
     qdebug($query);
     my $sth = $mediaDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row;
     my $model = Gtk2::ListStore->new('Glib::String');
     $choosexml->get_object('comboSelectCategory')->set_model($model);
@@ -9572,10 +9577,10 @@ sub update_quickedit {
               . $plnumber;
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             my @row = $sth->fetchrow_array();
             if (defined($row[0])) {
@@ -9585,10 +9590,10 @@ sub update_quickedit {
                       . $plnumber;
                     qdebug($query);
                     $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'},
+                      || database_failure($errorcodes->{'sqlprepare'},
                         $! . "\nSQL: " . $query);
                     $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'},
+                      || database_failure($errorcodes->{'sqlexecute'},
                         $! . "\nSQL: " . $query);
                     my @row2 = $sth->fetchrow_array();
                     if (!defined $row2[0]) { $row2[0] = ""; }
@@ -9604,10 +9609,10 @@ sub update_quickedit {
                       . " ORDER BY playorder";
                     qdebug($query);
                     $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'},
+                      || database_failure($errorcodes->{'sqlprepare'},
                         $! . "\nSQL: " . $query);
                     $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'},
+                      || database_failure($errorcodes->{'sqlexecute'},
                         $! . "\nSQL: " . $query);
                     my @row = $sth->fetchrow_array();
                     $plnumber = $row[0];
@@ -9617,10 +9622,10 @@ sub update_quickedit {
                     $query = "SELECT title FROM playlists WHERE id=" . $row[2];
                     qdebug($query);
                     $sth = $lyricDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'},
+                      || database_failure($errorcodes->{'sqlprepare'},
                         $! . "\nSQL: " . $query);
                     $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'},
+                      || database_failure($errorcodes->{'sqlexecute'},
                         $! . "\nSQL: " . $query);
                     my @row = $sth->fetchrow_array();
                     my @line = split(/:/, $row[0]);
@@ -9773,10 +9778,10 @@ sub media_move {
           . $type
           . "\" ORDER BY category";
         my $sth = $mediaDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @row;
         while (@row = $sth->fetchrow_array()) {
@@ -9816,10 +9821,10 @@ sub do_move_media {
               . $_ . "\"";
             qdebug($query);
             $sth = $mediaDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
         }
     }
@@ -9882,10 +9887,10 @@ sub media_delete {
                     my $query = "DELETE FROM media WHERE id=" . $_;
                     qdebug($query);
                     my $sth = $mediaDbh->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'},
+                      || database_failure($errorcodes->{'sqlprepare'},
                         $! . "\nSQL: " . $query);
                     my $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'},
+                      || database_failure($errorcodes->{'sqlexecute'},
                         $! . "\nSQL: " . $query);
 
                     close_dialog($deletexml->get_object('dialogConfirm'));
@@ -9935,10 +9940,10 @@ sub rename_media {
         my $query = "UPDATE media SET description=\"$newname\" WHERE id=$id";
         qdebug($query);
         my $sth = $mediaDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         update_imagedir(
             $widgets->{'image'}->get_object('optionImageCategory')
@@ -9986,28 +9991,28 @@ sub change_colour_media {
 "UPDATE media SET textcolour=\"$fontcolour\", shadowcolour=\"$shadowcolour\" WHERE id=$id";
             qdebug($query);
             my $sth = $mediaDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             my $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
         } elsif ($type eq "dir") {
             debug("change_colour_media: $fontcolour, $shadowcolour, $id");
             my $query = "DELETE FROM media WHERE format=\"file\" AND category=\"".$id."\"";
             qdebug($query);
             my $sth = $mediaDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             my $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             $query = "INSERT INTO media (format, category, textcolour, shadowcolour) VALUES (\"file\", \"$id\", \"$fontcolour\", \"$shadowcolour\")";
             qdebug($query);
             $sth = $mediaDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
         }
     }
@@ -10281,10 +10286,10 @@ sub do_import_songs {
         # Find next id
         my $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
         my $sth   = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @row    = $sth->fetchrow_array;
         my $songid = $row[0];
@@ -10294,13 +10299,13 @@ sub do_import_songs {
         $query =
 "INSERT INTO lyricMain ( id, title, songnum, book, artist, keywords, copyright, entered, written ) VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         $sth = $lyricDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv =
           $sth->execute($songid, $song->{'name'}, $song->{'number'},
             $song->{'book'}, $song->{'artist'}, $song->{'keywords'},
             $song->{'copyright'})
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
         my $pages   = $song->{'page'};
@@ -10315,9 +10320,9 @@ sub do_import_songs {
               . quote($_) . ")";
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
-            $sth->execute || display_fatal($errorcodes->{'sqlexecute'},
+            $sth->execute || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
         }
     }
@@ -10345,19 +10350,19 @@ sub export_songs {
     my $query = "SELECT * FROM lyricMain";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while (my $row = $sth->fetchrow_hashref()) {
         my $query2 =
             "SELECT lyrics FROM page WHERE songid="
           . $row->{'id'}
           . " ORDER BY pagenum";
         my $sth2 = $lyricDbh->prepare($query2)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query2);
         my $rv2 = $sth2->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query2);
         my @pages = ();
         while (my $row2 = $sth2->fetchrow_hashref()) {
@@ -10532,10 +10537,10 @@ sub get_bibles {
                       . " WHERE book=\"Bible\";";
                     qdebug($query);
                     my $sth = $db->prepare($query)
-                      || display_fatal($errorcodes->{'sqlprepare'},
+                      || database_failure($errorcodes->{'sqlprepare'},
                         $! . "\nSQL: " . $query);
                     my $rv = $sth->execute
-                      || display_fatal($errorcodes->{'sqlexecute'},
+                      || database_failure($errorcodes->{'sqlexecute'},
                         $! . "\nSQL: " . $query);
                     my $row = $sth->fetchrow_hashref();
                     if (defined $row->{'verse'}) {
@@ -10648,10 +10653,10 @@ sub navigator_update {
               . $book . "%\"";
             qdebug($query);
             my $sth = $bibleDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             my $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             my @bookrow = $sth->fetchrow_array();
             if ((defined $bookrow[0]) && ($book ne "")) {
@@ -10714,10 +10719,10 @@ sub navigator_update {
           "SELECT book FROM " . $table . " WHERE book LIKE \"" . $book . "%\"";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @bookrow = $sth->fetchrow_array();
         if ((defined $bookrow[0]) && ($book ne "")) {
@@ -10737,10 +10742,10 @@ sub navigator_update {
               . " ORDER BY versenum";
             qdebug($query);
             $sth = $bibleDbh->prepare($query)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query);
             $rv = $sth->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query);
             my $mark = 0;
             while (my @row = $sth->fetchrow_array()) {
@@ -10876,10 +10881,10 @@ sub navigator_next {
           . $chapter;
         qdebug($query);
         my $sth = $bibleDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         my @row = $sth->fetchrow_array();
 
@@ -11028,11 +11033,11 @@ sub get_max_verse {
           . " ORDER BY versenum";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
 
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
 
@@ -11999,9 +12004,9 @@ sub check_tracker {
 
     #qdebug($query); # Commented out because it's too noisy
     my $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array();
 
     #Mark the row
@@ -12187,7 +12192,7 @@ sub db_connect {
               . ":database=$dbname;host=$globals->{'mysqlhost'}",
             "lyric",
             "",
-            {mysql_enable_utf8 => 1}
+            {mysql_enable_utf8 => 1, mysql_auto_reconnect => 1}
         ) || display_error($dberror, $DBI::errstr, $fatal);
         if ($dbh != NULL) {
             $dbh->do('SET NAMES utf8');
@@ -13140,10 +13145,10 @@ sub biblebrowser_chapter {
           . toutf($translated_book) . "%\"";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
         if (my @row = $sth->fetchrow_array) {
             $cont    = TRUE;
@@ -13225,10 +13230,10 @@ sub biblebrowser_verse {
           . $chapter . "\"";
         qdebug($query);
         $sth = $bibleDbh->prepare($query)
-          || display_fatal($errorcodes->{'sqlprepare'},
+          || database_failure($errorcodes->{'sqlprepare'},
             $! . "\nSQL: " . $query);
         $rv = $sth->execute
-          || display_fatal($errorcodes->{'sqlexecute'},
+          || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
 
         if (my @row = $sth->fetchrow_array) {
@@ -13786,9 +13791,9 @@ sub clean_database {
     my $query = "SELECT description,category FROM media WHERE format=\"file\"";
     qdebug($query);
     my $sth = $mediaDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
-      || display_fatal($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while ($row = $sth->fetchrow_hashref()) {
         my @mystat = stat($row->{'category'});
         if (!(@mystat)) {
@@ -13798,10 +13803,10 @@ sub clean_database {
               . quote($row->{'category'});
             qdebug($query2);
             my $sth2 = $mediaDbh->prepare($query2)
-              || display_fatal($errorcodes->{'sqlprepare'},
+              || database_failure($errorcodes->{'sqlprepare'},
                 $! . "\nSQL: " . $query2);
             my $rv2 = $sth2->execute
-              || display_fatal($errorcodes->{'sqlexecute'},
+              || database_failure($errorcodes->{'sqlexecute'},
                 $! . "\nSQL: " . $query2);
         }
     }
@@ -13810,7 +13815,7 @@ sub clean_database {
     $query = "DELETE FROM playlist WHERE playorder=-1";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
-      || display_fatal($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute;    # Don't worry if it fails
     return FALSE;
 }
