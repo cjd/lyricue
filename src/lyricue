@@ -11668,7 +11668,7 @@ sub db_install_user {
     } else {
         debug("Creating mysql user..");
         $sth = $dbh->prepare(
-"insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y',"
+"insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'"
         );
         $sth->execute;
         $sth = $dbh->prepare(
