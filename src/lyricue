@@ -8973,6 +8973,8 @@ sub init_preview {
             $widgets->{'main'}->get_object('framePreview')->show();
             $widgets->{'main'}->get_object('framePreview')
               ->set_size_request(100, 75);
+            $widgets->{'main'}->get_object('framePreview')
+              ->set_params(0.5,0.5,$config->{'Width'}/$config->{'Height'},0);
             $widgets->{'preview'} = Gtk2::Socket->new;
             $widgets->{'preview'}->show;
             $widgets->{'main'}->get_object('framePreview')
@@ -9054,6 +9056,8 @@ sub init_miniview {
             $widgets->{'main'}->get_object('frameCurrent')->show();
             $widgets->{'miniview'} = Gtk2::Socket->new;
             $widgets->{'miniview'}->set_size_request(100, 75);
+            $widgets->{'main'}->get_object('frameCurrent')
+              ->set_params(0.5,0.5,$config->{'Width'}/$config->{'Height'},0);
             $widgets->{'miniview'}->show;
             $widgets->{'main'}->get_object('frameCurrent')
               ->add($widgets->{'miniview'});
