@@ -6754,18 +6754,19 @@ sub file_ok_sel {
 sub do_add_file {
     my ($file, $playlist) = @_;
     debug("do_add_file: file=" . $file);
-    if ($globals->{'unoconv'} ne "") {
-        if (($file =~ /ppt$/i) || ($file =~ /odp$/i) || ($file =~ /pptx$/)) {
-
+    if (($file =~ /ppt$/i) || ($file =~ /odp$/i) || ($file =~ /pptx$/)  || ($file =~ /pdf$/)) {
+        my $dialog = Gtk2::MessageDialog->new(
+            $widgets->{'main'}->get_object('windowMain'),
+            'destroy-with-parent', 'info', 'none',
+            gettext("Importing presentation"));
+        $dialog->show_all();
+        do_pending();
+        my $tmpdir = tempdir("lyricue-XXXX", DIR => "/var/tmp", CLEANUP => 0);
+        my $target="";
+        if ( !($file =~ /pdf$/) && ($globals->{'unoconv'} ne "")) {
             # Add presentation
             debug("Adding ppt/odp presentation");
-            my $dialog = Gtk2::MessageDialog->new(
-                $widgets->{'main'}->get_object('windowMain'),
-                'destroy-with-parent', 'info', 'none',
-                gettext("Importing presentation"));
-            $dialog->show_all();
-            do_pending();
-            my $target = $file;
+            $target = $file;
             $target =~ s/^.*\///g;
             $target =~ s/'//g; # fix handling of ' in filename
 
@@ -6773,92 +6774,71 @@ sub do_add_file {
             if ($target =~ /pptx$/ ) {
                 $target .= ".ppt";
             }
-            my $tmpdir = tempdir("lyricue-XXXX", DIR => "/var/tmp", CLEANUP => 0);
             my $command =
               "cp \"" . $file . "\" \"" . $tmpdir . "/" . $target . "\"";
             debug($command);
             system($command);
             do_pending();
 
-            my $try=0;
-            while ($try <=2) {
-                $try++;
-                $command =
-                    $globals->{'unoconv'}
-                  . " -f html \""
-                  . $tmpdir . "/"
-                  . $target . "\"";
+            # Convert to PDF using OpenOffice
+            $command =
+                $globals->{'unoconv'}
+              . " -f pdf \""
+              . $tmpdir . "/"
+              . $target . "\"";
+            debug($command);
+            system($command);
+
+            do_pending();
+            my $ret = opendir DIR, $tmpdir;
+            if ($ret) {
+                foreach my $filename (sort readdir(DIR)) {
+                   if ($filename =~ /\.pdf$/) {
+                        $file = $tmpdir."/".$filename;
+                   }
+                }
+                closedir DIR;
+            }
+        }
+        if ($globals->{'convert'} ne "") {
+            if (($file =~ /pdf$/)) {
+                # Convert to PNG using ImageMagick
+                my $command =
+                    $globals->{'convert'}
+                  . " -density 150 \""
+                  . $file . "\" -resize "
+                  . $config->{'Width'} . "x" . $config->{'Height'}
+                  . " \"" . $tmpdir . "/img.png\"";
                 debug($command);
                 system($command);
+    
                 do_pending();
     
                 # Import directory
                 my $ret = opendir DIR, $tmpdir;
                 if ($ret) {
                     foreach my $filename (sort readdir(DIR)) {
-                        if (($filename =~ /\.html$/) || ($filename eq $target)) {
+                        if (($filename =~ /\.pdf$/) || ($filename eq $target)) {
                             unlink $tmpdir . "/" . $filename;
-                        } elsif ($filename =~ /^img.*jpg$/) {
+                        } elsif ($filename =~ /^img.*png$/) {
                             my $count = $filename;
                             $count =~ s/^.*[^0-9]([0-9]*)\..*$/$1/g;
                             $count++;
                             rename $tmpdir . "/" . $filename,
-                              $tmpdir . "/page_" . $count . ".jpg";
-                            $try = 10; # Don't retry
+                              $tmpdir . "/page_" . $count . ".png";
                         }
                     }
                     closedir DIR;
                 }
-                $command =
-                  "rm " . $tmpdir . "/*.html \"" . $tmpdir . "/" . $target . "\"";
-                debug($command);
-                system($command);
-            }
-
-            do_add_directory($tmpdir, $target);
-            $dialog->destroy;
-            return;
-        }
-    }
-    if ($globals->{'convert'} ne "") {
-        if (($file =~ /pdf$/)) {
-
-            # Add pdf file
-            my $target = $file;
-            debug("Adding pdf presentation");
-            my $dialog = Gtk2::MessageDialog->new(
-                $widgets->{'main'}->get_object('windowMain'),
-                'destroy-with-parent', 'info', 'none',
-                gettext("Importing presentation"));
-            $dialog->show_all();
-            do_pending();
-            $target =~ s/^.*\///g;
-            $target =~ s/'//g; # fix handling of ' in filename
-            my $tmpdir = tempdir("lyricue-XXXX", DIR => "/var/tmp", CLEANUP => 0);
-            my $command =
-              $globals->{'convert'} . " \"" . $file . "\" " . $tmpdir . "/temp.jpg";
-            debug($command);
-            system($command);
-
-            # Clean up directory
-            my $ret = opendir DIR, $tmpdir;
-            debug($tmpdir);
-            if ($ret) {
-                foreach my $filename (sort readdir(DIR)) {
-                    debug($filename);
-                    if ($filename =~ /^temp.*jpg$/) {
-                        my $count = $filename;
-                        $count =~ s/^.*([0-9]+).*$/$1/g;
-                        $count++;
-                        rename $tmpdir . "/" . $filename,
-                          $tmpdir . "/page_" . $count . ".jpg";
-                    }
+    
+                if ($target eq "") {
+                    $target=$file;
+                    $target =~ s/^.*\///g;
                 }
-                closedir DIR;
+                do_add_directory($tmpdir, $target);
+                $dialog->destroy;
+                return;
             }
-            do_add_directory($tmpdir, $target);
-            $dialog->destroy;
-            return;
         }
     }
     if (($file ne "") && ((-r $file) || ($file =~ /:\/\//))) {
