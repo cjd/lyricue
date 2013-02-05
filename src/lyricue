@@ -1272,6 +1272,37 @@ sub popup_avail_menu {
 
 #***
 
+#****f* lyricue/popup_backdrop_menu
+# NAME
+#   popup_backdrop_menu
+# SYNOPSIS
+#   popup_backdrop_menu ($event, $selected)
+# FUNCTION
+#   popup a menu when backdrop item right-clicked
+# INPUTS
+#   $event - the calling event
+# OUTPUT
+#   Displays the right-click menu
+# SOURCE
+#
+sub popup_backdrop_menu {
+    my ($event, $selected) = @_;
+    debug("Button clicked on Backdrops");
+    my @items = ();
+
+    push @items,
+      [fromutf(gettext("/Set default text colours")), undef, 'manage_bg', $selected ];
+    my $factory =
+      Gtk2::ItemFactory->new('Gtk2::Menu', "<backdroppopup>", undef);
+    $factory->create_items(1, @items);
+    $factory->popup($event->x_root, $event->y_root, $event->button,
+      $event->time);
+}
+sub manage_bg {
+    my ($widget, $selected) = @_;
+    debug ("Manage bg:".$selected);
+}
+
 #****f* lyricue/popup_play_menu
 # NAME
 #   popup_play_menu
@@ -4495,52 +4526,67 @@ sub print_songs {
 #
 sub backdrop_clicked {
     my ($widget, $event) = @_;
-    if ($event->type eq 'button-press') {
-        return;
-    }
     debug("Backdrop clicked");
-    my $selected = "";
-    my @list     = $widget->get_selected_items;
-    if (defined $list[0]) {
-        my $model = $widget->get_model;
-        my $iter  = $model->get_iter($list[0]);
-        $selected = $model->get($iter, 2);
+    # Right-click menu
+    if ($event->button == 3) {
+        my $selected = "";
+        my @list     = $widget->get_selected_items;
+        if (defined $list[0]) {
+            my $model = $widget->get_model;
+            my $iter  = $model->get_iter($list[0]);
+            $selected = $model->get($iter, 2);
+        }
+        if ($selected eq "") {
+            return;
+        }
+
+        popup_backdrop_menu($event,$selected);
+        return TRUE;
     }
-    if ($selected eq "") {
-        return;
-    }
+    if ($event->type eq '2button-press') {
+        my $selected = "";
+        my @list     = $widget->get_selected_items;
+        if (defined $list[0]) {
+            my $model = $widget->get_model;
+            my $iter  = $model->get_iter($list[0]);
+            $selected = $model->get($iter, 2);
+        }
+        if ($selected eq "") {
+            return;
+        }
 
-    #$widget->unselect_all;
+        #$widget->unselect_all;
 
-    if (@ASSOCIATE) {
-        associate_bg($selected);
-    } else {
-        debug("Changing backdrop to " . $selected);
-        if ($globals->{'bg_previews'}) {
-            my $prevFile = $selected;
-            my $scaled   = create_pixbuf(
-                $widgets->{'buttonCurr'}->{user_data},
-                $globals->{'icon_width'},
-                $globals->{'icon_height'}
-            );
+        if (@ASSOCIATE) {
+            associate_bg($selected);
+        } else {
+            debug("Changing backdrop to " . $selected);
+            if ($globals->{'bg_previews'}) {
+                my $prevFile = $selected;
+                my $scaled   = create_pixbuf(
+                    $widgets->{'buttonCurr'}->{user_data},
+                    $globals->{'icon_width'},
+                    $globals->{'icon_height'}
+                );
+    
+                if ($scaled) {
+                    $widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
+                    $widgets->{'buttonPrev'}->{user_data} =
+                      $widgets->{'buttonCurr'}->{user_data};
+                }
 
-            if ($scaled) {
-                $widgets->{'pixmapPrev'}->set_from_pixbuf($scaled);
-                $widgets->{'buttonPrev'}->{user_data} =
-                  $widgets->{'buttonCurr'}->{user_data};
+                $scaled = create_pixbuf(
+                    $prevFile,
+                    $globals->{'icon_width'},
+                    $globals->{'icon_height'}
+                );
+                if ($scaled) {
+                    $widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
+                    $widgets->{'buttonCurr'}->{user_data} = $prevFile;
+                }
+                update_display("backdrop", $prevFile, "");
+                preview_display("backdrop", $prevFile, "", "MINI");
             }
-
-            $scaled = create_pixbuf(
-                $prevFile,
-                $globals->{'icon_width'},
-                $globals->{'icon_height'}
-            );
-            if ($scaled) {
-                $widgets->{'pixmapCurr'}->set_from_pixbuf($scaled);
-                $widgets->{'buttonCurr'}->{user_data} = $prevFile;
-            }
-            update_display("backdrop", $prevFile, "");
-            preview_display("backdrop", $prevFile, "", "MINI");
         }
     }
 }
