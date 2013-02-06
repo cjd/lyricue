@@ -6407,6 +6407,12 @@ sub load_config {
                 $conf->{'App'}[$appCount++] = $line[1];
             }
         } else {
+            if (($line[0] eq "Colour") && ($line[1] eq "")) {
+                $line[1] = "#ffffff";
+            }
+            if (($line[0] eq "ShadowColour") && ($line[1] eq "")) {
+                $line[1] = "#888888";
+            }
             $conf->{$line[0]} = $line[1];
         }
     }
