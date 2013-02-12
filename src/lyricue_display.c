@@ -694,7 +694,7 @@ do_display (const char *options)
                 return;
             } else {            // Song page
                 do_query (lyricDb,
-                          "SELECT title,artist,lyrics,copyright FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid=%s",
+                          "SELECT title,artist,lyrics,copyright FROM lyricMain AS l, page AS pa WHERE (pa.songid=l.id OR pa.songid=-l.id) AND pa.pageid=%s",
                           data);
                 result = mysql_store_result (lyricDb);
                 row = mysql_fetch_row (result);

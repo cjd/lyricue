@@ -763,7 +763,7 @@ sub add_playlist {
             }
         } elsif ($row->{'type'} eq "vers") {
             $title = "Verses " . $row->{'data'};
-        } elsif ($row->{'type'} eq "song") {
+        } elsif (($row->{'type'} eq "song")  || ($row->{'type'} eq "temp")){
             my $query2 = "SELECT pagetitle, lyrics FROM page WHERE pageid="
               . $row->{'data'};
 
@@ -3093,6 +3093,32 @@ sub remove_single_item {
                 system($command);
             }
         }
+    } elsif ($row[0] eq "temp") {
+        my $pageid=$row[1];
+        # Check if used elsewhere
+        $query =
+          "SELECT playorder FROM playlist WHERE data=\"" . $pageid . "\"";
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $rv = $sth->execute
+          || database_failure($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+        if (@row = $sth->fetchrow_array) {
+            debug("Temporary page used elsewhere - not removing");
+            return;
+        }
+
+        $query = "DELETE FROM page WHERE pageid=" . $pageid;
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $rv = $sth->execute
+          || database_failure($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+
     }
 }
 
@@ -9200,9 +9226,9 @@ sub quick_save {
     my $playorder = $widgets->{'main'}->get_object('textQuick')->{user_data};
     my $query = "SELECT data,type FROM playlist WHERE playorder=" . $playorder;
     qdebug($query);
-    $sth = $lyricDbh->prepare($query)
+    my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
-    $rv = $sth->execute
+    my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array();
 
@@ -9221,7 +9247,101 @@ sub quick_save {
         @row = $sth->fetchrow_array();
     }
 
+    if (($row[1] eq "song")  || ($row[1] eq "temp")) {
+        if (!defined $row[0]) { $row[0] = ""; }
+
+        $query =
+            "UPDATE page SET lyrics="
+          . $lyricDbh->quote($songtext)
+          . " WHERE pageid="
+          . $row[0];
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $sth->execute
+          || database_failure($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+    }
+}
+
+#****f* lyricue/quick_save_local
+# NAME
+#   quick_save_local
+# SYNOPSIS
+#   quick_save_local()
+# FUNCTION
+#   Quick Save
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+sub quick_save_local {
+    debug("Quick Save Local");
+    my $buffer    = $widgets->{'main'}->get_object('textQuick')->get_buffer();
+    my $songtext  = $buffer->get_text($buffer->get_bounds, FALSE);
+    my $playorder = $widgets->{'main'}->get_object('textQuick')->{user_data};
+    my $query = "SELECT data,type FROM playlist WHERE playorder=" . $playorder;
+    qdebug($query);
+    my $sth = $lyricDbh->prepare($query)
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    my $rv = $sth->execute
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    my @row = $sth->fetchrow_array();
+
+    if ($row[1] eq "play") {
+        $query =
+            "SELECT data,type,playorder FROM playlist WHERE playlist="
+          . $row[0]
+          . " ORDER BY playorder";
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $rv = $sth->execute
+          || database_failure($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+        @row = $sth->fetchrow_array();
+        $playorder=$row[2];
+    }
+
     if ($row[1] eq "song") {
+        if (!defined $row[0]) { $row[0] = ""; }
+
+        $query = "SELECT songid FROM page WHERE pageid=".$row[0];
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $rv = $sth->execute
+          || database_failure($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+        @row = $sth->fetchrow_array();
+        my $songid = $row[0];
+
+        $query =
+            "INSERT INTO page (pagenum,songid,lyrics) VALUES ( 0,"
+          . -$songid . ", "
+          . $lyricDbh->quote($songtext)
+          . ")";
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $sth->execute
+          || database_failure($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+
+        my $pageid = $lyricDbh->{'mysql_insertid'};
+        $query = "UPDATE playlist SET type=\"temp\", data=\"". $pageid ."\" WHERE playorder=".$playorder;
+        qdebug($query);
+        $sth = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        $sth->execute
+          || database_failure($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+    } elsif ($row[1] eq "temp") {
         if (!defined $row[0]) { $row[0] = ""; }
 
         $query =
@@ -9655,7 +9775,7 @@ sub update_quickedit {
                 $! . "\nSQL: " . $query);
             my @row = $sth->fetchrow_array();
             if (defined($row[0])) {
-                if ($row[0] eq "song") {
+                if (($row[0] eq "song") || ($row[0] eq "temp")) {
                     $query =
 "SELECT lyrics FROM playlist as pl, page as pa WHERE pl.data=pa.pageid AND pl.playorder="
                       . $plnumber;
@@ -13891,9 +14011,9 @@ sub clean_database {
     # Fix leftover font colours
     $query = "UPDATE media SET shadowcolour=\"\" WHERE shadowcolour=\"Default\"";
     qdebug($query);
-    my $sth = $mediaDbh->prepare($query)
+    $sth = $mediaDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
-    my $rv = $sth->execute
+    $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
 

@@ -2624,6 +2624,22 @@
                                       </packing>
                                     </child>
                                     <child>
+                                      <object class="GtkToolButton" id="buttonQuickSaveLocal">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="use_action_appearance">False</property>
+                                        <property name="is_important">True</property>
+                                        <property name="label" translatable="yes">Save Local</property>
+                                        <property name="use_underline">True</property>
+                                        <property name="stock_id">gtk-save</property>
+                                        <signal name="clicked" handler="quick_save_local" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="homogeneous">True</property>
+                                      </packing>
+                                    </child>
+                                    <child>
                                       <object class="GtkToolButton" id="buttonQuickShow">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
