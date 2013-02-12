@@ -2202,7 +2202,6 @@ sub edit_song {
             if (!$widgets->{'add'}->get_object('windowEditSong')->visible) {
                 $widgets->{'add'}->get_object('windowEditSong')->destroy;
                 $widgets->{'add'} = undef;
-debug("a");
 
                 $widgets->{'add'} = load_window("windowEditSong");
                 start_editview();
@@ -2214,7 +2213,6 @@ debug("a");
                 update_songinfo($songid);
             }
         } else {
-debug("b");
             $widgets->{'add'} = load_window("windowEditSong");
             $widgets->{'add'}->get_object('buttonEditPreviewServer')
               ->signal_connect("clicked", "preview_page", "SERVER");
@@ -4864,6 +4862,8 @@ sub create_dialog_prefs {
       ->set_value($config->{'OverscanH'});
     $widgets->{'prefs'}->get_object('checkPrefXinerama')
       ->set_active($config->{'Xinerama'});
+    $widgets->{'prefs'}->get_object('checkPrefMouse')
+      ->set_active($config->{'IgnoreMouse'});
     $widgets->{'prefs'}->get_object('entryPrefWindowOffset')
       ->set_text($config->{'GeometryOverride'});
 
@@ -6600,6 +6600,10 @@ sub save_preferences {
       : 0;
     $config->{'Xinerama'} =
       $widgets->{'prefs'}->get_object('checkPrefXinerama')->get_active()
+      ? 1
+      : 0;
+    $config->{'IgnoreMouse'} =
+      $widgets->{'prefs'}->get_object('checkPrefMouse')->get_active()
       ? 1
       : 0;
     $config->{'GeometryOverride'} = 
