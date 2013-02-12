@@ -1458,6 +1458,7 @@ sub add_song {
         }
     }
     $widgets->{'add'} = load_window("windowEditSong");
+    load_presets();
     start_editview();
     $widgets->{'add'}->get_object('buttonEditPreviewServer')
       ->signal_connect("clicked", "preview_page","SERVER");
@@ -2204,6 +2205,7 @@ sub edit_song {
                 $widgets->{'add'} = undef;
 
                 $widgets->{'add'} = load_window("windowEditSong");
+                load_presets();
                 start_editview();
                 $widgets->{'add'}->get_object('buttonEditPreviewServer')
                   ->signal_connect("clicked", "preview_page", "SERVER");
@@ -2216,6 +2218,7 @@ sub edit_song {
             $widgets->{'add'} = load_window("windowEditSong");
             $widgets->{'add'}->get_object('buttonEditPreviewServer')
               ->signal_connect("clicked", "preview_page", "SERVER");
+            load_presets();
             start_editview();
             %pageOrder = ();
             $widgets->{'add'}->get_object('notebookEditPages')->remove_page(0);
@@ -2226,6 +2229,20 @@ sub edit_song {
 }
 
 #***
+
+sub load_presets() {
+    my $menutop = Gtk2::Menu->new();
+    my $preset_num = 1;
+    while (defined $config->{'Preset'.$preset_num}) {
+        my $presetMenuItem = Gtk2::MenuItem->new_with_label( "Preset ".$preset_num.": ".$config->{'Preset'.$preset_num});
+        $presetMenuItem->{user_data}=$preset_num;
+        $presetMenuItem->signal_connect("activate", "add_copyright_preset", $preset_num);
+        $menutop->append($presetMenuItem);
+        $presetMenuItem->show();
+        $preset_num++;
+    }
+    $widgets->{'add'}->get_object('insert_preset_copyright1')->set_submenu($menutop);
+}
 
 #****f* lyricue/do_add_verse
 # NAME
@@ -5690,7 +5707,7 @@ sub add_copyright_preset {
     debug("Add preset");
     my ($widget, $preset) = @_;
     $widgets->{'add'}->get_object('entryEditCopyright')
-      ->set_text("Preset:" . $preset);
+      ->set_text("Preset" . $preset);
 }
 
 #***

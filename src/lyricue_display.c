@@ -709,6 +709,11 @@ do_display (const char *options)
                         g_string_printf (foot, "Written by %s", artist);
                     }
                     if (g_utf8_strlen (copyright, 10) != 0) {
+                        if (g_ascii_strncasecmp(copyright,"Preset",6) == 0) {
+                            l_debug("preset %s",copyright);
+                            copyright=(gchar *) g_hash_table_lookup (config,copyright);
+                            l_debug("preset %s",copyright);
+                        }
                         g_string_append_printf (foot, " - %s", copyright);
                     }
                     lyrics = g_strdup (lyrictmp);
