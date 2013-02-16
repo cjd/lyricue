@@ -26,6 +26,7 @@ extern gchar *current_bg;
 extern MYSQL *mediaDb;
 extern unsigned long windowid;
 extern int server_port;
+extern MYSQL *lyricDb;
 
 
 const ClutterColor black_colour = { 0x00, 0x00, 0x00, 0xff };
@@ -1258,5 +1259,43 @@ take_snapshot (const char *filename)
                                 NULL);
     gdk_pixbuf_save (pixbuf, filename, "jpeg", NULL, "quality", "90", NULL);
     g_free (data);
+    return TRUE;
+}
+
+gboolean
+take_dbsnapshot (const int playorder)
+{
+    l_debug ("Saving snapshot of playlist item %d", playorder);
+    gsize buffer_size;
+    gchar *buffer;
+    gchar options[10];
+
+    snprintf(options,10,"%d",playorder);
+    do_display(options,TRUE);
+    guchar *data =
+      clutter_stage_read_pixels (CLUTTER_STAGE (stage), 0, 0, -1, -1);
+    GdkPixbuf *pixbuf =
+      gdk_pixbuf_new_from_data (data, GDK_COLORSPACE_RGB, TRUE, 8,
+                                clutter_actor_get_width (stage),
+                                clutter_actor_get_height (stage),
+                                clutter_actor_get_width (stage) * 4, NULL,
+                                NULL);
+    float scale = clutter_actor_get_width(stage)/256;
+    GdkPixbuf *scaled =
+      gdk_pixbuf_scale_simple (pixbuf, 256, clutter_actor_get_height(stage)/scale, GDK_INTERP_BILINEAR);
+    gdk_pixbuf_save_to_buffer (scaled,&buffer,&buffer_size, "jpeg", NULL, "quality", "90", NULL);
+    char chunk[2*1024*1024]; //2Mb max
+    mysql_real_escape_string(lyricDb, chunk, buffer, buffer_size);
+    // Custom sql connection so we don't log full image data
+    GString *query = g_string_new (NULL);
+    l_debug("Writing snapshot to playlist");
+    g_string_printf(query, "UPDATE playlist SET snapshot='%s' WHERE playorder=%d",chunk, playorder);
+    if (mysql_query (lyricDb, query->str)) {
+        l_debug (_("SQL Error %u: %s"), mysql_errno (lyricDb),
+          mysql_error (lyricDb));
+    }
+    g_free (data);
+    g_string_free (query, TRUE);
+
     return TRUE;
 }

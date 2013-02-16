@@ -49,6 +49,7 @@ CREATE TABLE `playlist` (
   `data` varchar(256) default NULL,
   `type` varchar(4) default 'song',
   `transition` int(11) default '0',
+  `snapshot` mediumblob,
   PRIMARY KEY  (`playorder`)
 ) DEFAULT CHARSET=utf8;
 

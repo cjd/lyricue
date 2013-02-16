@@ -2009,6 +2009,29 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
+                              <object class="GtkButton" id="buttonRefreshPlaylist">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="relief">none</property>
+                                <property name="image_position">top</property>
+                                <signal name="clicked" handler="update_playlist" swapped="no"/>
+                                <child>
+                                  <object class="GtkImage" id="image41">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="stock">gtk-refresh</property>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
                               <object class="GtkVBox" id="vbox1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -2040,30 +2063,22 @@
                               <packing>
                                 <property name="expand">True</property>
                                 <property name="fill">True</property>
-                                <property name="position">0</property>
+                                <property name="position">1</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="buttonRefreshPlaylist">
+                              <object class="GtkCheckButton" id="checkPreviews">
+                                <property name="label" translatable="yes">Previews</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
+                                <property name="receives_default">False</property>
                                 <property name="use_action_appearance">False</property>
-                                <property name="relief">none</property>
-                                <property name="image_position">top</property>
-                                <signal name="clicked" handler="update_playlist" swapped="no"/>
-                                <child>
-                                  <object class="GtkImage" id="image41">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="stock">gtk-refresh</property>
-                                  </object>
-                                </child>
+                                <property name="draw_indicator">True</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
-                                <property name="position">1</property>
+                                <property name="position">2</property>
                               </packing>
                             </child>
                           </object>
@@ -2137,6 +2152,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="headers_visible">False</property>
                                     <signal name="button-press-event" handler="select_playlist_click" swapped="no"/>
+                                    <signal name="row-activated" handler="display_song" swapped="no"/>
                                   </object>
                                 </child>
                               </object>
@@ -2332,6 +2348,19 @@
                             <property name="expand">False</property>
                             <property name="fill">False</property>
                             <property name="position">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkIconView" id="iconPlaylist">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <signal name="selection-changed" handler="treePlaylist_cursor_changed" swapped="no"/>
+                            <signal name="item-activated" handler="display_song" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">4</property>
                           </packing>
                         </child>
                       </object>

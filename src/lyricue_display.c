@@ -194,6 +194,8 @@ handle_command (GIOChannel * source, const char *command)
             do_preview (line[1]);
         } else if (g_strcmp0 (line[0], "status") == 0) {
             returnstring = do_status ();
+        } else if (g_strcmp0 (line[0], "dbsnapshot") == 0) {
+            do_dbsnapshot (line[1]);
         } else if (g_strcmp0 (line[0], "snapshot") == 0) {
             do_snapshot (line[1]);
         } else if (g_strcmp0 (line[0], "reconfig") == 0) {
@@ -209,7 +211,7 @@ handle_command (GIOChannel * source, const char *command)
         } else if (g_strcmp0 (line[0], "get") == 0) {
             do_get (line[1]);
         } else if (g_strcmp0 (line[0], "display") == 0) {
-            do_display (line[1]);
+            do_display (line[1],FALSE);
         } else if (g_strcmp0 (line[0], "osd") == 0) {
             do_osd (line[1]);
         } else if (g_strcmp0 (line[0], "media") == 0) {
@@ -326,6 +328,15 @@ do_snapshot (const char *options)
 }
 
 void
+do_dbsnapshot (const char *options)
+{
+    l_debug ("do_snapshot");
+    gchar **line = g_strsplit (options, ":", 2);
+    take_dbsnapshot (atoi(line[0]));
+    g_strfreev (line);
+}
+
+void
 do_reconfig ()
 {
     l_debug ("do_reconfig");
@@ -363,7 +374,7 @@ do_blank (const char *options)
 
     if (blanked_state == BLANK_BG) {
         l_debug ("Re-show text");
-        do_display ("current");
+        do_display ("current",FALSE);
     } else if ((blanked_state == BLANK_TEXT) && options != NULL) {
         l_debug ("clear text and set BG");
         temp_bg = current_bg;
@@ -371,7 +382,7 @@ do_blank (const char *options)
         blanked_state = BLANK_BG;
     } else if ((blanked_state == BLANK_TEXT) && options == NULL) {
         l_debug ("Re-show text - 2");
-        do_display ("current");
+        do_display ("current",FALSE);
     } else if (options != NULL) {
         l_debug ("clear text and set BG - 2");
         temp_bg = current_bg;
@@ -431,7 +442,7 @@ do_osd (const char *options)
 }
 
 void
-do_display (const char *options)
+do_display (const char *options, const int quick_show)
 {
     l_debug ("do_display");
     if (options != NULL) {
@@ -517,7 +528,7 @@ do_display (const char *options)
                     }
                 } else {
                     // Jump to next song
-                    do_display ("next_song:0");
+                    do_display ("next_song:0",FALSE);
                     return;
                 }
             }
@@ -690,7 +701,7 @@ do_display (const char *options)
                           data);
                 result = mysql_store_result (lyricDb);
                 row = mysql_fetch_row (result);
-                do_display (row[0]);
+                do_display (row[0],FALSE);
                 return;
             } else {            // Song page
                 do_query (lyricDb,
@@ -759,13 +770,14 @@ do_display (const char *options)
                 }
             }
 
+            if (quick_show) {
+                transition=1;
+            }
             set_maintext (parse_special (lyrics), transition, wrap);
             set_headtext (parse_special (header), transition, wrap);
             set_foottext (parse_special (footer), transition, wrap);
         }
     }
-
-
 }
 
 gboolean
@@ -829,9 +841,9 @@ do_save (const char *options)
     gchar **line = g_strsplit (options, ":", 2);
     gchar *cmd = g_strdup_printf ("playlist:%d", atoi (line[0]));
     transition_skip = TRUE;
-    do_display (cmd);
-    do_display ("display:0");
-    do_display ("next_page:0");
+    do_display (cmd,TRUE);
+    do_display ("display:0",TRUE);
+    do_display ("next_page:0",TRUE);
     g_free (cmd);
     int count = 1;
     int last_item = -1;
@@ -839,7 +851,7 @@ do_save (const char *options)
         l_debug ("%d", current_item);
         gchar *filename = g_strdup_printf ("%s/slide-%d.jpg", line[1], count);
         last_item = current_item;
-        do_display ("next_page:0");
+        do_display ("next_page:0",TRUE);
         take_snapshot (filename);
         g_free (filename);
         count++;

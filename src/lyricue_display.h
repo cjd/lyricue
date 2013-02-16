@@ -74,7 +74,7 @@ void do_change_to_db(const char* options);
 void do_next_point(const char* options);
 void do_loopparent(const char* options);
 void do_get(const char* options);
-void do_display(const char* options);
+void do_display(const char* options, const int quick_show);
 void do_osd(const char* options);
 void do_save(const char* options);
 GString * do_query_json(const char* options);

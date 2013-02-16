@@ -73,3 +73,4 @@ gboolean hide_cursor ();
 
 gboolean stop_media ();
 gboolean take_snapshot (const char *);
+gboolean take_dbsnapshot (int playorder);

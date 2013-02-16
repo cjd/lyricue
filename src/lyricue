@@ -237,6 +237,7 @@ $globals->{'icon_height'}        = 72;
 $globals->{'thumb_width'}        = 128;
 $globals->{'thumb_height'}       = 96;
 $globals->{'firstrun'}           = FALSE;
+$globals->{'image_playlist'}     = TRUE;
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -637,7 +638,7 @@ sub update_playlist {
             }
         }
     }
-
+ 
     my $playlist =
       $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data};
 
@@ -647,26 +648,41 @@ sub update_playlist {
         $model->foreach(\&save_expanded, \$expanded);
         $model->clear;
     } else {
-
-        # Column 1 -> Visible text
-        # Column 2 -> Colour
-        # Column 3 -> playorder
-        # Column 4 -> transition
-        $model =
-          Gtk2::TreeStore->new('Glib::String', 'Glib::String', 'Glib::String',
-            'Glib::String');
-        $widgets->{'main'}->get_object('treePlaylist')->set_model($model);
-        my $column = Gtk2::TreeViewColumn->new_with_attributes(
-            "",
-            Gtk2::CellRendererText->new,
-            markup     => 0,
-            background => 1
-        );
-        $widgets->{'main'}->get_object('treePlaylist')->append_column($column);
-
-        $widgets->{'main'}->get_object('treePlaylist')->set_model($model);
+        if ($globals->{'image_playlist'}) {
+            # Column 1 -> Visible text
+            # Column 2 -> Image
+            # Column 3 -> playorder
+            # Column 4 -> transition
+            $model =
+              Gtk2::ListStore->new('Glib::String', 'Gtk2::Gdk::Pixbuf', 'Glib::String', 'Glib::String');
+            $widgets->{'main'}->get_object('iconPlaylist')->set_model($model);
+            $widgets->{'main'}->get_object('iconPlaylist')->set_text_column(0);
+            $widgets->{'main'}->get_object('iconPlaylist')->set_pixbuf_column(1);
+        } else {
+  
+            # Column 1 -> Visible text
+            # Column 2 -> Colour
+            # Column 3 -> playorder
+            # Column 4 -> transition
+            $model =
+              Gtk2::TreeStore->new('Glib::String', 'Glib::String', 'Glib::String',
+                'Glib::String');
+            $widgets->{'main'}->get_object('treePlaylist')->set_model($model);
+            my $column = Gtk2::TreeViewColumn->new_with_attributes(
+                "",
+                Gtk2::CellRendererText->new,
+                markup     => 0,
+                background => 1
+            );
+            $widgets->{'main'}->get_object('treePlaylist')->append_column($column);
+   
+            $widgets->{'main'}->get_object('treePlaylist')->set_model($model);
+        }
     }
     add_playlist($playlist, undef, $model, $selectedid, \$expanded);
+    if ($globals->{'image_playlist'}) {
+        $globals->{'image_playlist_idle'} = Glib::Idle->add(\&playlist_thumbnails, $widgets->{'main'}->get_object('iconPlaylist'));
+    }
     $globals->{'current_item'} = 0;
 }
 
@@ -840,77 +856,86 @@ sub add_playlist {
         }
 
         my $playorder = $row->{'playorder'};
-        my $newiter   = $model->append($iter);
+        my $newiter   = $model->append();
         $title =~ s/&/&amp;/g;
-        $model->set(
-            $newiter,
-            0 => $title,
-            1 => undef,
-            2 => $row->{'playorder'},
-            3 => $row->{'transition'}
-        );
-
-        # Set sub-item if image associated
-
-        if ($imagename) {
-            my ($type, $id) = split /;/, $imagename;
-            if ($type eq "db") {
-                my $query2 =
-                  "SELECT description FROM media WHERE id=\"" . $id . "\"";
-
-                #qdebug($query2);
-                my $sth2 = $mediaDbh->prepare($query2)
-                  || database_failure($errorcodes->{'sqlprepare'},
-                    $! . "\nSQL: " . $query2);
-                my $rv2 = $sth2->execute
-                  || database_failure($errorcodes->{'sqlexecute'},
-                    $! . "\nSQL: " . $query2);
-                my $row2    = $sth2->fetchrow_hashref();
-                my $imgiter = $model->append($newiter);
-                $model->set(
-                    $imgiter,
-                    0 => "* Background: " . $row2->{'description'},
-                    1 => "",
-                    2 => $row->{'playorder'},
-                    3 => $row->{'transition'}
-                );
-            } else {
-                my $imgiter = $model->append($newiter);
-                $id =~ s/^$config->{'BGDirectory'}//g;
-                $model->set(
-                    $imgiter,
-                    0 => "* Background: " . $id,
-                    1 => "",
-                    2 => $row->{'playorder'},
-                    3 => $row->{'transition'}
-                );
-            }
-        }
-
-        # Set sub-item if transition associated
-        if (($row->{'transition'} >> (NUM_TRANS*2)) != 0) {
-            my $transtext = $row->{'transition'} >> (NUM_TRANS*2);
-            if ($transtext == FADE) {
-                $transtext = "radioTransFade";
-            } elsif ($transtext == SLIDE_TEXT) {
-                $transtext = "radioTransSlide";
-            } elsif ($transtext == ROTATE_TEXT) {
-                $transtext = "radioTransRotate";
-            } elsif ($transtext == RANDOM) {
-                $transtext = "radioTransRandom";
-            } else {
-                $transtext = "radioTransNone";
-            }
-            my $transiter = $model->append($newiter);
+        if ($globals->{'image_playlist'}) {
             $model->set(
-                $transiter,
-                0 => "* Transition: ".$widgets->{'main'}->get_object($transtext)->get_label(),
-                1 => "",
+                $newiter,
+                0 => $title,
+                1 => undef,
+                2 => $row->{'playorder'}
+            );
+        } else {
+            $model->set(
+                $newiter,
+                0 => $title,
+                1 => undef,
                 2 => $row->{'playorder'},
                 3 => $row->{'transition'}
             );
-        }
 
+            # Set sub-item if image associated
+    
+            if ($imagename) {
+                my ($type, $id) = split /;/, $imagename;
+                if ($type eq "db") {
+                    my $query2 =
+                      "SELECT description FROM media WHERE id=\"" . $id . "\"";
+    
+                    #qdebug($query2);
+                    my $sth2 = $mediaDbh->prepare($query2)
+                      || database_failure($errorcodes->{'sqlprepare'},
+                        $! . "\nSQL: " . $query2);
+                    my $rv2 = $sth2->execute
+                      || database_failure($errorcodes->{'sqlexecute'},
+                        $! . "\nSQL: " . $query2);
+                    my $row2    = $sth2->fetchrow_hashref();
+                    my $imgiter = $model->append($newiter);
+                    $model->set(
+                        $imgiter,
+                        0 => "* Background: " . $row2->{'description'},
+                        1 => "",
+                        2 => $row->{'playorder'},
+                        3 => $row->{'transition'}
+                    );
+                } else {
+                    my $imgiter = $model->append($newiter);
+                    $id =~ s/^$config->{'BGDirectory'}//g;
+                    $model->set(
+                        $imgiter,
+                        0 => "* Background: " . $id,
+                        1 => "",
+                        2 => $row->{'playorder'},
+                        3 => $row->{'transition'}
+                    );
+                }
+            }
+
+            # Set sub-item if transition associated
+            if (($row->{'transition'} >> (NUM_TRANS*2)) != 0) {
+                my $transtext = $row->{'transition'} >> (NUM_TRANS*2);
+                if ($transtext == FADE) {
+                    $transtext = "radioTransFade";
+                } elsif ($transtext == SLIDE_TEXT) {
+                    $transtext = "radioTransSlide";
+                } elsif ($transtext == ROTATE_TEXT) {
+                    $transtext = "radioTransRotate";
+                } elsif ($transtext == RANDOM) {
+                    $transtext = "radioTransRandom";
+                } else {
+                    $transtext = "radioTransNone";
+                }
+                my $transiter = $model->append($newiter);
+                $model->set(
+                    $transiter,
+                    0 => "* Transition: ".$widgets->{'main'}->get_object($transtext)->get_label(),
+                    1 => "",
+                    2 => $row->{'playorder'},
+                    3 => $row->{'transition'}
+                );
+            }
+        }
+    
         # Add sublists/playlists
         if ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
             add_playlist($row->{'data'}, $newiter, $model, $selectedid,
@@ -3203,11 +3228,21 @@ sub display_song {
     my ($widget, $path,, $column) = @_;
     debug("display song");
     reset_timer($globals->{'timer'});
-    my $selection =
-      $widgets->{'main'}->get_object('treePlaylist')->get_selection;
-    my ($model, $iter) = $selection->get_selected;
-    if ($iter) {
-        update_display("display", $model->get($iter, 2), "");
+    if ($globals->{'image_playlist'}) {
+        my @list = 
+          $widgets->{'main'}->get_object('iconPlaylist')->get_selected_items;
+        if (defined $list[0]) {
+            my $model = $widgets->{'main'}->get_object('iconPlaylist')->get_model;
+            my $iter  = $model->get_iter($list[0]);
+            update_display("display", $model->get($iter, 2), "");
+        }
+    } else {
+        my $selection =
+          $widgets->{'main'}->get_object('treePlaylist')->get_selection;
+        my ($model, $iter) = $selection->get_selected;
+        if ($iter) {
+            update_display("display", $model->get($iter, 2), "");
+        }
     }
     return TRUE;
 }
@@ -3215,52 +3250,54 @@ sub display_song {
 sub treePlaylist_cursor_changed {
     my ($widget) = @_;
     debug("preview playlist item");
-    my $selection =
-      $widgets->{'main'}->get_object('treePlaylist')->get_selection;
-    my ($model, $iter) = $selection->get_selected;
-    if ($iter) {
-        my $transition = $model->get($iter, 3);
-
-        # Set the transition values
-        my $out_direction = mod($transition, 2**NUM_TRANS);
-        $transition = $transition >> NUM_TRANS;
-        my $in_direction = mod($transition, 2**NUM_TRANS);
-        my $effect = $transition >> NUM_TRANS;
-        if ($effect == NOTRANS ) {
-            $widgets->{'main'}->get_object('radioTransNone')->set_active(TRUE);
-        } elsif ($effect == FADE) {
-            $widgets->{'main'}->get_object('radioTransFade')->set_active(TRUE);
-        } elsif ($effect == SLIDE_TEXT) {
-            $widgets->{'main'}->get_object('radioTransSlide')->set_active(TRUE);
-        } elsif ($effect == ROTATE_TEXT) {
-            $widgets->{'main'}->get_object('radioTransRotate')
-              ->set_active(TRUE);
-        } elsif ($effect == RANDOM) {
-            $widgets->{'main'}->get_object('radioTransRandom')->set_active(TRUE);
-        } else {
-            $widgets->{'main'}->get_object('radioTransDefault')->set_active(TRUE);
+    if (!$globals->{'image_playlist'}) {
+        my $selection =
+          $widgets->{'main'}->get_object('treePlaylist')->get_selection;
+        my ($model, $iter) = $selection->get_selected;
+        if ($iter) {
+            my $transition = $model->get($iter, 3);
+    
+            # Set the transition values
+            my $out_direction = mod($transition, 2**NUM_TRANS);
+            $transition = $transition >> NUM_TRANS;
+            my $in_direction = mod($transition, 2**NUM_TRANS);
+            my $effect = $transition >> NUM_TRANS;
+            if ($effect == NOTRANS ) {
+                $widgets->{'main'}->get_object('radioTransNone')->set_active(TRUE);
+            } elsif ($effect == FADE) {
+                $widgets->{'main'}->get_object('radioTransFade')->set_active(TRUE);
+            } elsif ($effect == SLIDE_TEXT) {
+                $widgets->{'main'}->get_object('radioTransSlide')->set_active(TRUE);
+            } elsif ($effect == ROTATE_TEXT) {
+                $widgets->{'main'}->get_object('radioTransRotate')
+                  ->set_active(TRUE);
+            } elsif ($effect == RANDOM) {
+                $widgets->{'main'}->get_object('radioTransRandom')->set_active(TRUE);
+            } else {
+                $widgets->{'main'}->get_object('radioTransDefault')->set_active(TRUE);
+            }
+            my $indir = "";
+            if ($in_direction & UP)    { $indir .= "Up" }
+            if ($in_direction & DOWN)  { $indir .= "Down" }
+            if ($in_direction & LEFT)  { $indir .= "Left" }
+            if ($in_direction & RIGHT) { $indir .= "Right" }
+            if ($indir eq "") { $indir = "None" }
+            $widgets->{'main'}->get_object("toggleIn" . $indir)->set_active(TRUE);
+            $widgets->{'main'}->get_object("toggleRotX")
+              ->set_active($in_direction & X_AXIS);
+            $widgets->{'main'}->get_object("toggleRotY")
+              ->set_active($in_direction & Y_AXIS);
+            $widgets->{'main'}->get_object("toggleRotZ")
+              ->set_active($in_direction & Z_AXIS);
+    
+            my $outdir = "";
+            if ($out_direction & UP)    { $outdir .= "Up" }
+            if ($out_direction & DOWN)  { $outdir .= "Down" }
+            if ($out_direction & LEFT)  { $outdir .= "Left" }
+            if ($out_direction & RIGHT) { $outdir .= "Right" }
+            if ($outdir eq "") { $outdir = "None" }
+            $widgets->{'main'}->get_object("toggleOut" . $outdir)->set_active(TRUE);
         }
-        my $indir = "";
-        if ($in_direction & UP)    { $indir .= "Up" }
-        if ($in_direction & DOWN)  { $indir .= "Down" }
-        if ($in_direction & LEFT)  { $indir .= "Left" }
-        if ($in_direction & RIGHT) { $indir .= "Right" }
-        if ($indir eq "") { $indir = "None" }
-        $widgets->{'main'}->get_object("toggleIn" . $indir)->set_active(TRUE);
-        $widgets->{'main'}->get_object("toggleRotX")
-          ->set_active($in_direction & X_AXIS);
-        $widgets->{'main'}->get_object("toggleRotY")
-          ->set_active($in_direction & Y_AXIS);
-        $widgets->{'main'}->get_object("toggleRotZ")
-          ->set_active($in_direction & Z_AXIS);
-
-        my $outdir = "";
-        if ($out_direction & UP)    { $outdir .= "Up" }
-        if ($out_direction & DOWN)  { $outdir .= "Down" }
-        if ($out_direction & LEFT)  { $outdir .= "Left" }
-        if ($out_direction & RIGHT) { $outdir .= "Right" }
-        if ($outdir eq "") { $outdir = "None" }
-        $widgets->{'main'}->get_object("toggleOut" . $outdir)->set_active(TRUE);
     }
     update_quickedit();
     if ($config->{'DynamicPreview'}) {
@@ -4017,12 +4054,22 @@ sub update_display {
 sub preview_playlist_item {
     debug("Previewing a playlist item...");
 
-    my $selection =
-      $widgets->{'main'}->get_object('treePlaylist')->get_selection;
-    my ($model, $iter) = $selection->get_selected;
-    if ($iter) {
-        # display item
-        preview_display("display", $model->get($iter, 2), undef, "MINI");
+    if ($globals->{'image_playlist'}) {
+        my @list = 
+          $widgets->{'main'}->get_object('iconPlaylist')->get_selected_items;
+        if (defined $list[0]) {
+            my $model = $widgets->{'main'}->get_object('iconPlaylist')->get_model;
+            my $iter  = $model->get_iter($list[0]);
+            preview_display("display", $model->get($iter, 2), undef, "MINI");
+        }
+    } else {
+        my $selection =
+          $widgets->{'main'}->get_object('treePlaylist')->get_selection;
+        my ($model, $iter) = $selection->get_selected;
+        if ($iter) {
+            # display item
+            preview_display("display", $model->get($iter, 2), undef, "MINI");
+        }
     }
 }
 
@@ -4829,6 +4876,7 @@ sub show_about {
 sub choose_playlist {
     debug("Choose playlist");
     $widgets->{'main'}->get_object('vboxChoosePlay')->show_all;
+    $widgets->{'main'}->get_object('iconPlaylist')->hide;
     $widgets->{'main'}->get_object('scrollPlaylist')->hide;
     $widgets->{'main'}->get_object('toolbarPlaylist')->hide;
     update_cplayclist();
@@ -4848,8 +4896,17 @@ sub choose_playlist {
 sub close_playlist_chooser {
     debug("Close playlist chooser");
     $widgets->{'main'}->get_object('vboxChoosePlay')->hide;
-    $widgets->{'main'}->get_object('scrollPlaylist')->show_all;
-    $widgets->{'main'}->get_object('toolbarPlaylist')->show_all;
+    if ($globals->{'image_playlist'}) {
+        $widgets->{'main'}->get_object('iconPlaylist')->show_all;
+        $widgets->{'main'}->get_object('scrollPlaylist')->hide;
+        $widgets->{'main'}->get_object('toolbarPlaylist')->hide;
+        $widgets->{'main'}->get_object('frameMainLeft')->hide;
+    } else {
+        $widgets->{'main'}->get_object('iconPlaylist')->hide;
+        $widgets->{'main'}->get_object('scrollPlaylist')->show_all;
+        $widgets->{'main'}->get_object('toolbarPlaylist')->show_all;
+        $widgets->{'main'}->get_object('frameMainLeft')->show_all;
+    }
 }
 
 #***
@@ -7787,6 +7844,42 @@ sub imgdir_thumbnails {
 
 #***
 
+#****f* lyricue/playlist_thumbnails
+# NAME
+#   playlist_thumbnails
+# SYNOPSIS
+#   playlist_thumbnails()
+# FUNCTION
+#   Load thumbnails for image playlist
+# INPUTS
+#
+# OUTPUT
+#   Thumbnails
+# SOURCE
+#
+sub playlist_thumbnails {
+    my ($iconview) = @_;
+    debug("Loading Playlist thumbnails");
+    my $store = $iconview->get_model;
+    my $iter  = $store->get_iter_first;
+    while (defined $iter) {
+        my $id = "thmb;".$store->get_value($iter, 2);
+        my $scaled = create_pixbuf(
+            $id,
+            $globals->{'icon_width'},
+            $globals->{'icon_height'}
+        );
+        if ($scaled) {
+            $store->set($iter, 1, $scaled);
+        }
+        my $nextiter = $store->iter_next($iter);
+        $iter = $nextiter;
+        do_pending();
+    }
+}
+
+#***
+
 #****f* lyricue/spell_check
 # NAME
 #   spell_check
@@ -9284,6 +9377,7 @@ sub quick_save {
           || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
+    update_playlist();
 }
 
 #****f* lyricue/quick_save_local
@@ -9378,6 +9472,7 @@ sub quick_save_local {
           || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
+    update_playlist();
 }
 
 # Just put the text in the quickview section onto the screen
@@ -9475,7 +9570,54 @@ sub create_pixbuf {
     my ($data, $width, $height) = @_;
     my ($pixbuf);
     my ($type, $id) = split /;/, $data;
-    if ($type eq "dir") {
+    if ($type eq "thmb") {
+        debug("checking for thumbnail");
+        my $query = "SELECT snapshot FROM playlist WHERE playorder=\"" 
+          . $id . "\"";
+        qdebug($query);
+        my $sth = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
+        my $rv = $sth->execute
+          || database_failure($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
+        my @row = $sth->fetchrow_array();
+        if (defined $row[0]) {
+            my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+            eval { $pixbuf_loader->write($row[0]); };
+            eval { $pixbuf_loader->close() };
+            $pixbuf = $pixbuf_loader->get_pixbuf();
+        } else {
+            debug("creating thumbnail");
+            preview_display("dbsnapshot",$id,"","MINI");
+            do_pending();
+            sleep 1;
+            $query = "SELECT snapshot FROM playlist WHERE playorder=\"" 
+              . $id . "\"";
+            qdebug($query);
+            $sth = $lyricDbh->prepare($query)
+              || database_failure($errorcodes->{'sqlprepare'},
+                $! . "\nSQL: " . $query);
+            $rv = $sth->execute
+              || database_failure($errorcodes->{'sqlexecute'},
+                $! . "\nSQL: " . $query);
+            @row = $sth->fetchrow_array();
+            if (defined $row[0]) {
+                my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+                eval { $pixbuf_loader->write($row[0]); };
+                eval { $pixbuf_loader->close() };
+                $pixbuf = $pixbuf_loader->get_pixbuf();
+            } else {
+                return;
+            }
+        }
+
+        if ($width == 0) {
+            return $pixbuf;
+        } else {
+            return $pixbuf->scale_simple($width, $height, 'nearest');
+        }
+    } elsif ($type eq "dir") {
         if (-d $id) {
             return;
         }
@@ -12149,6 +12291,10 @@ sub db_updatedb_lyricDb {
         }
         if ($pl->{'data'} ne "varchar(256)") {
             db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql",
+                "lyricDb");
+        }
+        if (!defined $pl->{'shapshot'}) {
+            db_installdb($globals->{'sharedir'} . "mysql/Update_3.5.sql",
                 "lyricDb");
         }
     }
