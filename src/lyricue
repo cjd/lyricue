@@ -237,7 +237,7 @@ $globals->{'icon_height'}        = 72;
 $globals->{'thumb_width'}        = 128;
 $globals->{'thumb_height'}       = 96;
 $globals->{'firstrun'}           = FALSE;
-$globals->{'image_playlist'}     = TRUE;
+$globals->{'image_playlist'}     = FALSE;
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -14354,3 +14354,20 @@ sub fix_widget_names {
         $widgets->{'main'}->get_object("toggleOut".$_)->set_name("toggleOut".$_);
     }
 }
+sub image_playlist_toggle {
+    debug("Image Playlist toggled");
+    my $globals->{'image_playlist'} = $widgets->{'main'}->get_object('checkPreviews');
+    if ($globals->{'image_playlist'}) {
+        $widgets->{'main'}->get_object('iconPlaylist')->show_all;
+        $widgets->{'main'}->get_object('scrollPlaylist')->hide;
+        $widgets->{'main'}->get_object('toolbarPlaylist')->hide;
+        $widgets->{'main'}->get_object('frameMainLeft')->hide;
+    } else {
+        $widgets->{'main'}->get_object('iconPlaylist')->hide;
+        $widgets->{'main'}->get_object('scrollPlaylist')->show_all;
+        $widgets->{'main'}->get_object('toolbarPlaylist')->show_all;
+        $widgets->{'main'}->get_object('frameMainLeft')->show_all;
+    }
+    update_playlist();
+}
+
