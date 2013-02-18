@@ -126,6 +126,10 @@ create_main_window (int argc, char *argv[])
         clutter_widget = gtk_clutter_embed_new ();
         gtk_container_add (GTK_CONTAINER (window), clutter_widget);
         gtk_widget_show_all (window);
+        GdkGeometry hints;
+        hints.min_aspect=stage_width/stage_height;
+        hints.max_aspect=stage_width/stage_height;
+        gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, &hints, GDK_HINT_ASPECT);
         if (geometry != NULL && (g_utf8_strlen (geometry, 10) > 0)) {
             if (!gtk_window_parse_geometry (GTK_WINDOW (window), geometry)) {
                 l_debug ("Failed to parse geometry '%s'", geometry);
@@ -1311,8 +1315,8 @@ playlist_snapshot(int playlist)
     l_debug("Save playlist snapshots %d",NO_EFFECT);
     gchar *cmd = g_strdup_printf ("playlist:%d", playlist);
     do_display (cmd,TRUE);
-    change_backdrop (default_bg, TRUE, NO_EFFECT);
     do_display ("display:0",TRUE);
+    change_backdrop (default_bg, TRUE, NO_EFFECT);
     do_display ("next_page:0",TRUE);
     g_free (cmd);
     int last_item = -1;

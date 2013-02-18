@@ -233,9 +233,8 @@ $globals->{'hovering_over_link'} = FALSE;
 $globals->{'db_adminuser'}       = "";
 $globals->{'current_item'}       = -1;
 $globals->{'icon_width'}         = 96;
-$globals->{'icon_height'}        = 72;
 $globals->{'thumb_width'}        = 128;
-$globals->{'thumb_height'}       = 96;
+$globals->{'snapshot_width'}     = 256;
 $globals->{'firstrun'}           = FALSE;
 $globals->{'image_playlist'}     = FALSE;
 
@@ -660,6 +659,7 @@ sub update_playlist {
         $widgets->{'main'}->get_object('iconPlaylist')->set_model($model);
         $widgets->{'main'}->get_object('iconPlaylist')->set_text_column(0);
         $widgets->{'main'}->get_object('iconPlaylist')->set_pixbuf_column(1);
+        $widgets->{'main'}->get_object('iconPlaylist')->set_item_width(400);
     } else {
         debug ("Tree playlist");
 
@@ -6594,6 +6594,12 @@ sub load_config {
         $globals->{'mysqlhost'} = $conf->{'DBHost'};
     }
 
+    # Set icon sizes according to aspect ratio
+    $globals->{'display_aspect'}  = $conf->{'Width'}/$conf->{'Height'};
+    $globals->{'icon_height'}     = $globals->{'icon_width'} / $globals->{'display_aspect'};
+    $globals->{'thumb_height'}     = $globals->{'thumb_width'} / $globals->{'display_aspect'};
+    $globals->{'snapshot_height'}     = $globals->{'snapshot_width'} / $globals->{'display_aspect'};
+
     return $conf;
 }
 
@@ -7892,8 +7898,8 @@ sub playlist_thumbnails {
         my $id = "thmb;".$store->get_value($iter, 2);
         my $scaled = create_pixbuf(
             $id,
-            $globals->{'icon_width'},
-            $globals->{'icon_height'}
+            $globals->{'snapshot_width'},
+            $globals->{'snapshot_height'}
         );
         if ($scaled) {
             $store->set($iter, 1, $scaled);
@@ -9614,28 +9620,7 @@ sub create_pixbuf {
             eval { $pixbuf_loader->close() };
             $pixbuf = $pixbuf_loader->get_pixbuf();
         } else {
-            debug("creating thumbnail");
-            #preview_display("dbsnapshot",$id,"","MINI");
-            #do_pending();
-            #sleep 1;
-            $query = "SELECT snapshot FROM playlist WHERE playorder=\"" 
-              . $id . "\"";
-            qdebug($query);
-            $sth = $lyricDbh->prepare($query)
-              || database_failure($errorcodes->{'sqlprepare'},
-                $! . "\nSQL: " . $query);
-            $rv = $sth->execute
-              || database_failure($errorcodes->{'sqlexecute'},
-                $! . "\nSQL: " . $query);
-            @row = $sth->fetchrow_array();
-            if (defined $row[0]) {
-                my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
-                eval { $pixbuf_loader->write($row[0]); };
-                eval { $pixbuf_loader->close() };
-                $pixbuf = $pixbuf_loader->get_pixbuf();
-            } else {
-                return;
-            }
+            return;
         }
 
         if ($width == 0) {
