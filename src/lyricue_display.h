@@ -66,6 +66,8 @@ void do_blur (const char* options);
 void do_preview (const char* options);
 GString * do_status ();
 void do_snapshot(const char* options);
+void do_dbsnapshot(const char* options);
+void do_plsnapshot(const char* options);
 void do_reconfig();
 void do_backdrop(const char* options);
 void unblank();

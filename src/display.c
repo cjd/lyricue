@@ -27,6 +27,7 @@ extern MYSQL *mediaDb;
 extern unsigned long windowid;
 extern int server_port;
 extern MYSQL *lyricDb;
+extern int current_item;
 
 
 const ClutterColor black_colour = { 0x00, 0x00, 0x00, 0xff };
@@ -787,7 +788,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
     }
     // Fade out old background
     if (CLUTTER_IS_ACTOR (background_old)) {
-        if (transition == NOTRANS) {
+        if (transition == 65536) {
             destroy_actor (background_old);
         } else {
             clutter_actor_animate (background_old, CLUTTER_LINEAR, 500,
@@ -1263,15 +1264,19 @@ take_snapshot (const char *filename)
 }
 
 gboolean
-take_dbsnapshot (const int playorder)
+take_dbsnapshot (int playorder)
 {
-    l_debug ("Saving snapshot of playlist item %d", playorder);
     gsize buffer_size;
     gchar *buffer;
     gchar options[10];
 
-    snprintf(options,10,"%d",playorder);
-    do_display(options,TRUE);
+    if (playorder > 0) {
+        snprintf(options,10,"%d",playorder);
+        do_display(options,TRUE);
+    } else {
+        playorder=current_item;
+    }
+    l_debug ("Saving snapshot of playlist item %d", playorder);
     guchar *data =
       clutter_stage_read_pixels (CLUTTER_STAGE (stage), 0, 0, -1, -1);
     GdkPixbuf *pixbuf =
@@ -1297,5 +1302,24 @@ take_dbsnapshot (const int playorder)
     g_free (data);
     g_string_free (query, TRUE);
 
+    return TRUE;
+}
+
+gboolean
+playlist_snapshot(int playlist)
+{
+    l_debug("Save playlist snapshots");
+    gchar *cmd = g_strdup_printf ("playlist:%d", playlist);
+    do_display (cmd,TRUE);
+    do_display ("display:0",TRUE);
+    do_display ("next_page:0",TRUE);
+    g_free (cmd);
+    int last_item = -1;
+    while (last_item < current_item) {
+        l_debug ("%d", current_item);
+        last_item = current_item;
+        do_display ("next_page:0",TRUE);
+        take_dbsnapshot (0);
+    }
     return TRUE;
 }

@@ -41,7 +41,6 @@ gchar *temp_bg = NULL;
 int current_item = 0;
 int current_list = 0;
 GHashTable *config = NULL;
-gboolean transition_skip = FALSE;
 #define SERVER_PORT 2346
 
 // Command line options
@@ -196,6 +195,9 @@ handle_command (GIOChannel * source, const char *command)
             returnstring = do_status ();
         } else if (g_strcmp0 (line[0], "dbsnapshot") == 0) {
             do_dbsnapshot (line[1]);
+        } else if (g_strcmp0 (line[0], "plsnapshot") == 0) {
+            do_plsnapshot (line[1]);
+            returnstring = g_string_new("done");
         } else if (g_strcmp0 (line[0], "snapshot") == 0) {
             do_snapshot (line[1]);
         } else if (g_strcmp0 (line[0], "reconfig") == 0) {
@@ -333,6 +335,15 @@ do_dbsnapshot (const char *options)
     l_debug ("do_snapshot");
     gchar **line = g_strsplit (options, ":", 2);
     take_dbsnapshot (atoi(line[0]));
+    g_strfreev (line);
+}
+
+void
+do_plsnapshot (const char *options)
+{
+    l_debug ("do_snapshot");
+    gchar **line = g_strsplit (options, ":", 2);
+    playlist_snapshot(atoi(line[0]));
     g_strfreev (line);
 }
 
@@ -652,8 +663,8 @@ do_display (const char *options, const int quick_show)
             gchar *footer = "";
             gboolean wrap = TRUE;
             int transition = atoi (row[2]);
-            if (transition_skip) {
-                transition = NOTRANS;
+            if (quick_show) {
+                transition = 65536;
             }
 
             if (g_strcmp0 (type, "back") == 0) {
@@ -771,7 +782,7 @@ do_display (const char *options, const int quick_show)
             }
 
             if (quick_show) {
-                transition=1;
+                transition = 65536;
             }
             set_maintext (parse_special (lyrics), transition, wrap);
             set_headtext (parse_special (header), transition, wrap);
@@ -840,7 +851,6 @@ do_save (const char *options)
     l_debug ("Save as presentation");
     gchar **line = g_strsplit (options, ":", 2);
     gchar *cmd = g_strdup_printf ("playlist:%d", atoi (line[0]));
-    transition_skip = TRUE;
     do_display (cmd,TRUE);
     do_display ("display:0",TRUE);
     do_display ("next_page:0",TRUE);
@@ -857,7 +867,6 @@ do_save (const char *options)
         count++;
     }
     g_strfreev (line);
-    transition_skip = FALSE;
 }
 
 GString *

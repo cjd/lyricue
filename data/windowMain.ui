@@ -2352,11 +2352,19 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkIconView" id="iconPlaylist">
+                          <object class="GtkScrolledWindow" id="scrollIconPlaylist">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <signal name="selection-changed" handler="treePlaylist_cursor_changed" swapped="no"/>
-                            <signal name="item-activated" handler="display_song" swapped="no"/>
+                            <property name="hscrollbar_policy">automatic</property>
+                            <property name="vscrollbar_policy">automatic</property>
+                            <child>
+                              <object class="GtkIconView" id="iconPlaylist">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <signal name="selection-changed" handler="treePlaylist_cursor_changed" swapped="no"/>
+                                <signal name="item-activated" handler="display_song" swapped="no"/>
+                              </object>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">True</property>
