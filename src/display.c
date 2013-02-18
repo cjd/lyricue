@@ -827,7 +827,7 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
     switch (event->type) {
         case CLUTTER_BUTTON_RELEASE:
             ignoremouse = (gchar *) g_hash_table_lookup (config, "IgnoreMouse");
-            if (ignoremouse[0] == '1') {
+            if (ignoremouse != NULL && atoi(ignoremouse) == 1) {
                 break;
             }
             switch (clutter_event_get_button (event)) {
