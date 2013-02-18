@@ -664,7 +664,7 @@ do_display (const char *options, const int quick_show)
             gboolean wrap = TRUE;
             int transition = atoi (row[2]);
             if (quick_show) {
-                transition = 65536;
+                transition = NO_EFFECT;
             }
 
             if (g_strcmp0 (type, "back") == 0) {
@@ -782,7 +782,7 @@ do_display (const char *options, const int quick_show)
             }
 
             if (quick_show) {
-                transition = 65536;
+                transition = NO_EFFECT;
             }
             set_maintext (parse_special (lyrics), transition, wrap);
             set_headtext (parse_special (header), transition, wrap);

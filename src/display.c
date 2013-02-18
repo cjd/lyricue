@@ -1308,9 +1308,10 @@ take_dbsnapshot (int playorder)
 gboolean
 playlist_snapshot(int playlist)
 {
-    l_debug("Save playlist snapshots");
+    l_debug("Save playlist snapshots %d",NO_EFFECT);
     gchar *cmd = g_strdup_printf ("playlist:%d", playlist);
     do_display (cmd,TRUE);
+    change_backdrop (default_bg, TRUE, NO_EFFECT);
     do_display ("display:0",TRUE);
     do_display ("next_page:0",TRUE);
     g_free (cmd);

@@ -107,3 +107,4 @@ void update_miniview (const char *command);
 #define ROTATE     4
 #define RANDOM     5
 
+#define NO_EFFECT 65536 //(NOTRANS >> NUM_TRANS) >> NUM_TRANS
