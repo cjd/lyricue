@@ -527,6 +527,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
                 }
             }
         }
+        mysql_free_result (result);
     } else if (g_strcmp0 (line[0], "solid") == 0) {
         gchar **col = g_strsplit (line[1], ":", 2);
         l_debug ("Changing backdrop colour to %s", col[0]);
@@ -772,6 +773,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
             }
         }
     }
+    mysql_free_result (result);
 
     if (g_strcmp0 (maintext_bgcol, maintext_bgcol_old) != 0) {
         ClutterColor *fgcolour = clutter_color_new (0xFF, 0xFF, 0xFF, 0xFF);
@@ -1263,6 +1265,7 @@ take_snapshot (const char *filename)
                                 clutter_actor_get_width (stage) * 4, NULL,
                                 NULL);
     gdk_pixbuf_save (pixbuf, filename, "jpeg", NULL, "quality", "90", NULL);
+    g_object_unref(pixbuf);
     g_free (data);
     return TRUE;
 }
@@ -1293,7 +1296,7 @@ take_dbsnapshot (int playorder)
     GdkPixbuf *scaled =
       gdk_pixbuf_scale_simple (pixbuf, 256, clutter_actor_get_height(stage)/scale, GDK_INTERP_BILINEAR);
     gdk_pixbuf_save_to_buffer (scaled,&buffer,&buffer_size, "jpeg", NULL, "quality", "90", NULL);
-    char chunk[2*1024*1024]; //2Mb max
+    char chunk[2*1024*1024]; //2Mb max - a 256-pixel wide jpg should never be bigger than that
     mysql_real_escape_string(lyricDb, chunk, buffer, buffer_size);
     // Custom sql connection so we don't log full image data
     GString *query = g_string_new (NULL);
@@ -1303,6 +1306,8 @@ take_dbsnapshot (int playorder)
         l_debug (_("SQL Error %u: %s"), mysql_errno (lyricDb),
           mysql_error (lyricDb));
     }
+    g_object_unref(scaled);
+    g_object_unref(pixbuf);
     g_free (data);
     g_string_free (query, TRUE);
 

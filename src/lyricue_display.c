@@ -124,6 +124,7 @@ main (int argc, char *argv[])
     }
     ret = db_deselect ();
 
+    l_debug("Exiting");
     return EXIT_SUCCESS;
 }
 
@@ -607,10 +608,10 @@ do_display (const char *options, const int quick_show)
                       current_item, current_list);
             result = mysql_store_result (lyricDb);
             row = mysql_fetch_row (result);
-            mysql_free_result (result);
             if (row[0] != NULL) {
                 current_item = atoi (row[0]);
             }
+            mysql_free_result (result);
 
         } else if (g_strcmp0 (command, "prev_song") == 0) {
             do_query (lyricDb,
