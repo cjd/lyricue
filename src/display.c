@@ -152,7 +152,7 @@ create_main_window (int argc, char *argv[])
 
     clutter_stage_set_color (CLUTTER_STAGE (stage), &black_colour);
     default_bg = (gchar *) g_hash_table_lookup (config, "BGImage");
-    change_backdrop (default_bg, TRUE, DEFAULT);
+    change_backdrop (default_bg, TRUE, NO_EFFECT);
     double window_scale_w =
       (double) clutter_actor_get_width (stage) / (double) stage_width;
     double window_scale_h =
@@ -1317,13 +1317,13 @@ take_dbsnapshot (int playorder)
 gboolean
 playlist_snapshot(int playlist)
 {
-    l_debug("Save playlist snapshots %d",NO_EFFECT);
+    l_debug("Save playlist snapshots %d",playlist);
     gchar *cmd = g_strdup_printf ("playlist:%d", playlist);
     do_display (cmd,TRUE);
+    g_free (cmd);
     do_display ("display:0",TRUE);
     change_backdrop (default_bg, TRUE, NO_EFFECT);
     do_display ("next_page:0",TRUE);
-    g_free (cmd);
     int last_item = -1;
     while (last_item < current_item) {
         l_debug ("%d", current_item);
