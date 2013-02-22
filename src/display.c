@@ -28,6 +28,7 @@ extern unsigned long windowid;
 extern int server_port;
 extern MYSQL *lyricDb;
 extern int current_item;
+extern int current_list;
 
 
 const ClutterColor black_colour = { 0x00, 0x00, 0x00, 0xff };
@@ -1278,11 +1279,13 @@ take_dbsnapshot (int playorder)
     gchar options[10];
 
     if (playorder > 0) {
-        snprintf(options,10,"%d",playorder);
+        snprintf(options,10,"%d:0",playorder);
         do_display(options,TRUE);
     } else {
         playorder=current_item;
     }
+    while (gtk_events_pending ())
+        gtk_main_iteration ();
     l_debug ("Saving snapshot of playlist item %d", playorder);
     guchar *data =
       clutter_stage_read_pixels (CLUTTER_STAGE (stage), 0, 0, -1, -1);
@@ -1300,7 +1303,6 @@ take_dbsnapshot (int playorder)
     mysql_real_escape_string(lyricDb, chunk, buffer, buffer_size);
     // Custom sql connection so we don't log full image data
     GString *query = g_string_new (NULL);
-    l_debug("Writing snapshot to playlist");
     g_string_printf(query, "UPDATE playlist SET snapshot='%s' WHERE playorder=%d",chunk, playorder);
     if (mysql_query (lyricDb, query->str)) {
         l_debug (_("SQL Error %u: %s"), mysql_errno (lyricDb),
@@ -1318,18 +1320,19 @@ gboolean
 playlist_snapshot(int playlist)
 {
     l_debug("Save playlist snapshots %d",playlist);
-    gchar *cmd = g_strdup_printf ("playlist:%d", playlist);
-    do_display (cmd,TRUE);
-    g_free (cmd);
-    do_display ("display:0",TRUE);
+    MYSQL_ROW row;
+    MYSQL_RES *result;
+
     change_backdrop (default_bg, TRUE, NO_EFFECT);
-    do_display ("next_page:0",TRUE);
-    int last_item = -1;
-    while (last_item < current_item) {
-        l_debug ("%d", current_item);
-        last_item = current_item;
-        do_display ("next_page:0",TRUE);
-        take_dbsnapshot (0);
+    do_query (lyricDb,
+              "SELECT p1.playorder FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.playlist=p2.data LEFT JOIN playlist AS p3 ON p2.playlist=p3.data WHERE p1.playlist=%d OR p2.playlist=%d OR p3.playlist=%d ORDER BY p1.playorder",playlist,playlist,playlist);
+    result = mysql_store_result (lyricDb);
+    row = mysql_fetch_row (result);
+    while (row != NULL) {
+        l_debug("Snapping playorder %d", atoi(row[0]));
+        take_dbsnapshot (atoi(row[0]));
+        row = mysql_fetch_row (result);
     }
+    mysql_free_result (result);
     return TRUE;
 }
