@@ -28,7 +28,6 @@ extern unsigned long windowid;
 extern int server_port;
 extern MYSQL *lyricDb;
 extern int current_item;
-extern int current_list;
 
 
 const ClutterColor black_colour = { 0x00, 0x00, 0x00, 0xff };

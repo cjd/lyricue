@@ -657,7 +657,7 @@ sub update_playlist {
         $model =
           Gtk2::ListStore->new('Glib::String', 'Gtk2::Gdk::Pixbuf', 'Glib::String', 'Glib::String');
         $widgets->{'main'}->get_object('iconPlaylist')->set_model($model);
-        $widgets->{'main'}->get_object('iconPlaylist')->set_text_column(0);
+        $widgets->{'main'}->get_object('iconPlaylist')->set_markup_column(0);
         $widgets->{'main'}->get_object('iconPlaylist')->set_pixbuf_column(1);
         $widgets->{'main'}->get_object('iconPlaylist')->set_item_width(400);
     } else {
@@ -809,7 +809,7 @@ sub add_playlist {
             if (!$title) {
                 $title = "";
             }
-        } elsif ($row->{'type'} eq "play" | $row->{'type'} eq "sub") {
+        } elsif (($row->{'type'} eq "play") || ($row->{'type'} eq "sub")) {
 
             my $query2 = "SELECT * FROM playlists WHERE id=" . $row->{'data'};
 
@@ -864,6 +864,9 @@ sub add_playlist {
         my ($newiter);
         $title =~ s/&/&amp;/g;
         if ($globals->{'image_playlist'}) {
+            if (($row->{'type'} eq "play") || ($row->{'type'} eq "sub")) {
+                $title="<b>".$title."</b>";
+            } 
             $newiter   = $model->append();
             $model->set(
                 $newiter,
@@ -7895,14 +7898,16 @@ sub playlist_thumbnails {
     my $store = $iconview->get_model;
     my $iter  = $store->get_iter_first;
     while (defined $iter) {
-        my $id = "thmb;".$store->get_value($iter, 2);
-        my $scaled = create_pixbuf(
-            $id,
-            $globals->{'snapshot_width'},
-            $globals->{'snapshot_height'}
-        );
-        if ($scaled) {
-            $store->set($iter, 1, $scaled);
+        if (!($store->get_value($iter, 0) =~ /^<b>/)) {
+            my $id = "thmb;".$store->get_value($iter, 2);
+            my $scaled = create_pixbuf(
+                $id,
+                $globals->{'snapshot_width'},
+                $globals->{'snapshot_height'}
+            );
+            if ($scaled) {
+                $store->set($iter, 1, $scaled);
+            }
         }
         my $nextiter = $store->iter_next($iter);
         $iter = $nextiter;
