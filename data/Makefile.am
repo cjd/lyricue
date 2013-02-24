@@ -7,7 +7,8 @@ sql_DATA = \
 	Update_1.9.sql \
 	Update_2.1.0.sql \
 	Update_2.3.2.sql \
-	Update_2.4.sql
+	Update_2.4.sql \
+	Update_3.5.sql
 
 share_DATA = \
 	lyricue.png  \
