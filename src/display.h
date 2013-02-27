@@ -72,6 +72,6 @@ void set_shader_num (ClutterActor *actor, gint new_no);
 gboolean hide_cursor ();
 
 gboolean stop_media ();
-gboolean take_snapshot (const char *);
+GString * take_snapshot (const char *filename, int width);
 gboolean take_dbsnapshot (int playorder);
 gboolean playlist_snapshot (int playlist);

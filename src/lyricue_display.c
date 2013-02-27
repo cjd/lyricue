@@ -200,7 +200,7 @@ handle_command (GIOChannel * source, const char *command)
             do_plsnapshot (line[1]);
             returnstring = g_string_new("done");
         } else if (g_strcmp0 (line[0], "snapshot") == 0) {
-            do_snapshot (line[1]);
+            returnstring = do_snapshot (line[1]);
         } else if (g_strcmp0 (line[0], "reconfig") == 0) {
             do_reconfig ();
         } else if (g_strcmp0 (line[0], "backdrop") == 0) {
@@ -321,13 +321,18 @@ do_status ()
     return ret;
 }
 
-void
+GString *
 do_snapshot (const char *options)
 {
     l_debug ("do_snapshot");
     gchar **line = g_strsplit (options, ":", 2);
-    take_snapshot (line[0]);
+    int width=0;
+    if (line[1] != NULL) {
+        width=atoi(line[1]);
+    }
+    GString *ret = take_snapshot (line[0], width);
     g_strfreev (line);
+    return ret;
 }
 
 void
@@ -861,7 +866,7 @@ do_save (const char *options)
         gchar *filename = g_strdup_printf ("%s/slide-%d.jpg", line[1], count);
         last_item = current_item;
         do_display ("next_page:0",TRUE);
-        take_snapshot (filename);
+        take_snapshot (filename,0);
         g_free (filename);
         count++;
     }

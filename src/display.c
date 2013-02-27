@@ -1252,8 +1252,8 @@ stop_media ()
     return FALSE;
 }
 
-gboolean
-take_snapshot (const char *filename)
+GString *
+take_snapshot (const char *filename, int width)
 {
     l_debug ("Saving snapshot to %s", filename);
     guchar *data =
@@ -1264,10 +1264,46 @@ take_snapshot (const char *filename)
                                 clutter_actor_get_height (stage),
                                 clutter_actor_get_width (stage) * 4, NULL,
                                 NULL);
-    gdk_pixbuf_save (pixbuf, filename, "jpeg", NULL, "quality", "90", NULL);
-    g_object_unref(pixbuf);
-    g_free (data);
-    return TRUE;
+    GdkPixbuf *scaled;
+    if (width != 0) {
+        int height = ((float)width / (float)clutter_actor_get_width (stage)) * (float)clutter_actor_get_height (stage);
+l_debug("Scale:%dx%d",width,height);
+        scaled =
+          gdk_pixbuf_scale_simple (pixbuf, width, height, GDK_INTERP_BILINEAR);
+    } else {
+        scaled=pixbuf;
+    }
+    if (g_strcmp0 (filename, "-") != 0) {
+        gdk_pixbuf_save (scaled, filename, "jpeg", NULL, "quality", "90", NULL);
+        g_object_unref(pixbuf);
+        g_free (data);
+    } else {
+        gchar *buffer;
+        gsize count;
+        gdk_pixbuf_save_to_buffer (scaled, &buffer, &count, "jpeg", NULL, "quality", "90", NULL);
+/*        JsonGenerator *generator = json_generator_new();
+        JsonNode *rootnode = json_node_new(JSON_NODE_OBJECT);
+        JsonObject *resultnode = json_object_new();
+        JsonArray *resultarray = json_array_new();
+        JsonObject *newobject = json_object_new();
+        json_object_set_string_member(newobject,"snapshot",buffer);
+        json_array_add_object_element(resultarray, newobject);
+        json_object_set_array_member(resultnode, "results",resultarray);
+        json_node_set_object(rootnode,resultnode);
+        json_generator_set_root(generator, rootnode);
+        gchar *str = json_generator_to_data (generator,NULL);
+        GString *ret = g_string_new(str);
+        json_array_unref (resultarray);
+        g_object_unref (generator);*/
+        
+        g_object_unref(pixbuf);
+        g_free (data);
+        char *encoded = g_base64_encode((guchar *)buffer,count);
+        GString *ret = g_string_new(encoded);
+        g_free(encoded);
+        return ret;
+    }
+    return NULL;
 }
 
 gboolean
