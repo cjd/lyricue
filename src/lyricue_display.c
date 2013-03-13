@@ -231,7 +231,11 @@ handle_command (GIOChannel * source, const char *command)
     }
     g_strfreev (line);
     if (returnstring != NULL) {
-        l_debug ("The status message sent is (%d chars): %s", returnstring->len,returnstring->str);
+        GRegex * re = g_regex_new("\"(HEX\(.*\))\":\"[0-9A-F]+\"",0,0,NULL);
+        gchar * status  = g_regex_replace(re, returnstring->str, returnstring->len, 0, "\\1:(Hex_encoded_data)" ,G_REGEX_MATCH_NOTEMPTY,NULL);
+        g_regex_unref(re);
+        l_debug ("The status message sent is (%d chars): %s", strlen(status), status);
+        g_free(status);
         gsize bytes_written = 0;
         GError *err = NULL;
         GIOStatus res = g_io_channel_write_chars (source, returnstring->str,
