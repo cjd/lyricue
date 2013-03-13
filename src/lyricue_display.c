@@ -231,13 +231,30 @@ handle_command (GIOChannel * source, const char *command)
     }
     g_strfreev (line);
     if (returnstring != NULL) {
-        l_debug ("The status message sent is: %s", returnstring->str);
+        l_debug ("The status message sent is (%d chars): %s", returnstring->len,returnstring->str);
+        gsize bytes_written = 0;
+        GError *err = NULL;
         GIOStatus res = g_io_channel_write_chars (source, returnstring->str,
-                                                  returnstring->len, NULL,
-                                                  NULL);
+                                                  returnstring->len, &bytes_written, &err);
+        gsize total = bytes_written;
+        // Repeat until all sent - needed since socket is non-blocking
+        while (bytes_written < returnstring->len) {
+            g_string_erase(returnstring, 0, bytes_written);
+            res = g_io_channel_write_chars (source, returnstring->str,
+                                                  returnstring->len, &bytes_written, &err);
+            total = total + bytes_written;
+        }
+        l_debug("Sent %d chars", total);
+        if (err != NULL) {
+            l_debug("Error: %s",err->message);
+            g_error_free(err);
+        }
         g_string_free (returnstring, TRUE);
-        if (res != G_IO_STATUS_NORMAL)
+
+        if (res != G_IO_STATUS_NORMAL) {
+            l_debug("Error");
             return;
+        }
         /* force flushing of the write buffer */
         res = g_io_channel_flush (source, NULL);
     }
