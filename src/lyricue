@@ -114,7 +114,7 @@ use Gtk2::Gdk::Keysyms;
 use URI::file;
 use XML::Simple;
 use Gnome2;
-use File::Temp qw/tempdir/;
+use File::Temp qw/tempdir tempfile/;
 use File::MimeInfo qw/globs/;
 use Cwd qw(abs_path);
 use File::Basename;
@@ -4883,21 +4883,22 @@ sub do_add_image {
 
 #***
 
-#****f* lyricue/add_image_item
+#****f* lyricue/add_item
 # NAME
-#   add_image_item
+#   add_item
 # SYNOPSIS
-#   add_image_item($playlist, $image)
+#   add_item($playlist, $type, $data)
 # FUNCTION
 #           debug($image);
 # INPUTS
 #   $playlist -
-#    $image -
+#   $type
+#   $data
 # OUTPUT
 # SOURCE
 #
-sub add_image_item {
-    my ($playlist, $image) = @_;
+sub add_item {
+    my ($playlist, $type, $data) = @_;
     my $playorder = 1;
 
     my $query = "SELECT MAX(playorder) FROM playlist";
@@ -4913,20 +4914,59 @@ sub add_image_item {
         }
     }
 
-    debug($image);
+    debug($data);
     $query =
         "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
       . $playorder . ", "
       . $playlist
-      . ", \"imag\", \""
-      . $image . "\")";
+      . ", \"" . $type."\", \""
+      . $data. "\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $playorder++;
 
+    #if ($type eq "imag") {
+    #    if ($data =~ /^dir;/) {
+    #        $data =~ s/^dir;//g;
+    #        $type="file";
+    #    }
+    #}
+    if (($type eq "file") || ($type eq "imag")) {
+        if ($type eq "file") {
+            $data = "dir;".$data;
+        }
+        my $scaled = create_pixbuf($data,$globals->{'snapshot_width'}, $globals->{'snapshot_height'});
+        if ($scaled) {
+            my $snapshot = $scaled->save_to_buffer("jpeg");
+            $sth = $lyricDbh->prepare(q{UPDATE playlist SET snapshot = ? WHERE playorder=?})
+              || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+            $rv = $sth->execute($snapshot,$playorder)
+              || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+        }
+    }
+    $playorder++;
+    return $playorder;
+}
+
+#***
+#****f* lyricue/add_image_item
+# NAME
+#   add_image_item
+# SYNOPSIS
+#   add_image_item($playlist, $image)
+# FUNCTION
+#           debug($image);
+# INPUTS
+#   $playlist -
+#    $image -
+# OUTPUT
+# SOURCE
+#
+sub add_image_item {
+    my ($playlist, $image) = @_;
+    add_item($playlist, "imag", $image);
 }
 
 #***
@@ -7195,41 +7235,7 @@ sub do_add_file {
         }
     }
     if (($file ne "") && ((-r $file) || ($file =~ /:\/\//))) {
-
-        # Find next playorder
-        my $playorder = 1;
-        my $query     = "SELECT MAX(playorder) FROM playlist";
-        qdebug($query);
-        my $sth = $lyricDbh->prepare($query)
-          || database_failure($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        my $rv = $sth->execute
-          || database_failure($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
-        my @row;
-        if (@row = $sth->fetchrow_array()) {
-
-            if ($row[0]) {
-                $playorder = $row[0] + 1;
-            }
-        }
-
-        # Add item to playlist
-        my $main_playlist =
-          $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data};
-        $query =
-            "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
-          . $playorder . ", "
-          . $playlist
-          . ", \"file\", \""
-          . $file . "\")";
-        qdebug($query);
-        $sth = $lyricDbh->prepare($query)
-          || database_failure($errorcodes->{'sqlprepare'},
-            $! . "\nSQL: " . $query);
-        $rv = $sth->execute
-          || database_failure($errorcodes->{'sqlexecute'},
-            $! . "\nSQL: " . $query);
+        add_item($playlist, "file", $file);
     }
 }
 
@@ -9795,13 +9801,15 @@ sub create_pixbuf {
                 unlink $thumbfile;
             }
             if ($@) {
-                $id =~ s/\/*/\//g;
+                $id =~ s/\/[\/]*/\//g;
+
                 my $command =
                     $globals->{'video-thumbnailer'}
                   . " --time=2 \""
                   . $id . "\" \""
                   . $thumbfile . "\"";
                 system($command);
+                debug("Command:".$command);
                 if (-e $thumbfile) {
                     $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($thumbfile);
                     $pixbuf =
