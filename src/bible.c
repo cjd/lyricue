@@ -21,6 +21,8 @@ MYSQL *bibleDb;
 gchar *bible_table = NULL;
 gchar *bible_name = NULL;
 gboolean is_sword = FALSE;
+GRegex *re = NULL;
+
 
 gchar *
 do_grab_verse (const gchar * verse)
@@ -61,10 +63,12 @@ do_grab_verse_sword (const gchar * book, int chapter_start, int chapter_end,
     g_spawn_command_line_sync (g_string_free (command, FALSE), &output, NULL,
                                NULL, NULL);
     g_strchomp (output);
-    GRegex *re = NULL;
-    re = g_regex_new ("^.*\\s(\\d)", G_REGEX_MULTILINE, 0, NULL);
+    if (re == NULL) {
+        re = g_regex_new ("^.*\\s(\\d)", G_REGEX_MULTILINE, 0, NULL);
+    }
     gchar *text = NULL;
     text = g_regex_replace (re, output, -1, 0, "\\1", 0, NULL);
+    g_regex_unref(re);
 
     return text;
 }
