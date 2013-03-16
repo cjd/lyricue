@@ -13669,7 +13669,7 @@ sub biblebrowser_chapter {
         ($book, undef) = split(/\s\d/, $maxchap, 2);
 
         $command = sprintf(
-            "%s -b %s -e UTF8 -k '%s' | grep '^%s'| tail -2 | head -1",
+            "%s -b %s -e UTF8 -k '%s' | grep '^%s'| tail -1",
             $globals->{'diatheke'},
             $globals->{'bibledb'}, $book, $book
         );

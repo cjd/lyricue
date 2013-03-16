@@ -227,6 +227,8 @@ handle_command (GIOChannel * source, const char *command)
             do_save (line[1]);
         } else if (g_strcmp0 (line[0], "query") == 0) {
             returnstring = do_query_json (line[1]);
+        } else if (g_strcmp0 (line[0], "bible") == 0) {
+            returnstring = do_bible(line[1]);
         }
     }
     g_strfreev (line);
@@ -255,12 +257,10 @@ handle_command (GIOChannel * source, const char *command)
         }
         g_string_free (returnstring, TRUE);
 
-        if (res != G_IO_STATUS_NORMAL) {
-            l_debug("Error");
-            return;
-        }
         /* force flushing of the write buffer */
-        res = g_io_channel_flush (source, NULL);
+        if (source !=NULL) {
+            res = g_io_channel_flush (source, NULL);
+        }
     }
     update_tracker ();
 }

@@ -18,6 +18,7 @@
 
 MYSQL *lyricDb = NULL;
 MYSQL *mediaDb = NULL;
+MYSQL *bibleDb = NULL;
 extern GHashTable *config;
 extern char *dbhostname;
 
@@ -26,6 +27,7 @@ db_select ()
 {
     lyricDb = db_connect ("lyricDb", "error");
     mediaDb = db_connect ("mediaDb", "error");
+    bibleDb = db_connect ("bibleDb", "error");
     return TRUE;
 }
 
@@ -34,6 +36,7 @@ db_deselect ()
 {
     db_disconnect (lyricDb);
     db_disconnect (mediaDb);
+    db_disconnect (bibleDb);
     return TRUE;
 }
 
@@ -42,6 +45,8 @@ db_connect (const char *dbname, const char *dberror)
 {
     MYSQL *tempDb = mysql_init (NULL);
     if (tempDb == NULL) {
+        l_debug ("Error %u: %s", mysql_errno (tempDb),
+                   mysql_error (tempDb));
         g_warning ("Error %u: %s", mysql_errno (tempDb),
                    mysql_error (tempDb));
         exit (1);
@@ -51,9 +56,11 @@ db_connect (const char *dbname, const char *dberror)
 
     if (mysql_real_connect
         (tempDb, dbhostname, "lyric", "", dbname, 0, NULL, 0) == NULL) {
+        l_debug ("Error %u: %s", mysql_errno (tempDb),
+                   mysql_error (tempDb));
         g_warning ("Error %u: %s", mysql_errno (tempDb),
                    mysql_error (tempDb));
-        exit (1);
+        return NULL;
     }
     // Re-run for mysql versions < 5.0.19
     mysql_options (tempDb, MYSQL_OPT_RECONNECT, &reconnect);
@@ -102,17 +109,22 @@ load_configuration ()
 int
 do_query (MYSQL * dbconnection, const char * format, ...)
 {
-    GString *query = g_string_new (NULL);
-    va_list argp;
-    va_start (argp, format);
-    g_string_vprintf (query, format, argp);
-    va_end (argp);
-
-    l_debug ("SQL: %s", query->str);
-    if (mysql_query (dbconnection, query->str)) {
-        l_debug (_("SQL Error %u: %s"), mysql_errno (dbconnection),
-                 mysql_error (dbconnection));
+    if (dbconnection != NULL) {
+        GString *query = g_string_new (NULL);
+        va_list argp;
+        va_start (argp, format);
+        g_string_vprintf (query, format, argp);
+        va_end (argp);
+    
+        l_debug ("SQL: %s", query->str);
+        if (mysql_query (dbconnection, query->str)) {
+            l_debug (_("SQL Error %u: %s"), mysql_errno (dbconnection),
+                    mysql_error (dbconnection));
+        }
+        g_string_free (query, TRUE);
+        return mysql_errno (dbconnection);
+    } else {
+        l_debug("Database not connected");
     }
-    g_string_free (query, TRUE);
-    return mysql_errno (dbconnection);
+    return -1;
 }

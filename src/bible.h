@@ -26,4 +26,8 @@ gchar * do_grab_verse_db(const gchar *book,
                          int chapter_end, 
                          int verse_start, 
                          int verse_end);
-
+GString * do_bible(const gchar * options);
+GString * get_bibles();
+GString * get_maxchapter(const gchar * book);
+GString * get_maxverse(const gchar * options);
+GString * show_verse(const gchar * verse);
