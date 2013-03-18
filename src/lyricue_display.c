@@ -905,13 +905,13 @@ do_query_json (const char *options)
         MYSQL_RES *result;
 
         if (g_strcmp0(line[0],"lyricdb") == 0) {
-            do_query (lyricDb,"%s",line[1]);
+            do_query (lyricDb,"%s",parse_special(line[1]));
             result = mysql_store_result (lyricDb);
         } else if (g_strcmp0(line[0],"mediadb") == 0) {
-            do_query (mediaDb,"%s",line[1]);
+            do_query (mediaDb,"%s",parse_special(line[1]));
             result = mysql_store_result (mediaDb);
         } else if (g_strcmp0(line[0],"bibledb") == 0) {
-            do_query (bibleDb,"%s",line[1]);
+            do_query (bibleDb,"%s",parse_special(line[1]));
             result = mysql_store_result (bibleDb);
         } else {
             g_strfreev (line);
