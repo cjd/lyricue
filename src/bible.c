@@ -18,10 +18,14 @@
 #include "bible.h"
 
 extern MYSQL *bibleDb;
+extern ClutterActor *maintext;
+extern ClutterActor *headtext;
+extern gfloat stage_height;
 gchar *bible_table = NULL;
 gchar *bible_name = NULL;
 gboolean is_sword = FALSE;
-GRegex *re = NULL;
+GRegex *re_newline = NULL;
+GRegex *re_book = NULL;
 GRegex *re_maxchapter = NULL;
 GRegex *re_maxverse = NULL;
 
@@ -32,15 +36,12 @@ do_grab_verse (const gchar * verse)
     l_debug ("Show verse %s", verse);
     gchar *book;
     int chapter_start, chapter_end, verse_start, verse_end;
-    gchar **line = g_strsplit (verse, ":", 2);
-    book = g_strdup (line[0]);
-    gchar **verses = g_strsplit (line[1], "-", 2);
-    gchar **verseref = g_strsplit (verses[0], ":", 2);
-    chapter_start = atoi (verseref[0]);
-    verse_start = atoi (verseref[1]);
-    verseref = g_strsplit (verses[1], ":", 2);
-    chapter_end = atoi (verseref[0]);
-    verse_end = atoi (verseref[1]);
+    gchar **line = g_strsplit_set (verse, ":-", 5);
+    book = g_strdup(line[0]);
+    chapter_start = atoi (line[1]);
+    verse_start = atoi (line[2]);
+    chapter_end = atoi (line[3]);
+    verse_end = atoi (line[4]);
     if (is_sword) {
         return do_grab_verse_sword (book, chapter_start, chapter_end,
                                     verse_start, verse_end);
@@ -65,13 +66,26 @@ do_grab_verse_sword (const gchar * book, int chapter_start, int chapter_end,
     g_spawn_command_line_sync (g_string_free (command, FALSE), &output, NULL,
                                NULL, NULL);
     g_strchomp (output);
-    if (re == NULL) {
-        re = g_regex_new ("^.*\\s(\\d)", G_REGEX_MULTILINE, 0, NULL);
+    if (re_book == NULL) {
+        re_book = g_regex_new ("^.*\\s(\\d)", G_REGEX_MULTILINE, 0, NULL);
     }
+    if (re_newline == NULL) {
+        re_newline = g_regex_new("\n\n", 0, 0, NULL);
+    }
+    int re_size = strlen(bible_table)+5;
+    gchar *bible_re = g_malloc(re_size);
+    g_snprintf(bible_re, re_size, "\\(%s\\)",bible_table);
+    GRegex *re_bible = g_regex_new(bible_re, G_REGEX_MULTILINE, 0, NULL);
     gchar *text = NULL;
-    text = g_regex_replace (re, output, -1, 0, "\\1", 0, NULL);
+    gchar *text2 = NULL;
+    gchar *text3 = NULL;
+    text = g_regex_replace (re_book, output, -1, 0, "\\1", 0, NULL);
+    text2 = g_regex_replace (re_bible, text, -1, 0, "", 0, NULL);
+    text3 = g_regex_replace (re_newline, text2, -1, 0, "\n", 0, NULL);
+    g_free(text2);
+    g_free(text);
 
-    return text;
+    return text3;
 }
 
 gchar *
@@ -138,10 +152,12 @@ do_bible (const gchar * options)
         retval = get_bibles();
     } else if (g_ascii_strncasecmp(line[0],"maxchapter",9) == 0) {
         retval = get_maxchapter(line[1]);
-    } else if (g_ascii_strncasecmp(line[0],"maxverse",9) == 0) {
+    } else if (g_ascii_strncasecmp(line[0],"maxverse",8) == 0) {
         retval = get_maxverse(line[1]);
     } else if (g_ascii_strncasecmp(line[0],"verse",9) == 0) {
-        retval = show_verse(line[1]);
+        retval = show_verse(line[1], TRUE);
+    } else if (g_ascii_strncasecmp(line[0],"verse_start",11) == 0) {
+        retval = show_verse(line[1], FALSE);
     }
     g_strfreev(line);
     return retval;
@@ -306,14 +322,36 @@ get_maxverse(const gchar * options)
 }
 
 GString *
-show_verse(const gchar * verse)
+show_verse(const gchar * verse_in, gboolean trim_end)
 {
-    l_debug("Show Verse: %s", parse_special(verse));
-    gchar *verse_text = do_grab_verse(parse_special(verse));
-    GString * page_text = g_string_new(NULL);
-    g_string_printf(page_text,"%s#BREAK##BREAK##BREAK#wrap:%s",verse,verse_text);
-    do_preview(page_text->str);
-    g_string_free(page_text,TRUE);
-    return NULL;
+    GString *verse = g_string_new(parse_special(verse_in));
+    l_debug("Show Verse: %s", verse->str);
+    gchar *verse_text = do_grab_verse(verse->str);
+    set_foottext("",NO_EFFECT,TRUE);
+    set_headtext(verse->str,NO_EFFECT,TRUE);
+    set_maintext(verse_text,NO_EFFECT,TRUE);
+    gfloat width, height;
+    gfloat hwidth, hheight;
+    clutter_actor_get_size(maintext, &width, &height);
+    clutter_actor_get_size(headtext, &hwidth, &hheight);
+    l_debug("%s Size %fx%f",verse->str, width,height);
+    while (height >= (stage_height-hheight)) {
+            gchar **line = g_strsplit_set (verse->str, ":-", 5);
+            if (!trim_end) {
+                int verse_end = atoi(line[4]);
+                g_string_printf(verse, "%s:%s:%s-%s:%d",line[0],line[1],line[2],line[3],verse_end-1);
+            } else {
+                int verse_start = atoi(line[2]);
+                g_string_printf(verse, "%s:%s:%d-%s:%s",line[0],line[1],verse_start+1,line[3],line[4]);
+            }
+            g_strfreev(line);
+            gchar *verse_text = do_grab_verse(verse->str);
+            set_maintext(verse_text,NO_EFFECT,TRUE);
+            g_free(verse_text);
+            clutter_actor_get_size(maintext, &width, &height);
+            l_debug("%s Size %fx%f",verse->str,width,height);
+    }
+    set_headtext(verse->str,NO_EFFECT,1);
+    return verse;
 }
 

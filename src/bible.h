@@ -30,4 +30,4 @@ GString * do_bible(const gchar * options);
 GString * get_bibles();
 GString * get_maxchapter(const gchar * book);
 GString * get_maxverse(const gchar * options);
-GString * show_verse(const gchar * verse);
+GString * show_verse(const gchar * verse, gboolean trim_end);
