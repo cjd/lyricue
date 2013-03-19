@@ -570,7 +570,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
             }
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
             video_loop = loop;
-#if CLUTTER_GST_MAJOR_VERSION == 1
+#if CLUTTER_GST_MAJOR_VERSION >= 1
             GstElement *playbin =
               clutter_gst_video_texture_get_pipeline
               (CLUTTER_GST_VIDEO_TEXTURE (background));
@@ -643,7 +643,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
         }
         clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
         video_loop = loop;
-#if CLUTTER_GST_MAJOR_VERSION == 1
+#if CLUTTER_GST_MAJOR_VERSION >= 1
         GstElement *playbin =
           clutter_gst_video_texture_get_pipeline (CLUTTER_GST_VIDEO_TEXTURE
                                                   (background));
@@ -690,7 +690,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
         }
         clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
         video_loop = loop;
-#if CLUTTER_GST_MAJOR_VERSION == 1
+#if CLUTTER_GST_MAJOR_VERSION >= 1
         GstElement *playbin =
           clutter_gst_video_texture_get_pipeline (CLUTTER_GST_VIDEO_TEXTURE
                                                   (background));
@@ -984,7 +984,7 @@ media_skip (gint duration)
 {
     if (bg_is_video) {
         l_debug ("Skipping to %d", duration);
-#if CLUTTER_GST_MAJOR_VERSION == 1
+#if CLUTTER_GST_MAJOR_VERSION >= 1
         gst_element_seek (clutter_gst_video_texture_get_pipeline
                           (CLUTTER_GST_VIDEO_TEXTURE (background)), 1.0,
                           GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
