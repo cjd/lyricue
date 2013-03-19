@@ -1,36 +1,38 @@
 # $Revision: 1.12 $, $Date: 2010/03/14 10:18:19 $
 # TODO:
-# - Make sure server subpackage can run without the client
+# - Make sure display and remote subpackages can run without the client
 
 %include    /usr/lib/rpm/macros.perl
 
 Summary:	GNU Lyric Display System, client interface
 Name:		lyricue
-Version:	2.0.0
-Release:	0.11
+Version:	3.4.10
+Release:	1
 License:	GPL
 Group:		X11/Applications/Graphics
-Source0:	http://www.adebenham.com/debian/%{name}_%{version}.tar.gz
-# Source0-md5:	cd0fb1c9b0e6ccadc52cda2601b86be6
+Source0:	http://www.lyricue.org/archive/%{name}_%{version}.tar.gz
+# Source0-md5:	7276c53c70a3b4334f0d4cc2a7ba9539
 URL:		http://www.lyricue.org
 BuildRequires:	gettext-devel
 BuildRequires:	rpm-perlprov
 BuildRequires:	sed >= 4.0
 Requires:	mysql-client
-Requires:	perl-DBD-mysql
 Requires:	perl-DBI
+Requires:	perl-Gtk2 >= 1.220
 Requires:	perl-Gtk2-GladeXML
-Requires:	perl-Gtk2-Spell
 Requires:	perl-URI
-Suggests:	%{name}-server
+Suggests:	ImageMagick
+Suggests:	%{name}-display
 Suggests:	%{name}-remote
 Suggests:	diatheke
 Suggests:	mysql
+Suggests:	perl(DBD::SQLite)
 Suggests:	perl(Clutter)
 Suggests:	perl(DBD::mysql)
+Suggests:	perl(Gtk2::Spell)
 Suggests:	perl(Gtk2::TrayIcon)
+Suggests:	totem
 Suggests:	unoconv
-BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -39,14 +41,16 @@ along with images and videos on a second screen/projector. It was
 designed for use at live events such as church services, concerts and
 seminars.
 
-%package server
-Summary:	GNU Lyric Display System, server interface
+%package display
+Summary:	GNU Lyric Display System, display interface
 Group:		X11/Applications/Graphics
 Suggests:	perl(Clutter)
 Suggests:	perl(DBD::mysql)
 Suggests:	perl(Locale::gettext)
+Suggests:	totem
+Obsoletes:	lyricue-server
 
-%description server
+%description display
 Component to handle action display and projection of slides.
 
 %package remote
@@ -54,7 +58,7 @@ Summary:	GNU Lyric Display System, remote control cli
 Group:	Libraries
 
 %description remote
-Remote control CLI to control the projection server from any shell.
+Remote control CLI to control the projection display from any shell.
 
 %prep
 %setup -q
@@ -62,11 +66,14 @@ sed -e 's#po/es_ES#po/es#' -i Makefile
 mv po/es{_ES,}.po
 
 %build
+%configure \
+	--prefix=%{_prefix}
+
 %{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-%{make} install \
+%{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
 mv $RPM_BUILD_ROOT/%{_sysconfdir}/%{name}/access.conf{.example,}
@@ -84,15 +91,14 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{_sysconfdir}/%{name}
 %config(noreplace) %{_sysconfdir}/%{name}/*.conf
 %attr(755,root,root) %{_bindir}/%{name}
-%attr(755,root,root) %{_bindir}/import_media
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/*
 %{_desktopdir}/%{name}.desktop
 
-%files server
+%files display
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/%{name}_server
-%{_desktopdir}/%{name}_server.desktop
+%attr(755,root,root) %{_bindir}/%{name}_display
+%{_desktopdir}/%{name}_display.desktop
 
 %files remote
 %defattr(644,root,root,755)
