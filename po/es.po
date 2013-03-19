@@ -1,75 +1,80 @@
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: lyricue 2.0.0\n"
-"Report-Msgid-Bugs-To: jerivasmelgar@gmail.com\n"
-"POT-Creation-Date: 2009-07-31 09:21+1000\n"
-"PO-Revision-Date: 2009-12-21 22:00-0500\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-03-18 04:54+0000\n"
+"PO-Revision-Date: 2013-03-13 19:43+0000\n"
 "Last-Translator: Eduardo Rivas <jerivasmelgar@gmail.com>\n"
 "Language-Team: Español <gnomesword-users@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: UTF-8\n"
-"X-Launchpad-Export-Date: 2009-12-20 21:48+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2013-03-19 05:42+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
+"Language: \n"
 
-#: lyricue:241
+#: ../src/database.c:113
+#, c-format
+msgid "SQL Error %u: %s"
+msgstr "Error de SQL %u: %s"
+
+#: ../src/lyricue:292
 msgid ""
 "I'm sorry but I could not open the lyric database.\n"
 "Please confirm that Lyricue is installed correctly and MySQL is running"
 msgstr ""
-"No pude abrir la base de datos de letras.\n"
+"No se pudo abrir la base de datos de letras.\n"
 "Confirme que Lyricue está instalado correctamente y que MySQL esté corriendo."
 
-#: lyricue:246 lyricue_server:206
+#: ../src/lyricue:297
 msgid ""
 "I'm sorry but I could not open the bible database.\n"
 "Please confirm that Lyricue is installed correctly and the current bible "
 "database exists.\n"
 "The requested database was named "
 msgstr ""
-"No pude abrir la base de datos bíblica.\n"
+"No se pudo abrir la base de datos bíblica.\n"
 "Confirme que Lyricue está instalado correctamente y que exista la base de "
 "datos bíblica actual.\n"
-"La base de datos requerida fue nombrada."
+"La base de datos solicitada es "
 
-#: lyricue:251
+#: ../src/lyricue:302
 msgid ""
 "I'm sorry but I could not open the media database.\n"
 "Please confirm that Lyricue is installed correctly and MySQL is running"
 msgstr ""
-"No pude abrir la base de datos multimedia.\n"
+"No se pudo abrir la base de datos multimedia.\n"
 "Confirme que Lyricue está instalado correctamente y que MySQL esté corriendo."
 
-#: lyricue:255 lyricue_server:210
+#: ../src/lyricue:306
 msgid ""
 "Unable to prepare query.\n"
 "Has mysql died?"
 msgstr ""
-"No se puede preparar petición.\n"
-"¿MySQL murió?"
+"No se puede preparar la consulta.\n"
+"¿Acaso murió MySQL?"
 
-#: lyricue:257 lyricue_server:212
+#: ../src/lyricue:308
 msgid ""
 "Unable to execute query.\n"
 "Has mysql died?"
 msgstr ""
-"No se puede ejecutar petición.\n"
-"¿MySQL murió?"
+"No se puede ejecutar la consulta.\n"
+"¿Acaso murió MySQL?"
 
-#: lyricue:260 lyricue_server:215
+#: ../src/lyricue:311
 msgid ""
 "Sorry, I was unable to listen on the network.\n"
 "Please make sure I am not already running"
 msgstr ""
-"No puedo escuchar a la red.\n"
-"Asegúrese de que Lyricue no esté corriendo."
+"No se puede escuchar la red.\n"
+"Asegúrese que otra instancia de Lyricue no esté corriendo."
 
-#: lyricue:263
+#: ../src/lyricue:314
 msgid "Could not open "
-msgstr "No se puede abrir"
+msgstr "No se puede abrir "
 
-#: lyricue:266
+#: ../src/lyricue:317
 msgid ""
 "Unable to read the file, are you sure it exists?\n"
 "The file asked for was "
@@ -77,7 +82,7 @@ msgstr ""
 "No se puede leer el archivo, ¿está seguro que existe?\n"
 "El archivo solicitado fue "
 
-#: lyricue:271
+#: ../src/lyricue:322
 msgid ""
 "Unable to write to the file, you may not have sufficent permissions.\n"
 "Please check the permissions for "
@@ -86,275 +91,250 @@ msgstr ""
 "permisos.\n"
 "Compruebe los permisos para "
 
-#: lyricue:276
+#: ../src/lyricue:327
 msgid ""
 "\n"
 "Usage: lyricue <-v|-l> <-b> <-k> <-d> <-s>\n"
-"\n"
-"\t-v:  Prints Lyricue version information & exits\n"
-"\t-l:  Outputs song list in HTML & exits\n"
-"\t-b:  Loads Lyricue without background previews\n"
-"\t-s:  Specify the host on which the lyric server is located\n"
-"\t-r:  Specify the host on which the mysql server is located\n"
-"\t-d:  Prints debugging messages\n"
-"\t-w:  Don't maximize on startup\n"
-"\t-i:  Import songlist from file\n"
 "\n"
 msgstr ""
 "\n"
 "Uso: lyricue <-v|-l> <-b> <-k> <-d> <-s>\n"
 "\n"
-"\t-v:  Muestra la información de versión de Lyricue y cierra el programa\n"
-"\t-l:  Crea una lista de las canciones en HTML y cierra el programa\n"
-"\t-b:  Inicia Lyricue sin vista previa de los fondos\n"
-"\t-s:  Especifica el anfitrión donde se encuentra el servidor de letras\n"
-"\t-r:  Especifica el anfitrión donde se encuentra el servidor de MySQL\n"
-"\t-d:  Muestra mensajes de 'debugging'\n"
-"\t-w:  No maximizar al arrancar\n"
-"\t-i:  Importar lista de canciones de archivo\n"
-"\n"
 
-#: lyricue:290
-msgid ""
-"No bible has been selected\n"
-"Please select one from the menu"
-msgstr ""
-"No se ha seleccionado ninguna Biblia\n"
-"Seleccione una del menú"
+#: ../src/lyricue:341
+msgid "No bible has been selected\n"
+msgstr "Ninguna Biblia ha sido seleccionada\n"
 
-#: lyricue:407
-msgid ""
-"The directory used to hold configuration files has changed\n"
-"It is now ~/.local/share/lyricue\n"
-"If you do not wish to do this press Cancel and Lyricue will exit"
-msgstr ""
-"El directorio que contenía los archivos de configuración ha cambiado.\n"
-"Ahora es ~/.local/share/lyricue\n"
-"Si no desea hacer esto pulse Cancelar y Lyricue se cerrará."
+#: ../src/lyricue:450
+msgid "The directory used to hold configuration files has changed\n"
+msgstr "La carpeta que contiene los archivos de configuración ha cambiado\n"
 
-#: lyricue:965 lyricue:4867 lyricue:9301
+#: ../src/lyricue:1034 ../src/lyricue:1440 ../src/lyricue:5287
 msgid "Title"
 msgstr "Título"
 
-#: lyricue:968 lyricue:4872 lyricue:9303
+#: ../src/lyricue:1037 ../src/lyricue:1446 ../src/lyricue:5297
 msgid "Book"
 msgstr "Libro"
 
-#: lyricue:971 lyricue:9304 lyricue.glade:2518
+#: ../src/lyricue:1040 ../src/lyricue:1449 ../src/lyricue:4462
+#: ../data/windowEditSong.ui.h:15
 msgid "Song Number"
 msgstr "Número de canción"
 
-#: lyricue:1109
+#: ../src/lyricue:1200
 msgid "/Edit Song"
 msgstr "/Editar canción"
 
-#: lyricue:1114
+#: ../src/lyricue:1205
 msgid "/Delete Song"
 msgstr "/Eliminar canción"
 
-#: lyricue:1121
+#: ../src/lyricue:1212
 msgid "/Refresh List"
 msgstr "/Actualizar lista"
 
-#: lyricue:1125
+#: ../src/lyricue:1216
 msgid "/Order - Songbook -> No."
 msgstr "/Ordenar - Libro de cantos -> No"
 
-#: lyricue:1129
+#: ../src/lyricue:1220
 msgid "/Order - Songbook -> Name."
 msgstr "/Ordenar - Libro de cantos -> Nombre"
 
-#: lyricue:1137
+#: ../src/lyricue:1228
 msgid "/Add to Playlist"
 msgstr "/Añadir a lista de reproducción"
 
-#: lyricue:1214
+#: ../src/lyricue:1329
 msgid "/Duplicate Item"
 msgstr "/Duplicar elemento"
 
-#: lyricue:1216
+#: ../src/lyricue:1331
 msgid "/Remove from Playlist"
-msgstr "/Quitar de la lista de reproducción"
+msgstr "/Quitar elemento de la lista"
 
-#: lyricue:1219
+#: ../src/lyricue:1334
 msgid "/Refresh Playlist"
 msgstr "/Actualizar lista de reproducción"
 
-#: lyricue:1220
-msgid "/Add Verse"
-msgstr "/Añadir versículo"
-
-#: lyricue:1221
+#: ../src/lyricue:1335
 msgid "/Invert Line Display"
 msgstr "/Invertir visualización de línea"
 
-#: lyricue:1222
+#: ../src/lyricue:1336
 msgid "/Loop this playlist item"
-msgstr "Reproducir este elemento de la lista de reproducción en bucle"
+msgstr "/Reproducir este elemento de la lista en bucle"
 
-#: lyricue:1224
+#: ../src/lyricue:1338
 msgid "/Associate background"
 msgstr "/Asociar fondo"
 
-#: lyricue:1228
+#: ../src/lyricue:1342
 msgid "/Dis-associate background"
 msgstr "/Desasociar fondo"
 
-#: lyricue:1232
-msgid "/Preview this item"
-msgstr "/Vista previa del elemento"
-
-#: lyricue:1236
+#: ../src/lyricue:1346
 msgid "/Move to sublist/Main"
 msgstr "/Mover a sublista/Principal"
 
-#: lyricue:1241
+#: ../src/lyricue:1351
 msgid "/Move to sublist/"
 msgstr "/Mover a sublista/"
 
-#: lyricue:1319 lyricue:9015
+#: ../src/lyricue:1416
 msgid "Are you sure you wish to delete "
-msgstr "¿Desea borrar "
+msgstr "Se eliminará "
 
-#: lyricue:1324
-msgid "from the book \""
-msgstr "del libro \""
-
-#: lyricue:1328
-msgid "which was written by \""
-msgstr "que fue escrito por \"?"
-
-#: lyricue:1771 lyricue:1805 lyricue:1815 lyricue:3134
-msgid "Page "
-msgstr "Página"
-
-#: lyricue:2799
-msgid "Are you sure you wish to clear the current playlist?"
-msgstr "¿Desea limpiar la lista de reproducción actual?"
-
-#: lyricue:2802
-msgid "Confirm Clear Playlist"
-msgstr "Confirmar Limpiar Lista de reproducción"
-
-#: lyricue:3545 lyricue_server:1111 lyricue_server:1189
-msgid "Displaying "
-msgstr "Mostrando"
-
-#: lyricue:3547 lyricue:3668 lyricue_server:1113
-msgid " verses "
-msgstr "versículos"
-
-#: lyricue:3549 lyricue:3670 lyricue_server:1191
-msgid " page "
-msgstr "página"
-
-#: lyricue:3666
-msgid "Previewed "
-msgstr "Previsualizado"
-
-#: lyricue:3720
-msgid "Select "
-msgstr "Selccionar"
-
-#: lyricue:3720
-msgid " Colour"
-msgstr "Color"
-
-#: lyricue:4877
-msgid "Song No"
-msgstr "Número de canción"
-
-#: lyricue:5286
-msgid "Create new playlist"
-msgstr "Crear nueva lista de reproducción"
-
-#: lyricue:5288
-msgid "Name of playlist"
-msgstr "Nombre de la lista de reproducción"
-
-#: lyricue:5379
-msgid "Renaming "
-msgstr "Renombrando"
-
-#: lyricue:6095 lyricue:6150
-msgid "Importing presentation"
-msgstr "Importando presentación"
-
-#: lyricue:6746 lyricue:8560 lyricue:8885
-msgid "Select Category"
-msgstr "Seleccionar categoría"
-
-#: lyricue:7087
-msgid "Choose a Directory"
-msgstr "Escoja un directorio"
-
-#: lyricue:7089 lyricue.glade:2033 lyricue.glade:2975 lyricue.glade:3833
-#: lyricue.glade:7785
-msgid "Cancel"
-msgstr "Cancelar"
-
-#: lyricue:7090
-msgid "OK"
-msgstr "Aceptar"
-
-#: lyricue:7137 lyricue:7278
-msgid "Create new sublist"
-msgstr "Crear sublista nueva"
-
-#: lyricue:7139 lyricue:7280
-msgid "Name of sublist"
-msgstr "Nombre de sublista"
-
-#: lyricue:7204
-msgid "Choose a Background"
-msgstr "Elegir fondo"
-
-#: lyricue:7220
-msgid "Set as Default"
-msgstr "Establecer como predeterminado"
-
-#: lyricue:8003
-msgid ""
-"This user has no access entry.\n"
-"By default they will have full access.\n"
-"To fix please edit /etc/lyricue/access.conf and add an entry for this user.\n"
-"Click OK to continue anyway or Cancel to Exit"
-msgstr ""
-"Este usuario no tiene una entrada de acceso.\n"
-"Tendrá acceso total por defecto.\n"
-"Para arreglar esto, edite /etc/lyricue/access.conf y añada una entrada para "
-"este usuario.\n"
-"Presione Aceptar para continuar de todos modos o Cancelar para salir."
-
-#: lyricue:8087
-msgid "Add a user"
-msgstr "Añadir usuario"
-
-#: lyricue:8089
-msgid "Enter username"
-msgstr "Introduzca nombre"
-
-#: lyricue:9022
-msgid "Confirm Delete Image"
-msgstr "Confirmar borrar imagen"
-
-#: lyricue:9169
-msgid "Select Database Backup file"
-msgstr "Seleccionar respaldo de la base de datos"
-
-#: lyricue:9179
-msgid "Confirm Restore Database"
-msgstr "Confirmar restaurar base de datos"
-
-#: lyricue:9183
-msgid "WARNING: Restoring this database will overwrite your current database"
-msgstr "ADVERTENCIA: Restaurar esta base de datos sobreescribirá la actual"
-
-#: lyricue:9302 lyricue.glade:2621
+#: ../src/lyricue:1443 ../src/lyricue:4463 ../src/lyricue:5292
+#: ../data/windowEditSong.ui.h:22
 msgid "Artist"
 msgstr "Artista"
 
-#: lyricue:10642
+#: ../src/lyricue:1729 ../src/lyricue:2021 ../src/lyricue:2029
+#: ../src/lyricue:2041 ../src/lyricue:3380
+msgid "Page "
+msgstr "Página "
+
+#: ../src/lyricue:1989 ../data/windowEditSong.ui.h:5
+msgid "Page"
+msgstr "Página"
+
+#: ../src/lyricue:2320
+msgid "Select song to import"
+msgstr "Seleccione la canción a importar"
+
+#: ../src/lyricue:3043
+msgid "Are you sure you wish to clear the current playlist?"
+msgstr "¿Desea limpiar la lista de reproducción actual?"
+
+#: ../src/lyricue:3046
+msgid "Confirm Clear Playlist"
+msgstr "Confirmar limpiar lista de reproducción"
+
+#: ../src/lyricue:3842
+msgid "Displaying "
+msgstr "Mostrando "
+
+#: ../src/lyricue:3844
+msgid " verses "
+msgstr " versículos "
+
+#: ../src/lyricue:3846
+msgid " page "
+msgstr " página "
+
+#: ../src/lyricue:4001
+msgid "Select "
+msgstr "Seleccionar "
+
+#: ../src/lyricue:4001
+msgid " Colour"
+msgstr " Color"
+
+#: ../src/lyricue:4359 ../src/lyricue:4364 ../data/dialogSearch.ui.h:4
+msgid "Song Contents"
+msgstr "Contenidos de canción"
+
+#: ../src/lyricue:4443 ../src/lyricue:4455 ../data/assistantFirstRun.ui.h:34
+#: ../data/dialogPrefs.ui.h:40
+msgid "Available songs"
+msgstr "Canciones disponibles"
+
+#: ../src/lyricue:4456
+msgid "Total number of songs available"
+msgstr "Canciones disponibles actualmente"
+
+#: ../src/lyricue:4460 ../data/windowEditSong.ui.h:23
+msgid "Song Name"
+msgstr "Nombre de la canción"
+
+#: ../src/lyricue:4461 ../data/windowEditSong.ui.h:11
+msgid "Song Book"
+msgstr "Libro de cantos"
+
+#: ../src/lyricue:5192 ../src/lyricue:13010 ../src/lyricue:13911
+msgid "Enter filename for export"
+msgstr "Introduzca el nombre del archivo a exportar"
+
+#: ../src/lyricue:5302
+msgid "Song No"
+msgstr "Número de canción"
+
+#: ../src/lyricue:5730
+msgid "Create new playlist"
+msgstr "Crear nueva lista de reproducción"
+
+#: ../src/lyricue:5732
+msgid "Name of playlist"
+msgstr "Nombre de la lista de reproducción"
+
+#: ../src/lyricue:5805
+msgid "Copying "
+msgstr "Copiando "
+
+#: ../src/lyricue:5846
+msgid "Renaming "
+msgstr "Renombrando "
+
+#: ../src/lyricue:6296 ../src/lyricue:6320
+msgid "Load Lyricue Display"
+msgstr "Iniciar el Display Lyricue"
+
+#: ../src/lyricue:6297 ../src/lyricue:6320
+msgid "Close Lyricue Display"
+msgstr "Cerrar el Display Lyricue"
+
+#: ../src/lyricue:6765 ../src/lyricue:6832
+msgid "Importing presentation"
+msgstr "Importando presentación"
+
+#: ../src/lyricue:7419 ../data/dialogSelectCategory.ui.h:1
+msgid "Select Category"
+msgstr "Seleccionar categoría"
+
+#: ../src/lyricue:7801
+msgid "Choose a Directory"
+msgstr "Elija un directorio"
+
+#: ../src/lyricue:7803 ../data/dialogSearch.ui.h:6 ../data/windowBook.ui.h:71
+#: ../data/windowEditSong.ui.h:30 ../data/windowMain.ui.h:90
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: ../src/lyricue:7804
+msgid "OK"
+msgstr "Aceptar"
+
+#: ../src/lyricue:7847 ../src/lyricue:7984
+msgid "Create new sublist"
+msgstr "Crear nueva sublista"
+
+#: ../src/lyricue:7849 ../src/lyricue:7986
+msgid "Name of sublist"
+msgstr "Nombre de sublista"
+
+#: ../src/lyricue:7912
+msgid "Choose a Background"
+msgstr "Elegir fondo"
+
+#: ../src/lyricue:7928
+msgid "Set as Default"
+msgstr "Establecer como predeterminado"
+
+#: ../src/lyricue:8846
+msgid "Add a user"
+msgstr "Añadir usuario"
+
+#: ../src/lyricue:8848
+msgid "Enter username"
+msgstr "Introducir nombre de usuario"
+
+#: ../src/lyricue:11583
+msgid "Are you sure you want to exit Lyricue?"
+msgstr "¿Está seguro que desea cerrar Lyricue?"
+
+#: ../src/lyricue:11648
 msgid ""
 "Unable to login to database as admin, maybe the database is down.\n"
 "Please re-enter your database admin login and retry"
@@ -363,599 +343,650 @@ msgstr ""
 "esté disponible.\n"
 "Vuelva a introducir sus datos e intente nuevamente"
 
-#: lyricue:10649
+#: ../src/lyricue:11654
 msgid "Login Error"
 msgstr "Error al entrar"
 
-#: lyricue:11527
-msgid "Bible installed from "
-msgstr "Biblia instalada de "
+#: ../src/lyricue:12576
+msgid "No DVD titles found"
+msgstr "Ningún título encontrado en el DVD"
 
-#: lyricue:11529
+#: ../src/lyricue:12579
+msgid "Unable to open the dvd.  There may be no media in the drive"
+msgstr "No se puede abrir el DVD. Verifique que ha introducido el disco."
+
+#: ../src/lyricue:12804
+msgid "Bible installed from "
+msgstr "Biblia instalada desde "
+
+#: ../src/lyricue:12806
 msgid "Unable to load from "
 msgstr "No se puede cargar desde "
 
-#: lyricue:11591
+#: ../src/lyricue:12867
 msgid "Install new bibles"
 msgstr "Instalar nuevas Biblias"
 
-#: lyricue:12095
+#: ../src/lyricue:13395
 msgid "First-run wizard"
 msgstr "Asistente de la primera ejecución"
 
-#: lyricue:12100
+#: ../src/lyricue:13400
 msgid "Welcome"
 msgstr "Bienvenido"
 
-#: lyricue:12105
+#: ../src/lyricue:13403
+msgid "Location"
+msgstr "Ubicación"
+
+#: ../src/lyricue:13414
 msgid "Database login"
 msgstr "Entrada a la base de datos"
 
-#: lyricue:12110
+#: ../src/lyricue:13419
 msgid "Projector settings"
-msgstr "Preferencias del proyector"
+msgstr "Opciones del proyector"
 
-#: lyricue:12136 lyricue.glade:4727
+#: ../src/lyricue:13445 ../data/dialogPrefs.ui.h:10
 msgid "Fonts"
 msgstr "Tipografías"
 
-#: lyricue:12147
+#: ../src/lyricue:13458
 msgid "Image Directories"
-msgstr "Directorio de imágenes"
+msgstr "Carpeta de imágenes"
 
-#: lyricue:12160
+#: ../src/lyricue:13471
 msgid "Most-used items"
 msgstr "Elementos más usados"
 
-#: lyricue:12191
+#: ../src/lyricue:13502
 msgid "Confirm"
 msgstr "Confirmar"
 
-#: lyricue:12269
+#: ../src/lyricue:13580
 msgid "<i>Username/Password accepted</i>"
 msgstr "<i>Usuario/Contraseña aceptados</i>"
 
-#: lyricue:12274 lyricue.glade:7956
+#: ../src/lyricue:13585 ../data/assistantFirstRun.ui.h:15
 msgid "<i>Username/Password failed</i>"
 msgstr "<i>Usuario/Contraseña rechazados</i>"
 
-#: lyricue_server:201
-msgid ""
-"I'm sorry but I could not open the lyric database.\n"
-"Please confirm that Lyricue is installed correctly and MySql is running"
-msgstr ""
-"No pude abrir la base de datos de letras.\n"
-"Confirme que Lyricue está instalado correctamente y que MySQL esté corriendo."
-
-#: lyricue_server:494
-msgid "Configuration reloaded"
-msgstr "Configuración actualizada"
-
-#: lyricue_server:498
-msgid "Backdrop changed to "
-msgstr "Telón de fondo cambiado a "
-
-#: lyricue_server:506
-msgid "Screen blanked"
-msgstr "Pantalla en blanco"
-
-#: lyricue_server:508
-msgid "Text cleared"
-msgstr "Texto limpiado"
-
-#: lyricue_server:513
-msgid "Bible changed to "
-msgstr "Biblia cambiada a "
-
-#: lyricue_server:555 lyricue_server:560 lyricue_server:1145
+#: ../src/lyricue_display.c:287 ../src/lyricue_display.c:292
 msgid "Written by "
 msgstr "Escrito por "
 
-#: lyricue.glade:6
-msgid "Lyricue"
-msgstr "Lyricue"
+#: ../data/assistantFirstRun.ui.h:1
+msgid ""
+"As this is the first time you have run Lyricue we now walk through some "
+"initial settings"
+msgstr ""
+"Debido a que esta es la primera vez que utiliza Lyricue, debe hacer cierta "
+"configuración inicial."
 
-#: lyricue.glade:19 lyricue.glade:2337
-msgid "_File"
-msgstr "_Archivo"
+#: ../data/assistantFirstRun.ui.h:2
+msgid ""
+"Lyricue can run the interface on a separate machine to where you run your "
+"projector and database.\n"
+"You can set the hostname where the projector and database are run here.\n"
+"(leave as default or localhost if you do not know)"
+msgstr ""
+"Lyricue puede ejecutar la interfaz en una computadora distinta a la que "
+"ejecute el proyector y la base de datos.\n"
+"Puede establecer el \"hostname\" donde el proyector y la base de datos se "
+"ejecutan aquí.\n"
+"(Déjelo como predeterminado o localhost si no sabe el nombre)"
 
-#: lyricue.glade:25
-msgid "Manage _Images"
-msgstr "Administrar _Imágenes"
+#: ../data/assistantFirstRun.ui.h:5
+msgid "Database hostname"
+msgstr "Hostname de la base de datos"
 
-#: lyricue.glade:40
-msgid "Manage _Background"
-msgstr "Administrar _Fondos"
+#: ../data/assistantFirstRun.ui.h:6
+msgid "Projector hostname"
+msgstr "Hostname del proyector"
 
-#: lyricue.glade:55
-msgid "Import Songlist"
-msgstr "Importar Lista de cantos"
+#: ../data/assistantFirstRun.ui.h:7 ../data/dialogPrefs.ui.h:55
+msgid "Advanced"
+msgstr "Avanzado"
 
-#: lyricue.glade:70
-msgid "Export Songlist"
-msgstr "Exportar Lista de cantos"
+#: ../data/assistantFirstRun.ui.h:8
+msgid ""
+"Lyricue uses MySQL to store its data.\n"
+"To access MySQL I will create a special user 'lyric'\n"
+"To do this I need your mysql root users password.\n"
+"<i>Note: This password is not stored anywhere</i>"
+msgstr ""
+"Lyricue utiliza MySQL para guardar datos.\n"
+"Para acceder a MySQL se creará un usuario especial 'lyric'\n"
+"Para ello es necesaria la contraseña del usuario root mysql.\n"
+"<i>Nota: La contraseña no será almacenada</i>"
 
-#: lyricue.glade:99
-msgid "_Edit"
-msgstr "_Editar"
+#: ../data/assistantFirstRun.ui.h:12
+msgid "Username:"
+msgstr "Nombre usuario:"
 
-#: lyricue.glade:105
-msgid "_Add Song"
-msgstr "Aña_dir canción"
+#: ../data/assistantFirstRun.ui.h:13
+msgid "Password:"
+msgstr "Contraseña:"
 
-#: lyricue.glade:121
-msgid "Advanced _Search"
-msgstr "Búsqueda a_vanzada"
+#: ../data/assistantFirstRun.ui.h:14 ../data/dialogAdminLogin.ui.h:4
+msgid "root"
+msgstr "root"
 
-#: lyricue.glade:137
-msgid "_Edit Song"
-msgstr "_Editar canción"
+#: ../data/assistantFirstRun.ui.h:16 ../data/dialogPrefs.ui.h:12
+msgid "Width"
+msgstr "Ancho"
 
-#: lyricue.glade:153
-msgid "_Delete Song"
-msgstr "_Borrar canción"
+#: ../data/assistantFirstRun.ui.h:17 ../data/dialogPrefs.ui.h:13
+msgid "Height"
+msgstr "Altura"
 
-#: lyricue.glade:169
-msgid "_Refresh List"
-msgstr "Actualizar _lista"
+#: ../data/assistantFirstRun.ui.h:18 ../data/dialogPrefs.ui.h:17
+msgid "Vertical Text Location"
+msgstr "Ubicación vertical del texto"
 
-#: lyricue.glade:194
-msgid "_Configuration Wizard"
-msgstr "A_sistente de configuración"
+#: ../data/assistantFirstRun.ui.h:19 ../data/dialogPrefs.ui.h:18
+msgid "Text Justification"
+msgstr "Alineación del texto"
 
-#: lyricue.glade:209
-msgid "_User Administration"
-msgstr "Administración de _usuarios"
+#: ../data/assistantFirstRun.ui.h:20 ../data/dialogPrefs.ui.h:19
+msgid "Horizontal Text Location"
+msgstr "Ubicación horizontal del texto"
 
-#: lyricue.glade:229
-msgid "_Playlist"
-msgstr "Lista de _reproducción"
+#: ../data/assistantFirstRun.ui.h:21
+msgid ""
+"Lyricue is designed to run on a dual-head machine with the second display "
+"connected to a projector.\n"
+"Here you can tell me what resolution your projector runs at and where you "
+"want the text to display on the screen"
+msgstr ""
+"Lyricue está diseñado para ejecutarse en una computadora con dos monitores, "
+"con el segundo conectado a un proyector.\n"
+"Aquí puede especificar la resolución del proyector y la posición del texto."
 
-#: lyricue.glade:235
-msgid "_Select Playlist"
-msgstr "_Seleccionar lista de reproducción"
+#: ../data/assistantFirstRun.ui.h:23
+msgid "Select the fonts that you want to use on the projector from here"
+msgstr "Seleccione las tipografías para utilizar en el proyector"
 
-#: lyricue.glade:250
-msgid "_Clear Playlist"
-msgstr "_Limpiar lista de reproducción"
+#: ../data/assistantFirstRun.ui.h:24 ../data/dialogPrefs.ui.h:6
+msgid "Header"
+msgstr "Encabezado"
 
-#: lyricue.glade:265
-msgid "_Refresh Playlist"
-msgstr "Actualizar _lista de reproducción"
+#: ../data/assistantFirstRun.ui.h:25 ../data/dialogPrefs.ui.h:5
+msgid "Main"
+msgstr "Principal"
 
-#: lyricue.glade:280
-msgid "_Clear Image Associations"
-msgstr "Li_mpiar asociaciones de imágenes"
+#: ../data/assistantFirstRun.ui.h:26 ../data/dialogPrefs.ui.h:4
+msgid "Footer"
+msgstr "Pie de página"
 
-#: lyricue.glade:295
-msgid "_Invert Line Display"
-msgstr "_Invertir visualización de línea"
+#: ../data/assistantFirstRun.ui.h:27 ../data/dialogPrefs.ui.h:9
+#: ../data/windowMain.ui.h:103
+msgid "OSD"
+msgstr "OSD"
 
-#: lyricue.glade:315
-msgid "Playlist _Item"
-msgstr "Eleme_nto de la lista de reproducción"
+#: ../data/assistantFirstRun.ui.h:28 ../data/dialogPrefs.ui.h:44
+msgid "Image Directory"
+msgstr "Carpeta de imágenes"
 
-#: lyricue.glade:321
-msgid "_Add from Available"
-msgstr "Aña_dir de disponibles"
+#: ../data/assistantFirstRun.ui.h:29 ../data/dialogPrefs.ui.h:45
+msgid "Backgrounds Directory"
+msgstr "Carpeta de fondos"
 
-#: lyricue.glade:336
-msgid "Add _Image"
-msgstr "Añadir _imagen"
+#: ../data/assistantFirstRun.ui.h:30 ../data/dialogPrefs.ui.h:46
+msgid "Folder"
+msgstr "Carpeta"
 
-#: lyricue.glade:352
-msgid "Add _File"
-msgstr "Añadir _archivo"
+#: ../data/assistantFirstRun.ui.h:31
+msgid ""
+"Lyricue requires somewhere to load it's images and backdrops from.\n"
+"The Image and Backgrounds directory can be the same or you can keep them "
+"seperate.\n"
+"Please select a suitable directory for each."
+msgstr ""
+"Lyricue requiere de una carpeta de imágenes y fondos.\n"
+"Las carpetas de Imágenes y la de Fondos pueden ser la misma o estar "
+"separadas.\n"
+"Seleccione la ubicación de cada una."
 
-#: lyricue.glade:367
-msgid "Add _Directory"
-msgstr "Añadir dire_ctorio"
-
-#: lyricue.glade:382
-msgid "_Remove from Playlist"
-msgstr "_Quitar de la lista de reproducción"
-
-#: lyricue.glade:402
-msgid "_Display"
-msgstr "_Visualización"
-
-#: lyricue.glade:408
-msgid "_Previous Page"
-msgstr "Página _anterior"
-
-#: lyricue.glade:423
-msgid "_Next Page"
-msgstr "Página _siguiente"
-
-#: lyricue.glade:438
-msgid "_Display Now"
-msgstr "_Mostrar ahora"
-
-#: lyricue.glade:453
-msgid "_Blank Display"
-msgstr "_Limpiar visualización"
-
-#: lyricue.glade:468
-msgid "_Clear Text"
-msgstr "Limpiar _texto"
-
-#: lyricue.glade:483
-msgid "_Live Video"
-msgstr "_Video en directo"
-
-#: lyricue.glade:503
-msgid "_Applications"
-msgstr "A_plicaciones"
-
-#: lyricue.glade:510
-msgid "_Bible"
-msgstr "_Biblia"
-
-#: lyricue.glade:517 lyricue.glade:2430
-msgid "_Help"
-msgstr "Ay_uda"
-
-#: lyricue.glade:523
-msgid "Online Documentation"
-msgstr "Documentación en línea"
-
-#: lyricue.glade:562
-msgid "Prev. Page"
-msgstr "Pág. anterior"
-
-#: lyricue.glade:575 lyricue.glade:4236
-msgid "Next Page"
-msgstr "Pág siguiente"
-
-#: lyricue.glade:588
-msgid "Next Point"
-msgstr "Siguiente punto"
-
-#: lyricue.glade:601
-msgid "Blank Screen"
-msgstr "Pantalla en blanco"
-
-#: lyricue.glade:614
-msgid "Clear Text"
-msgstr "Limpiar texto"
-
-#: lyricue.glade:627
-msgid "Pause Media"
-msgstr "Pausar medios"
-
-#: lyricue.glade:640
-msgid "Add File"
-msgstr "Añadir archivo"
-
-#: lyricue.glade:683 lyricue.glade:3652
-msgid "Search"
-msgstr "Buscar"
-
-#: lyricue.glade:688 lyricue.glade:3589
-msgid "Advanced Search"
-msgstr "Búsqueda avanzada"
-
-#: lyricue.glade:702
-msgid "Search the songlist directly"
-msgstr "Buscar en la lista de cantos directamente"
-
-#: lyricue.glade:716
-msgid "Clear Search Field"
-msgstr "Limpiar el campo de búsqueda"
-
-#: lyricue.glade:760 lyricue.glade:1994
-msgid "New"
-msgstr "Nuevo"
-
-#: lyricue.glade:774 lyricue.glade:4391
-msgid "Edit"
-msgstr "Editar"
-
-#: lyricue.glade:788
-msgid "Add the selected song to the playlist"
-msgstr "Añadir la canción seleccionada a la lista de reproducción"
-
-#: lyricue.glade:790 lyricue.glade:3783
-msgid "Add to playlist"
-msgstr "Añadir a la lista de reproducción"
-
-#: lyricue.glade:815
-msgid "Songs"
-msgstr "Canciones"
-
-#: lyricue.glade:878 lyricue.glade:2180
-msgid "Current"
-msgstr "Actual"
-
-#: lyricue.glade:901
-msgid "Previous"
-msgstr "Anterior"
-
-#: lyricue.glade:919
-msgid "Background preview"
-msgstr "Vista previa del fondo"
-
-#: lyricue.glade:940 lyricue.glade:5387 lyricue.glade:8446
-msgid "Backgrounds"
-msgstr "Fondos"
-
-#: lyricue.glade:993 lyricue.glade:1203
-msgid "Add to Playlist"
-msgstr "Añadir a la lista de reproducción"
-
-#: lyricue.glade:1018 lyricue.glade:5374 lyricue.glade:8434
+#: ../data/assistantFirstRun.ui.h:35 ../data/dialogPrefs.ui.h:41
+#: ../data/windowMain.ui.h:60
 msgid "Images"
 msgstr "Imágenes"
 
-#: lyricue.glade:1054
-msgid "Files"
-msgstr "Archivos"
+#: ../data/assistantFirstRun.ui.h:36 ../data/dialogPrefs.ui.h:42
+#: ../data/windowMain.ui.h:58
+msgid "Backgrounds"
+msgstr "Fondos"
 
-#: lyricue.glade:1069
-msgid "Enter Verse to display"
-msgstr "Introduzca el versículo a mostrar"
+#: ../data/assistantFirstRun.ui.h:37 ../data/dialogPrefs.ui.h:43
+msgid "Today's Announcements"
+msgstr "Anuncios de hoy"
 
-#: lyricue.glade:1082
-msgid "<"
-msgstr "<"
+#: ../data/assistantFirstRun.ui.h:38
+msgid ""
+"Choose your default Bible translation.\n"
+"You can install other bibles frm within Lyricue later."
+msgstr ""
+"Seleccione la traducción bíblica predeterminada.\n"
+"Puede instalar otras Biblias desde Lyricue más tarde."
 
-#: lyricue.glade:1108
-msgid ">"
-msgstr ">"
-
-#: lyricue.glade:1201
-msgid "Add these verses to the playlist"
-msgstr "Añadir este versículo a la lista de reproducción"
-
-#: lyricue.glade:1217
-msgid "Show Now"
-msgstr "Mostrar ahora"
-
-#: lyricue.glade:1219 lyricue.glade:2263
-msgid "Show"
-msgstr "Mostrar"
-
-#: lyricue.glade:1233
-msgid "Autoshow"
-msgstr "Auto-mostrar"
-
-#: lyricue.glade:1257 lyricue.glade:5283 lyricue.glade:8519
+#: ../data/assistantFirstRun.ui.h:40 ../data/dialogPrefs.ui.h:37
+#: ../data/windowMain.ui.h:38
 msgid "Bible"
 msgstr "Biblia"
 
-#: lyricue.glade:1276
-msgid "Fade"
-msgstr "Desvanecer"
+#: ../data/assistantFirstRun.ui.h:41
+msgid ""
+"Lyricue is now configured.\n"
+"If you need to make any changes, or for more options, select Preferences "
+"from the Edit menu"
+msgstr ""
+"Lyricue ha sido configurado.\n"
+"Para hacer cambios o acceder a más opciones, seleccione Preferencias del "
+"menú Editar"
 
-#: lyricue.glade:1293
-msgid "Slide Text"
-msgstr "Deslizar texto"
+#: ../data/assistantFirstRun.ui.h:43
+msgid "None selected"
+msgstr "Nada seleccionado"
 
-#: lyricue.glade:1310
-msgid "Wipe to Black"
-msgstr "Barrer a negro"
+#: ../data/assistantFirstRun.ui.h:44 ../data/dialogPrefs.ui.h:59
+msgid "Left"
+msgstr "Izquierda"
 
-#: lyricue.glade:1327
-msgid "Rotate Text"
-msgstr "Rotar texto"
+#: ../data/assistantFirstRun.ui.h:45 ../data/dialogPrefs.ui.h:21
+msgid "Centre"
+msgstr "Centro"
 
-#: lyricue.glade:1374
-msgid "In Direction"
-msgstr "Al entrar"
+#: ../data/assistantFirstRun.ui.h:46 ../data/dialogPrefs.ui.h:60
+msgid "Right"
+msgstr "Derecha"
 
-#: lyricue.glade:1383
-msgid "Out Direction"
-msgstr "Al salir"
+#: ../data/assistantFirstRun.ui.h:47 ../data/dialogPrefs.ui.h:20
+msgid "Top"
+msgstr "Arriba"
 
-#: lyricue.glade:1711
-msgid "Rotate Direction"
-msgstr "Dirección de rotación"
+#: ../data/assistantFirstRun.ui.h:48 ../data/dialogPrefs.ui.h:22
+msgid "Bottom"
+msgstr "Abajo"
 
-#: lyricue.glade:1719
-msgid "X-Axis"
-msgstr "Eje X"
+#: ../data/dialogAdminLogin.ui.h:1
+msgid "Enter Login details"
+msgstr "Introduzca detalles de entrada"
 
-#: lyricue.glade:1731
-msgid "Y-Axis"
-msgstr "Eje Y"
+#: ../data/dialogAdminLogin.ui.h:2
+msgid "Login name"
+msgstr "Nombre de usuario"
 
-#: lyricue.glade:1745
-msgid "Z-Axis"
-msgstr "Eje Z"
+#: ../data/dialogAdminLogin.ui.h:3
+msgid "Password"
+msgstr "Contraseña"
 
-#: lyricue.glade:1777
-msgid "Apply to Selected"
-msgstr "Aplicar a selección"
+#: ../data/dialogAdminLogin.ui.h:5
+msgid ""
+"Enter the login name and password\n"
+"of your MySQL Administration user"
+msgstr ""
+"Introduzca el nombre de entrada y contraseña\n"
+"del administrador de MySQL"
 
-#: lyricue.glade:1793
-msgid "Apply to Playlist"
-msgstr "Aplicar a lista de reproducción"
+#: ../data/dialogAdmin.ui.h:1
+msgid "Lyricue Administration"
+msgstr "Administración de Lyricue"
 
-#: lyricue.glade:1822
-msgid "Transitions"
-msgstr "Transiciones"
+#: ../data/dialogAdmin.ui.h:2
+msgid "Username"
+msgstr "Nombre usuario"
 
-#: lyricue.glade:1865 lyricue.glade:4376
+#: ../data/dialogAdmin.ui.h:3 ../data/windowMain.ui.h:16
 msgid "Playlist"
 msgstr "Lista de reproducción"
 
-#: lyricue.glade:1875
-msgid "No Playlist loaded"
-msgstr "No hay listas cargadas"
+#: ../data/dialogAdmin.ui.h:4 ../data/windowMain.ui.h:8
+msgid "Edit"
+msgstr "Editar"
 
-#: lyricue.glade:1948
-msgid "Choose Your Playlist"
-msgstr "Elija una lista de reproducción"
-
-#: lyricue.glade:1981
-msgid "Load"
-msgstr "Cargar"
-
-#: lyricue.glade:2007 lyricue.glade:4406
+#: ../data/dialogAdmin.ui.h:5 ../data/windowMain.ui.h:87
 msgid "Delete"
-msgstr "Borrar"
+msgstr "Eliminar"
 
-#: lyricue.glade:2020
-msgid "Rename"
-msgstr "Renombrar"
-
-#: lyricue.glade:2061
-msgid "Move the current item down"
-msgstr "Mover el elemento actual hacia abajo"
-
-#: lyricue.glade:2062
-msgid "Move Down"
-msgstr "Mover abajo"
-
-#: lyricue.glade:2076
-msgid "Move the current item up"
-msgstr "Mover el elemento actual hacia arriba"
-
-#: lyricue.glade:2077
-msgid "Move Up"
-msgstr "Mover arriba"
-
-#: lyricue.glade:2091
-msgid "Remove the current item from the playlist"
-msgstr "Quitar el elemento actual de la lista de reproducción"
-
-#: lyricue.glade:2093
-msgid "Remove"
-msgstr "Quitar"
-
-#: lyricue.glade:2107
-msgid "Add Sublist"
-msgstr "Añadir sublista"
-
-#: lyricue.glade:2154 lyricue.glade:2799
-msgid "Preview"
-msgstr "Vista previa"
-
-#: lyricue.glade:2219
-msgid "Quick Update"
-msgstr "Actualización rápida"
-
-#: lyricue.glade:2249 lyricue.glade:2361
-msgid "Save"
-msgstr "Guardar"
-
-#: lyricue.glade:2324
-msgid "Add new Song"
-msgstr "Añadir nueva canción"
-
-#: lyricue.glade:2343
-msgid "Import"
-msgstr "Importar"
-
-#: lyricue.glade:2352
-msgid "Export"
-msgstr "Exportar"
-
-#: lyricue.glade:2370
-msgid "Close"
-msgstr "Cerrar"
-
-#: lyricue.glade:2384
-msgid "Page"
-msgstr "Página"
-
-#: lyricue.glade:2390 lyricue.glade:2712
-msgid "Add Page"
-msgstr "Añadir página"
-
-#: lyricue.glade:2399 lyricue.glade:2762
-msgid "Remove Page"
-msgstr "Quitar página"
-
-#: lyricue.glade:2408
-msgid "Preview Page"
-msgstr "Previsualizar página"
-
-#: lyricue.glade:2422
-msgid "Insert preset copyright"
-msgstr "Insertar derechos de autor preestablecido"
-
-#: lyricue.glade:2464
-msgid "Song Book"
-msgstr "Libro de cantos"
-
-#: lyricue.glade:2478
-msgid "Keywords"
-msgstr "Palabras clave"
-
-#: lyricue.glade:2492
-msgid "Copyright"
-msgstr "Derechos de autor"
-
-#: lyricue.glade:2505
-msgid "The songbook name"
-msgstr "El nombre del libro de cantos"
-
-#: lyricue.glade:2533
-msgid "The song number within the book"
-msgstr "El número de la canción en el libro de cantos"
-
-#: lyricue.glade:2547
-msgid "The title of the song"
-msgstr "El título de la canción"
-
-#: lyricue.glade:2559
-msgid "Who wrote this"
-msgstr "Quién escribió esto"
-
-#: lyricue.glade:2573
-msgid "Topics of song"
-msgstr "Temas de la canción"
-
-#: lyricue.glade:2587
-msgid "Any copyright information"
-msgstr "Info de derechos de autor"
-
-#: lyricue.glade:2599
-msgid "Audit Song"
-msgstr "Auditar canción"
-
-#: lyricue.glade:2635
-msgid "Song Name"
-msgstr "Nombre de la canción"
-
-#: lyricue.glade:2660
-msgid "label27"
-msgstr "etiqueta27"
-
-#: lyricue.glade:2666
-msgid "label26"
-msgstr "etiqueta26"
-
-#: lyricue.glade:2784 lyricue.glade:4421
+#: ../data/dialogAdmin.ui.h:6 ../data/windowEditSong.ui.h:24
+#: ../data/windowMain.ui.h:30
 msgid "Display"
-msgstr "Visualización"
+msgstr "Mostrar en pantalla"
 
-#: lyricue.glade:2843
-msgid "Spell Check"
-msgstr "Corrector ortográfico"
+#: ../data/dialogAdmin.ui.h:7
+msgid "Admin"
+msgstr "Admin"
 
-#: lyricue.glade:2865
-msgid "Honourise"
-msgstr "Mayúscula inicial"
+#: ../data/dialogAdmin.ui.h:8
+msgid "Add user"
+msgstr "Añadir usuario"
 
-#: lyricue.glade:2870
-msgid "Capitalize some words etc"
-msgstr "Poner algunas palabras en mayúscula"
+#: ../data/dialogColour.ui.h:1
+msgid "Select Colour"
+msgstr "Seleccionar color"
 
-#: lyricue.glade:2925
-msgid "Save and Close"
-msgstr "Guardar y cerrar"
+#: ../data/dialogConfirm.ui.h:1
+msgid "Confirm Delete Song"
+msgstr "Confirmar borrar canción"
 
-#: lyricue.glade:3005
+#: ../data/dialogConfirm.ui.h:2
+msgid "Are you sure?"
+msgstr "¿Está seguro?"
+
+#: ../data/dialogDatabase.ui.h:1
+msgid "Select Databases to backup"
+msgstr "Seleccionar las bases de datos a respaldar"
+
+#: ../data/dialogDatabase.ui.h:2
+msgid "Songs, Playlists, Usage"
+msgstr "Cantos, listas de reproducción, uso"
+
+#: ../data/dialogDatabase.ui.h:3
+msgid "Images, Backgrounds, Media"
+msgstr "Imágenes, fondos, medios"
+
+#: ../data/dialogDatabase.ui.h:4
+msgid "File to save as"
+msgstr "Archivo para guardar como"
+
+#: ../data/dialogDatabase.ui.h:5
+msgid "Browse"
+msgstr "Navegar"
+
+#: ../data/dialogDirChooser.ui.h:1
+msgid "Select Directory"
+msgstr "Seleccionar carpeta"
+
+#: ../data/dialogDvd.ui.h:1
+msgid "Select DVD Title"
+msgstr "Seleccionar Título del DVD"
+
+#: ../data/dialogDvd.ui.h:2
+msgid "Select the DVD title number to play"
+msgstr "Seleccionar el numero del título a reproducir"
+
+#: ../data/dialogDvd.ui.h:3
+msgid "Start time"
+msgstr "Tiempo de inicio"
+
+#: ../data/dialogDvd.ui.h:4
+msgid "Select time period"
+msgstr "Seleccionar el período de tiempo"
+
+#: ../data/dialogDvd.ui.h:5
+msgid "End time"
+msgstr "Tiempo de fin"
+
+#: ../data/dialogDvd.ui.h:6
+msgid "Duration"
+msgstr "Duración"
+
+#: ../data/dialogError.ui.h:1
+msgid "Lyricue Error"
+msgstr "Error de Lyricue"
+
+#: ../data/dialogError.ui.h:2
+msgid "label"
+msgstr "etiqueta"
+
+#: ../data/dialogError.ui.h:3
+msgid "Details"
+msgstr "Detalles"
+
+#: ../data/dialogFileChooser.ui.h:1
+msgid "Select File"
+msgstr "Seleccionar archivo"
+
+#: ../data/dialogFont.ui.h:1
+msgid "Select Font"
+msgstr "Seleccionar tipografía"
+
+#: ../data/dialogImage.ui.h:1
+msgid "Choose an Image"
+msgstr "Elija una imagen"
+
+#: ../data/dialogImage.ui.h:2
+msgid "Category"
+msgstr "Categoría"
+
+#: ../data/dialogImage.ui.h:3
+msgid "Sublist"
+msgstr "Sublista"
+
+#: ../data/dialogImage.ui.h:4
+msgid "Database actions"
+msgstr "Acciones en base de datos"
+
+#: ../data/dialogImage.ui.h:5
+msgid "Move"
+msgstr "Mover"
+
+#: ../data/dialogImage.ui.h:6 ../data/dialogPrefs.ui.h:3
+msgid "Font Colour"
+msgstr "Color de tipografía"
+
+#: ../data/dialogImage.ui.h:7 ../data/dialogPrefs.ui.h:7
+msgid "Shadow Colour"
+msgstr "Color de sombra"
+
+#: ../data/dialogImportData.ui.h:1
+msgid "Import Data from File"
+msgstr "Importar datos desde archivo"
+
+#: ../data/dialogImportData.ui.h:2
+msgid "Use this dialog to import a songlist"
+msgstr "Utilice esta ventana para importar listas de cantos"
+
+#: ../data/dialogImportData.ui.h:3
+msgid "Sample songlists"
+msgstr "Listas de canto de ejemplo"
+
+#: ../data/dialogImportData.ui.h:4
+msgid "Select file to import"
+msgstr "Seleccione el archivo a importar"
+
+#: ../data/dialogLoop.ui.h:1
+msgid "Set Loop timer"
+msgstr "Establecer tiempo de bucle"
+
+#: ../data/dialogLoop.ui.h:2
+msgid "Seconds"
+msgstr "Segundos"
+
+#: ../data/dialogLoop.ui.h:3
+msgid "Milliseconds"
+msgstr "Milisegundos"
+
+#: ../data/dialogPrefs.ui.h:1
+msgid "Preferences"
+msgstr "Preferencias"
+
+#: ../data/dialogPrefs.ui.h:2
+msgid "Fonts used for projector"
+msgstr "Tipografías usadas para el proyector"
+
+#: ../data/dialogPrefs.ui.h:8
+msgid "Shadow Offset"
+msgstr "Desplazamiento de la sombra"
+
+#: ../data/dialogPrefs.ui.h:11
+msgid "Settings for projector"
+msgstr "Configuración del proyector"
+
+#: ../data/dialogPrefs.ui.h:14
+msgid "Vertical Margin"
+msgstr "Margen vertical"
+
+#: ../data/dialogPrefs.ui.h:15
+msgid "Horizontal Margin"
+msgstr "Margen horizontal"
+
+#: ../data/dialogPrefs.ui.h:16
+msgid "Xinerama"
+msgstr "Xinerama"
+
+#: ../data/dialogPrefs.ui.h:23
+msgid "Change"
+msgstr "Cambiar"
+
+#: ../data/dialogPrefs.ui.h:24
+msgid "Window offset"
+msgstr "Desplazamiento de la ventana"
+
+#: ../data/dialogPrefs.ui.h:25
+msgid "Default Transition"
+msgstr "Transición por defecto"
+
+#: ../data/dialogPrefs.ui.h:26
+msgid "Server"
+msgstr "Servidor"
+
+#: ../data/dialogPrefs.ui.h:27
+msgid "Select the Default Background"
+msgstr "Seleccione el fondo predeterminado"
+
+#: ../data/dialogPrefs.ui.h:28
+msgid "Background"
+msgstr "Fondo"
+
+#: ../data/dialogPrefs.ui.h:29
+msgid "Various defaults"
+msgstr "Predeterminados varios"
+
+#: ../data/dialogPrefs.ui.h:30
+msgid "Loop pages"
+msgstr "Circular páginas"
+
+#: ../data/dialogPrefs.ui.h:31
+msgid "Return to first page after last page of songs"
+msgstr "Regresar a la primera página al alcanzar la última en las canciones"
+
+#: ../data/dialogPrefs.ui.h:32
+msgid "Expand items when added to playlist"
+msgstr "Expandir elementos cuando se añaden a la lista de reproducción"
+
+#: ../data/dialogPrefs.ui.h:33
+msgid "Audit Songs"
+msgstr "Auditar canciones"
+
+#: ../data/dialogPrefs.ui.h:34
+msgid "Track what songs were used and when"
+msgstr "Registrar que canciones fueron usadas y cuando"
+
+#: ../data/dialogPrefs.ui.h:35
+msgid "Dynamic Preview"
+msgstr "Vista previa dinámica"
+
+#: ../data/dialogPrefs.ui.h:36
+msgid "Miniview"
+msgstr "Mini-vista"
+
+#: ../data/dialogPrefs.ui.h:38
+msgid "Options"
+msgstr "Opciones"
+
+#: ../data/dialogPrefs.ui.h:39
+msgid "Special items that will be first in lists"
+msgstr "Elementos especiales que irán primeros en las listas"
+
+#: ../data/dialogPrefs.ui.h:47
+msgid "Specials"
+msgstr "Especiales"
+
+#: ../data/dialogPrefs.ui.h:48
+msgid "Recovery Options"
+msgstr "Opciones de recuperación"
+
+#: ../data/dialogPrefs.ui.h:49
+msgid "Backup Database"
+msgstr "Base de datos de respaldo"
+
+#: ../data/dialogPrefs.ui.h:50
+msgid "Restore Database"
+msgstr "Restaurar base de datos"
+
+#: ../data/dialogPrefs.ui.h:51
+msgid ""
+"Database Server\n"
+"<i>Note: You will need to backup/restore your database when changing</i>"
+msgstr ""
+"Servidor de base de datos\n"
+"<i>Nota: Necesitará respaldar/restaurar su base de datos cuando cambie</i>"
+
+#: ../data/dialogPrefs.ui.h:53
+msgid "Use MySQL"
+msgstr "Usar MySQL"
+
+#: ../data/dialogPrefs.ui.h:54
+msgid "Use SQLite"
+msgstr "Usar SQLite"
+
+#: ../data/dialogPrefs.ui.h:56
+msgid "Layout"
+msgstr "Disposición"
+
+#: ../data/dialogPrefs.ui.h:57
+msgid "Main text"
+msgstr "Texto principal"
+
+#: ../data/dialogPrefs.ui.h:58
+msgid "Customize"
+msgstr "Personalizar"
+
+#: ../data/dialogPrefs.ui.h:61 ../data/windowMain.ui.h:70
+msgid "None"
+msgstr "Ninguno"
+
+#: ../data/dialogPrefs.ui.h:62 ../data/windowMain.ui.h:71
+msgid "Fade"
+msgstr "Atenuación"
+
+#: ../data/dialogSearch.ui.h:1 ../data/windowMain.ui.h:48
+msgid "Advanced Search"
+msgstr "Búsqueda avanzada"
+
+#: ../data/dialogSearch.ui.h:2
+msgid "Search Lyrics"
+msgstr "Buscar letras"
+
+#: ../data/dialogSearch.ui.h:3 ../data/windowMain.ui.h:47
+msgid "Search"
+msgstr "Buscar"
+
+#: ../data/dialogSearch.ui.h:5 ../data/windowMain.ui.h:53
+msgid "Add to playlist"
+msgstr "Añadir a la lista de reproducción"
+
+#: ../data/dialogSelectSongs.ui.h:1
+msgid "Select songs to import"
+msgstr "Seleccionar las canciones a importar"
+
+#: ../data/dialogSelectSongs.ui.h:2
+msgid "Select All"
+msgstr "Seleccionar todo"
+
+#: ../data/dialogSelectSongs.ui.h:3
+msgid "Unselect All"
+msgstr "Desactivar seleccionar todo"
+
+#: ../data/dialogWindowOffset.ui.h:1
+msgid "Window Offset"
+msgstr "Desplazamiento de la ventana"
+
+#: ../data/dialogWindowOffset.ui.h:2
+msgid "Drag this window to the projector screen"
+msgstr "Arrastre esta ventana hacia la pantalla del proyector"
+
+#: ../data/windowAbout.ui.h:1
 msgid "About Lyricue"
 msgstr "Acerca de Lyricue"
 
-#: lyricue.glade:3025
-msgid "Version ##VERSION##"
-msgstr "Versión ##VERSION##"
+#: ../data/windowAbout.ui.h:2
+msgid "Version #VERSION#"
+msgstr "Versión #VERSION#"
 
-#: lyricue.glade:3036
+#: ../data/windowAbout.ui.h:3
 msgid ""
 "Written By:\n"
 "Chris Debenham & Clint Turner\n"
@@ -967,396 +998,15 @@ msgstr ""
 "Sitio web:\n"
 "http://www.lyricue.org/"
 
-#: lyricue.glade:3059
+#: ../data/windowAbout.ui.h:7
 msgid "Thanks"
 msgstr "Gracias"
 
-#: lyricue.glade:3079
-msgid "Select Font"
-msgstr "Seleccionar tipografía"
-
-#: lyricue.glade:3119
-msgid "Select Colour"
-msgstr "Seleccionar color"
-
-#: lyricue.glade:3155
-msgid "Confirm Delete Song"
-msgstr "Confirmar borrar canción"
-
-#: lyricue.glade:3167
-msgid "Are you sure?"
-msgstr "¿Está seguro?"
-
-#: lyricue.glade:3223
-msgid "Choose an Image"
-msgstr "Elija una imagen"
-
-#: lyricue.glade:3244
-msgid "Category"
-msgstr "Categoría"
-
-#: lyricue.glade:3297
-msgid "Sublist"
-msgstr "Sublista"
-
-#: lyricue.glade:3388
-msgid "Move"
-msgstr "Mover"
-
-#: lyricue.glade:3445 lyricue.glade:4561
-msgid "Font Colour"
-msgstr "Color de tipografía"
-
-#: lyricue.glade:3456 lyricue.glade:4665
-msgid "Shadow Colour"
-msgstr "Color de sombra"
-
-#: lyricue.glade:3602
-msgid "Search Lyrics"
-msgstr "Buscar letras"
-
-#: lyricue.glade:3711
-msgid "Song Contents"
-msgstr "Contenidos de canción"
-
-#: lyricue.glade:3866
-msgid "Select File"
-msgstr "Seleccionar archivo"
-
-#: lyricue.glade:4075
-msgid "Set Loop timer"
-msgstr "Establecer tiempo de bucle"
-
-#: lyricue.glade:4089
-msgid "Seconds"
-msgstr "Segundos"
-
-#: lyricue.glade:4111
-msgid "Milliseconds"
-msgstr "Milisegundos"
-
-#: lyricue.glade:4184
-msgid "You should never read this"
-msgstr "Jamás debería leer esto"
-
-#: lyricue.glade:4194
-msgid "Previous Song"
-msgstr "Canción anterior"
-
-#: lyricue.glade:4208
-msgid "Next Song"
-msgstr "Canción siguiente"
-
-#: lyricue.glade:4222
-msgid "Previous Page"
-msgstr "Página anterior"
-
-#: lyricue.glade:4250
-msgid "Clear Screen"
-msgstr "Limpiar pantalla"
-
-#: lyricue.glade:4265
-msgid "Lyricue Error"
-msgstr "Error de Lyricue"
-
-#: lyricue.glade:4293
-msgid "label"
-msgstr "etiqueta"
-
-#: lyricue.glade:4301
-msgid "Details"
-msgstr "Detalles"
-
-#: lyricue.glade:4344
-msgid "Lyricue Administration"
-msgstr "Administración de Lyricue"
-
-#: lyricue.glade:4363
-msgid "Username"
-msgstr "Usuario"
-
-#: lyricue.glade:4436
-msgid "Admin"
-msgstr "Admin"
-
-#: lyricue.glade:4449
-msgid "Add user"
-msgstr "Añadir usuario"
-
-#: lyricue.glade:4515
-msgid "Preferences"
-msgstr "Preferencias"
-
-#: lyricue.glade:4535
-msgid "Fonts used for projector"
-msgstr "Tipografías usadas para el proyector"
-
-#: lyricue.glade:4574 lyricue.glade:5792 lyricue.glade:8194
-msgid "Footer"
-msgstr "Pie de página"
-
-#: lyricue.glade:4587 lyricue.glade:5412 lyricue.glade:5426 lyricue.glade:8184
-#: lyricue.glade:8471 lyricue.glade:8484
-msgid "Main"
-msgstr "Principal"
-
-#: lyricue.glade:4600 lyricue.glade:5714 lyricue.glade:8174
-msgid "Header"
-msgstr "Encabezado"
-
-#: lyricue.glade:4678
-msgid "Shadow Offset"
-msgstr "Desplazamiento de la sombra"
-
-#: lyricue.glade:4741
-msgid "Settings for projector"
-msgstr "Configuración del proyector"
-
-#: lyricue.glade:4767 lyricue.glade:7979
-msgid "Width"
-msgstr "Anchura"
-
-#: lyricue.glade:4778 lyricue.glade:7992
-msgid "Height"
-msgstr "Altura"
-
-#: lyricue.glade:4838
-msgid "Vertical Overscan"
-msgstr "Sobrescaneo vertical"
-
-#: lyricue.glade:4867
-msgid "Horizontal Overscan"
-msgstr "Sobrescaneo horizontal"
-
-#: lyricue.glade:4895
-msgid "Xinerama"
-msgstr "Xinerama"
-
-#: lyricue.glade:4908 lyricue.glade:8037
-msgid "Vertical Text Location"
-msgstr "Ubicación vertical del texto"
-
-#: lyricue.glade:4920 lyricue.glade:8049
-msgid ""
-"Top\n"
-"Centre\n"
-"Bottom"
-msgstr ""
-"Arriba\n"
-"Centro\n"
-"Abajo"
-
-#: lyricue.glade:4937
-msgid "Server Type"
-msgstr "Tipo de servidor"
-
-#: lyricue.glade:4952
-msgid "OpenGL"
-msgstr "OpenGL"
-
-#: lyricue.glade:4967
-msgid "Canvas - depreciated"
-msgstr "Canvas - depreciado"
-
-#: lyricue.glade:4984
-msgid "Simple - depreciated"
-msgstr "Simple - depreciado"
-
-#: lyricue.glade:5012 lyricue.glade:8066
-msgid "Text Justification"
-msgstr "Alineación del texto"
-
-#: lyricue.glade:5025 lyricue.glade:8079
-msgid "Horizontal Text Location"
-msgstr "Ubicación horizontal del texto"
-
-#: lyricue.glade:5037 lyricue.glade:5053 lyricue.glade:8091 lyricue.glade:8107
-msgid ""
-"Left\n"
-"Centre\n"
-"Right"
-msgstr ""
-"Izquierda\n"
-"Centro\n"
-"Derecha"
-
-#: lyricue.glade:5071
-msgid "Top"
-msgstr "Arriba"
-
-#: lyricue.glade:5080
-msgid "Centre"
-msgstr "Centro"
-
-#: lyricue.glade:5089
-msgid "Bottom"
-msgstr "Abajo"
-
-#: lyricue.glade:5119
-msgid "Server"
-msgstr "Servidor"
-
-#: lyricue.glade:5134 lyricue.glade:5156
-msgid "Select the Default Background"
-msgstr "Seleccione el fondo predeterminado"
-
-#: lyricue.glade:5179
-msgid "Background"
-msgstr "Fondo"
-
-#: lyricue.glade:5194
-msgid "Various defaults"
-msgstr "Predeterminados varios"
-
-#: lyricue.glade:5213
-msgid "Loop pages"
-msgstr "Circular páginas"
-
-#: lyricue.glade:5217
-msgid "Return to first page after last page of songs"
-msgstr "Regresar a la primera página al alcanzar la última en las canciones"
-
-#: lyricue.glade:5229
-msgid "Audit Songs"
-msgstr "Auditar canciones"
-
-#: lyricue.glade:5233
-msgid "Track what songs were used and when"
-msgstr "Registrar que canciones fueron usadas y cuando"
-
-#: lyricue.glade:5245
-msgid "Dynamic Preview"
-msgstr "Vista previa dinámica"
-
-#: lyricue.glade:5260
-msgid "Miniview"
-msgstr "Mini-vista"
-
-#: lyricue.glade:5322
-msgid "Options"
-msgstr "Opciones"
-
-#: lyricue.glade:5337
-msgid "Special items that will be first in lists"
-msgstr "Elementos especiales que irán primeros en listas"
-
-#: lyricue.glade:5363 lyricue.glade:8422
-msgid "Available songs"
-msgstr "Canciones disponibles"
-
-#: lyricue.glade:5400 lyricue.glade:8458
-msgid "Today's Announcements"
-msgstr "Anuncios de hoy"
-
-#: lyricue.glade:5440 lyricue.glade:8260
-msgid "Image Directory"
-msgstr "Directorio de imágenes"
-
-#: lyricue.glade:5453 lyricue.glade:8273
-msgid "Backgrounds Directory"
-msgstr "Directorio de fondos"
-
-#: lyricue.glade:5491 lyricue.glade:5543 lyricue.glade:8311 lyricue.glade:8363
-msgid "Folder"
-msgstr "Carpeta"
-
-#: lyricue.glade:5579
-msgid "Specials"
-msgstr "Especiales"
-
-#: lyricue.glade:5594
-msgid "Recovery Options"
-msgstr "Opciones de recuperación"
-
-#: lyricue.glade:5613
-msgid "Backup Database"
-msgstr "Base de datos de respaldo"
-
-#: lyricue.glade:5628
-msgid "Restore Database"
-msgstr "Restaurar base de datos"
-
-#: lyricue.glade:5644
-msgid ""
-"Database Server\n"
-"<i>Note: You will need to backup/restore your database when changing</i>"
-msgstr ""
-"Servidor de base de datos\n"
-"<i>Nota: Necesitará respaldar/restaurar su base de datos cuando cambie</i>"
-
-#: lyricue.glade:5657
-msgid "Use MySQL"
-msgstr "Usar MySQL"
-
-#: lyricue.glade:5672
-msgid "Use SQLite"
-msgstr "Usar SQLite"
-
-#: lyricue.glade:5694
-msgid "Advanced"
-msgstr "Avanzado"
-
-#: lyricue.glade:5726
-msgid "Layout"
-msgstr "Diseño"
-
-#: lyricue.glade:5758
-msgid "Main text"
-msgstr "Texto principal"
-
-#: lyricue.glade:5825
-msgid "Customize"
-msgstr "Personalizar"
-
-#: lyricue.glade:5888 lyricue.glade:5901
-msgid "Select Databases to backup"
-msgstr "Seleccione las bases de datos a respaldar"
-
-#: lyricue.glade:5915
-msgid "Songs, Playlists, Usage"
-msgstr "Canciones, Listas de reproducción, Uso"
-
-#: lyricue.glade:5931
-msgid "Images, Backgrounds, Media"
-msgstr "Imágenes, Fondos, Medios"
-
-#: lyricue.glade:5962
-msgid "File to save as"
-msgstr "Archivo para guardar como"
-
-#: lyricue.glade:5984
-msgid "Browse"
-msgstr "Navegar"
-
-#: lyricue.glade:6057
-msgid "Enter Login details"
-msgstr "Introduzca detalles de entrada"
-
-#: lyricue.glade:6074
-msgid "Login name"
-msgstr "Nombre de entrada"
-
-#: lyricue.glade:6087
-msgid "Password"
-msgstr "Contraseña"
-
-#: lyricue.glade:6100 lyricue.glade:7918
-msgid "root"
-msgstr "root"
-
-#: lyricue.glade:6130
-msgid ""
-"Enter the login name and password\n"
-"of your MySQL Administration user"
-msgstr ""
-"Introduzca el nombre de entrada y contraseña\n"
-"del administrador de MySQL"
-
-#: lyricue.glade:6176
+#: ../data/windowBibleManager.ui.h:1
 msgid "Bible Installer"
 msgstr "Instalador de Biblias"
 
-#: lyricue.glade:6184
+#: ../data/windowBibleManager.ui.h:2
 msgid ""
 "Select the file containing the bible you wish to import.\n"
 "New bibles can be downloaded from the sites below.\n"
@@ -1369,7 +1019,7 @@ msgstr ""
 "web.\n"
 "Una vez descargado, vuelva aquí para instalar."
 
-#: lyricue.glade:6198
+#: ../data/windowBibleManager.ui.h:6
 msgid ""
 "Sword bibles\n"
 "http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles"
@@ -1377,7 +1027,7 @@ msgstr ""
 "Biblias Sword\n"
 "http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles"
 
-#: lyricue.glade:6213
+#: ../data/windowBibleManager.ui.h:8
 msgid ""
 "LyricueDB bibles\n"
 "http://www.lyricue.org/bibles"
@@ -1385,396 +1035,742 @@ msgstr ""
 "Biblias de LyricueDB\n"
 "http://www.lyricue.org/bibles"
 
-#: lyricue.glade:6232
+#: ../data/windowBibleManager.ui.h:10
 msgid "Select file to install"
-msgstr "Seleccione el archivo a instalar"
+msgstr "Seleccionar el archivo a instalar"
 
-#: lyricue.glade:6302
-msgid "Select Directory"
-msgstr "Seleccione directorio"
-
-#: lyricue.glade:6363
-msgid "Import Data from File"
-msgstr "Importar datos de archivo"
-
-#: lyricue.glade:6378
-msgid "Use this dialog to import a songlist"
-msgstr "Utilice esta ventana para importar listas de cantos"
-
-#: lyricue.glade:6386
-msgid "Sample songlists"
-msgstr "Listas de canto de ejemplo"
-
-#: lyricue.glade:6407
-msgid "Select file to import"
-msgstr "Seleccione el archivo a importar"
-
-#: lyricue.glade:6477 lyricue.glade:6494
-msgid "Select songs to import"
-msgstr "Seleccione la canción a importar"
-
-#: lyricue.glade:6529
-msgid "Select All"
-msgstr "Seleccionar todo"
-
-#: lyricue.glade:6543
-msgid "Unselect All"
-msgstr "De-seleccionar todo"
-
-#: lyricue.glade:6611
+#: ../data/windowBook.ui.h:1
 msgid "Choose a Book"
-msgstr "Elegir un libro"
+msgstr "Elija un libro"
 
-#: lyricue.glade:6620
+#: ../data/windowBook.ui.h:2
 msgid "Old Testament"
 msgstr "Antiguo Testamento"
 
-#: lyricue.glade:6635
+#: ../data/windowBook.ui.h:3
 msgid "Deuteronomy"
 msgstr "Deuteronomio"
 
-#: lyricue.glade:6650
+#: ../data/windowBook.ui.h:4
 msgid "Joshua"
 msgstr "Josué"
 
-#: lyricue.glade:6667
+#: ../data/windowBook.ui.h:5
 msgid "Judges"
 msgstr "Jueces"
 
-#: lyricue.glade:6684
+#: ../data/windowBook.ui.h:6
 msgid "Ruth"
 msgstr "Rut"
 
-#: lyricue.glade:6701
+#: ../data/windowBook.ui.h:7
 msgid "1 Samuel"
 msgstr "1 Samuel"
 
-#: lyricue.glade:6716
+#: ../data/windowBook.ui.h:8
 msgid "2 Samuel"
 msgstr "2 Samuel"
 
-#: lyricue.glade:6733
+#: ../data/windowBook.ui.h:9
 msgid "1 Kings"
 msgstr "1 Reyes"
 
-#: lyricue.glade:6750
+#: ../data/windowBook.ui.h:10
 msgid "2 Kings"
 msgstr "2 Reyes"
 
-#: lyricue.glade:6767
+#: ../data/windowBook.ui.h:11
 msgid "1 Chronicles"
 msgstr "1 Crónicas"
 
-#: lyricue.glade:6782
+#: ../data/windowBook.ui.h:12
 msgid "2 Chronicles"
 msgstr "2 Crónicas"
 
-#: lyricue.glade:6799
+#: ../data/windowBook.ui.h:13
 msgid "Ezra"
 msgstr "Esdras"
 
-#: lyricue.glade:6816
+#: ../data/windowBook.ui.h:14
 msgid "Nehemiah"
 msgstr "Nehemías"
 
-#: lyricue.glade:6833
+#: ../data/windowBook.ui.h:15
 msgid "Esther"
 msgstr "Ester"
 
-#: lyricue.glade:6848
+#: ../data/windowBook.ui.h:16
 msgid "Job"
 msgstr "Job"
 
-#: lyricue.glade:6865
+#: ../data/windowBook.ui.h:17
 msgid "Psalms"
 msgstr "Salmos"
 
-#: lyricue.glade:6882
+#: ../data/windowBook.ui.h:18
 msgid "Proverbs"
 msgstr "Proverbios"
 
-#: lyricue.glade:6899
+#: ../data/windowBook.ui.h:19
 msgid "Ecclesiastes"
 msgstr "Eclesiastés"
 
-#: lyricue.glade:6914
+#: ../data/windowBook.ui.h:20
 msgid "Song of Solomon"
 msgstr "Cantares"
 
-#: lyricue.glade:6931
+#: ../data/windowBook.ui.h:21
 msgid "Isaiah"
 msgstr "Isaías"
 
-#: lyricue.glade:6948
+#: ../data/windowBook.ui.h:22
 msgid "Jeremiah"
 msgstr "Jeremías"
 
-#: lyricue.glade:6965
+#: ../data/windowBook.ui.h:23
 msgid "Lamentations"
 msgstr "Lamentaciones"
 
-#: lyricue.glade:6980
+#: ../data/windowBook.ui.h:24
 msgid "Ezekiel"
 msgstr "Ezequiel"
 
-#: lyricue.glade:6997
+#: ../data/windowBook.ui.h:25
 msgid "Daniel"
 msgstr "Daniel"
 
-#: lyricue.glade:7014
+#: ../data/windowBook.ui.h:26
 msgid "Hosea"
 msgstr "Oseas"
 
-#: lyricue.glade:7031
+#: ../data/windowBook.ui.h:27
 msgid "Joel"
 msgstr "Joel"
 
-#: lyricue.glade:7046
+#: ../data/windowBook.ui.h:28
 msgid "Amos"
-msgstr "Amos"
+msgstr "Amós"
 
-#: lyricue.glade:7063
+#: ../data/windowBook.ui.h:29
 msgid "Obadiah"
 msgstr "Abdías"
 
-#: lyricue.glade:7080
+#: ../data/windowBook.ui.h:30
 msgid "Jonah"
 msgstr "Jonás"
 
-#: lyricue.glade:7097
+#: ../data/windowBook.ui.h:31
 msgid "Micah"
 msgstr "Miqueas"
 
-#: lyricue.glade:7112
+#: ../data/windowBook.ui.h:32
 msgid "Nahum"
 msgstr "Nahum"
 
-#: lyricue.glade:7129
+#: ../data/windowBook.ui.h:33
 msgid "Habakkuk"
 msgstr "Habacuc"
 
-#: lyricue.glade:7146
+#: ../data/windowBook.ui.h:34
 msgid "Zephaniah"
 msgstr "Sofonías"
 
-#: lyricue.glade:7163
+#: ../data/windowBook.ui.h:35
 msgid "Haggai"
 msgstr "Hageo"
 
-#: lyricue.glade:7178
+#: ../data/windowBook.ui.h:36
 msgid "Zechariah"
 msgstr "Zacarías"
 
-#: lyricue.glade:7195
+#: ../data/windowBook.ui.h:37
 msgid "Malachi"
 msgstr "Malaquías"
 
-#: lyricue.glade:7212
+#: ../data/windowBook.ui.h:38
 msgid "Numbers"
 msgstr "Números"
 
-#: lyricue.glade:7226
+#: ../data/windowBook.ui.h:39
 msgid "Leviticus"
 msgstr "Levítico"
 
-#: lyricue.glade:7240
+#: ../data/windowBook.ui.h:40
 msgid "Exodus"
-msgstr "Exodo"
+msgstr "Éxodo"
 
-#: lyricue.glade:7254
+#: ../data/windowBook.ui.h:41
 msgid "Genesis"
 msgstr "Génesis"
 
-#: lyricue.glade:7266
+#: ../data/windowBook.ui.h:42
 msgid "Song of Songs"
 msgstr "Cantares"
 
-#: lyricue.glade:7294
+#: ../data/windowBook.ui.h:43
 msgid "New Testament"
 msgstr "Nuevo Testamento"
 
-#: lyricue.glade:7309
+#: ../data/windowBook.ui.h:44
 msgid "Acts"
 msgstr "Hechos"
 
-#: lyricue.glade:7324
+#: ../data/windowBook.ui.h:45
 msgid "Romans"
 msgstr "Romanos"
 
-#: lyricue.glade:7341
+#: ../data/windowBook.ui.h:46
 msgid "1 Corinthians"
 msgstr "1 Corintios"
 
-#: lyricue.glade:7358
+#: ../data/windowBook.ui.h:47
 msgid "2 Corinthians"
 msgstr "2 Corintios"
 
-#: lyricue.glade:7375
+#: ../data/windowBook.ui.h:48
 msgid "Galatians"
 msgstr "Gálatas"
 
-#: lyricue.glade:7390
+#: ../data/windowBook.ui.h:49
 msgid "Ephesians"
 msgstr "Efesios"
 
-#: lyricue.glade:7407
+#: ../data/windowBook.ui.h:50
 msgid "Philippians"
 msgstr "Filipenses"
 
-#: lyricue.glade:7424
+#: ../data/windowBook.ui.h:51
 msgid "Colossians"
 msgstr "Colosenses"
 
-#: lyricue.glade:7441
+#: ../data/windowBook.ui.h:52
 msgid "1 Thessalonians"
 msgstr "1 Tesalonicenses"
 
-#: lyricue.glade:7456
+#: ../data/windowBook.ui.h:53
 msgid "2 Thessalonians"
 msgstr "2 Tesalonicenses"
 
-#: lyricue.glade:7473
+#: ../data/windowBook.ui.h:54
 msgid "1 Timothy"
 msgstr "1 Timoteo"
 
-#: lyricue.glade:7490
+#: ../data/windowBook.ui.h:55
 msgid "2 Timothy"
 msgstr "2 Timoteo"
 
-#: lyricue.glade:7507
+#: ../data/windowBook.ui.h:56
 msgid "Titus"
 msgstr "Tito"
 
-#: lyricue.glade:7522
+#: ../data/windowBook.ui.h:57
 msgid "Philemon"
 msgstr "Filemón"
 
-#: lyricue.glade:7539
+#: ../data/windowBook.ui.h:58
 msgid "Hebrews"
 msgstr "Hebreos"
 
-#: lyricue.glade:7556
+#: ../data/windowBook.ui.h:59
 msgid "James"
 msgstr "Santiago"
 
-#: lyricue.glade:7573
+#: ../data/windowBook.ui.h:60
 msgid "1 Peter"
 msgstr "1 Pedro"
 
-#: lyricue.glade:7588
+#: ../data/windowBook.ui.h:61
 msgid "2 Peter"
 msgstr "2 Pedro"
 
-#: lyricue.glade:7605
+#: ../data/windowBook.ui.h:62
 msgid "1 John"
 msgstr "1 Juan"
 
-#: lyricue.glade:7622
+#: ../data/windowBook.ui.h:63
 msgid "2 John"
 msgstr "2 Juan"
 
-#: lyricue.glade:7639
+#: ../data/windowBook.ui.h:64
 msgid "3 John"
 msgstr "3 Juan"
 
-#: lyricue.glade:7654
+#: ../data/windowBook.ui.h:65
 msgid "Jude"
 msgstr "Judas"
 
-#: lyricue.glade:7671
+#: ../data/windowBook.ui.h:66
 msgid "Revelation"
 msgstr "Apocalipsis"
 
-#: lyricue.glade:7688
+#: ../data/windowBook.ui.h:67
 msgid "John"
 msgstr "Juan"
 
-#: lyricue.glade:7702
+#: ../data/windowBook.ui.h:68
 msgid "Luke"
 msgstr "Lucas"
 
-#: lyricue.glade:7716
+#: ../data/windowBook.ui.h:69
 msgid "Mark"
 msgstr "Marcos"
 
-#: lyricue.glade:7730
+#: ../data/windowBook.ui.h:70
 msgid "Matthew"
 msgstr "Mateo"
 
-#: lyricue.glade:7865
-msgid ""
-"As this is the first time you have run Lyricue we now walk through some "
-"initial settings"
-msgstr ""
-"Debido a que esta es la primera vez que utiliza Lyricue debe hacer cierta "
-"configuración inicial."
+#: ../data/windowEditSong.ui.h:1
+msgid "Add new Song"
+msgstr "Añadir nueva canción"
 
-#: lyricue.glade:7881
-msgid ""
-"Lyricue uses MySQL to store its data.\n"
-"To access MySQL I will create a special user 'lyric'\n"
-"To do this I need your mysql root users password.\n"
-"<i>Note: This password is not stored anywhere</i>"
-msgstr ""
-"Lyricue utiliza MySQL para guardar datos.\n"
-"Para acceder a MySQL crearé un usuario especial 'lyric'\n"
-"Para ello necesito la contraseña del usuario root mysql.\n"
-"<i>Nota: La contraseña no será almacenada</i>"
+#: ../data/windowEditSong.ui.h:2 ../data/windowMain.ui.h:2
+msgid "File"
+msgstr "Archivo"
 
-#: lyricue.glade:7895
-msgid "Username:"
-msgstr "Usuario:"
+#: ../data/windowEditSong.ui.h:3
+msgid "Import"
+msgstr "Importar"
 
-#: lyricue.glade:7906
-msgid "Password:"
-msgstr "Contraseña:"
+#: ../data/windowEditSong.ui.h:4
+msgid "Export"
+msgstr "Exportar"
 
-#: lyricue.glade:8133
-msgid ""
-"Lyricue is designed to run on a dual-head machine with the second display "
-"connected to a projector.\n"
-"Here you can tell me what resolution your projector runs at and where you "
-"want the text to display on the screen"
-msgstr ""
-"Lyricue está diseñado para correr en una computadora con dos monitores con "
-"el segundo conectado a un proyector.\n"
-"Aquí puede especificar la resolución del proyector y donde desea que se "
-"muestre el texto"
+#: ../data/windowEditSong.ui.h:6
+msgid "Add Page"
+msgstr "Añadir página"
 
-#: lyricue.glade:8164
-msgid "Select the fonts that you want to use on the projector from here"
-msgstr "Seleccione las tipografías para utilizar en el proyector"
+#: ../data/windowEditSong.ui.h:7
+msgid "Remove Page"
+msgstr "Quitar página"
 
-#: lyricue.glade:8389
-msgid ""
-"Lyricue requires somewhere to load it's images and backdrops from.\n"
-"The Image and Backgrounds directory can be the same or you can keep them "
-"seperate.\n"
-"Please select a suitable directory for each."
-msgstr ""
-"Lyricue requiere de una carpeta de imágenes y fondos.\n"
-"Las carpetas de Imágenes y la de Fondos pueden ser la misma o estar "
-"separadas.\n"
-"Seleccione la ubicación de cada una."
+#: ../data/windowEditSong.ui.h:8
+msgid "Preview Page"
+msgstr "Previsualizar página"
 
-#: lyricue.glade:8507
-msgid ""
-"Choose your default Bible translation.\n"
-"You can install other bibles frm within Lyricue later."
-msgstr ""
-"Seleccione la traducción bíblica predeterminada.\n"
-"Puede instalar otras Biblias desde Lyricue más tarde."
+#: ../data/windowEditSong.ui.h:9
+msgid "Insert preset Copyright"
+msgstr "Inserte Los Derechos de Autor predeterminado"
 
-#: lyricue.glade:8530
-msgid "None selected"
-msgstr "Nada seleccionado"
+#: ../data/windowEditSong.ui.h:10 ../data/windowMain.ui.h:39
+msgid "Help"
+msgstr "Ayuda"
 
-#: lyricue.glade:8548
-msgid ""
-"Lyricue is now configured.\n"
-"If you need to make any changes, or for more options, select Preferences "
-"from the Edit menu"
-msgstr ""
-"Lyricue ha sido configurado.\n"
-"Para hacer cambios o acceder a más opciones, seleccione Preferencias del "
-"menú Editar"
+#: ../data/windowEditSong.ui.h:12
+msgid "Keywords"
+msgstr "Palabras clave"
+
+#: ../data/windowEditSong.ui.h:13
+msgid "Copyright"
+msgstr "Derechos de autor"
+
+#: ../data/windowEditSong.ui.h:14
+msgid "The songbook name"
+msgstr "El nombre del libro de cantos"
+
+#: ../data/windowEditSong.ui.h:16
+msgid "The song number within the book"
+msgstr "El número de la canción en el libro de cantos"
+
+#: ../data/windowEditSong.ui.h:17
+msgid "The title of the song"
+msgstr "El título de la canción"
+
+#: ../data/windowEditSong.ui.h:18
+msgid "Who wrote this"
+msgstr "Quién escribió esto"
+
+#: ../data/windowEditSong.ui.h:19
+msgid "Topics of song"
+msgstr "Temas tratados en la canción"
+
+#: ../data/windowEditSong.ui.h:20
+msgid "Any copyright information"
+msgstr "Info de derechos de autor"
+
+#: ../data/windowEditSong.ui.h:21
+msgid "Audit Song"
+msgstr "Auditar canción"
+
+#: ../data/windowEditSong.ui.h:25 ../data/windowMain.ui.h:98
+msgid "Preview"
+msgstr "Vista previa"
+
+#: ../data/windowEditSong.ui.h:26
+msgid "Spell Check"
+msgstr "Corrector ortográfico"
+
+#: ../data/windowEditSong.ui.h:27
+msgid "Honourise"
+msgstr "Mayúscula inicial"
+
+#: ../data/windowEditSong.ui.h:28
+msgid "Capitalize some words etc"
+msgstr "Poner algunas palabras en mayúscula"
+
+#: ../data/windowEditSong.ui.h:29
+msgid "Save and Close"
+msgstr "Guardar y cerrar"
+
+#: ../data/windowMain.ui.h:1
+msgid "Lyricue"
+msgstr "Lyricue"
+
+#: ../data/windowMain.ui.h:3
+msgid "Manage _Images"
+msgstr "Administrar _imágenes"
+
+#: ../data/windowMain.ui.h:4
+msgid "Manage _Background"
+msgstr "Administrar _fondos"
+
+#: ../data/windowMain.ui.h:5
+msgid "_Clean Database"
+msgstr "_Limpiar Base de Datos"
+
+#: ../data/windowMain.ui.h:6
+msgid "Import _Songlist"
+msgstr "Importar li_sta de canciones"
+
+#: ../data/windowMain.ui.h:7
+msgid "_Export Songlist"
+msgstr "_Exportar lista de canciones"
+
+#: ../data/windowMain.ui.h:9
+msgid "_Add Song"
+msgstr "Aña_dir canción"
+
+#: ../data/windowMain.ui.h:10
+msgid "Advanced _Search"
+msgstr "Bú_squeda avanzada"
+
+#: ../data/windowMain.ui.h:11
+msgid "_Edit Song"
+msgstr "_Editar canción"
+
+#: ../data/windowMain.ui.h:12
+msgid "_Delete Song"
+msgstr "_Borrar canción"
+
+#: ../data/windowMain.ui.h:13
+msgid "_Refresh List"
+msgstr "Actualizar _lista"
+
+#: ../data/windowMain.ui.h:14
+msgid "_Configuration Wizard"
+msgstr "A_sistente de configuración"
+
+#: ../data/windowMain.ui.h:15
+msgid "_User Administration"
+msgstr "Administración de _usuarios"
+
+#: ../data/windowMain.ui.h:17
+msgid "_Select Playlist"
+msgstr "_Seleccionar lista de reproducción"
+
+#: ../data/windowMain.ui.h:18
+msgid "_Clear Playlist"
+msgstr "_Limpiar lista de reproducción"
+
+#: ../data/windowMain.ui.h:19
+msgid "_Refresh Playlist"
+msgstr "Actualizar _lista de reproducción"
+
+#: ../data/windowMain.ui.h:20
+msgid "_Clear Image Associations"
+msgstr "Eli_minar asociaciones de imágenes"
+
+#: ../data/windowMain.ui.h:21
+msgid "_Invert Line Display"
+msgstr "_Invertir visualización de línea"
+
+#: ../data/windowMain.ui.h:22
+msgid "_Export Playlist as PDF"
+msgstr "_Exportar lista como PDF"
+
+#: ../data/windowMain.ui.h:23
+msgid "Playlist Item"
+msgstr "Elemento de lista de reproducción"
+
+#: ../data/windowMain.ui.h:24
+msgid "_Add from Available"
+msgstr "Aña_dir desde disponibles"
+
+#: ../data/windowMain.ui.h:25
+msgid "Add _Image"
+msgstr "Añadir _imagen"
+
+#: ../data/windowMain.ui.h:26
+msgid "Add _File"
+msgstr "Añadir _archivo"
+
+#: ../data/windowMain.ui.h:27
+msgid "Add _Directory"
+msgstr "Aña_dir carpeta"
+
+#: ../data/windowMain.ui.h:28
+msgid "Add _DVD Video"
+msgstr "Añadir video desde _DVD"
+
+#: ../data/windowMain.ui.h:29
+msgid "_Remove from Playlist"
+msgstr "_Quitar elemento de la lista"
+
+#: ../data/windowMain.ui.h:31
+msgid "_Previous Page"
+msgstr "Página _anterior"
+
+#: ../data/windowMain.ui.h:32
+msgid "_Next Page"
+msgstr "Página _siguiente"
+
+#: ../data/windowMain.ui.h:33
+msgid "_Display Now"
+msgstr "_Mostrar ahora"
+
+#: ../data/windowMain.ui.h:34
+msgid "_Blank Display"
+msgstr "_Limpiar visualización"
+
+#: ../data/windowMain.ui.h:35
+msgid "_Clear Text"
+msgstr "Limpiar _texto"
+
+#: ../data/windowMain.ui.h:36
+msgid "_Live Video"
+msgstr "_Video en directo"
+
+#: ../data/windowMain.ui.h:37
+msgid "Applications"
+msgstr "Aplicaciones"
+
+#: ../data/windowMain.ui.h:40
+msgid "Prev. Page"
+msgstr "Pág. anterior"
+
+#: ../data/windowMain.ui.h:41 ../data/windowTray.ui.h:5
+msgid "Next Page"
+msgstr "Pág. siguiente"
+
+#: ../data/windowMain.ui.h:42
+msgid "Next Point"
+msgstr "Siguiente elemento"
+
+#: ../data/windowMain.ui.h:43
+msgid "Blank Screen"
+msgstr "Pantalla en negro"
+
+#: ../data/windowMain.ui.h:44
+msgid "Clear Text"
+msgstr "Limpiar texto"
+
+#: ../data/windowMain.ui.h:45
+msgid "Add File"
+msgstr "Añadir archivo"
+
+#: ../data/windowMain.ui.h:46
+msgid "Start Display"
+msgstr "Iniciar el display"
+
+#: ../data/windowMain.ui.h:49
+msgid "Search the songlist directly"
+msgstr "Buscar en la lista de cantos directamente"
+
+#: ../data/windowMain.ui.h:50
+msgid "Clear Search Field"
+msgstr "Limpiar el campo de búsqueda"
+
+#: ../data/windowMain.ui.h:51
+msgid "New"
+msgstr "Crear"
+
+#: ../data/windowMain.ui.h:52
+msgid "Add the selected song to the playlist"
+msgstr "Añadir la canción seleccionada a la lista de reproducción"
+
+#: ../data/windowMain.ui.h:54
+msgid "Songs"
+msgstr "Canciones"
+
+#: ../data/windowMain.ui.h:55
+msgid "Current"
+msgstr "Actual"
+
+#: ../data/windowMain.ui.h:56
+msgid "Previous"
+msgstr "Anterior"
+
+#: ../data/windowMain.ui.h:57
+msgid "Background preview"
+msgstr "Vista previa del fondo"
+
+#: ../data/windowMain.ui.h:59
+msgid "Add to Playlist"
+msgstr "Añadir a la lista de reproducción"
+
+#: ../data/windowMain.ui.h:61
+msgid "Files"
+msgstr "Archivos"
+
+#: ../data/windowMain.ui.h:62
+msgid "Enter Verse to display"
+msgstr "Introduzca el versículo a mostrar"
+
+#: ../data/windowMain.ui.h:63
+msgid "<"
+msgstr "<"
+
+#: ../data/windowMain.ui.h:64
+msgid ">"
+msgstr ">"
+
+#: ../data/windowMain.ui.h:65
+msgid "Add these verses to the playlist"
+msgstr "Añadir este versículo a la lista de reproducción"
+
+#: ../data/windowMain.ui.h:66
+msgid "Show Now"
+msgstr "Mostrar ahora"
+
+#: ../data/windowMain.ui.h:67
+msgid "Show"
+msgstr "Mostrar"
+
+#: ../data/windowMain.ui.h:68
+msgid "Autoshow"
+msgstr "Auto-mostrar"
+
+#: ../data/windowMain.ui.h:69
+msgid "Default"
+msgstr "Predeterminado"
+
+#: ../data/windowMain.ui.h:72
+msgid "Slide Text"
+msgstr "Deslizar texto"
+
+#: ../data/windowMain.ui.h:73
+msgid "Rotate Text"
+msgstr "Rotar texto"
+
+#: ../data/windowMain.ui.h:74
+msgid "Random"
+msgstr "Aleatorio"
+
+#: ../data/windowMain.ui.h:75
+msgid "In Direction"
+msgstr "Al entrar"
+
+#: ../data/windowMain.ui.h:76
+msgid "Out Direction"
+msgstr "Al salir"
+
+#: ../data/windowMain.ui.h:77
+msgid "Rotate Direction"
+msgstr "Dirección de rotación"
+
+#: ../data/windowMain.ui.h:78
+msgid "X-Axis"
+msgstr "Eje X"
+
+#: ../data/windowMain.ui.h:79
+msgid "Y-Axis"
+msgstr "Eje Y"
+
+#: ../data/windowMain.ui.h:80
+msgid "Z-Axis"
+msgstr "Eje Z"
+
+#: ../data/windowMain.ui.h:81
+msgid "Apply to Selected"
+msgstr "Aplicar a selección"
+
+#: ../data/windowMain.ui.h:82
+msgid "Apply to Playlist"
+msgstr "Aplicar a lista de reproducción"
+
+#: ../data/windowMain.ui.h:83
+msgid "Transitions"
+msgstr "Transiciones"
+
+#: ../data/windowMain.ui.h:84
+msgid "No Playlist loaded"
+msgstr "No hay listas cargadas"
+
+#: ../data/windowMain.ui.h:85
+msgid "Choose Your Playlist"
+msgstr "Elija una lista de reproducción"
+
+#: ../data/windowMain.ui.h:86
+msgid "Load"
+msgstr "Cargar"
+
+#: ../data/windowMain.ui.h:88
+msgid "Rename"
+msgstr "Renombrar"
+
+#: ../data/windowMain.ui.h:89
+msgid "Copy"
+msgstr "Copiar"
+
+#: ../data/windowMain.ui.h:91
+msgid "Move the current item down"
+msgstr "Mover el elemento actual hacia abajo"
+
+#: ../data/windowMain.ui.h:92
+msgid "Move Down"
+msgstr "Mover abajo"
+
+#: ../data/windowMain.ui.h:93
+msgid "Move the current item up"
+msgstr "Mover el elemento actual hacia arriba"
+
+#: ../data/windowMain.ui.h:94
+msgid "Move Up"
+msgstr "Mover arriba"
+
+#: ../data/windowMain.ui.h:95
+msgid "Remove the current item from the playlist"
+msgstr "Quitar el elemento actual de la lista de reproducción"
+
+#: ../data/windowMain.ui.h:96
+msgid "Remove"
+msgstr "Quitar"
+
+#: ../data/windowMain.ui.h:97
+msgid "Add Sublist"
+msgstr "Crear sublista"
+
+#: ../data/windowMain.ui.h:99
+msgid "0:00"
+msgstr "0:00"
+
+#: ../data/windowMain.ui.h:100
+msgid "Blur"
+msgstr "Desenfoque"
+
+#: ../data/windowMain.ui.h:101
+msgid "Quick Update"
+msgstr "Actualización rápida"
+
+#: ../data/windowMain.ui.h:102
+msgid "Save"
+msgstr "Guardar"
+
+#: ../data/windowTray.ui.h:1
+msgid "You should never read this"
+msgstr "Jamás debería leer esto"
+
+#: ../data/windowTray.ui.h:2
+msgid "Previous Song"
+msgstr "Canción anterior"
+
+#: ../data/windowTray.ui.h:3
+msgid "Next Song"
+msgstr "Canción siguiente"
+
+#: ../data/windowTray.ui.h:4
+msgid "Previous Page"
+msgstr "Página anterior"
+
+#: ../data/windowTray.ui.h:6
+msgid "Clear Screen"
+msgstr "Pantalla en negro"

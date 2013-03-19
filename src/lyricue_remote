@@ -1,0 +1,118 @@
+#!/usr/bin/env perl
+#****** lyricue_remote/setup
+# NAME
+#   Setup section
+# DESCRIPTION
+#   Loads required modules, sets some global variables,
+#   and other global things
+# SOURCE
+#
+
+#
+# Modules we use.
+#
+use strict;
+use warnings;
+use POSIX;
+use IO::Socket::INET;
+my ($globals, $config);
+$globals->{'host'}          = "localhost";
+$globals->{'server_port'}   = "2346";        #port used for lyric server
+$globals->{'preview_port'}  = "2347";        #port used for preview
+$globals->{'miniview_port'} = "2348";        #port used for miniview
+
+$config->{'LOOP'} = 0;
+
+if ($ARGV[0]) {
+    foreach (0 .. (@ARGV - 1)) {
+        if ($ARGV[$_] eq "-v") {
+            print "Lyricue Remote\n";
+            exit;
+        } elsif ($ARGV[$_] eq "-s") {
+            $globals->{'host'} = $ARGV[$_ + 1];
+            $ARGV[$_ + 1] = "";
+        } elsif ($ARGV[$_] eq "-h") {
+            print "\nUsage: lyricue_remote <-v> <-s> <command>\n\n";
+            print "\t-v:      Prints Lyricue version information & exits\n";
+            print "\t-s:      Specify the host on which the lyric server is located\n";
+            print "\tcommand: Can be any of next_page, prev_page, next_song, prev_song,\n";
+            print "\t         next_point, blank, osd, close or custom\n";
+            print "\t         If custom then the next 3 arguments will be sent without parsing\n";
+            print "\t         to the server\n";
+            exit;
+        } elsif ($ARGV[$_] eq "") {
+
+            # ignore
+        } elsif ($ARGV[$_] eq "next_page") {
+            update_display("display", "next_page", $config->{'Loop'});
+        } elsif ($ARGV[$_] eq "next_song") {
+            update_display("display", "next_song", $config->{'Loop'});
+        } elsif ($ARGV[$_] eq "prev_page") {
+            update_display("display", "prev_page", $config->{'Loop'});
+        } elsif ($ARGV[$_] eq "prev_song") {
+            update_display("display", "prev_song", $config->{'Loop'});
+        } elsif ($ARGV[$_] eq "blank") {
+            update_display("blank", "", "");
+        } elsif ($ARGV[$_] eq "next_point") {
+            update_display("next_point", "", "");
+        } elsif ($ARGV[$_] eq "close") {
+            system("pkill -f \"Lyricue.*2346\"");
+            system("pkill -9 -f \"Lyricue.*2346\"");
+        } elsif ($ARGV[$_] eq "osd") {
+            my $osd = "";
+            if ($ARGV[$_+1]) {
+                $osd = $ARGV[$_+1];
+                $osd =~ s/:/#SEMI#/g;
+                $osd =~ s/\n/#BREAK#/g;
+            }
+            update_display("osd",$ARGV[$_+2], $osd);
+        } elsif ($ARGV[$_] eq "custom") {
+            update_display($ARGV[$_+1],$ARGV[$_+2],$ARGV[$_+3]);
+            exit;
+        }
+    }
+}
+
+#***
+
+#****f* lyricue_remote/update_display
+# NAME
+#   update_display --
+# SYNOPSIS
+#   update_display ($command, $primary, $secondary)
+# FUNCTION
+#   Open a connection the the server and send a command. Status is returned
+# INPUTS
+#   $command - Command to send
+#   $primary - First parameter to send
+#   $secondary - Second parameter to send
+# OUTPUT
+#   Updated display
+# SOURCE
+#
+sub update_display {
+    my ($command, $primary, $secondary) = @_;
+
+    if (!defined($secondary)) {
+        $secondary = "";
+    }
+    if (!defined($primary)) {
+        $primary = "";
+    }
+    if (
+        my $server = IO::Socket::INET->new(
+            Proto    => "tcp",
+            PeerAddr => $globals->{'host'},
+            PeerPort => $globals->{'server_port'}
+        )
+      )
+    {
+        print $server $command . ":" . $primary . ":" . $secondary . "\n";
+        if (defined(my $status = <$server>)) {
+            print $status;
+        }
+        close($server);
+    }
+}
+
+#***

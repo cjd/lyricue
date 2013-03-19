@@ -1,1 +1,0 @@
-for F in *.po;do LANG=`basename $F .po`; mkdir ${DESTDIR}/usr/share/locale/$LANG/LC_MESSAGES 2>/dev/null; msgfmt $LANG.po -o ${DESTDIR}/usr/share/locale/$LANG/LC_MESSAGES/lyricue.mo;done

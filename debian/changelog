@@ -1,0 +1,1355 @@
+lyricue (1:3.4.11-1) quantal; urgency=low
+
+    * Rebuild for Ubuntu 12.10 release
+    * Fix SQL query for creating mysql user
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 19 October 2012 17:30:00 +1000
+
+lyricue (1:3.4.10-1) precise; urgency=low
+
+    * Fix text remaining on screen after slide+rotate transition
+    * Handle database disconnects better (try to reconnect)
+    * Fix error message if config file incorrect
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 9 July 2012 17:30:00 +1000
+
+lyricue (1:3.4.9-1) precise; urgency=low
+
+    * Fix remote JSON query if no return values found
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 2 May 2012 17:30:00 +1000
+
+lyricue (1:3.4.8-1) precise; urgency=low
+
+    * Re-enable translations (were lost due to intltool not handling .ui)
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 18 Apr 2012 17:30:00 +1000
+
+lyricue (1:3.4.7-1) precise; urgency=low
+
+    * Fix images dialog closure (LP#974045)
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 10 Apr 2012 17:30:00 +1000
+
+lyricue (1:3.4.6-1) precise; urgency=high
+
+    * Fix another crash if bible is not set
+    * Fix missing icon in desktop files (LP#971401)
+    * Workaround Gtk2::Builder not setting widget names
+      (fixes LP#971394 and transition tab)
+    * Drop support for old-style CentreX/CentreY setting  (LP#972242)
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 4 Apr 2012 17:30:00 +1000
+
+lyricue (1:3.4.5-1) precise; urgency=medium
+
+    * Add option to expand items on adding to playlist (LP#970411)
+    * Fix going back a page when looping is not set (LP#970591)
+    * Fix image tab not showing DB images (LP#970925)
+    * Quick fix for not being able to select image category when adding to db
+    * Refresh category lists for image/bgs when selecting tab (LP#970927)
+    * Fix crash when transition type=None is set for song (LP#966661)
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 2 Apr 2012 17:30:00 +1000
+
+lyricue (1:3.4.4-1) precise; urgency=medium
+
+    * Remove need for JsonBuilder (libglib-json 0.12.0 not available on lucid)
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 28 Mar 2012 17:30:00 +1000
+
+lyricue (1:3.4.3-1) precise; urgency=medium
+
+    * Add ability to do SQL queries via lyricue_display and return results
+      as JSON-formatted string
+    * Preferences dialog - Handle if no bibles installed (LP#966272)
+    * Handle not having default bible better in display portion (LP#963284)
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 19 Mar 2012 17:30:00 +1000
+
+lyricue (1:3.4.2-1) precise; urgency=low
+
+    * Fix moving items past top/bottom of playlist/sublist/song
+    * Add "Save Song as New" option when editing a song
+    * Fix table headers when printing songlist (LP#883368)
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 19 Mar 2012 17:30:00 +1000
+
+lyricue (1:3.4.1-1) precise; urgency=low
+
+    * Fix font colour preference changing
+    * Fix import songlist menu item (LP#953603)
+    * Fix import of utf8 ccli songs (LP#956770)
+
+ -- Chris Debenham <chris@adebenham.com>  Sat, 17 Mar 2012 17:30:00 +1000
+
+lyricue (1:3.4.0-1) precise; urgency=low
+
+    * Pressing Enter on bible navigator adds verse to playlist (LP#946787)
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 2 Mar 2012 17:30:00 +1000
+
+lyricue (1:3.4.0-1) precise; urgency=low
+
+  * Change from glade to gtkbuilder for interface
+  * Make playlist items be expanded by default when added to playlist or
+    opening a new playlist
+  * Add ability to copy a playlist
+  * Allow installing to paths other than /usr
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 2 Mar 2012 17:30:00 +1000
+
+lyricue (1:3.3.6-1) maverick; urgency=low
+
+  * Add xrandr and Xorg.log to bug report collection
+  * Add dropdown of previous verses to navigator
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 11 Jan 2012 17:30:00 +1000
+
+lyricue (1:3.3.5-1) maverick; urgency=low
+
+  * Add 'Random' transition
+  * More work on songlist html output (LP#883368)
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 09 Jan 2012 17:30:00 +1000
+
+lyricue (1:3.3.4-1) maverick; urgency=low
+
+  * Make toolbar buttons have text
+  * Reformat songlist html output (LP#883368)
+  * Change window titles for various file chooser dialogs (LP#887769)
+  * More fixes for handling if no bibleDb installed (LP#882686)
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 30 Nov 2011 17:30:00 +1000
+
+lyricue (1:3.3.3-1) maverick; urgency=low
+
+  * Fix html output of songlist
+  * Allow lyricue to load even if bibleDb goes missing
+  * Add apport bug reporting and menu option (LP#884335)
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 3 Nov 2011 17:30:00 +1000
+
+lyricue (1:3.3.2-1) maverick; urgency=low
+
+  * Static Backgrounds now work for exporting
+  * Remove hotkeys for Add/Delete/Edit song (LP#883406)
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 31 Oct 2011 17:30:00 +1000
+
+lyricue (1:3.3.1-1) maverick; urgency=low
+
+  * Make export playlist work better (backgrounds still not working)
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 31 Oct 2011 17:30:00 +1000
+
+lyricue (1:3.3.0-1) maverick; urgency=low
+
+  * Add ability to export playlist as PDF file
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 28 Oct 2011 17:30:00 +1000
+
+lyricue (1:3.2.4-1) maverick; urgency=low
+
+  * Change "Overscan" To "Margin" in preferences (LP#665500)
+  * Remove binmode setting when importing xmlz songlist (LP#877093)
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 28 Oct 2011 17:30:00 +1000
+
+lyricue (1:3.2.3-1) maverick; urgency=low
+
+  * Pause video before destroying
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 26 Oct 2011 17:30:00 +1000
+
+lyricue (1:3.2.2-1) maverick; urgency=low
+
+  * Swap gtk and gst initialisation order (fixes two-windows coming up on some
+    installs
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 24 Oct 2011 17:30:00 +1000
+
+lyricue (1:3.2.1-1) maverick; urgency=low
+
+  * Fix compilation on oneiric (needs clutter-gtk 1.0 in package deps)
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 21 Oct 2011 17:30:00 +1000
+
+lyricue (1:3.2.0-1) maverick; urgency=low
+
+  * Add multi-select for deleting songs
+  * Fix compilation with clutter-gtk 1.0 (LP#876253)
+  * Fix tooltip for start display button
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 21 Oct 2011 17:30:00 +1000
+
+lyricue (1:3.1.2-1) maverick; urgency=low
+
+  * Fix thumbnail search to use right filename (LP#826664)
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 16 Aug 2011 17:30:00 +1000
+
+lyricue (1:3.1.1-1) maverick; urgency=low
+
+  * Add toolbar button to start display
+  * Add special text-entry area for OSD
+  * Make clear/blank toolbar buttons toggle
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 15 Aug 2011 17:30:00 +1000
+
+lyricue (1:3.1.0-1) maverick; urgency=low
+
+  * Fix handling of apostrophe in presentation filenames
+  * Add text overlay in background manager so it is easier to check text colour
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 1 Aug 2011 17:30:00 +1000
+
+lyricue (1:3.0.42-1) maverick; urgency=low
+
+  * Fix import of images to DB (LP#816937)
+
+ -- Chris Debenham <chris@adebenham.com>  Sat, 30 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.41-1) maverick; urgency=low
+
+  * Dramatic speed increase in advanced search (LP#814772)
+  * Fix handling of semicolons and ampersands in image filenames
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 24 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.40-1) maverick; urgency=low
+
+  * Text/shadow colours should work properly now
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 22 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.39-1) maverick; urgency=low
+
+  * Fix bible changing in preview
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 20 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.38-1) maverick; urgency=low
+
+  * More work on getting text/shadow colour association working with videos
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 18 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.37-1) maverick; urgency=low
+
+  * Fix application menu strings (LP#807237)
+  * Make DVD playing actually play the selected title
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 11 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.36-1) maverick; urgency=low
+
+  * Add local documentation
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 10 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.35-1) maverick; urgency=medium
+
+  * Fix build for maverick/lucid
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 7 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.34-1) maverick; urgency=high
+
+  * Fix audio volume (LP#806715)
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 7 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.33-1) maverick; urgency=low
+
+  * Make pressing enter in available songlist add song to playlist
+    (makes interactive search work)
+  * Enable videos to play for 3 seconds in miniview
+  * Make shadow offset actually do something
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 6 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.32-1) maverick; urgency=low
+
+  * Handle symlinks properly when importing a directory
+  * Allow pressing enter when searching for a song to add first match
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 4 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.31-1) maverick; urgency=medium
+
+  * Allow any image, video or music file to be added via 'add directory'
+  * Sort list of song when importing
+  * Fix for importing text songs with unicode
+
+ -- Chris Debenham <chris@adebenham.com>  Sat, 2 Jul 2011 17:30:00 +1000
+
+lyricue (1:3.0.30-1) maverick; urgency=medium
+
+  * Fix looping of background videos
+  * Fix progress bar for videos
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 27 Jun 2011 17:30:00 +1000
+
+lyricue (1:3.0.29-1) maverick; urgency=medium
+
+  * Fix scaling on natty
+  * Add support for importing pptx (via workaround)
+  * Initial support for audio files in playlist
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 27 Jun 2011 17:30:00 +1000
+
+lyricue (1:3.0.28-1) maverick; urgency=medium
+
+  * Fix text colour not being updated on re-config
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 18 Apr 2011 17:30:00 +1000
+
+lyricue (1:3.0.27-1) maverick; urgency=medium
+
+  * Fix text colour not being updated
+  * Fix automatic looping for sublists
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 28 Mar 2011 17:30:00 +1000
+
+lyricue (1:3.0.26-3) maverick; urgency=low
+
+  * Rebuild for natty
+  * Fixes for Clutter-gst 1.x
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 27 Mar 2011 17:30:00 +1000
+
+lyricue (1:3.0.26-1) maverick; urgency=medium
+
+  * Fix crash when background not specified fully
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 5 Jan 2011 17:30:00 +1000
+
+lyricue (1:3.0.25-1) maverick; urgency=medium
+
+  * Fix video playback related crash (LP#675090)
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 12 Dec 2010 17:30:00 +1000
+
+lyricue (1:3.0.24-1) maverick; urgency=medium
+
+  * Migrate package name from lyricue3 to lyricue
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 6 Dec 2010 17:31:00 +1000
+
+lyricue (1:3.0.23-1) maverick; urgency=medium
+
+  * Hide mouse cursor in display after three seconds of no motion
+  * Fix video looping for playlist items
+  * Fix geometry override handling when launching via lyricue
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 6 Dec 2010 17:30:00 +1000
+
+lyricue (1:3.0.22-1) maverick; urgency=medium
+
+  * Default hostname should be 'localhost'
+  * Force CLUTTER_DISABLE_MIPMAPPED_TEXT and unset LIBGL_ALWAYS_INDIRECT
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 26 Nov 2010 17:30:00 +1000
+
+lyricue (1:3.0.21-1) maverick; urgency=medium
+
+  * lyricue_display was ignoring database given on commandline
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 14 Nov 2010 17:30:00 +1000
+
+lyricue (1:3.0.20-1) maverick; urgency=low
+
+  * Lyricue should quote passwords in mysql command (LP#668770)
+  * Playback control not working (LP#668443)
+  * Fix handling of & in text display
+  * Lyricue 3 miniview does not work  (LP#640936)
+  * Cannot use page forward or back when showing an image (LP#665498)
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 7 Nov 2010 17:30:00 +1000
+
+lyricue (1:3.0.19-1) maverick; urgency=low
+
+  * Work on blank screen behaviour (LP#662311)
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 29 Oct 2010 17:30:00 +1000
+
+lyricue (1:3.0.18-1) maverick; urgency=high
+
+  * Make 'OK' be default action in combo/entry dialogs (LP#665494)
+  * Add fade/blur effect for backgrounds
+  * Work on getting aspect ratio displayed right for backgrounds
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 28 Oct 2010 17:30:00 +1000
+
+lyricue (1:3.0.17-1) maverick; urgency=high
+
+  * Fix Crash when playing videos
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 24 Oct 2010 17:30:00 +1000
+
+lyricue (1:3.0.16-1) maverick; urgency=medium
+
+  * Fix missing break in mouse-click handling (LP#664931)
+  * Fix lyricue_display distorts images (LP#664921)
+
+ -- Chris Debenham <chris@adebenham.com>  Sat, 23 Oct 2010 17:30:00 +1000
+
+lyricue (1:3.0.15-1) maverick; urgency=medium
+
+  * Fix lyricue_display ignores font colour setting on songs (LP#664929)
+  * Add mouse-click handling (LP#664931)
+  * Fix line-wrap for preview (LP#662893)
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 22 Oct 2010 17:30:00 +1000
+
+lyricue (1:3.0.14-1) maverick; urgency=medium
+
+  * Fix preview window display
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 15 Oct 2010 22:30:00 +1000
+
+lyricue (1:3.0.13-1) maverick; urgency=medium
+
+  * Remove multiple Load/Close Lyricue Display items in menu
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 15 Oct 2010 17:30:00 +1000
+
+lyricue (1:3.0.12-1) maverick; urgency=medium
+
+  * Remove ServerType setting as it is no longer used
+  * Fix preview in add/edit song dialog
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 11 Oct 2010 17:30:00 +1000
+
+lyricue (1:3.0.11.1-1) maverick; urgency=low
+
+  * Increase epoch so will superceed 1:2.3.x
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 10 Oct 2010 17:30:00 +1000
+
+lyricue (3.0.10-1) maverick; urgency=low
+
+  * Release for public
+  * Don't complain if access.conf not setup
+
+ -- Chris Debenham <chris@adebenham.com>  Sat, 5 Oct 2010 17:30:00 +1000
+
+lyricue (3.0.9.6-1) maverick; urgency=low
+
+  * Re-add locales
+  * Don't complain if access.conf not setup
+
+ -- Chris Debenham <chris@adebenham.com>  Sat, 5 Oct 2010 17:30:00 +1000
+
+lyricue (3.0.9.6-1) maverick; urgency=low
+
+  * Re-add locales
+  * Don't complain if access.conf not setup
+
+ -- Chris Debenham <chris@adebenham.com>  Sat, 5 Oct 2010 17:30:00 +1000
+
+lyricue (3.0.9.5-1) maverick; urgency=low
+
+  * Add default items to applications menu to start/stop lyricue_display
+  * Add option to lyricue_remote to close the server 
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 5 Oct 2010 17:31:00 +1000
+
+lyricue (3.0.9.4-1) maverick; urgency=low
+
+  * Set process name for lyricue_display better
+  * Turn off debug output by default (use '-d' to re-enable)
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 5 Oct 2010 17:30:00 +1000
+
+lyricue (3.0.9.3-1) maverick; urgency=low
+
+  * Fix looping not working
+  * Fix clear-text function
+  * Fix double-changing of background in preview
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 27 Sep 2010 17:30:00 +1000
+
+lyricue (3.0.9.2-1) maverick; urgency=low
+
+  * Enable word-wrap by default for songs
+  * Add lsdvd to dependancies
+  * Report port number is process name
+  * Fix crash when going back past first item
+  * Enable live video backgrounds
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 23 Sep 2010 17:30:00 +1000
+
+lyricue (3.0.9.1-1) maverick; urgency=low
+
+  * Add .desktop files
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 15 Sep 2010 17:30:00 +1000
+
+lyricue (3.0.9-1) maverick; urgency=low
+
+  * Initial work at dvd support
+  * Add preview window to edit/add song dialog
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 15 Sep 2010 17:30:00 +1000
+
+lyricue (3.0.8.6-1) maverick; urgency=low
+
+  * Force writing of config to db every startup (LP#636731)
+  * Re-add lyricue_remote command
+  * Let lyricue_display use GeometryOverride if set
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 15 Sep 2010 17:30:00 +1000
+
+lyricue (3.0.8.5-1) maverick; urgency=low
+
+  * Get lyricue_display to reload config when saving prefs in lyricue
+  * Implement OSD functionality
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 15 Sep 2010 17:30:00 +1000
+
+lyricue (3.0.8.4-1) maverick; urgency=medium
+
+  * Fix loading lyricue_display from apps menu
+  * Save first config to database
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 12 Sep 2010 17:31:00 +1000
+
+lyricue (3.0.8.3-1) maverick; urgency=low
+
+  * Change some install dependancies
+  * Make interface work at 1024x600
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 5 Sep 2010 17:31:00 +1000
+
+lyricue (3.0.8.3-1) maverick; urgency=low
+
+  * Fix status message to return proper screen size
+  * Fix blank handling after preview
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 5 Sep 2010 17:31:00 +1000
+
+lyricue (3.0.8.2-1) maverick; urgency=low
+
+  * Fix missing files
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 5 Sep 2010 17:31:00 +1000
+
+lyricue (3.0.8-1) maverick; urgency=low
+
+  * Make presentation import retry if fails
+  * Store presentation temp files in /var/tmp instead of /tmp
+  * Packaging changes
+  * Implement dbimage loading
+  * Don't try to set the geometry if it is null
+  * Make lyricue_display log to logfile/stderr
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 5 Sep 2010 17:30:00 +1000
+
+lyricue (3.0.7-1) maverick; urgency=low
+
+  * Fixes for bible preview
+  * Fix crash when blanking screen to database image
+  * SEMI should be :
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 5 Sep 2010 17:30:00 +1000
+
+lyricue (3.0.6-1) maverick; urgency=low
+
+  * More fixes to preview command
+  * Change debug messages for verse adding
+  * Use mipmaps for glyph caches
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 3 Sep 2010 17:30:00 +1000
+
+lyricue (3.0.5-1) lucid; urgency=low
+
+  * Fix preview command
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 10 Aug 2010 17:30:00 +1000
+
+lyricue (3.0.4-1) lucid; urgency=low
+
+  * Fix crash on reconfigure
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 10 Aug 2010 17:30:00 +1000
+
+lyricue (3.0.3-1) lucid; urgency=low
+
+  * Add conflict for lyricue/lyricue-cvs
+  * Look for sql updates in right directory
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 10 Aug 2010 17:30:00 +1000
+
+lyricue (3.0.2-1) lucid; urgency=low
+
+  * Add sword support
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 10 Aug 2010 17:30:00 +1000
+
+lyricue (3.0.1-2) karmic; urgency=low
+
+  * Initial release 
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 06 Aug 2010 17:44:02 +1000
+
+lyricue (1:2.3.1) karmic; urgency=medium
+
+  * Bugfix release
+  *   Fix ampersand handling in playlist (LP#602093)
+  *   Fix toolbutton toggle which was stopping current item highlight (LP#602095)
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 06 Jul 2010 17:30:00 +1000
+
+lyricue (1:2.3.0) karmic; urgency=medium
+
+  * Minor release
+  * Major features
+  *   Thumbnailing/previews for images and videos
+  *   Much work and new preferences stuff to help ensure server displays on
+      correct screen
+  *   Video controls for when playing media
+  *   
+  * Minor features
+  *   Blank/Clear text now are toggles
+  *   Updates to key bindings in server
+  *   Separate sword and DB bibles in bible menu (LP#593010)
+  *   Make advanced search look at artist and keywords as well
+  *   'Add File' dialog - now with multiselect, previews and dbl-click
+  *   Migrate FileSelection dialogs to more featureful FileChooser dialogs
+  *   Update first-run wizard to allow setting separate
+      DB/projector host (LP#540062 )
+  *   Make preview/quickview stuff work based on cursor selection rather
+      than pure events (means keyboard control works better in playlist)
+  *   Make lyricue_server go to next song once it reaches end of song
+
+  * Bugfixes
+  *   Lots of work on handling non-latin characters throughout lyricue
+  *   Fix slide transitions so text no longer overlaps
+  *   Fix adding/importing songs
+  *   Many more - too many to note here
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 01 Jul 2010 17:30:00 +1000
+
+lyricue (1:2.2.1) karmic; urgency=medium
+
+  * Bugfix release:
+  *   Fix double-click adding of available songs to playlist
+  *   Fix exporting xml files with space in name
+  *   Fix UTF8 handling in available song preview
+  *   Remove extra .xmlz when exporting songs
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 01 Apr 2010 17:30:00 +1000
+
+lyricue (1:2.2.0) karmic; urgency=medium
+
+  * IMPORTANT: Remove GnomeCanvas Support
+  * Show preview when clicking on a song in the left pane
+  * Update manpages
+  * Bug fixes:
+    * Fix LP#551551 - XML import/export fails when path contains blanks
+    * Multiple fixes for clutter < 1.0
+    * Make clean_database run on load
+    * Fix server poke so it works if KJV not installed
+    * Restrict bible navigator to verses which actually exist
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 31 March 2010 17:30:00 +1000
+
+lyricue (1:2.1.0) karmic; urgency=medium
+
+  * Allow pages to be renamed and that name to show in the playlist
+  * Fix bible import
+  * Add OSD scroller
+  * Multiple UTF8 fixes
+  * Updated spanish translation
+  * Allow font colour associations with on-disk backgrounds
+  * Cache image/background thumbnails in database
+  * Works with Clutter 1.0
+  * Allow multiple bible translations in the bibleDb database
+  * Multiple performance improvements
+  * Drag-n-drop re-ordering of pages
+  * Too many bug fixes to note
+    
+ -- Chris Debenham <chris@adebenham.com>  Sun, 05 March 2010 17:30:00 +1000
+
+lyricue (1:2.0.0) unstable; urgency=medium
+
+  * Export and Import single songs from xmlz format
+  * Export and Import multiple songs at once from xmlz format
+  * Full German translation
+  * Better support for UTF-8 characterset
+  * Better handling of multi-monitor setups
+  * First-run/Configuration Wizard
+  * Allow for multi-select in songlist
+  * Major UI cleanup including:
+  *   Moving many dialogs to tabs in the main interface
+  *   Re-worked transitions tab
+  *   Playlist selector now in replaces playlist view when none is loaded
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 03 August 2009 17:30:00 +1000
+
+lyricue (1:1.9.10) unstable; urgency=medium
+
+  * Make it so that the default bible is set (if not already set) when
+    selecting a translation from the menu
+  * Fix debug output (remove extra newline)
+  * Much improved handling of multi-monitors (server should start on second
+    display automatically)
+  * Handle mal-formed verse lookups a bit better
+  * New First-run/Configuration wizard
+  * Fix error dialog
+  * Fix colour associating for db backgrounds
+  * Preview window scaling correction
+  * Fix drag-n-drop backgrounds to not set when dragging
+  * Fix preview window when text at bottom
+  * Log debug data to a file by default
+  * More locale fixes
+  * Fix preview for when text not centred vertically and/or horizonatally
+  * Fix some preferences saving
+  * Give more details in error dialog
+  * Work on import songlist
+  * Make bible selection area handle resizes better
+  * Allow drag'n'drop background association
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 01 July 2009 17:30:00 +1000
+
+lyricue (1:1.9.9) unstable; urgency=low
+
+  * Make preview/miniview retain aspect ratio
+  * Move bible navigator/dialog to a tab
+  * More work on re-arranging UI for usability/space
+  * Make current/previous background area be collapsable
+  * Fix canvas server loading
+  * UI update - make available songs be a page in a notebook, move backgrounds
+    to notebook tab and add images as a tab
+  * Update glade file for glade-3
+  * Put header/footer in right position when in miniserv mode
+  * Remove 'blip' from when a video loops
+  * Get miniview/preview to actually stay correct size even if area changes
+  * Only limit server size if in miniserv mode
+  * Sublists were not being named correctly with importing a directory
+  * Handle spaces in presentation filenames
+  * Depreciate canvas/simple server
+  * Add import of ppt, odp and pdf presentations via "Add File"
+  * Fix playlist display of image names
+  * Fix choose playlist dialog to not show sublists
+  * Fix DB import/export
+  * Make it so videos loop if they are being used as a background,
+    but not if displaying as playlist item
+  * Fix preferences dialog so changing items actually takes effect
+  * Background not always changed (== ne eq)
+  * Fix some locale handling
+  * Updated french translation from Claude Paroz
+  * Fix background directory handling
+  * Fix text-wrap in preview window
+  * Add bible installer
+  * Fix directory selection for image/background directory
+  * Fix ampersand handling in server
+  * Fix BG/Image directory chooser
+  * Work on SQLite backend
+  * Live video view
+  * Make clutter (openGL-based) server default
+  * Change libclutter-perl from recommendation to dependancy
+  * Change defaults to new,sane values
+  * Fix preferences saving - data loss previously possible
+  * Add shadow to clutter server
+  * Change transition time to 1 sec (from .5 sec)
+  * Fix bg preview handling
+  * Add play/pause capability for videos
+  * Make directory holding images/backgrounds configurable
+  * Enable video backgrounds
+  * Fixed background handling in clutter server
+  * Added outline to text
+  * Add option to apply a transition to entire playlist
+  * Make 'Fade' the default transition
+  * Fix transistion handling
+  * Songbeamer import
+  * Fix background handling
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 9 June 2009 17:30:00 +1000
+
+lyricue-cvs (1:1.9.8cvs20090327) unstable; urgency=medium
+
+  * More work on OpenGL server
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 27 March 2009 17:30:00 +1000
+
+lyricue-cvs (1:1.9.8cvs20081125) unstable; urgency=medium
+
+  * OpenGL transitions
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 25 November 2008 17:30:00 +1000
+
+lyricue-cvs (1:1.9.8cvs20081110) unstable; urgency=medium
+
+  * New opengl-based server
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 10 November 2008 17:30:00 +1000
+
+lyricue-cvs (1:1.9.8cvs20081003) unstable; urgency=low
+
+  * Sync for release of 1.9.8
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 3 October 2008 17:30:00 +1000
+
+lyricue-cvs (1:1.9.7cvs20080903) unstable; urgency=high
+
+  * Fix playlist query that was missing playlists
+  * Make images in server display at right aspect ratio
+  * Fix for bible verse stuff failing when no bible selected
+  * Fix line on top and left of screen
+  * Update translations
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 3 September 2008 17:30:00 +1000
+
+lyricue-cvs (1:1.9.7cvs20071130) unstable; urgency=low
+
+  * Minor doco change
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 30 November 2007 17:30:00 +1000
+
+lyricue-cvs (1:1.9.7cvs20071114) unstable; urgency=medium
+
+  * Sync for release of 1.9.7
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 12 November 2007 17:30:00 +1000
+
+lyricue-cvs (1:1.9.7cvs20071112) unstable; urgency=medium
+
+  * Changed default to give full access if no permissions set in access.conf
+  * Change background association handling
+  * Disable X-server screensaver when lyricue_server runs
+  * Allow disabling of Tray Icons
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 12 November 2007 17:30:00 +1000
+
+lyricue-cvs (1:1.9.6cvs20070926) unstable; urgency=low
+
+  * Fix sorting of filenames in 'Add directory'
+  * Update translation templates
+  * Change base database to be mostly empty other than some samples
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 26 September 2007 17:30:00 +1000
+
+lyricue-cvs (1:1.9.6cvs20070914) unstable; urgency=low
+
+  * New option to lyricue_server commands
+  * New 'Add directory' function to import dir of images
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 14 September 2007 14:24:00 +1000
+
+lyricue-cvs (1:1.9.6cvs20070722) unstable; urgency=low
+
+  * Fix SQLite handling in server
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 22 August 2007 14:24:00 +1000
+
+lyricue-cvs (1:1.9.6cvs20070707) unstable; urgency=low
+
+  * Release synced for 1.9.6
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 7 August 2007 12:02:00 +1000
+
+lyricue-cvs (1:1.9.6cvs20070525) unstable; urgency=medium
+
+  * More mediaDb creation fixes
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 25 May 2007 16:30:00 +1000
+
+lyricue-cvs (1:1.9.6cvs20070514) unstable; urgency=medium
+
+  * Fix mediaDb creation
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 14 May 2007 12:55:00 +1000
+
+lyricue-cvs (1:1.9.6cvs20070502) unstable; urgency=medium
+
+  * Add drag-n-drop for images to playlist/backgrounds
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 2 May 2007 17:30:00 +1000
+
+lyricue-cvs (1:1.9.5cvs20070421) unstable; urgency=medium
+
+  * Fix missing comma
+  * Release 1.9.5.1
+
+ -- Chris Debenham <chris@adebenham.com>  Sat, 21 Apr 2007 19:32:00 +1000
+
+lyricue-cvs (1:1.9.5cvs20070420) unstable; urgency=medium
+
+  * Release 1.9.5
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 20 Apr 2007 11:00:00 +1000
+
+lyricue-cvs (1:1.9.5cvs20070416) unstable; urgency=medium
+
+  * Allow text to be at top, centre or bottom of screen
+  * Fix song metadata for time entered/edited
+  * Handle "NULL" as well as NULL for text colours
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 16 Apr 2007 13:00:00 +1000
+
+lyricue-cvs (1:1.9.4cvs20070206) unstable; urgency=medium
+
+  * Fix text/shadow colour handling
+  * Fix Sword bible listing
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 06 Feb 2007 14:00:00 +1000
+
+lyricue-cvs (1:1.9.4cvs20070111) unstable; urgency=medium
+
+  * Fix autoshow button in bible navigator
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 11 Jan 2007 10:52:00 +1000
+
+lyricue-cvs (1:1.9.4cvs20061220) unstable; urgency=medium
+
+  * Fix quickshow to not reset header/footer
+  * Fix mplayer handling
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 20 Dec 2006 15:32:00 +1000
+
+lyricue-cvs (1:1.9.3cvs20061025) unstable; urgency=medium
+
+  * Add/Change comand-line options to allow seperation of server/interface/db
+  * Update translations
+  * Fix opw import charset
+  * Fix un-needed dash in footer
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 16 Oct 2006 14:19:00 +1000
+
+lyricue-cvs (1:1.9.3cvs20060929) unstable; urgency=high
+
+  * Fix mysql user creation so it takes effect right away
+  * Add song import filters for OPW and SongSelect files
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 29 Sep 2006 12:54:00 +1000
+
+lyricue-cvs (1:1.9.3cvs20060914) unstable; urgency=high
+
+  * Fix for expanding items in playlist
+  * Work on font colour association with backgrounds
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 14 Sep 2006 16:35:00 +1000
+
+lyricue-cvs (1:1.9.3cvs20060817) unstable; urgency=high
+
+  * Remove debstd from build requirements to allow lintian pass
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 17 Aug 2006 11:29:00 +1000
+
+lyricue-cvs (1:1.9.3cvs20060815) unstable; urgency=high
+
+  * Fix for extraneous bracket
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 15 Aug 2006 8:29:00 +1000
+
+lyricue-cvs (1:1.9.3cvs20060814) unstable; urgency=medium
+
+  * Fix for text/shadow colour not handling NULL values
+  * Fix for image dialog failure after changing default background
+  * Update available strings for translations
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 14 Aug 2006 11:26:00 +1000
+
+lyricue-cvs (1:1.9.3cvs20060811) unstable; urgency=medium
+
+  * Initial import of Text/shadow colour work from Bernt Hullen
+  * Added spanish translation from Jonas Delgado Mesa
+  * Fixes to dialog titles
+  * Fix to Loop setting handling (no longer ignored)
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 11 Aug 2006 11:26:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060626) unstable; urgency=medium
+
+  * Same as 1.9.3 release
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 26 Jun 2006 09:26:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060620) unstable; urgency=medium
+
+  * Selected items in sublists/songs stay selected when moving
+  * Fix sizing of quickshow/navigatorarea
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 20 Jun 2006 09:26:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060613) unstable; urgency=medium
+
+  * Add buttons to search dialog
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 13 Jun 2006 17:26:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060609) unstable; urgency=medium
+
+  * Fix for preview restart
+  * Fix for bible translation search
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 09 Jun 2006 17:26:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060605) unstable; urgency=medium
+
+  * Swedish translation from Torbjörn Björk
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 05 Jun 2006 15:07:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060529) unstable; urgency=medium
+
+  * More minor bug-fixing
+  * Allow double-clicking in choose playlist dialog
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 29 Apr 2006 15:07:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060523) unstable; urgency=high
+
+  * Initial support for SQLite
+  * GUI work on search function
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 23 Apr 2006 15:07:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060519) unstable; urgency=high
+
+  * Preparing for 1.9.3
+  * Many fixes/updates for issues discovered by Chris Young 
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 19 Apr 2006 15:15:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060518) unstable; urgency=high
+
+  * Minor patches to install and tracker handling
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 18 Apr 2006 10:15:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060516) unstable; urgency=high
+
+  * Fixes related to preview change
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 16 Apr 2006 10:15:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060508) unstable; urgency=high
+
+  * Revert to old style preview/miniview since new one wasn't working
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 8 Apr 2006 17:57:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060411) unstable; urgency=high
+
+  * Highlighting of current item in playlist
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 11 Apr 2006 12:00:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060406) unstable; urgency=high
+
+  * Move db installation to first run of lyricue
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 6 Apr 2006 15:07:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060326) unstable; urgency=high
+
+  * Dutch translation
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 26 Mar 2006 15:07:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060303) unstable; urgency=high
+
+  * Fix for searching on unicode chars
+  * Hack for verses larger than a single screen (at least it won't hang now)
+  * Re-factor advanced search dialog
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 03 Feb 2006 15:07:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060209) unstable; urgency=high
+
+  * Additional server commands for clients to get playlists
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 09 Feb 2006 16:37:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060203) unstable; urgency=high
+
+  * Optional miniature interface
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 03 Feb 2006 13:01:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060125) unstable; urgency=high
+
+  * Fixes for bible menu handling
+  * Fixes for sword bible handling in server
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 25 Jan 2006 16:14:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20060124) unstable; urgency=high
+
+  * Fixes for bible navigator
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 24 Jan 2006 16:03:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20051130) unstable; urgency=medium
+
+  * Click verse numbers in navigator to show them
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 22 Nov 2005 17:11:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20051122) unstable; urgency=medium
+
+  * Fix multiple-select in media interface
+  * Add one-more-verse button to bible navigator
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 22 Nov 2005 17:11:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20051110) unstable; urgency=medium
+
+  * Packaging update
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 10 Nov 2005 17:16:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20051106) unstable; urgency=medium
+
+  * French translation by Claude Paroz
+
+ -- Chris Debenham <chris@adebenham.com>  Sun, 06 Nov 2005 16:28:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20051104) unstable; urgency=medium
+
+  * Option for blank screen to clear page + set bg to default or just
+    clear text
+  * Quick-search now also searches first-lines
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 04 Nov 2005 16:28:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20051018) unstable; urgency=medium
+
+  * Many more bugfixes
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 18 Oct 2005 15:28:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050920) unstable; urgency=high
+
+  * Fix tray icons
+  * Fix button bar next page button
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 20 Sep 2005 14:40:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050914) unstable; urgency=medium
+
+  * Split package into app/bible packages
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 14 Sep 2005 14:53:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050905) unstable; urgency=medium
+
+  * Work on preview (new app, lyricue_preview)
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 05 Sep 2005 17:07:12 +1000
+
+lyricue-cvs (1:1.9.2cvs20050829) unstable; urgency=medium
+
+  * Experimental transparent server
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 29 Aug 2005 15:47:22 +1000
+
+lyricue-cvs (1:1.9.2cvs20050726) unstable; urgency=medium
+
+  * Various bible navigator fixes
+  * Make first item in available songs, images and backgrounds configurable
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 26 July 2005 16:24:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050719) unstable; urgency=medium
+
+  * Allow multiple images to be imported at once
+  * Fix choose category window so its above the add image window
+  * Make preview update when idle
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 19 July 2005 10:23:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050712) unstable; urgency=low
+
+  * Bugfix release for bindir error
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 12 July 2005 13:10:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050704) unstable; urgency=low
+
+  * New preview method
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 04 July 2005 12:31:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050504) unstable; urgency=high
+
+  * Data-critical bug fix to quick save
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 04 May 2005 11:44:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050503) unstable; urgency=low
+
+  * Bible-navigator fixes
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 03 May 2005 11:44:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050429) unstable; urgency=low
+
+  * Bible-navigator changes
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 29 Apr 2005 11:44:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050427) unstable; urgency=medium
+
+  * Fixes for Bible-changing crashes
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 27 Apr 2005 14:14:00 +1000
+
+lyricue-cvs (1:1.9.2cvs20050330) unstable; urgency=medium
+
+  * UTF-8 work
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 30 Mar 2005 13:56:00 +1000
+
+lyricue (1:1.9.2cvs20050322) unstable; urgency=medium
+
+  * Fix for sword handling
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 17 Mar 2005 13:56:00 +1000
+
+lyricue (1:1.9.2) unstable; urgency=medium
+
+  * New release
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 17 Mar 2005 13:56:00 +1000
+
+lyricue (1.9.2cvs20050316) unstable; urgency=low
+
+  * new cvs version
+  * Sword support
+
+ -- Chris Debenham <chris@adebenham.com>  Wed, 16 Mar 2005 15:14:00 +1000
+
+lyricue (1.9.2cvs20050311) unstable; urgency=low
+
+  * new cvs version
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 11 Mar 2005 15:14:00 +1000
+
+lyricue (1.9.2cvs20050222) unstable; urgency=low
+
+  * new cvs version
+  * .desktop files for distros to make menus from
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 22 Feb 2005 12:25:00 +1000
+
+lyricue (1.9.2cvs20050217) unstable; urgency=low
+
+  * new cvs version
+  * new utility lyricue_remote
+  * fast lyricue_server
+  * bug fixes
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 17 Feb 2005 16:55:13 +1000
+ 
+lyricue (1.9.2cvs20050204) unstable; urgency=low
+
+  * new cvs version
+  * Fixes for Media handling
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 04 Feb 2005 15:47:20 +1000
+ 
+lyricue (1.9.2cvs20050203) unstable; urgency=low
+
+  * new cvs version
+  * Added option to change vertical centreing
+  * Fixed drag'n'drop
+  * Double click songs to add them to playlist
+
+ -- Chris Debenham <chris@adebenham.com>  Thu, 03 Feb 2005 15:13:30 +1000
+
+lyricue (1.9.2cvs20041130) unstable; urgency=low
+
+  * new cvs version
+  * Fixed import media script
+  * misc bug fixes in interface
+
+ -- Chris Debenham <chris@adebenham.com>  Tue, 30 Nov 2004 10:16:00 +1000
+
+lyricue (1.9.2cvs20041122) unstable; urgency=low
+
+  * new cvs version
+
+ -- Chris Debenham <chris@adebenham.com>  Mon, 11 Nov 2004 10:16:00 +1000
+
+lyricue (1.9.2cvs20041019) unstable; urgency=low
+
+  * new cvs version
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 19 Oct 2004 10:16:00 +1000
+
+lyricue (1.9.2cvs20041001) unstable; urgency=low
+
+  * new release
+
+ -- Chris Debenham <chris@adebenham.com>  Fri, 1 Oct 2004 10:16:00 +1000
+
+lyricue (1.9.2cvs20040928) unstable; urgency=low
+
+  * new cvs version
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Tue, 28 Sep 2004 00:18:29 +0200
+
+lyricue (1.9.2cvs20040915-5) unstable; urgency=low
+
+  * debian directory revised
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Wed, 22 Sep 2004 11:51:55 +0200
+
+lyricue (1.9.2cvs20040915-4) unstable; urgency=low
+
+  * some more additional translation
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Fri, 17 Sep 2004 21:50:13 +0200
+
+lyricue (1.9.2cvs20040915-3) unstable; urgency=low
+
+  * fixed some translation issues and added further translation
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Fri, 17 Sep 2004 17:01:33 +0200
+
+lyricue (1.9.2cvs20040915-2) unstable; urgency=low
+
+  * german translation
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Wed, 15 Sep 2004 04:56:08 +0200
+
+lyricue (1.9.2cvs20040915-1) unstable; urgency=low
+
+  * fixed umlaut problems in add/edit song
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Wed, 15 Sep 2004 03:29:01 +0200
+
+lyricue (1.9.2cvs20040915) unstable; urgency=low
+
+  * new cvs build
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Wed, 15 Sep 2004 00:21:17 +0200
+
+lyricue (1.9.1cvs20040818) unstable; urgency=low
+
+  * new cvs build
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Wed, 18 Aug 2004 05:34:01 +0200
+
+lyricue (1.9.1cvs-1) unstable; urgency=low
+
+  * fixed background preference dialog
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Sun, 11 Jul 2004 20:01:07 +0200
+
+lyricue (1.9.1cvs) unstable; urgency=low
+
+  * new cvs build.
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Wed, 30 Jun 2004 16:10:02 +0200
+
+lyricue (1.9) unstable; urgency=low
+
+  * Initial release.
+
+ -- Tobias Gehrig <tobias@localhost.localdomain>  Sun, 27 Jun 2004 23:39:48 +0200

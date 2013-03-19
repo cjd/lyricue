@@ -2,19 +2,25 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lyricue 2.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-31 09:21+1000\n"
-"PO-Revision-Date: 2009-08-01 12:11+0000\n"
+"POT-Creation-Date: 2013-03-18 04:54+0000\n"
+"PO-Revision-Date: 2012-10-19 01:17+0000\n"
 "Last-Translator: ChrisDebenham <chris@adebenham.com>\n"
 "Language-Team: sv <lds-devel@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2009-11-01 23:56+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2013-03-19 05:42+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 "X-Poedit-Country: SWEDEN\n"
+"Language: \n"
 "X-Poedit-Language: Swedish\n"
 
-#: lyricue:241
+#: ../src/database.c:113
+#, c-format
+msgid "SQL Error %u: %s"
+msgstr ""
+
+#: ../src/lyricue:292
 msgid ""
 "I'm sorry but I could not open the lyric database.\n"
 "Please confirm that Lyricue is installed correctly and MySQL is running"
@@ -22,7 +28,7 @@ msgstr ""
 "Tyvärr kan jag inte öppna textdatabasen.\n"
 "Kontrollera att Lyricue är korrekt installerat och att MySQL kör."
 
-#: lyricue:246 lyricue_server:206
+#: ../src/lyricue:297
 msgid ""
 "I'm sorry but I could not open the bible database.\n"
 "Please confirm that Lyricue is installed correctly and the current bible "
@@ -34,7 +40,7 @@ msgstr ""
 "existerar.\n"
 "Den efterfrågade databasen var "
 
-#: lyricue:251
+#: ../src/lyricue:302
 msgid ""
 "I'm sorry but I could not open the media database.\n"
 "Please confirm that Lyricue is installed correctly and MySQL is running"
@@ -42,7 +48,7 @@ msgstr ""
 "Tyvärr kan jag inte öppna mediadatabasen.\n"
 "Kontrollera att Lyricue är korrekt installerat och att MySQL kör."
 
-#: lyricue:255 lyricue_server:210
+#: ../src/lyricue:306
 msgid ""
 "Unable to prepare query.\n"
 "Has mysql died?"
@@ -50,7 +56,7 @@ msgstr ""
 "Kan inte förbereda databasfrågan.\n"
 " Har MySQL dött?"
 
-#: lyricue:257 lyricue_server:212
+#: ../src/lyricue:308
 msgid ""
 "Unable to execute query.\n"
 "Has mysql died?"
@@ -58,7 +64,7 @@ msgstr ""
 "Kan inte utföra databasfrågan.\n"
 " Har MySQL dött?"
 
-#: lyricue:260 lyricue_server:215
+#: ../src/lyricue:311
 msgid ""
 "Sorry, I was unable to listen on the network.\n"
 "Please make sure I am not already running"
@@ -66,11 +72,11 @@ msgstr ""
 "Tyvärr kunde jag inte lyssna på nätverket.\n"
 "Kontrollera att jag inte redan kör."
 
-#: lyricue:263
+#: ../src/lyricue:314
 msgid "Could not open "
 msgstr "Kunde inte öppna "
 
-#: lyricue:266
+#: ../src/lyricue:317
 msgid ""
 "Unable to read the file, are you sure it exists?\n"
 "The file asked for was "
@@ -78,7 +84,7 @@ msgstr ""
 "Kunde inte läsa filen, är du säker på att den finns?.\n"
 "Den sökta filen heter "
 
-#: lyricue:271
+#: ../src/lyricue:322
 msgid ""
 "Unable to write to the file, you may not have sufficent permissions.\n"
 "Please check the permissions for "
@@ -86,253 +92,247 @@ msgstr ""
 "Kunde inte skriva till filen, du har kanske inte tillräckliga rättigheter.\n"
 "Kontrollera filrättigheterna för "
 
-#: lyricue:276
+#: ../src/lyricue:327
 msgid ""
 "\n"
 "Usage: lyricue <-v|-l> <-b> <-k> <-d> <-s>\n"
 "\n"
-"\t-v:  Prints Lyricue version information & exits\n"
-"\t-l:  Outputs song list in HTML & exits\n"
-"\t-b:  Loads Lyricue without background previews\n"
-"\t-s:  Specify the host on which the lyric server is located\n"
-"\t-r:  Specify the host on which the mysql server is located\n"
-"\t-d:  Prints debugging messages\n"
-"\t-w:  Don't maximize on startup\n"
-"\t-i:  Import songlist from file\n"
-"\n"
 msgstr ""
 
-#: lyricue:290
-msgid ""
-"No bible has been selected\n"
-"Please select one from the menu"
+#: ../src/lyricue:341
+msgid "No bible has been selected\n"
 msgstr ""
 
-#: lyricue:407
-msgid ""
-"The directory used to hold configuration files has changed\n"
-"It is now ~/.local/share/lyricue\n"
-"If you do not wish to do this press Cancel and Lyricue will exit"
+#: ../src/lyricue:450
+msgid "The directory used to hold configuration files has changed\n"
 msgstr ""
 
-#: lyricue:965 lyricue:4867 lyricue:9301
+#: ../src/lyricue:1034 ../src/lyricue:1440 ../src/lyricue:5287
 msgid "Title"
 msgstr "Titel"
 
-#: lyricue:968 lyricue:4872 lyricue:9303
+#: ../src/lyricue:1037 ../src/lyricue:1446 ../src/lyricue:5297
 msgid "Book"
 msgstr "Bok"
 
-#: lyricue:971 lyricue:9304 lyricue.glade:2518
+#: ../src/lyricue:1040 ../src/lyricue:1449 ../src/lyricue:4462
+#: ../data/windowEditSong.ui.h:15
 msgid "Song Number"
 msgstr "Nummer"
 
-#: lyricue:1109
+#: ../src/lyricue:1200
 msgid "/Edit Song"
 msgstr "/Redigera Sång"
 
-#: lyricue:1114
+#: ../src/lyricue:1205
 msgid "/Delete Song"
 msgstr "/Radera Sång"
 
-#: lyricue:1121
+#: ../src/lyricue:1212
 msgid "/Refresh List"
 msgstr "/Uppdatera lista"
 
-#: lyricue:1125
+#: ../src/lyricue:1216
 msgid "/Order - Songbook -> No."
 msgstr "/Sortera - Sångbook -> Nummer"
 
-#: lyricue:1129
+#: ../src/lyricue:1220
 msgid "/Order - Songbook -> Name."
 msgstr "/Sortera - Sångbok -> Namn"
 
-#: lyricue:1137
+#: ../src/lyricue:1228
 msgid "/Add to Playlist"
 msgstr "/Lägg till i spellista"
 
-#: lyricue:1214
+#: ../src/lyricue:1329
 msgid "/Duplicate Item"
 msgstr "/Duplicera objekt"
 
-#: lyricue:1216
+#: ../src/lyricue:1331
 msgid "/Remove from Playlist"
 msgstr "/Ta bort från spellista"
 
-#: lyricue:1219
+#: ../src/lyricue:1334
 msgid "/Refresh Playlist"
 msgstr "/Uppdatera spellista"
 
-#: lyricue:1220
-msgid "/Add Verse"
-msgstr "/Lägg till vers"
-
-#: lyricue:1221
+#: ../src/lyricue:1335
 msgid "/Invert Line Display"
 msgstr "/Inverterad radvisning"
 
-#: lyricue:1222
+#: ../src/lyricue:1336
 msgid "/Loop this playlist item"
 msgstr "/Loopa detta objekt"
 
-#: lyricue:1224
+#: ../src/lyricue:1338
 msgid "/Associate background"
 msgstr "/Associera bakgrund"
 
-#: lyricue:1228
+#: ../src/lyricue:1342
 msgid "/Dis-associate background"
 msgstr "/De-associera bakgrund"
 
-#: lyricue:1232
-msgid "/Preview this item"
-msgstr "/Förhandsvisa"
-
-#: lyricue:1236
+#: ../src/lyricue:1346
 msgid "/Move to sublist/Main"
 msgstr "/Flytta till underlista/Main"
 
-#: lyricue:1241
+#: ../src/lyricue:1351
 msgid "/Move to sublist/"
 msgstr "/Flytta till underlista/"
 
-#: lyricue:1319 lyricue:9015
+#: ../src/lyricue:1416
 msgid "Are you sure you wish to delete "
 msgstr "Är du säker att du vill ta bort "
 
-#: lyricue:1324
-msgid "from the book \""
-msgstr "från boken \""
-
-#: lyricue:1328
-msgid "which was written by \""
-msgstr "som skrevs av \""
-
-#: lyricue:1771 lyricue:1805 lyricue:1815 lyricue:3134
-msgid "Page "
-msgstr "Sida "
-
-#: lyricue:2799
-msgid "Are you sure you wish to clear the current playlist?"
-msgstr "Är du säker att du vill rensa spellistan?"
-
-#: lyricue:2802
-msgid "Confirm Clear Playlist"
-msgstr "Bekräfta rensa spellista"
-
-#: lyricue:3545 lyricue_server:1111 lyricue_server:1189
-msgid "Displaying "
-msgstr "Visar "
-
-#: lyricue:3547 lyricue:3668 lyricue_server:1113
-msgid " verses "
-msgstr " verser "
-
-#: lyricue:3549 lyricue:3670 lyricue_server:1191
-msgid " page "
-msgstr " sida "
-
-#: lyricue:3666
-msgid "Previewed "
-msgstr "Förhandsvisad "
-
-#: lyricue:3720
-msgid "Select "
-msgstr "Välj "
-
-#: lyricue:3720
-msgid " Colour"
-msgstr " Färg"
-
-#: lyricue:4877
-msgid "Song No"
-msgstr "Sång nr"
-
-#: lyricue:5286
-msgid "Create new playlist"
-msgstr ""
-
-#: lyricue:5288
-msgid "Name of playlist"
-msgstr ""
-
-#: lyricue:5379
-msgid "Renaming "
-msgstr "Byter namn "
-
-#: lyricue:6095 lyricue:6150
-msgid "Importing presentation"
-msgstr ""
-
-#: lyricue:6746 lyricue:8560 lyricue:8885
-msgid "Select Category"
-msgstr "Välj kategori"
-
-#: lyricue:7087
-msgid "Choose a Directory"
-msgstr ""
-
-#: lyricue:7089 lyricue.glade:2033 lyricue.glade:2975 lyricue.glade:3833
-#: lyricue.glade:7785
-msgid "Cancel"
-msgstr "Avbryt"
-
-#: lyricue:7090
-msgid "OK"
-msgstr ""
-
-#: lyricue:7137 lyricue:7278
-msgid "Create new sublist"
-msgstr "Skapa ny undergrupp"
-
-#: lyricue:7139 lyricue:7280
-msgid "Name of sublist"
-msgstr ""
-
-#: lyricue:7204
-msgid "Choose a Background"
-msgstr "Välj en bakgrund"
-
-#: lyricue:7220
-msgid "Set as Default"
-msgstr "Sätt som standard"
-
-#: lyricue:8003
-msgid ""
-"This user has no access entry.\n"
-"By default they will have full access.\n"
-"To fix please edit /etc/lyricue/access.conf and add an entry for this user.\n"
-"Click OK to continue anyway or Cancel to Exit"
-msgstr ""
-
-#: lyricue:8087
-msgid "Add a user"
-msgstr "Lägg till en användare"
-
-#: lyricue:8089
-msgid "Enter username"
-msgstr ""
-
-#: lyricue:9022
-msgid "Confirm Delete Image"
-msgstr "Bekräfta borttagning av bild"
-
-#: lyricue:9169
-msgid "Select Database Backup file"
-msgstr "Välj databasfil"
-
-#: lyricue:9179
-msgid "Confirm Restore Database"
-msgstr "Bekräfta återställ från säkerhetskopia"
-
-#: lyricue:9183
-msgid "WARNING: Restoring this database will overwrite your current database"
-msgstr ""
-
-#: lyricue:9302 lyricue.glade:2621
+#: ../src/lyricue:1443 ../src/lyricue:4463 ../src/lyricue:5292
+#: ../data/windowEditSong.ui.h:22
 msgid "Artist"
 msgstr "Artist"
 
-#: lyricue:10642
+#: ../src/lyricue:1729 ../src/lyricue:2021 ../src/lyricue:2029
+#: ../src/lyricue:2041 ../src/lyricue:3380
+msgid "Page "
+msgstr "Sida "
+
+#: ../src/lyricue:1989 ../data/windowEditSong.ui.h:5
+msgid "Page"
+msgstr "Sida"
+
+#: ../src/lyricue:2320
+msgid "Select song to import"
+msgstr ""
+
+#: ../src/lyricue:3043
+msgid "Are you sure you wish to clear the current playlist?"
+msgstr "Är du säker att du vill rensa spellistan?"
+
+#: ../src/lyricue:3046
+msgid "Confirm Clear Playlist"
+msgstr "Bekräfta rensa spellista"
+
+#: ../src/lyricue:3842
+msgid "Displaying "
+msgstr "Visar "
+
+#: ../src/lyricue:3844
+msgid " verses "
+msgstr " verser "
+
+#: ../src/lyricue:3846
+msgid " page "
+msgstr " sida "
+
+#: ../src/lyricue:4001
+msgid "Select "
+msgstr "Välj "
+
+#: ../src/lyricue:4001
+msgid " Colour"
+msgstr " Färg"
+
+#: ../src/lyricue:4359 ../src/lyricue:4364 ../data/dialogSearch.ui.h:4
+msgid "Song Contents"
+msgstr "Sångtext"
+
+#: ../src/lyricue:4443 ../src/lyricue:4455 ../data/assistantFirstRun.ui.h:34
+#: ../data/dialogPrefs.ui.h:40
+msgid "Available songs"
+msgstr "Tillgängliga sånger"
+
+#: ../src/lyricue:4456
+msgid "Total number of songs available"
+msgstr ""
+
+#: ../src/lyricue:4460 ../data/windowEditSong.ui.h:23
+msgid "Song Name"
+msgstr "Sångnamn"
+
+#: ../src/lyricue:4461 ../data/windowEditSong.ui.h:11
+msgid "Song Book"
+msgstr "Sångbok"
+
+#: ../src/lyricue:5192 ../src/lyricue:13010 ../src/lyricue:13911
+msgid "Enter filename for export"
+msgstr ""
+
+#: ../src/lyricue:5302
+msgid "Song No"
+msgstr "Sång nr"
+
+#: ../src/lyricue:5730
+msgid "Create new playlist"
+msgstr ""
+
+#: ../src/lyricue:5732
+msgid "Name of playlist"
+msgstr ""
+
+#: ../src/lyricue:5805
+msgid "Copying "
+msgstr ""
+
+#: ../src/lyricue:5846
+msgid "Renaming "
+msgstr "Byter namn "
+
+#: ../src/lyricue:6296 ../src/lyricue:6320
+msgid "Load Lyricue Display"
+msgstr ""
+
+#: ../src/lyricue:6297 ../src/lyricue:6320
+msgid "Close Lyricue Display"
+msgstr ""
+
+#: ../src/lyricue:6765 ../src/lyricue:6832
+msgid "Importing presentation"
+msgstr ""
+
+#: ../src/lyricue:7419 ../data/dialogSelectCategory.ui.h:1
+msgid "Select Category"
+msgstr "Välj kategori"
+
+#: ../src/lyricue:7801
+msgid "Choose a Directory"
+msgstr "Välj en mapp"
+
+#: ../src/lyricue:7803 ../data/dialogSearch.ui.h:6 ../data/windowBook.ui.h:71
+#: ../data/windowEditSong.ui.h:30 ../data/windowMain.ui.h:90
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: ../src/lyricue:7804
+msgid "OK"
+msgstr "OK"
+
+#: ../src/lyricue:7847 ../src/lyricue:7984
+msgid "Create new sublist"
+msgstr "Skapa ny undergrupp"
+
+#: ../src/lyricue:7849 ../src/lyricue:7986
+msgid "Name of sublist"
+msgstr ""
+
+#: ../src/lyricue:7912
+msgid "Choose a Background"
+msgstr "Välj en bakgrund"
+
+#: ../src/lyricue:7928
+msgid "Set as Default"
+msgstr "Sätt som standard"
+
+#: ../src/lyricue:8846
+msgid "Add a user"
+msgstr "Lägg till en användare"
+
+#: ../src/lyricue:8848
+msgid "Enter username"
+msgstr "Ange användarnamn"
+
+#: ../src/lyricue:11583
+msgid "Are you sure you want to exit Lyricue?"
+msgstr ""
+
+#: ../src/lyricue:11648
 msgid ""
 "Unable to login to database as admin, maybe the database is down.\n"
 "Please re-enter your database admin login and retry"
@@ -341,1330 +341,105 @@ msgstr ""
 "nere.\n"
 "Mata in din databasinloggning igen."
 
-#: lyricue:10649
+#: ../src/lyricue:11654
 msgid "Login Error"
 msgstr "Loginfel"
 
-#: lyricue:11527
+#: ../src/lyricue:12576
+msgid "No DVD titles found"
+msgstr ""
+
+#: ../src/lyricue:12579
+msgid "Unable to open the dvd.  There may be no media in the drive"
+msgstr ""
+
+#: ../src/lyricue:12804
 msgid "Bible installed from "
 msgstr ""
 
-#: lyricue:11529
+#: ../src/lyricue:12806
 msgid "Unable to load from "
 msgstr ""
 
-#: lyricue:11591
+#: ../src/lyricue:12867
 msgid "Install new bibles"
 msgstr ""
 
-#: lyricue:12095
+#: ../src/lyricue:13395
 msgid "First-run wizard"
 msgstr ""
 
-#: lyricue:12100
+#: ../src/lyricue:13400
 msgid "Welcome"
+msgstr "Välkommen"
+
+#: ../src/lyricue:13403
+msgid "Location"
 msgstr ""
 
-#: lyricue:12105
+#: ../src/lyricue:13414
 msgid "Database login"
-msgstr ""
+msgstr "Databaslogin"
 
-#: lyricue:12110
+#: ../src/lyricue:13419
 msgid "Projector settings"
 msgstr ""
 
-#: lyricue:12136 lyricue.glade:4727
+#: ../src/lyricue:13445 ../data/dialogPrefs.ui.h:10
 msgid "Fonts"
 msgstr "Fonter"
 
-#: lyricue:12147
+#: ../src/lyricue:13458
 msgid "Image Directories"
 msgstr ""
 
-#: lyricue:12160
+#: ../src/lyricue:13471
 msgid "Most-used items"
 msgstr ""
 
-#: lyricue:12191
+#: ../src/lyricue:13502
 msgid "Confirm"
-msgstr ""
+msgstr "Bekräfta"
 
-#: lyricue:12269
+#: ../src/lyricue:13580
 msgid "<i>Username/Password accepted</i>"
 msgstr ""
 
-#: lyricue:12274 lyricue.glade:7956
+#: ../src/lyricue:13585 ../data/assistantFirstRun.ui.h:15
 msgid "<i>Username/Password failed</i>"
-msgstr ""
+msgstr "<i>Användarnamn/lösenord misslyckades</i>"
 
-#: lyricue_server:201
-msgid ""
-"I'm sorry but I could not open the lyric database.\n"
-"Please confirm that Lyricue is installed correctly and MySql is running"
-msgstr ""
-
-#: lyricue_server:494
-msgid "Configuration reloaded"
-msgstr "Konfiguration omladdad"
-
-#: lyricue_server:498
-msgid "Backdrop changed to "
-msgstr "Backgrund ändrad till "
-
-#: lyricue_server:506
-msgid "Screen blanked"
-msgstr "Skärm rensad"
-
-#: lyricue_server:508
-msgid "Text cleared"
-msgstr ""
-
-#: lyricue_server:513
-msgid "Bible changed to "
-msgstr "Bibel ändrad till "
-
-#: lyricue_server:555 lyricue_server:560 lyricue_server:1145
+#: ../src/lyricue_display.c:287 ../src/lyricue_display.c:292
 msgid "Written by "
 msgstr "Skriven av "
 
-#: lyricue.glade:6
-msgid "Lyricue"
-msgstr "Lyricue"
-
-#: lyricue.glade:19 lyricue.glade:2337
-msgid "_File"
-msgstr "_Arkiv"
-
-#: lyricue.glade:25
-msgid "Manage _Images"
-msgstr "_Bilder"
-
-#: lyricue.glade:40
-msgid "Manage _Background"
-msgstr "Bak_grunder"
-
-#: lyricue.glade:55
-msgid "Import Songlist"
-msgstr ""
-
-#: lyricue.glade:70
-msgid "Export Songlist"
-msgstr ""
-
-#: lyricue.glade:99
-msgid "_Edit"
-msgstr "_Redigera"
-
-#: lyricue.glade:105
-msgid "_Add Song"
-msgstr "_Lägg till sång"
-
-#: lyricue.glade:121
-msgid "Advanced _Search"
-msgstr "_Avancerad sökning"
-
-#: lyricue.glade:137
-msgid "_Edit Song"
-msgstr "_Redigera sång"
-
-#: lyricue.glade:153
-msgid "_Delete Song"
-msgstr "_Ta bort sång"
-
-#: lyricue.glade:169
-msgid "_Refresh List"
-msgstr "_Uppdatera lista"
-
-#: lyricue.glade:194
-msgid "_Configuration Wizard"
-msgstr ""
-
-#: lyricue.glade:209
-msgid "_User Administration"
-msgstr "_Användare"
-
-#: lyricue.glade:229
-msgid "_Playlist"
-msgstr "_Spellista"
-
-#: lyricue.glade:235
-msgid "_Select Playlist"
-msgstr "_Välj spellista"
-
-#: lyricue.glade:250
-msgid "_Clear Playlist"
-msgstr "_Rensa spellista"
-
-#: lyricue.glade:265
-msgid "_Refresh Playlist"
-msgstr "_Uppdatera spellista"
-
-#: lyricue.glade:280
-msgid "_Clear Image Associations"
-msgstr "Rensa _bildassociationer"
-
-#: lyricue.glade:295
-msgid "_Invert Line Display"
-msgstr "_Invertera radvisning"
-
-#: lyricue.glade:315
-msgid "Playlist _Item"
-msgstr "Spellist_objekt"
-
-#: lyricue.glade:321
-msgid "_Add from Available"
-msgstr "_Lägg till från tillgängliga"
-
-#: lyricue.glade:336
-msgid "Add _Image"
-msgstr "Lägg till _bild"
-
-#: lyricue.glade:352
-msgid "Add _File"
-msgstr "Lägg till _fil"
-
-#: lyricue.glade:367
-msgid "Add _Directory"
-msgstr ""
-
-#: lyricue.glade:382
-msgid "_Remove from Playlist"
-msgstr "_Ta bort från spellista"
-
-#: lyricue.glade:402
-msgid "_Display"
-msgstr "_Visning"
-
-#: lyricue.glade:408
-msgid "_Previous Page"
-msgstr "_Föregående sida"
-
-#: lyricue.glade:423
-msgid "_Next Page"
-msgstr "_Nästa sida"
-
-#: lyricue.glade:438
-msgid "_Display Now"
-msgstr "_Visa nu"
-
-#: lyricue.glade:453
-msgid "_Blank Display"
-msgstr "_Töm skärm"
-
-#: lyricue.glade:468
-msgid "_Clear Text"
-msgstr "_Rensa text"
-
-#: lyricue.glade:483
-msgid "_Live Video"
-msgstr ""
-
-#: lyricue.glade:503
-msgid "_Applications"
-msgstr "_Program"
-
-#: lyricue.glade:510
-msgid "_Bible"
-msgstr "_Bibeln"
-
-#: lyricue.glade:517 lyricue.glade:2430
-msgid "_Help"
-msgstr "_Hjälp"
-
-#: lyricue.glade:523
-msgid "Online Documentation"
-msgstr ""
-
-#: lyricue.glade:562
-msgid "Prev. Page"
-msgstr "Föregående sida"
-
-#: lyricue.glade:575 lyricue.glade:4236
-msgid "Next Page"
-msgstr "Nästa sida"
-
-#: lyricue.glade:588
-msgid "Next Point"
-msgstr "Nästa punkt"
-
-#: lyricue.glade:601
-msgid "Blank Screen"
-msgstr "Töm skärm"
-
-#: lyricue.glade:614
-msgid "Clear Text"
-msgstr "Rensa text"
-
-#: lyricue.glade:627
-msgid "Pause Media"
-msgstr ""
-
-#: lyricue.glade:640
-msgid "Add File"
-msgstr ""
-
-#: lyricue.glade:683 lyricue.glade:3652
-msgid "Search"
-msgstr "Sök"
-
-#: lyricue.glade:688 lyricue.glade:3589
-msgid "Advanced Search"
-msgstr "Avancerad sökning"
-
-#: lyricue.glade:702
-msgid "Search the songlist directly"
-msgstr "Sök direkt i sånglistan"
-
-#: lyricue.glade:716
-msgid "Clear Search Field"
-msgstr "Rensa sökfält"
-
-#: lyricue.glade:760 lyricue.glade:1994
-msgid "New"
-msgstr "Ny"
-
-#: lyricue.glade:774 lyricue.glade:4391
-msgid "Edit"
-msgstr "Redigera"
-
-#: lyricue.glade:788
-msgid "Add the selected song to the playlist"
-msgstr "Lägg till vald sång till spellistan"
-
-#: lyricue.glade:790 lyricue.glade:3783
-msgid "Add to playlist"
-msgstr "Lägg till i spellistan"
-
-#: lyricue.glade:815
-msgid "Songs"
-msgstr ""
-
-#: lyricue.glade:878 lyricue.glade:2180
-msgid "Current"
-msgstr "Nuvarande"
-
-#: lyricue.glade:901
-msgid "Previous"
-msgstr "Föregående"
-
-#: lyricue.glade:919
-msgid "Background preview"
-msgstr ""
-
-#: lyricue.glade:940 lyricue.glade:5387 lyricue.glade:8446
-msgid "Backgrounds"
-msgstr "Bakgrunder"
-
-#: lyricue.glade:993 lyricue.glade:1203
-msgid "Add to Playlist"
-msgstr "Lägg till i spellistan"
-
-#: lyricue.glade:1018 lyricue.glade:5374 lyricue.glade:8434
-msgid "Images"
-msgstr "Bilder"
-
-#: lyricue.glade:1054
-msgid "Files"
-msgstr ""
-
-#: lyricue.glade:1069
-msgid "Enter Verse to display"
-msgstr "Välj vers att visa"
-
-#: lyricue.glade:1082
-msgid "<"
-msgstr "<"
-
-#: lyricue.glade:1108
-msgid ">"
-msgstr ">"
-
-#: lyricue.glade:1201
-msgid "Add these verses to the playlist"
-msgstr "Lägg till valda verser till spellistan"
-
-#: lyricue.glade:1217
-msgid "Show Now"
-msgstr "Visa nu"
-
-#: lyricue.glade:1219 lyricue.glade:2263
-msgid "Show"
-msgstr "Visa"
-
-#: lyricue.glade:1233
-msgid "Autoshow"
-msgstr "Automatisk visning"
-
-#: lyricue.glade:1257 lyricue.glade:5283 lyricue.glade:8519
-msgid "Bible"
-msgstr "Bibel"
-
-#: lyricue.glade:1276
-msgid "Fade"
-msgstr ""
-
-#: lyricue.glade:1293
-msgid "Slide Text"
-msgstr "Dra text"
-
-#: lyricue.glade:1310
-msgid "Wipe to Black"
-msgstr "Sudda till svart"
-
-#: lyricue.glade:1327
-msgid "Rotate Text"
-msgstr ""
-
-#: lyricue.glade:1374
-msgid "In Direction"
-msgstr "Riktning in"
-
-#: lyricue.glade:1383
-msgid "Out Direction"
-msgstr "Riktning ut"
-
-#: lyricue.glade:1711
-msgid "Rotate Direction"
-msgstr ""
-
-#: lyricue.glade:1719
-msgid "X-Axis"
-msgstr ""
-
-#: lyricue.glade:1731
-msgid "Y-Axis"
-msgstr ""
-
-#: lyricue.glade:1745
-msgid "Z-Axis"
-msgstr ""
-
-#: lyricue.glade:1777
-msgid "Apply to Selected"
-msgstr ""
-
-#: lyricue.glade:1793
-msgid "Apply to Playlist"
-msgstr ""
-
-#: lyricue.glade:1822
-msgid "Transitions"
-msgstr ""
-
-#: lyricue.glade:1865 lyricue.glade:4376
-msgid "Playlist"
-msgstr "Spellista"
-
-#: lyricue.glade:1875
-msgid "No Playlist loaded"
-msgstr "Ingen spellista laddad"
-
-#: lyricue.glade:1948
-msgid "Choose Your Playlist"
-msgstr "Välj en spellista"
-
-#: lyricue.glade:1981
-msgid "Load"
-msgstr "Ladda"
-
-#: lyricue.glade:2007 lyricue.glade:4406
-msgid "Delete"
-msgstr "Ta bort"
-
-#: lyricue.glade:2020
-msgid "Rename"
-msgstr "Byt namn"
-
-#: lyricue.glade:2061
-msgid "Move the current item down"
-msgstr "Flytta valt objekt neråt i listan"
-
-#: lyricue.glade:2062
-msgid "Move Down"
-msgstr "Flytta ner"
-
-#: lyricue.glade:2076
-msgid "Move the current item up"
-msgstr "Flytta valt objekt neråt i listan"
-
-#: lyricue.glade:2077
-msgid "Move Up"
-msgstr "Flytta upp"
-
-#: lyricue.glade:2091
-msgid "Remove the current item from the playlist"
-msgstr "Ta bort objektet från spellistan"
-
-#: lyricue.glade:2093
-msgid "Remove"
-msgstr "Ta bort"
-
-#: lyricue.glade:2107
-msgid "Add Sublist"
-msgstr "Lägg till lista"
-
-#: lyricue.glade:2154 lyricue.glade:2799
-msgid "Preview"
-msgstr "Förhandsvisning"
-
-#: lyricue.glade:2219
-msgid "Quick Update"
-msgstr "Snabbuppdatering"
-
-#: lyricue.glade:2249 lyricue.glade:2361
-msgid "Save"
-msgstr "Spara"
-
-#: lyricue.glade:2324
-msgid "Add new Song"
-msgstr "Lägg till sång"
-
-#: lyricue.glade:2343
-msgid "Import"
-msgstr "Import"
-
-#: lyricue.glade:2352
-msgid "Export"
-msgstr "Export"
-
-#: lyricue.glade:2370
-msgid "Close"
-msgstr "Stäng"
-
-#: lyricue.glade:2384
-msgid "Page"
-msgstr "Sida"
-
-#: lyricue.glade:2390 lyricue.glade:2712
-msgid "Add Page"
-msgstr "Lägg till sida"
-
-#: lyricue.glade:2399 lyricue.glade:2762
-msgid "Remove Page"
-msgstr "Ta bort sida"
-
-#: lyricue.glade:2408
-msgid "Preview Page"
-msgstr "Förhandsvisa sida"
-
-#: lyricue.glade:2422
-msgid "Insert preset copyright"
-msgstr "Infoga standard-Copyright"
-
-#: lyricue.glade:2464
-msgid "Song Book"
-msgstr "Sångbok"
-
-#: lyricue.glade:2478
-msgid "Keywords"
-msgstr "Nyckelord"
-
-#: lyricue.glade:2492
-msgid "Copyright"
-msgstr "Copyright"
-
-#: lyricue.glade:2505
-msgid "The songbook name"
-msgstr "Sångbokens namn"
-
-#: lyricue.glade:2533
-msgid "The song number within the book"
-msgstr "Sångens nummer i sångboken"
-
-#: lyricue.glade:2547
-msgid "The title of the song"
-msgstr "Sångens titel"
-
-#: lyricue.glade:2559
-msgid "Who wrote this"
-msgstr "Vem skrev detta"
-
-#: lyricue.glade:2573
-msgid "Topics of song"
-msgstr "Sångens handlar om"
-
-#: lyricue.glade:2587
-msgid "Any copyright information"
-msgstr "Copyrightinformation"
-
-#: lyricue.glade:2599
-msgid "Audit Song"
-msgstr "Logga sång"
-
-#: lyricue.glade:2635
-msgid "Song Name"
-msgstr "Sångnamn"
-
-#: lyricue.glade:2660
-msgid "label27"
-msgstr ""
-
-#: lyricue.glade:2666
-msgid "label26"
-msgstr ""
-
-#: lyricue.glade:2784 lyricue.glade:4421
-msgid "Display"
-msgstr "Visa"
-
-#: lyricue.glade:2843
-msgid "Spell Check"
-msgstr "Stavningskontroll"
-
-#: lyricue.glade:2865
-msgid "Honourise"
-msgstr "Hedra"
-
-#: lyricue.glade:2870
-msgid "Capitalize some words etc"
-msgstr "Versalisera vissa egennamn mm."
-
-#: lyricue.glade:2925
-msgid "Save and Close"
-msgstr "Spara och stäng"
-
-#: lyricue.glade:3005
-msgid "About Lyricue"
-msgstr "Om Lyricue"
-
-#: lyricue.glade:3025
-msgid "Version ##VERSION##"
-msgstr ""
-
-#: lyricue.glade:3036
-msgid ""
-"Written By:\n"
-"Chris Debenham & Clint Turner\n"
-"Website:\n"
-"http://www.lyricue.org/"
-msgstr ""
-
-#: lyricue.glade:3059
-msgid "Thanks"
-msgstr "Tackar!"
-
-#: lyricue.glade:3079
-msgid "Select Font"
-msgstr "Välj font"
-
-#: lyricue.glade:3119
-msgid "Select Colour"
-msgstr "Välj färg"
-
-#: lyricue.glade:3155
-msgid "Confirm Delete Song"
-msgstr "Bekräfta borttagning av sång"
-
-#: lyricue.glade:3167
-msgid "Are you sure?"
-msgstr "Är du säker?"
-
-#: lyricue.glade:3223
-msgid "Choose an Image"
-msgstr "Välj en bild"
-
-#: lyricue.glade:3244
-msgid "Category"
-msgstr "Kategori"
-
-#: lyricue.glade:3297
-msgid "Sublist"
-msgstr "Underlista"
-
-#: lyricue.glade:3388
-msgid "Move"
-msgstr "Flytta"
-
-#: lyricue.glade:3445 lyricue.glade:4561
-msgid "Font Colour"
-msgstr "Teckenfärg"
-
-#: lyricue.glade:3456 lyricue.glade:4665
-msgid "Shadow Colour"
-msgstr "Skuggfärg"
-
-#: lyricue.glade:3602
-msgid "Search Lyrics"
-msgstr "Söktext"
-
-#: lyricue.glade:3711
-msgid "Song Contents"
-msgstr "Sångtext"
-
-#: lyricue.glade:3866
-msgid "Select File"
-msgstr "Välj fil"
-
-#: lyricue.glade:4075
-msgid "Set Loop timer"
-msgstr "Sätt loop-tid"
-
-#: lyricue.glade:4089
-msgid "Seconds"
-msgstr "Sekunder"
-
-#: lyricue.glade:4111
-msgid "Milliseconds"
-msgstr "MIllisekunder"
-
-#: lyricue.glade:4184
-msgid "You should never read this"
-msgstr "Du ska aldrig läsa detta"
-
-#: lyricue.glade:4194
-msgid "Previous Song"
-msgstr "Föregående sång"
-
-#: lyricue.glade:4208
-msgid "Next Song"
-msgstr "Nästa sång"
-
-#: lyricue.glade:4222
-msgid "Previous Page"
-msgstr "Föregående sida"
-
-#: lyricue.glade:4250
-msgid "Clear Screen"
-msgstr "Rensa skärm"
-
-#: lyricue.glade:4265
-msgid "Lyricue Error"
-msgstr "Lyricue fel"
-
-#: lyricue.glade:4293
-msgid "label"
-msgstr ""
-
-#: lyricue.glade:4301
-msgid "Details"
-msgstr ""
-
-#: lyricue.glade:4344
-msgid "Lyricue Administration"
-msgstr "Lyricue administration"
-
-#: lyricue.glade:4363
-msgid "Username"
-msgstr "Användarnamn"
-
-#: lyricue.glade:4436
-msgid "Admin"
-msgstr "Administratör"
-
-#: lyricue.glade:4449
-msgid "Add user"
-msgstr "Lägg till användare"
-
-#: lyricue.glade:4515
-msgid "Preferences"
-msgstr "Inställningar"
-
-#: lyricue.glade:4535
-msgid "Fonts used for projector"
-msgstr "Fonter använda för projektorn"
-
-#: lyricue.glade:4574 lyricue.glade:5792 lyricue.glade:8194
-msgid "Footer"
-msgstr "Fotnot"
-
-#: lyricue.glade:4587 lyricue.glade:5412 lyricue.glade:5426 lyricue.glade:8184
-#: lyricue.glade:8471 lyricue.glade:8484
-msgid "Main"
-msgstr "Normal"
-
-#: lyricue.glade:4600 lyricue.glade:5714 lyricue.glade:8174
-msgid "Header"
-msgstr "Sidhuvud"
-
-#: lyricue.glade:4678
-msgid "Shadow Offset"
-msgstr "Skuggoffset"
-
-#: lyricue.glade:4741
-msgid "Settings for projector"
-msgstr "Projektorinställningar"
-
-#: lyricue.glade:4767 lyricue.glade:7979
-msgid "Width"
-msgstr "Vidd"
-
-#: lyricue.glade:4778 lyricue.glade:7992
-msgid "Height"
-msgstr "Höjd"
-
-#: lyricue.glade:4838
-msgid "Vertical Overscan"
-msgstr "Vertikal överscan"
-
-#: lyricue.glade:4867
-msgid "Horizontal Overscan"
-msgstr "Horisontell överscan"
-
-#: lyricue.glade:4895
-msgid "Xinerama"
-msgstr "Xinerama"
-
-#: lyricue.glade:4908 lyricue.glade:8037
-msgid "Vertical Text Location"
-msgstr ""
-
-#: lyricue.glade:4920 lyricue.glade:8049
-msgid ""
-"Top\n"
-"Centre\n"
-"Bottom"
-msgstr ""
-
-#: lyricue.glade:4937
-msgid "Server Type"
-msgstr "Servertyp"
-
-#: lyricue.glade:4952
-msgid "OpenGL"
-msgstr ""
-
-#: lyricue.glade:4967
-msgid "Canvas - depreciated"
-msgstr ""
-
-#: lyricue.glade:4984
-msgid "Simple - depreciated"
-msgstr ""
-
-#: lyricue.glade:5012 lyricue.glade:8066
-msgid "Text Justification"
-msgstr ""
-
-#: lyricue.glade:5025 lyricue.glade:8079
-msgid "Horizontal Text Location"
-msgstr ""
-
-#: lyricue.glade:5037 lyricue.glade:5053 lyricue.glade:8091 lyricue.glade:8107
-msgid ""
-"Left\n"
-"Centre\n"
-"Right"
-msgstr ""
-
-#: lyricue.glade:5071
-msgid "Top"
-msgstr ""
-
-#: lyricue.glade:5080
-msgid "Centre"
-msgstr ""
-
-#: lyricue.glade:5089
-msgid "Bottom"
-msgstr ""
-
-#: lyricue.glade:5119
-msgid "Server"
-msgstr "Server"
-
-#: lyricue.glade:5134 lyricue.glade:5156
-msgid "Select the Default Background"
-msgstr "Välj standardbakgrund"
-
-#: lyricue.glade:5179
-msgid "Background"
-msgstr "Bakgrund"
-
-#: lyricue.glade:5194
-msgid "Various defaults"
-msgstr "Diverse inställningar"
-
-#: lyricue.glade:5213
-msgid "Loop pages"
-msgstr "Loopa sidor"
-
-#: lyricue.glade:5217
-msgid "Return to first page after last page of songs"
-msgstr "Återgå till första sidan efter sista sidan sånger"
-
-#: lyricue.glade:5229
-msgid "Audit Songs"
-msgstr "Logga sånger"
-
-#: lyricue.glade:5233
-msgid "Track what songs were used and when"
-msgstr "Loggar vilka sånger som använts och när"
-
-#: lyricue.glade:5245
-msgid "Dynamic Preview"
-msgstr "Dynamisk förhandsvisning"
-
-#: lyricue.glade:5260
-msgid "Miniview"
-msgstr "Minivy"
-
-#: lyricue.glade:5322
-msgid "Options"
-msgstr "Diverse"
-
-#: lyricue.glade:5337
-msgid "Special items that will be first in lists"
-msgstr "Specialobjekt som ska komma först i listor"
-
-#: lyricue.glade:5363 lyricue.glade:8422
-msgid "Available songs"
-msgstr "Tillgängliga sånger"
-
-#: lyricue.glade:5400 lyricue.glade:8458
-msgid "Today's Announcements"
-msgstr "Dagens meddelande"
-
-#: lyricue.glade:5440 lyricue.glade:8260
-msgid "Image Directory"
-msgstr ""
-
-#: lyricue.glade:5453 lyricue.glade:8273
-msgid "Backgrounds Directory"
-msgstr ""
-
-#: lyricue.glade:5491 lyricue.glade:5543 lyricue.glade:8311 lyricue.glade:8363
-msgid "Folder"
-msgstr ""
-
-#: lyricue.glade:5579
-msgid "Specials"
-msgstr "Special"
-
-#: lyricue.glade:5594
-msgid "Recovery Options"
-msgstr "Databasmöjligheter"
-
-#: lyricue.glade:5613
-msgid "Backup Database"
-msgstr "Säkerhetskopiera databasen"
-
-#: lyricue.glade:5628
-msgid "Restore Database"
-msgstr "Återställ från säkerhetskopia"
-
-#: lyricue.glade:5644
-msgid ""
-"Database Server\n"
-"<i>Note: You will need to backup/restore your database when changing</i>"
-msgstr ""
-"Databasserver\n"
-"<i>Notera: Du behöver göra backup/restore på din databas efter bytet</i>"
-
-#: lyricue.glade:5657
-msgid "Use MySQL"
-msgstr "Använd MySQL"
-
-#: lyricue.glade:5672
-msgid "Use SQLite"
-msgstr "Använd SQLite"
-
-#: lyricue.glade:5694
-msgid "Advanced"
-msgstr "Avancerad"
-
-#: lyricue.glade:5726
-msgid "Layout"
-msgstr ""
-
-#: lyricue.glade:5758
-msgid "Main text"
-msgstr ""
-
-#: lyricue.glade:5825
-msgid "Customize"
-msgstr ""
-
-#: lyricue.glade:5888 lyricue.glade:5901
-msgid "Select Databases to backup"
-msgstr "Välj databas att säkerhetskopiera"
-
-#: lyricue.glade:5915
-msgid "Songs, Playlists, Usage"
-msgstr "Sånger, Spellistor, Användning"
-
-#: lyricue.glade:5931
-msgid "Images, Backgrounds, Media"
-msgstr "Bilder, Bakgrunder, Media"
-
-#: lyricue.glade:5962
-msgid "File to save as"
-msgstr "Spara som fil"
-
-#: lyricue.glade:5984
-msgid "Browse"
-msgstr "Bläddra"
-
-#: lyricue.glade:6057
-msgid "Enter Login details"
-msgstr "Ge inloggningsdetaljer"
-
-#: lyricue.glade:6074
-msgid "Login name"
-msgstr "Loginnamn"
-
-#: lyricue.glade:6087
-msgid "Password"
-msgstr "Lösenord"
-
-#: lyricue.glade:6100 lyricue.glade:7918
-msgid "root"
-msgstr "root"
-
-#: lyricue.glade:6130
-msgid ""
-"Enter the login name and password\n"
-"of your MySQL Administration user"
-msgstr ""
-"Ange användarnamn och lösenord\n"
-"för MySQL-Administratören"
-
-#: lyricue.glade:6176
-msgid "Bible Installer"
-msgstr ""
-
-#: lyricue.glade:6184
-msgid ""
-"Select the file containing the bible you wish to import.\n"
-"New bibles can be downloaded from the sites below.\n"
-"Click the relevant button to load that site in your browser.\n"
-"Once downloaded come back here to install."
-msgstr ""
-
-#: lyricue.glade:6198
-msgid ""
-"Sword bibles\n"
-"http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles"
-msgstr ""
-
-#: lyricue.glade:6213
-msgid ""
-"LyricueDB bibles\n"
-"http://www.lyricue.org/bibles"
-msgstr ""
-
-#: lyricue.glade:6232
-msgid "Select file to install"
-msgstr ""
-
-#: lyricue.glade:6302
-msgid "Select Directory"
-msgstr ""
-
-#: lyricue.glade:6363
-msgid "Import Data from File"
-msgstr ""
-
-#: lyricue.glade:6378
-msgid "Use this dialog to import a songlist"
-msgstr ""
-
-#: lyricue.glade:6386
-msgid "Sample songlists"
-msgstr ""
-
-#: lyricue.glade:6407
-msgid "Select file to import"
-msgstr ""
-
-#: lyricue.glade:6477 lyricue.glade:6494
-msgid "Select songs to import"
-msgstr ""
-
-#: lyricue.glade:6529
-msgid "Select All"
-msgstr ""
-
-#: lyricue.glade:6543
-msgid "Unselect All"
-msgstr ""
-
-#: lyricue.glade:6611
-msgid "Choose a Book"
-msgstr "Välj bok"
-
-#: lyricue.glade:6620
-msgid "Old Testament"
-msgstr "Gamla testamentet"
-
-#: lyricue.glade:6635
-msgid "Deuteronomy"
-msgstr "Femte Moseboken"
-
-#: lyricue.glade:6650
-msgid "Joshua"
-msgstr "Josua"
-
-#: lyricue.glade:6667
-msgid "Judges"
-msgstr "Domarboken"
-
-#: lyricue.glade:6684
-msgid "Ruth"
-msgstr "Rut"
-
-#: lyricue.glade:6701
-msgid "1 Samuel"
-msgstr "Första Samuelsboken"
-
-#: lyricue.glade:6716
-msgid "2 Samuel"
-msgstr "Andra Samuelsboken"
-
-#: lyricue.glade:6733
-msgid "1 Kings"
-msgstr "Första Kungaboken"
-
-#: lyricue.glade:6750
-msgid "2 Kings"
-msgstr "Andra Kungaboken"
-
-#: lyricue.glade:6767
-msgid "1 Chronicles"
-msgstr "Första Krönikeboken"
-
-#: lyricue.glade:6782
-msgid "2 Chronicles"
-msgstr "Andra Krönikeboken"
-
-#: lyricue.glade:6799
-msgid "Ezra"
-msgstr "Esra"
-
-#: lyricue.glade:6816
-msgid "Nehemiah"
-msgstr "Nehemja"
-
-#: lyricue.glade:6833
-msgid "Esther"
-msgstr "Ester"
-
-#: lyricue.glade:6848
-msgid "Job"
-msgstr "Job"
-
-#: lyricue.glade:6865
-msgid "Psalms"
-msgstr "Psaltaren"
-
-#: lyricue.glade:6882
-msgid "Proverbs"
-msgstr "Ordspråksboken"
-
-#: lyricue.glade:6899
-msgid "Ecclesiastes"
-msgstr "Predikaren"
-
-#: lyricue.glade:6914
-msgid "Song of Solomon"
-msgstr "Höga Visan"
-
-#: lyricue.glade:6931
-msgid "Isaiah"
-msgstr "Jesaja"
-
-#: lyricue.glade:6948
-msgid "Jeremiah"
-msgstr "Jeremia"
-
-#: lyricue.glade:6965
-msgid "Lamentations"
-msgstr "Klagovisorna"
-
-#: lyricue.glade:6980
-msgid "Ezekiel"
-msgstr "Hesekiel"
-
-#: lyricue.glade:6997
-msgid "Daniel"
-msgstr "Daniel"
-
-#: lyricue.glade:7014
-msgid "Hosea"
-msgstr "Hosea"
-
-#: lyricue.glade:7031
-msgid "Joel"
-msgstr "Joel"
-
-#: lyricue.glade:7046
-msgid "Amos"
-msgstr "Amos"
-
-#: lyricue.glade:7063
-msgid "Obadiah"
-msgstr "Obadja"
-
-#: lyricue.glade:7080
-msgid "Jonah"
-msgstr "Jona"
-
-#: lyricue.glade:7097
-msgid "Micah"
-msgstr "Mika"
-
-#: lyricue.glade:7112
-msgid "Nahum"
-msgstr "Nahum"
-
-#: lyricue.glade:7129
-msgid "Habakkuk"
-msgstr "Habackuk"
-
-#: lyricue.glade:7146
-msgid "Zephaniah"
-msgstr "Sefanja"
-
-#: lyricue.glade:7163
-msgid "Haggai"
-msgstr "Haggai"
-
-#: lyricue.glade:7178
-msgid "Zechariah"
-msgstr "Sakarja"
-
-#: lyricue.glade:7195
-msgid "Malachi"
-msgstr "Malaki"
-
-#: lyricue.glade:7212
-msgid "Numbers"
-msgstr "Fjärde Moseboken"
-
-#: lyricue.glade:7226
-msgid "Leviticus"
-msgstr "Tredje Moseboken"
-
-#: lyricue.glade:7240
-msgid "Exodus"
-msgstr "Andra Moseboken"
-
-#: lyricue.glade:7254
-msgid "Genesis"
-msgstr "Första Moseboken"
-
-#: lyricue.glade:7266
-msgid "Song of Songs"
-msgstr ""
-
-#: lyricue.glade:7294
-msgid "New Testament"
-msgstr "Nya Testamentet"
-
-#: lyricue.glade:7309
-msgid "Acts"
-msgstr "Apostlagärningarna"
-
-#: lyricue.glade:7324
-msgid "Romans"
-msgstr "Romarbrevet"
-
-#: lyricue.glade:7341
-msgid "1 Corinthians"
-msgstr "Första Korinthierbrevet"
-
-#: lyricue.glade:7358
-msgid "2 Corinthians"
-msgstr "Andra Korinthierbrevet"
-
-#: lyricue.glade:7375
-msgid "Galatians"
-msgstr "Galaterbrevet"
-
-#: lyricue.glade:7390
-msgid "Ephesians"
-msgstr "Efesierbrevet"
-
-#: lyricue.glade:7407
-msgid "Philippians"
-msgstr "Filipperbrevet"
-
-#: lyricue.glade:7424
-msgid "Colossians"
-msgstr "Kolosserbrevet"
-
-#: lyricue.glade:7441
-msgid "1 Thessalonians"
-msgstr "Första Thessalonikerbrevet"
-
-#: lyricue.glade:7456
-msgid "2 Thessalonians"
-msgstr "Andra Thessalonikerbrevet"
-
-#: lyricue.glade:7473
-msgid "1 Timothy"
-msgstr "Första Timotheosbrevet"
-
-#: lyricue.glade:7490
-msgid "2 Timothy"
-msgstr "Andrea Timotheosbrevet"
-
-#: lyricue.glade:7507
-msgid "Titus"
-msgstr "Titusbrevet"
-
-#: lyricue.glade:7522
-msgid "Philemon"
-msgstr "Filemonbrevet"
-
-#: lyricue.glade:7539
-msgid "Hebrews"
-msgstr "Hebreerbrevet"
-
-#: lyricue.glade:7556
-msgid "James"
-msgstr "Jakobsbrevet"
-
-#: lyricue.glade:7573
-msgid "1 Peter"
-msgstr "Första Petrusbrevet"
-
-#: lyricue.glade:7588
-msgid "2 Peter"
-msgstr "Andra Petrusbrevet"
-
-#: lyricue.glade:7605
-msgid "1 John"
-msgstr "Första Johannesbrevet"
-
-#: lyricue.glade:7622
-msgid "2 John"
-msgstr "Andra Johannesbrevet"
-
-#: lyricue.glade:7639
-msgid "3 John"
-msgstr "Tredje Johannesbrevet"
-
-#: lyricue.glade:7654
-msgid "Jude"
-msgstr "Judasbrevet"
-
-#: lyricue.glade:7671
-msgid "Revelation"
-msgstr "Uppenbarelseboken"
-
-#: lyricue.glade:7688
-msgid "John"
-msgstr "Johannesevangeliet"
-
-#: lyricue.glade:7702
-msgid "Luke"
-msgstr "Lukasevangeliet"
-
-#: lyricue.glade:7716
-msgid "Mark"
-msgstr "Markusevangeliet"
-
-#: lyricue.glade:7730
-msgid "Matthew"
-msgstr "Matteusevangeliet"
-
-#: lyricue.glade:7865
+#: ../data/assistantFirstRun.ui.h:1
 msgid ""
 "As this is the first time you have run Lyricue we now walk through some "
 "initial settings"
 msgstr ""
 
-#: lyricue.glade:7881
+#: ../data/assistantFirstRun.ui.h:2
+msgid ""
+"Lyricue can run the interface on a separate machine to where you run your "
+"projector and database.\n"
+"You can set the hostname where the projector and database are run here.\n"
+"(leave as default or localhost if you do not know)"
+msgstr ""
+
+#: ../data/assistantFirstRun.ui.h:5
+msgid "Database hostname"
+msgstr ""
+
+#: ../data/assistantFirstRun.ui.h:6
+msgid "Projector hostname"
+msgstr ""
+
+#: ../data/assistantFirstRun.ui.h:7 ../data/dialogPrefs.ui.h:55
+msgid "Advanced"
+msgstr "Avancerad"
+
+#: ../data/assistantFirstRun.ui.h:8
 msgid ""
 "Lyricue uses MySQL to store its data.\n"
 "To access MySQL I will create a special user 'lyric'\n"
@@ -1672,15 +447,39 @@ msgid ""
 "<i>Note: This password is not stored anywhere</i>"
 msgstr ""
 
-#: lyricue.glade:7895
+#: ../data/assistantFirstRun.ui.h:12
 msgid "Username:"
-msgstr ""
+msgstr "Användarnamn:"
 
-#: lyricue.glade:7906
+#: ../data/assistantFirstRun.ui.h:13
 msgid "Password:"
+msgstr "Lösenord:"
+
+#: ../data/assistantFirstRun.ui.h:14 ../data/dialogAdminLogin.ui.h:4
+msgid "root"
+msgstr "root"
+
+#: ../data/assistantFirstRun.ui.h:16 ../data/dialogPrefs.ui.h:12
+msgid "Width"
+msgstr "Vidd"
+
+#: ../data/assistantFirstRun.ui.h:17 ../data/dialogPrefs.ui.h:13
+msgid "Height"
+msgstr "Höjd"
+
+#: ../data/assistantFirstRun.ui.h:18 ../data/dialogPrefs.ui.h:17
+msgid "Vertical Text Location"
 msgstr ""
 
-#: lyricue.glade:8133
+#: ../data/assistantFirstRun.ui.h:19 ../data/dialogPrefs.ui.h:18
+msgid "Text Justification"
+msgstr ""
+
+#: ../data/assistantFirstRun.ui.h:20 ../data/dialogPrefs.ui.h:19
+msgid "Horizontal Text Location"
+msgstr ""
+
+#: ../data/assistantFirstRun.ui.h:21
 msgid ""
 "Lyricue is designed to run on a dual-head machine with the second display "
 "connected to a projector.\n"
@@ -1688,11 +487,40 @@ msgid ""
 "want the text to display on the screen"
 msgstr ""
 
-#: lyricue.glade:8164
+#: ../data/assistantFirstRun.ui.h:23
 msgid "Select the fonts that you want to use on the projector from here"
 msgstr ""
 
-#: lyricue.glade:8389
+#: ../data/assistantFirstRun.ui.h:24 ../data/dialogPrefs.ui.h:6
+msgid "Header"
+msgstr "Sidhuvud"
+
+#: ../data/assistantFirstRun.ui.h:25 ../data/dialogPrefs.ui.h:5
+msgid "Main"
+msgstr "Normal"
+
+#: ../data/assistantFirstRun.ui.h:26 ../data/dialogPrefs.ui.h:4
+msgid "Footer"
+msgstr "Fotnot"
+
+#: ../data/assistantFirstRun.ui.h:27 ../data/dialogPrefs.ui.h:9
+#: ../data/windowMain.ui.h:103
+msgid "OSD"
+msgstr ""
+
+#: ../data/assistantFirstRun.ui.h:28 ../data/dialogPrefs.ui.h:44
+msgid "Image Directory"
+msgstr "Bildmapp"
+
+#: ../data/assistantFirstRun.ui.h:29 ../data/dialogPrefs.ui.h:45
+msgid "Backgrounds Directory"
+msgstr "Bakgrundsmapp"
+
+#: ../data/assistantFirstRun.ui.h:30 ../data/dialogPrefs.ui.h:46
+msgid "Folder"
+msgstr "Mapp"
+
+#: ../data/assistantFirstRun.ui.h:31
 msgid ""
 "Lyricue requires somewhere to load it's images and backdrops from.\n"
 "The Image and Backgrounds directory can be the same or you can keep them "
@@ -1700,155 +528,1211 @@ msgid ""
 "Please select a suitable directory for each."
 msgstr ""
 
-#: lyricue.glade:8507
+#: ../data/assistantFirstRun.ui.h:35 ../data/dialogPrefs.ui.h:41
+#: ../data/windowMain.ui.h:60
+msgid "Images"
+msgstr "Bilder"
+
+#: ../data/assistantFirstRun.ui.h:36 ../data/dialogPrefs.ui.h:42
+#: ../data/windowMain.ui.h:58
+msgid "Backgrounds"
+msgstr "Bakgrunder"
+
+#: ../data/assistantFirstRun.ui.h:37 ../data/dialogPrefs.ui.h:43
+msgid "Today's Announcements"
+msgstr "Dagens meddelande"
+
+#: ../data/assistantFirstRun.ui.h:38
 msgid ""
 "Choose your default Bible translation.\n"
 "You can install other bibles frm within Lyricue later."
 msgstr ""
 
-#: lyricue.glade:8530
-msgid "None selected"
-msgstr ""
+#: ../data/assistantFirstRun.ui.h:40 ../data/dialogPrefs.ui.h:37
+#: ../data/windowMain.ui.h:38
+msgid "Bible"
+msgstr "Bibel"
 
-#: lyricue.glade:8548
+#: ../data/assistantFirstRun.ui.h:41
 msgid ""
 "Lyricue is now configured.\n"
 "If you need to make any changes, or for more options, select Preferences "
 "from the Edit menu"
 msgstr ""
 
-#~ msgid "_Edit Transitions"
-#~ msgstr "_Redigera övergångar"
+#: ../data/assistantFirstRun.ui.h:43
+msgid "None selected"
+msgstr "Inga markerade"
 
-#~ msgid "Select Screen Transition"
-#~ msgstr "Välj skärmanimering"
+#: ../data/assistantFirstRun.ui.h:44 ../data/dialogPrefs.ui.h:59
+msgid "Left"
+msgstr ""
 
-#~ msgid "Transition"
-#~ msgstr "Övergång"
+#: ../data/assistantFirstRun.ui.h:45 ../data/dialogPrefs.ui.h:21
+msgid "Centre"
+msgstr ""
 
-#~ msgid "None"
-#~ msgstr "Ingen"
+#: ../data/assistantFirstRun.ui.h:46 ../data/dialogPrefs.ui.h:60
+msgid "Right"
+msgstr ""
 
-#~ msgid "Up"
-#~ msgstr "Upp"
+#: ../data/assistantFirstRun.ui.h:47 ../data/dialogPrefs.ui.h:20
+msgid "Top"
+msgstr "Överst"
 
-#~ msgid "Down"
-#~ msgstr "Ner"
+#: ../data/assistantFirstRun.ui.h:48 ../data/dialogPrefs.ui.h:22
+msgid "Bottom"
+msgstr "Nederst"
 
-#~ msgid "Left"
-#~ msgstr "Vänster"
+#: ../data/dialogAdminLogin.ui.h:1
+msgid "Enter Login details"
+msgstr "Ge inloggningsdetaljer"
 
-#~ msgid "Right"
-#~ msgstr "Höger"
+#: ../data/dialogAdminLogin.ui.h:2
+msgid "Login name"
+msgstr "Loginnamn"
 
-#~ msgid "Up + Left"
-#~ msgstr "Upp + Vänster"
+#: ../data/dialogAdminLogin.ui.h:3
+msgid "Password"
+msgstr "Lösenord"
 
-#~ msgid "Up + Right"
-#~ msgstr "Upp + Höger"
+#: ../data/dialogAdminLogin.ui.h:5
+msgid ""
+"Enter the login name and password\n"
+"of your MySQL Administration user"
+msgstr ""
+"Ange användarnamn och lösenord\n"
+"för MySQL-Administratören"
 
-#~ msgid "Down + Left"
-#~ msgstr "Ner + Vänster"
+#: ../data/dialogAdmin.ui.h:1
+msgid "Lyricue Administration"
+msgstr "Lyricue administration"
 
-#~ msgid "Down + Right"
-#~ msgstr "Ner + Höger"
+#: ../data/dialogAdmin.ui.h:2
+msgid "Username"
+msgstr "Användarnamn"
 
-#~ msgid "Wait?"
-#~ msgstr "Vänta?"
+#: ../data/dialogAdmin.ui.h:3 ../data/windowMain.ui.h:16
+msgid "Playlist"
+msgstr "Spellista"
 
-#~ msgid "_Preferences"
-#~ msgstr "_Inställningar"
+#: ../data/dialogAdmin.ui.h:4 ../data/windowMain.ui.h:8
+msgid "Edit"
+msgstr "Redigera"
 
-#~ msgid "Add _Verse"
-#~ msgstr "Lägg till _vers"
+#: ../data/dialogAdmin.ui.h:5 ../data/windowMain.ui.h:87
+msgid "Delete"
+msgstr "Ta bort"
 
-#~ msgid "Add Song"
-#~ msgstr "Lägg till sång"
+#: ../data/dialogAdmin.ui.h:6 ../data/windowEditSong.ui.h:24
+#: ../data/windowMain.ui.h:30
+msgid "Display"
+msgstr "Visa"
 
-#~ msgid "Edit Song"
-#~ msgstr "Redigera sång"
+#: ../data/dialogAdmin.ui.h:7
+msgid "Admin"
+msgstr "Administratör"
 
-#~ msgid "Add Image(s)"
-#~ msgstr "Lägg till bild"
+#: ../data/dialogAdmin.ui.h:8
+msgid "Add user"
+msgstr "Lägg till användare"
 
-#~ msgid "Bible Verse"
-#~ msgstr "Bibelvers"
+#: ../data/dialogColour.ui.h:1
+msgid "Select Colour"
+msgstr "Välj färg"
 
-#~ msgid "Available Songs"
-#~ msgstr "Tillgängliga sånger"
+#: ../data/dialogConfirm.ui.h:1
+msgid "Confirm Delete Song"
+msgstr "Bekräfta borttagning av sång"
 
-#~ msgid "Refresh the available songlist"
-#~ msgstr "Uppdatera tillgängliga sånger"
+#: ../data/dialogConfirm.ui.h:2
+msgid "Are you sure?"
+msgstr "Är du säker?"
 
-#~ msgid "Refresh the playlist"
-#~ msgstr "Uppdatera spellista"
+#: ../data/dialogDatabase.ui.h:1
+msgid "Select Databases to backup"
+msgstr "Välj databas att säkerhetskopiera"
 
-#~ msgid "Refresh"
-#~ msgstr "Uppdatera"
+#: ../data/dialogDatabase.ui.h:2
+msgid "Songs, Playlists, Usage"
+msgstr "Sånger, Spellistor, Användning"
 
-#~ msgid "Bible Navigator"
-#~ msgstr "Bibelnavigator"
+#: ../data/dialogDatabase.ui.h:3
+msgid "Images, Backgrounds, Media"
+msgstr "Bilder, Bakgrunder, Media"
 
-#~ msgid "_About"
-#~ msgstr "_Om"
+#: ../data/dialogDatabase.ui.h:4
+msgid "File to save as"
+msgstr "Spara som fil"
 
-#~ msgid "abcdefghijk ABCDEFGHIJK"
-#~ msgstr "abcdefghijk ABCDEFGHIJK"
+#: ../data/dialogDatabase.ui.h:5
+msgid "Browse"
+msgstr "Bläddra"
 
-#~ msgid "Select a Chapter"
-#~ msgstr "Välj ett kapitel"
+#: ../data/dialogDirChooser.ui.h:1
+msgid "Select Directory"
+msgstr "Välj mapp"
 
-#~ msgid "Choose Verse Range"
-#~ msgstr "Välj versområde"
+#: ../data/dialogDvd.ui.h:1
+msgid "Select DVD Title"
+msgstr ""
 
-#~ msgid "Choose your verse range"
-#~ msgstr "Välj ditt versområde"
+#: ../data/dialogDvd.ui.h:2
+msgid "Select the DVD title number to play"
+msgstr ""
 
-#~ msgid ""
-#~ "\n"
-#~ "Usage: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n"
-#~ "\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Användning: lyricue <-v|-l> <-b> <-k> <-d[q]> <-s>\n"
-#~ "\n"
+#: ../data/dialogDvd.ui.h:3
+msgid "Start time"
+msgstr ""
 
-#~ msgid "Canvas"
-#~ msgstr "Kanvas"
+#: ../data/dialogDvd.ui.h:4
+msgid "Select time period"
+msgstr ""
 
-#~ msgid "Simple"
-#~ msgstr "Enkel"
+#: ../data/dialogDvd.ui.h:5
+msgid "End time"
+msgstr ""
 
-#~ msgid "Transparent (experimental)"
-#~ msgstr "Transparent (experimentell)"
+#: ../data/dialogDvd.ui.h:6
+msgid "Duration"
+msgstr ""
 
-#~ msgid "\t-v:  Prints Lyricue version information & exits\n"
-#~ msgstr "\t-v:  Visa Lyricue versionsinformation och avslutar\n"
+#: ../data/dialogError.ui.h:1
+msgid "Lyricue Error"
+msgstr "Lyricue fel"
 
-#~ msgid "\t-l:  Outputs song list in HTML & exits\n"
-#~ msgstr "\t-l:  Ger sånglista i HTML och avslutar\n"
+#: ../data/dialogError.ui.h:2
+msgid "label"
+msgstr ""
 
-#~ msgid "\t-b:  Loads Lyricue without background previews\n"
-#~ msgstr "\t-b:  Startar Lyricue utan bakgrundsförhandsvisning\n"
+#: ../data/dialogError.ui.h:3
+msgid "Details"
+msgstr "Detaljer"
 
-#~ msgid "\t-s:  Specify the host on which the lyric server is located\n"
-#~ msgstr "\t-s:  Ange vilken värddator som kör lyricue_server\n"
+#: ../data/dialogFileChooser.ui.h:1
+msgid "Select File"
+msgstr "Välj fil"
 
-#~ msgid "\t-d:  Prints debugging messages\n"
-#~ msgstr "\t-d:  Visa debugutskrifter\n"
+#: ../data/dialogFont.ui.h:1
+msgid "Select Font"
+msgstr "Välj font"
 
-#~ msgid "\t-w:  Don't maximize on startup\n"
-#~ msgstr "\t-w:  Maximera inte vid start\n"
+#: ../data/dialogImage.ui.h:1
+msgid "Choose an Image"
+msgstr "Välj en bild"
 
-#~ msgid ""
-#~ "\t-dq: Prints debugging messages + sql\n"
-#~ "\n"
-#~ msgstr ""
-#~ "\t-dq: Visa debugutskrifter + sql\n"
-#~ "\n"
+#: ../data/dialogImage.ui.h:2
+msgid "Category"
+msgstr "Kategori"
 
-#~ msgid "Centre Text Across"
-#~ msgstr "Centrera horisontellt"
+#: ../data/dialogImage.ui.h:3
+msgid "Sublist"
+msgstr "Underlista"
 
-#~ msgid "Centre Text Vertically"
-#~ msgstr "Centrera vertikalt"
+#: ../data/dialogImage.ui.h:4
+msgid "Database actions"
+msgstr ""
+
+#: ../data/dialogImage.ui.h:5
+msgid "Move"
+msgstr "Flytta"
+
+#: ../data/dialogImage.ui.h:6 ../data/dialogPrefs.ui.h:3
+msgid "Font Colour"
+msgstr "Teckenfärg"
+
+#: ../data/dialogImage.ui.h:7 ../data/dialogPrefs.ui.h:7
+msgid "Shadow Colour"
+msgstr "Skuggfärg"
+
+#: ../data/dialogImportData.ui.h:1
+msgid "Import Data from File"
+msgstr "Importera data från fil"
+
+#: ../data/dialogImportData.ui.h:2
+msgid "Use this dialog to import a songlist"
+msgstr ""
+
+#: ../data/dialogImportData.ui.h:3
+msgid "Sample songlists"
+msgstr ""
+
+#: ../data/dialogImportData.ui.h:4
+msgid "Select file to import"
+msgstr "Välj fil att importera"
+
+#: ../data/dialogLoop.ui.h:1
+msgid "Set Loop timer"
+msgstr "Sätt loop-tid"
+
+#: ../data/dialogLoop.ui.h:2
+msgid "Seconds"
+msgstr "Sekunder"
+
+#: ../data/dialogLoop.ui.h:3
+msgid "Milliseconds"
+msgstr "MIllisekunder"
+
+#: ../data/dialogPrefs.ui.h:1
+msgid "Preferences"
+msgstr "Inställningar"
+
+#: ../data/dialogPrefs.ui.h:2
+msgid "Fonts used for projector"
+msgstr "Fonter använda för projektorn"
+
+#: ../data/dialogPrefs.ui.h:8
+msgid "Shadow Offset"
+msgstr "Skuggoffset"
+
+#: ../data/dialogPrefs.ui.h:11
+msgid "Settings for projector"
+msgstr "Projektorinställningar"
+
+#: ../data/dialogPrefs.ui.h:14
+msgid "Vertical Margin"
+msgstr ""
+
+#: ../data/dialogPrefs.ui.h:15
+msgid "Horizontal Margin"
+msgstr ""
+
+#: ../data/dialogPrefs.ui.h:16
+msgid "Xinerama"
+msgstr "Xinerama"
+
+#: ../data/dialogPrefs.ui.h:23
+msgid "Change"
+msgstr ""
+
+#: ../data/dialogPrefs.ui.h:24
+msgid "Window offset"
+msgstr ""
+
+#: ../data/dialogPrefs.ui.h:25
+msgid "Default Transition"
+msgstr ""
+
+#: ../data/dialogPrefs.ui.h:26
+msgid "Server"
+msgstr "Server"
+
+#: ../data/dialogPrefs.ui.h:27
+msgid "Select the Default Background"
+msgstr "Välj standardbakgrund"
+
+#: ../data/dialogPrefs.ui.h:28
+msgid "Background"
+msgstr "Bakgrund"
+
+#: ../data/dialogPrefs.ui.h:29
+msgid "Various defaults"
+msgstr "Diverse inställningar"
+
+#: ../data/dialogPrefs.ui.h:30
+msgid "Loop pages"
+msgstr "Loopa sidor"
+
+#: ../data/dialogPrefs.ui.h:31
+msgid "Return to first page after last page of songs"
+msgstr "Återgå till första sidan efter sista sidan sånger"
+
+#: ../data/dialogPrefs.ui.h:32
+msgid "Expand items when added to playlist"
+msgstr ""
+
+#: ../data/dialogPrefs.ui.h:33
+msgid "Audit Songs"
+msgstr "Logga sånger"
+
+#: ../data/dialogPrefs.ui.h:34
+msgid "Track what songs were used and when"
+msgstr "Loggar vilka sånger som använts och när"
+
+#: ../data/dialogPrefs.ui.h:35
+msgid "Dynamic Preview"
+msgstr "Dynamisk förhandsvisning"
+
+#: ../data/dialogPrefs.ui.h:36
+msgid "Miniview"
+msgstr "Minivy"
+
+#: ../data/dialogPrefs.ui.h:38
+msgid "Options"
+msgstr "Diverse"
+
+#: ../data/dialogPrefs.ui.h:39
+msgid "Special items that will be first in lists"
+msgstr "Specialobjekt som ska komma först i listor"
+
+#: ../data/dialogPrefs.ui.h:47
+msgid "Specials"
+msgstr "Special"
+
+#: ../data/dialogPrefs.ui.h:48
+msgid "Recovery Options"
+msgstr "Databasmöjligheter"
+
+#: ../data/dialogPrefs.ui.h:49
+msgid "Backup Database"
+msgstr "Säkerhetskopiera databasen"
+
+#: ../data/dialogPrefs.ui.h:50
+msgid "Restore Database"
+msgstr "Återställ från säkerhetskopia"
+
+#: ../data/dialogPrefs.ui.h:51
+msgid ""
+"Database Server\n"
+"<i>Note: You will need to backup/restore your database when changing</i>"
+msgstr ""
+"Databasserver\n"
+"<i>Notera: Du behöver göra backup/restore på din databas efter bytet</i>"
+
+#: ../data/dialogPrefs.ui.h:53
+msgid "Use MySQL"
+msgstr "Använd MySQL"
+
+#: ../data/dialogPrefs.ui.h:54
+msgid "Use SQLite"
+msgstr "Använd SQLite"
+
+#: ../data/dialogPrefs.ui.h:56
+msgid "Layout"
+msgstr ""
+
+#: ../data/dialogPrefs.ui.h:57
+msgid "Main text"
+msgstr ""
+
+#: ../data/dialogPrefs.ui.h:58
+msgid "Customize"
+msgstr "Anpassa"
+
+#: ../data/dialogPrefs.ui.h:61 ../data/windowMain.ui.h:70
+msgid "None"
+msgstr "Ingen"
+
+#: ../data/dialogPrefs.ui.h:62 ../data/windowMain.ui.h:71
+msgid "Fade"
+msgstr ""
+
+#: ../data/dialogSearch.ui.h:1 ../data/windowMain.ui.h:48
+msgid "Advanced Search"
+msgstr "Avancerad sökning"
+
+#: ../data/dialogSearch.ui.h:2
+msgid "Search Lyrics"
+msgstr "Söktext"
+
+#: ../data/dialogSearch.ui.h:3 ../data/windowMain.ui.h:47
+msgid "Search"
+msgstr "Sök"
+
+#: ../data/dialogSearch.ui.h:5 ../data/windowMain.ui.h:53
+msgid "Add to playlist"
+msgstr "Lägg till i spellistan"
+
+#: ../data/dialogSelectSongs.ui.h:1
+msgid "Select songs to import"
+msgstr "Välj låtar att importera"
+
+#: ../data/dialogSelectSongs.ui.h:2
+msgid "Select All"
+msgstr "Markera alla"
+
+#: ../data/dialogSelectSongs.ui.h:3
+msgid "Unselect All"
+msgstr "Avmarkera alla"
+
+#: ../data/dialogWindowOffset.ui.h:1
+msgid "Window Offset"
+msgstr ""
+
+#: ../data/dialogWindowOffset.ui.h:2
+msgid "Drag this window to the projector screen"
+msgstr ""
+
+#: ../data/windowAbout.ui.h:1
+msgid "About Lyricue"
+msgstr "Om Lyricue"
+
+#: ../data/windowAbout.ui.h:2
+msgid "Version #VERSION#"
+msgstr ""
+
+#: ../data/windowAbout.ui.h:3
+msgid ""
+"Written By:\n"
+"Chris Debenham & Clint Turner\n"
+"Website:\n"
+"http://www.lyricue.org/"
+msgstr ""
+
+#: ../data/windowAbout.ui.h:7
+msgid "Thanks"
+msgstr "Tackar!"
+
+#: ../data/windowBibleManager.ui.h:1
+msgid "Bible Installer"
+msgstr ""
+
+#: ../data/windowBibleManager.ui.h:2
+msgid ""
+"Select the file containing the bible you wish to import.\n"
+"New bibles can be downloaded from the sites below.\n"
+"Click the relevant button to load that site in your browser.\n"
+"Once downloaded come back here to install."
+msgstr ""
+
+#: ../data/windowBibleManager.ui.h:6
+msgid ""
+"Sword bibles\n"
+"http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles"
+msgstr ""
+
+#: ../data/windowBibleManager.ui.h:8
+msgid ""
+"LyricueDB bibles\n"
+"http://www.lyricue.org/bibles"
+msgstr ""
+
+#: ../data/windowBibleManager.ui.h:10
+msgid "Select file to install"
+msgstr "Välj fil att installera"
+
+#: ../data/windowBook.ui.h:1
+msgid "Choose a Book"
+msgstr "Välj bok"
+
+#: ../data/windowBook.ui.h:2
+msgid "Old Testament"
+msgstr "Gamla testamentet"
+
+#: ../data/windowBook.ui.h:3
+msgid "Deuteronomy"
+msgstr "Femte Moseboken"
+
+#: ../data/windowBook.ui.h:4
+msgid "Joshua"
+msgstr "Josua"
+
+#: ../data/windowBook.ui.h:5
+msgid "Judges"
+msgstr "Domarboken"
+
+#: ../data/windowBook.ui.h:6
+msgid "Ruth"
+msgstr "Rut"
+
+#: ../data/windowBook.ui.h:7
+msgid "1 Samuel"
+msgstr "Första Samuelsboken"
+
+#: ../data/windowBook.ui.h:8
+msgid "2 Samuel"
+msgstr "Andra Samuelsboken"
+
+#: ../data/windowBook.ui.h:9
+msgid "1 Kings"
+msgstr "Första Kungaboken"
+
+#: ../data/windowBook.ui.h:10
+msgid "2 Kings"
+msgstr "Andra Kungaboken"
+
+#: ../data/windowBook.ui.h:11
+msgid "1 Chronicles"
+msgstr "Första Krönikeboken"
+
+#: ../data/windowBook.ui.h:12
+msgid "2 Chronicles"
+msgstr "Andra Krönikeboken"
+
+#: ../data/windowBook.ui.h:13
+msgid "Ezra"
+msgstr "Esra"
+
+#: ../data/windowBook.ui.h:14
+msgid "Nehemiah"
+msgstr "Nehemja"
+
+#: ../data/windowBook.ui.h:15
+msgid "Esther"
+msgstr "Ester"
+
+#: ../data/windowBook.ui.h:16
+msgid "Job"
+msgstr "Job"
+
+#: ../data/windowBook.ui.h:17
+msgid "Psalms"
+msgstr "Psaltaren"
+
+#: ../data/windowBook.ui.h:18
+msgid "Proverbs"
+msgstr "Ordspråksboken"
+
+#: ../data/windowBook.ui.h:19
+msgid "Ecclesiastes"
+msgstr "Predikaren"
+
+#: ../data/windowBook.ui.h:20
+msgid "Song of Solomon"
+msgstr "Höga Visan"
+
+#: ../data/windowBook.ui.h:21
+msgid "Isaiah"
+msgstr "Jesaja"
+
+#: ../data/windowBook.ui.h:22
+msgid "Jeremiah"
+msgstr "Jeremia"
+
+#: ../data/windowBook.ui.h:23
+msgid "Lamentations"
+msgstr "Klagovisorna"
+
+#: ../data/windowBook.ui.h:24
+msgid "Ezekiel"
+msgstr "Hesekiel"
+
+#: ../data/windowBook.ui.h:25
+msgid "Daniel"
+msgstr "Daniel"
+
+#: ../data/windowBook.ui.h:26
+msgid "Hosea"
+msgstr "Hosea"
+
+#: ../data/windowBook.ui.h:27
+msgid "Joel"
+msgstr "Joel"
+
+#: ../data/windowBook.ui.h:28
+msgid "Amos"
+msgstr "Amos"
+
+#: ../data/windowBook.ui.h:29
+msgid "Obadiah"
+msgstr "Obadja"
+
+#: ../data/windowBook.ui.h:30
+msgid "Jonah"
+msgstr "Jona"
+
+#: ../data/windowBook.ui.h:31
+msgid "Micah"
+msgstr "Mika"
+
+#: ../data/windowBook.ui.h:32
+msgid "Nahum"
+msgstr "Nahum"
+
+#: ../data/windowBook.ui.h:33
+msgid "Habakkuk"
+msgstr "Habackuk"
+
+#: ../data/windowBook.ui.h:34
+msgid "Zephaniah"
+msgstr "Sefanja"
+
+#: ../data/windowBook.ui.h:35
+msgid "Haggai"
+msgstr "Haggai"
+
+#: ../data/windowBook.ui.h:36
+msgid "Zechariah"
+msgstr "Sakarja"
+
+#: ../data/windowBook.ui.h:37
+msgid "Malachi"
+msgstr "Malaki"
+
+#: ../data/windowBook.ui.h:38
+msgid "Numbers"
+msgstr "Fjärde Moseboken"
+
+#: ../data/windowBook.ui.h:39
+msgid "Leviticus"
+msgstr "Tredje Moseboken"
+
+#: ../data/windowBook.ui.h:40
+msgid "Exodus"
+msgstr "Andra Moseboken"
+
+#: ../data/windowBook.ui.h:41
+msgid "Genesis"
+msgstr "Första Moseboken"
+
+#: ../data/windowBook.ui.h:42
+msgid "Song of Songs"
+msgstr ""
+
+#: ../data/windowBook.ui.h:43
+msgid "New Testament"
+msgstr "Nya Testamentet"
+
+#: ../data/windowBook.ui.h:44
+msgid "Acts"
+msgstr "Apostlagärningarna"
+
+#: ../data/windowBook.ui.h:45
+msgid "Romans"
+msgstr "Romarbrevet"
+
+#: ../data/windowBook.ui.h:46
+msgid "1 Corinthians"
+msgstr "Första Korinthierbrevet"
+
+#: ../data/windowBook.ui.h:47
+msgid "2 Corinthians"
+msgstr "Andra Korinthierbrevet"
+
+#: ../data/windowBook.ui.h:48
+msgid "Galatians"
+msgstr "Galaterbrevet"
+
+#: ../data/windowBook.ui.h:49
+msgid "Ephesians"
+msgstr "Efesierbrevet"
+
+#: ../data/windowBook.ui.h:50
+msgid "Philippians"
+msgstr "Filipperbrevet"
+
+#: ../data/windowBook.ui.h:51
+msgid "Colossians"
+msgstr "Kolosserbrevet"
+
+#: ../data/windowBook.ui.h:52
+msgid "1 Thessalonians"
+msgstr "Första Thessalonikerbrevet"
+
+#: ../data/windowBook.ui.h:53
+msgid "2 Thessalonians"
+msgstr "Andra Thessalonikerbrevet"
+
+#: ../data/windowBook.ui.h:54
+msgid "1 Timothy"
+msgstr "Första Timotheosbrevet"
+
+#: ../data/windowBook.ui.h:55
+msgid "2 Timothy"
+msgstr "Andrea Timotheosbrevet"
+
+#: ../data/windowBook.ui.h:56
+msgid "Titus"
+msgstr "Titusbrevet"
+
+#: ../data/windowBook.ui.h:57
+msgid "Philemon"
+msgstr "Filemonbrevet"
+
+#: ../data/windowBook.ui.h:58
+msgid "Hebrews"
+msgstr "Hebreerbrevet"
+
+#: ../data/windowBook.ui.h:59
+msgid "James"
+msgstr "Jakobsbrevet"
+
+#: ../data/windowBook.ui.h:60
+msgid "1 Peter"
+msgstr "Första Petrusbrevet"
+
+#: ../data/windowBook.ui.h:61
+msgid "2 Peter"
+msgstr "Andra Petrusbrevet"
+
+#: ../data/windowBook.ui.h:62
+msgid "1 John"
+msgstr "Första Johannesbrevet"
+
+#: ../data/windowBook.ui.h:63
+msgid "2 John"
+msgstr "Andra Johannesbrevet"
+
+#: ../data/windowBook.ui.h:64
+msgid "3 John"
+msgstr "Tredje Johannesbrevet"
+
+#: ../data/windowBook.ui.h:65
+msgid "Jude"
+msgstr "Judasbrevet"
+
+#: ../data/windowBook.ui.h:66
+msgid "Revelation"
+msgstr "Uppenbarelseboken"
+
+#: ../data/windowBook.ui.h:67
+msgid "John"
+msgstr "Johannesevangeliet"
+
+#: ../data/windowBook.ui.h:68
+msgid "Luke"
+msgstr "Lukasevangeliet"
+
+#: ../data/windowBook.ui.h:69
+msgid "Mark"
+msgstr "Markusevangeliet"
+
+#: ../data/windowBook.ui.h:70
+msgid "Matthew"
+msgstr "Matteusevangeliet"
+
+#: ../data/windowEditSong.ui.h:1
+msgid "Add new Song"
+msgstr "Lägg till sång"
+
+#: ../data/windowEditSong.ui.h:2 ../data/windowMain.ui.h:2
+msgid "File"
+msgstr ""
+
+#: ../data/windowEditSong.ui.h:3
+msgid "Import"
+msgstr "Import"
+
+#: ../data/windowEditSong.ui.h:4
+msgid "Export"
+msgstr "Export"
+
+#: ../data/windowEditSong.ui.h:6
+msgid "Add Page"
+msgstr "Lägg till sida"
+
+#: ../data/windowEditSong.ui.h:7
+msgid "Remove Page"
+msgstr "Ta bort sida"
+
+#: ../data/windowEditSong.ui.h:8
+msgid "Preview Page"
+msgstr "Förhandsvisa sida"
+
+#: ../data/windowEditSong.ui.h:9
+msgid "Insert preset Copyright"
+msgstr ""
+
+#: ../data/windowEditSong.ui.h:10 ../data/windowMain.ui.h:39
+msgid "Help"
+msgstr ""
+
+#: ../data/windowEditSong.ui.h:12
+msgid "Keywords"
+msgstr "Nyckelord"
+
+#: ../data/windowEditSong.ui.h:13
+msgid "Copyright"
+msgstr "Copyright"
+
+#: ../data/windowEditSong.ui.h:14
+msgid "The songbook name"
+msgstr "Sångbokens namn"
+
+#: ../data/windowEditSong.ui.h:16
+msgid "The song number within the book"
+msgstr "Sångens nummer i sångboken"
+
+#: ../data/windowEditSong.ui.h:17
+msgid "The title of the song"
+msgstr "Sångens titel"
+
+#: ../data/windowEditSong.ui.h:18
+msgid "Who wrote this"
+msgstr "Vem skrev detta"
+
+#: ../data/windowEditSong.ui.h:19
+msgid "Topics of song"
+msgstr "Sångens handlar om"
+
+#: ../data/windowEditSong.ui.h:20
+msgid "Any copyright information"
+msgstr "Copyrightinformation"
+
+#: ../data/windowEditSong.ui.h:21
+msgid "Audit Song"
+msgstr "Logga sång"
+
+#: ../data/windowEditSong.ui.h:25 ../data/windowMain.ui.h:98
+msgid "Preview"
+msgstr "Förhandsvisning"
+
+#: ../data/windowEditSong.ui.h:26
+msgid "Spell Check"
+msgstr "Stavningskontroll"
+
+#: ../data/windowEditSong.ui.h:27
+msgid "Honourise"
+msgstr "Hedra"
+
+#: ../data/windowEditSong.ui.h:28
+msgid "Capitalize some words etc"
+msgstr "Versalisera vissa egennamn mm."
+
+#: ../data/windowEditSong.ui.h:29
+msgid "Save and Close"
+msgstr "Spara och stäng"
+
+#: ../data/windowMain.ui.h:1
+msgid "Lyricue"
+msgstr "Lyricue"
+
+#: ../data/windowMain.ui.h:3
+msgid "Manage _Images"
+msgstr "_Bilder"
+
+#: ../data/windowMain.ui.h:4
+msgid "Manage _Background"
+msgstr "Bak_grunder"
+
+#: ../data/windowMain.ui.h:5
+msgid "_Clean Database"
+msgstr ""
+
+#: ../data/windowMain.ui.h:6
+msgid "Import _Songlist"
+msgstr ""
+
+#: ../data/windowMain.ui.h:7
+msgid "_Export Songlist"
+msgstr ""
+
+#: ../data/windowMain.ui.h:9
+msgid "_Add Song"
+msgstr "_Lägg till sång"
+
+#: ../data/windowMain.ui.h:10
+msgid "Advanced _Search"
+msgstr "_Avancerad sökning"
+
+#: ../data/windowMain.ui.h:11
+msgid "_Edit Song"
+msgstr "_Redigera sång"
+
+#: ../data/windowMain.ui.h:12
+msgid "_Delete Song"
+msgstr "_Ta bort sång"
+
+#: ../data/windowMain.ui.h:13
+msgid "_Refresh List"
+msgstr "_Uppdatera lista"
+
+#: ../data/windowMain.ui.h:14
+msgid "_Configuration Wizard"
+msgstr ""
+
+#: ../data/windowMain.ui.h:15
+msgid "_User Administration"
+msgstr "_Användare"
+
+#: ../data/windowMain.ui.h:17
+msgid "_Select Playlist"
+msgstr "_Välj spellista"
+
+#: ../data/windowMain.ui.h:18
+msgid "_Clear Playlist"
+msgstr "_Rensa spellista"
+
+#: ../data/windowMain.ui.h:19
+msgid "_Refresh Playlist"
+msgstr "_Uppdatera spellista"
+
+#: ../data/windowMain.ui.h:20
+msgid "_Clear Image Associations"
+msgstr "Rensa _bildassociationer"
+
+#: ../data/windowMain.ui.h:21
+msgid "_Invert Line Display"
+msgstr "_Invertera radvisning"
+
+#: ../data/windowMain.ui.h:22
+msgid "_Export Playlist as PDF"
+msgstr ""
+
+#: ../data/windowMain.ui.h:23
+msgid "Playlist Item"
+msgstr ""
+
+#: ../data/windowMain.ui.h:24
+msgid "_Add from Available"
+msgstr "_Lägg till från tillgängliga"
+
+#: ../data/windowMain.ui.h:25
+msgid "Add _Image"
+msgstr "Lägg till _bild"
+
+#: ../data/windowMain.ui.h:26
+msgid "Add _File"
+msgstr "Lägg till _fil"
+
+#: ../data/windowMain.ui.h:27
+msgid "Add _Directory"
+msgstr ""
+
+#: ../data/windowMain.ui.h:28
+msgid "Add _DVD Video"
+msgstr ""
+
+#: ../data/windowMain.ui.h:29
+msgid "_Remove from Playlist"
+msgstr "_Ta bort från spellista"
+
+#: ../data/windowMain.ui.h:31
+msgid "_Previous Page"
+msgstr "_Föregående sida"
+
+#: ../data/windowMain.ui.h:32
+msgid "_Next Page"
+msgstr "_Nästa sida"
+
+#: ../data/windowMain.ui.h:33
+msgid "_Display Now"
+msgstr "_Visa nu"
+
+#: ../data/windowMain.ui.h:34
+msgid "_Blank Display"
+msgstr "_Töm skärm"
+
+#: ../data/windowMain.ui.h:35
+msgid "_Clear Text"
+msgstr "_Rensa text"
+
+#: ../data/windowMain.ui.h:36
+msgid "_Live Video"
+msgstr ""
+
+#: ../data/windowMain.ui.h:37
+msgid "Applications"
+msgstr ""
+
+#: ../data/windowMain.ui.h:40
+msgid "Prev. Page"
+msgstr "Föregående sida"
+
+#: ../data/windowMain.ui.h:41 ../data/windowTray.ui.h:5
+msgid "Next Page"
+msgstr "Nästa sida"
+
+#: ../data/windowMain.ui.h:42
+msgid "Next Point"
+msgstr "Nästa punkt"
+
+#: ../data/windowMain.ui.h:43
+msgid "Blank Screen"
+msgstr "Töm skärm"
+
+#: ../data/windowMain.ui.h:44
+msgid "Clear Text"
+msgstr "Rensa text"
+
+#: ../data/windowMain.ui.h:45
+msgid "Add File"
+msgstr "Lägg till fil"
+
+#: ../data/windowMain.ui.h:46
+msgid "Start Display"
+msgstr ""
+
+#: ../data/windowMain.ui.h:49
+msgid "Search the songlist directly"
+msgstr "Sök direkt i sånglistan"
+
+#: ../data/windowMain.ui.h:50
+msgid "Clear Search Field"
+msgstr "Rensa sökfält"
+
+#: ../data/windowMain.ui.h:51
+msgid "New"
+msgstr "Ny"
+
+#: ../data/windowMain.ui.h:52
+msgid "Add the selected song to the playlist"
+msgstr "Lägg till vald sång till spellistan"
+
+#: ../data/windowMain.ui.h:54
+msgid "Songs"
+msgstr "Låtar"
+
+#: ../data/windowMain.ui.h:55
+msgid "Current"
+msgstr "Nuvarande"
+
+#: ../data/windowMain.ui.h:56
+msgid "Previous"
+msgstr "Föregående"
+
+#: ../data/windowMain.ui.h:57
+msgid "Background preview"
+msgstr ""
+
+#: ../data/windowMain.ui.h:59
+msgid "Add to Playlist"
+msgstr "Lägg till i spellistan"
+
+#: ../data/windowMain.ui.h:61
+msgid "Files"
+msgstr "Filer"
+
+#: ../data/windowMain.ui.h:62
+msgid "Enter Verse to display"
+msgstr "Välj vers att visa"
+
+#: ../data/windowMain.ui.h:63
+msgid "<"
+msgstr "<"
+
+#: ../data/windowMain.ui.h:64
+msgid ">"
+msgstr ">"
+
+#: ../data/windowMain.ui.h:65
+msgid "Add these verses to the playlist"
+msgstr "Lägg till valda verser till spellistan"
+
+#: ../data/windowMain.ui.h:66
+msgid "Show Now"
+msgstr "Visa nu"
+
+#: ../data/windowMain.ui.h:67
+msgid "Show"
+msgstr "Visa"
+
+#: ../data/windowMain.ui.h:68
+msgid "Autoshow"
+msgstr "Automatisk visning"
+
+#: ../data/windowMain.ui.h:69
+msgid "Default"
+msgstr ""
+
+#: ../data/windowMain.ui.h:72
+msgid "Slide Text"
+msgstr "Dra text"
+
+#: ../data/windowMain.ui.h:73
+msgid "Rotate Text"
+msgstr ""
+
+#: ../data/windowMain.ui.h:74
+msgid "Random"
+msgstr ""
+
+#: ../data/windowMain.ui.h:75
+msgid "In Direction"
+msgstr "Riktning in"
+
+#: ../data/windowMain.ui.h:76
+msgid "Out Direction"
+msgstr "Riktning ut"
+
+#: ../data/windowMain.ui.h:77
+msgid "Rotate Direction"
+msgstr ""
+
+#: ../data/windowMain.ui.h:78
+msgid "X-Axis"
+msgstr ""
+
+#: ../data/windowMain.ui.h:79
+msgid "Y-Axis"
+msgstr ""
+
+#: ../data/windowMain.ui.h:80
+msgid "Z-Axis"
+msgstr ""
+
+#: ../data/windowMain.ui.h:81
+msgid "Apply to Selected"
+msgstr ""
+
+#: ../data/windowMain.ui.h:82
+msgid "Apply to Playlist"
+msgstr ""
+
+#: ../data/windowMain.ui.h:83
+msgid "Transitions"
+msgstr ""
+
+#: ../data/windowMain.ui.h:84
+msgid "No Playlist loaded"
+msgstr "Ingen spellista laddad"
+
+#: ../data/windowMain.ui.h:85
+msgid "Choose Your Playlist"
+msgstr "Välj en spellista"
+
+#: ../data/windowMain.ui.h:86
+msgid "Load"
+msgstr "Ladda"
+
+#: ../data/windowMain.ui.h:88
+msgid "Rename"
+msgstr "Byt namn"
+
+#: ../data/windowMain.ui.h:89
+msgid "Copy"
+msgstr ""
+
+#: ../data/windowMain.ui.h:91
+msgid "Move the current item down"
+msgstr "Flytta valt objekt neråt i listan"
+
+#: ../data/windowMain.ui.h:92
+msgid "Move Down"
+msgstr "Flytta ner"
+
+#: ../data/windowMain.ui.h:93
+msgid "Move the current item up"
+msgstr "Flytta valt objekt neråt i listan"
+
+#: ../data/windowMain.ui.h:94
+msgid "Move Up"
+msgstr "Flytta upp"
+
+#: ../data/windowMain.ui.h:95
+msgid "Remove the current item from the playlist"
+msgstr "Ta bort objektet från spellistan"
+
+#: ../data/windowMain.ui.h:96
+msgid "Remove"
+msgstr "Ta bort"
+
+#: ../data/windowMain.ui.h:97
+msgid "Add Sublist"
+msgstr "Lägg till lista"
+
+#: ../data/windowMain.ui.h:99
+msgid "0:00"
+msgstr ""
+
+#: ../data/windowMain.ui.h:100
+msgid "Blur"
+msgstr ""
+
+#: ../data/windowMain.ui.h:101
+msgid "Quick Update"
+msgstr "Snabbuppdatering"
+
+#: ../data/windowMain.ui.h:102
+msgid "Save"
+msgstr "Spara"
+
+#: ../data/windowTray.ui.h:1
+msgid "You should never read this"
+msgstr "Du ska aldrig läsa detta"
+
+#: ../data/windowTray.ui.h:2
+msgid "Previous Song"
+msgstr "Föregående sång"
+
+#: ../data/windowTray.ui.h:3
+msgid "Next Song"
+msgstr "Nästa sång"
+
+#: ../data/windowTray.ui.h:4
+msgid "Previous Page"
+msgstr "Föregående sida"
+
+#: ../data/windowTray.ui.h:6
+msgid "Clear Screen"
+msgstr "Rensa skärm"
