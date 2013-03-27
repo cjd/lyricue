@@ -14,25 +14,16 @@ Source0:	http://www.lyricue.org/archive/%{name}_%{version}.tar.gz
 # Source0-md5:	7276c53c70a3b4334f0d4cc2a7ba9539
 URL:		http://www.lyricue.org
 BuildRequires:	gettext-devel
-BuildRequires:	rpm-perlprov
 BuildRequires:	sed >= 4.0
+BuildRequires:	clutter-devel
+BuildRequires:	clutter-gst-devel
+BuildRequires:	clutter-gtk-devel
+BuildRequires:	mysql-devel
 Requires:	mysql-client
 Requires:	perl-DBI
 Requires:	perl-Gtk2 >= 1.220
 Requires:	perl-Gtk2-GladeXML
 Requires:	perl-URI
-Suggests:	ImageMagick
-Suggests:	%{name}-display
-Suggests:	%{name}-remote
-Suggests:	diatheke
-Suggests:	mysql
-Suggests:	perl(DBD::SQLite)
-Suggests:	perl(Clutter)
-Suggests:	perl(DBD::mysql)
-Suggests:	perl(Gtk2::Spell)
-Suggests:	perl(Gtk2::TrayIcon)
-Suggests:	totem
-Suggests:	unoconv
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -44,10 +35,6 @@ seminars.
 %package display
 Summary:	GNU Lyric Display System, display interface
 Group:		X11/Applications/Graphics
-Suggests:	perl(Clutter)
-Suggests:	perl(DBD::mysql)
-Suggests:	perl(Locale::gettext)
-Suggests:	totem
 Obsoletes:	lyricue-server
 
 %description display
@@ -62,8 +49,8 @@ Remote control CLI to control the projection display from any shell.
 
 %prep
 %setup -q
-sed -e 's#po/es_ES#po/es#' -i Makefile
-mv po/es{_ES,}.po
+#sed -e 's#po/es_ES#po/es#' -i Makefile
+#mv po/es{_ES,}.po
 
 %build
 %configure \
@@ -76,18 +63,17 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-mv $RPM_BUILD_ROOT/%{_sysconfdir}/%{name}/access.conf{.example,}
+%find_lang %{name} --with-gnome
 
-%find_lang %{name}
-
-rm -rf $RPM_BUILD_ROOT%{_datadir}/docs/%{name}
+rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/apport
+rm -rf $RPM_BUILD_ROOT%{_datadir}/apport
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc docs/*
+%doc %{_defaultdocdir}/%{name}*
 %dir %{_sysconfdir}/%{name}
 %config(noreplace) %{_sysconfdir}/%{name}/*.conf
 %attr(755,root,root) %{_bindir}/%{name}
