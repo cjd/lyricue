@@ -19,8 +19,9 @@ BuildRequires:	clutter-devel
 BuildRequires:	clutter-gst-devel
 BuildRequires:	clutter-gtk-devel
 BuildRequires:	mysql-devel
-Requires:	mysql-client
+Requires:	mysql
 Requires:	perl-DBI
+Requires:	perl-DBI-mysql
 Requires:	perl-Gtk2 >= 1.220
 Requires:	perl-Gtk2-GladeXML
 Requires:	perl-URI
