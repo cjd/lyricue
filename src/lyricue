@@ -6656,7 +6656,9 @@ sub load_config {
     $conf->{'Width'}  = 0;
     $conf->{'Height'} = 0;
 
+    my $lines=0;
     while (<CONFIG>) {
+        $lines++;
         chomp;
         my @line = split(/=/);
         if ($line[0]) {
@@ -6696,6 +6698,14 @@ sub load_config {
         }
     }
     close CONFIG;
+    if ($lines < 5) {
+        if ( -e $globals->{'configfile'}.".bak" ) {
+            rename($globals->{'configfile'}, $globals->{'configfile'} . ".bad");
+            rename($globals->{'configfile'} . ".bak", $globals->{'configfile'});
+            $conf = load_config();
+            return $conf;
+        }
+    }
 
     $conf->{'BibleCount'} = $bibleCount;
     $conf->{'AppCount'}   = $appCount;
@@ -6721,14 +6731,14 @@ sub load_config {
             $conf->{'LoopText'} = "loop";
         }
     }
-    if (!($conf->{'BGImage'} =~ /;/)) {
+    if (defined $conf->{'BGImage'} && !($conf->{'BGImage'} =~ /;/)) {
         $conf->{'BGImage'} = "db;" . $conf->{'BGImage'};
     }
-    if (!($conf->{'ImageDirectory'})) {
+    if (defined $conf->{'ImageDirectory'} && !($conf->{'ImageDirectory'})) {
         $conf->{'ImageDirectory'} =
           Glib::get_user_special_dir('pictures') . "/";
     }
-    if (!($conf->{'BGDirectory'})) {
+    if (defined $conf->{'ImageDirectory'} && !($conf->{'BGDirectory'})) {
         $conf->{'BGDirectory'} = Glib::get_user_special_dir('pictures') . "/";
     }
 
@@ -6751,13 +6761,15 @@ sub load_config {
     }
 
     # Set icon sizes according to aspect ratio
-    $globals->{'display_aspect'} = $conf->{'Width'} / $conf->{'Height'};
-    $globals->{'icon_height'} =
-      $globals->{'icon_width'} / $globals->{'display_aspect'};
-    $globals->{'thumb_height'} =
-      $globals->{'thumb_width'} / $globals->{'display_aspect'};
-    $globals->{'snapshot_height'} =
-      $globals->{'snapshot_width'} / $globals->{'display_aspect'};
+    if (($conf->{'Width'} != 0) && ($conf->{'Height'} != 0)) {
+        $globals->{'display_aspect'} = $conf->{'Width'} / $conf->{'Height'};
+        $globals->{'icon_height'} =
+          $globals->{'icon_width'} / $globals->{'display_aspect'};
+        $globals->{'thumb_height'} =
+          $globals->{'thumb_width'} / $globals->{'display_aspect'};
+        $globals->{'snapshot_height'} =
+          $globals->{'snapshot_width'} / $globals->{'display_aspect'};
+    }
 
     return $conf;
 }
