@@ -5,7 +5,8 @@ AM_CPPFLAGS = \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" $(CLUTTER_CFLAGS) \ 
 	$(GTK_CFLAGS) $(CLUTTERGTK_CFLAGS) $(CLUTTERGST_CFLAGS) \
-    $(GSTREAMER_CFLAGS) $(JSONGLIB_CFLAGS)
+    $(GSTREAMER_CFLAGS) $(JSONGLIB_CFLAGS) $(AVAHI_CFLAGS) \
+    $(AVAHIGLIB_CFLAGS)
 
 AM_CFLAGS =\
 	 -Wall\
@@ -29,7 +30,9 @@ lyricue_display_SOURCES = \
 	utils.h \
 	i18n.h \
 	bible.c \
-	bible.h
+	bible.h \
+	avahi.c \
+	avahi.h
 
 lyricue_display_LDADD = \
 	$(CLUTTER_LIBS)  \
@@ -37,5 +40,7 @@ lyricue_display_LDADD = \
 	$(CLUTTERGTK_LIBS) \
 	$(CLUTTERGST_LIBS) \
 	$(GSTREAMER_LIBS) \
-	$(JSONGLIB_LIBS)
+	$(JSONGLIB_LIBS) \
+	$(AVAHIGLIB_LIBS) \
+	$(AVAHI_LIBS)
 

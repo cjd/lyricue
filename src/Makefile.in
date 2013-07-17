@@ -68,10 +68,11 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_lyricue_display_OBJECTS = lyricue_display.$(OBJEXT) \
 	database.$(OBJEXT) display.$(OBJEXT) utils.$(OBJEXT) \
-	bible.$(OBJEXT)
+	bible.$(OBJEXT) avahi.$(OBJEXT)
 lyricue_display_OBJECTS = $(am_lyricue_display_OBJECTS)
 am__DEPENDENCIES_1 =
 lyricue_display_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -149,6 +150,10 @@ AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
+AVAHIGLIB_CFLAGS = @AVAHIGLIB_CFLAGS@
+AVAHIGLIB_LIBS = @AVAHIGLIB_LIBS@
+AVAHI_CFLAGS = @AVAHI_CFLAGS@
+AVAHI_LIBS = @AVAHI_LIBS@
 AWK = @AWK@
 CATALOGS = @CATALOGS@
 CATOBJEXT = @CATOBJEXT@
@@ -303,7 +308,8 @@ AM_CPPFLAGS = \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" $(CLUTTER_CFLAGS) \
 	$(GTK_CFLAGS) $(CLUTTERGTK_CFLAGS) $(CLUTTERGST_CFLAGS) \
-    $(GSTREAMER_CFLAGS) $(JSONGLIB_CFLAGS)
+    $(GSTREAMER_CFLAGS) $(JSONGLIB_CFLAGS) $(AVAHI_CFLAGS) \
+    $(AVAHIGLIB_CFLAGS)
 
 AM_CFLAGS = \
 	 -Wall\
@@ -324,7 +330,9 @@ lyricue_display_SOURCES = \
 	utils.h \
 	i18n.h \
 	bible.c \
-	bible.h
+	bible.h \
+	avahi.c \
+	avahi.h
 
 lyricue_display_LDADD = \
 	$(CLUTTER_LIBS)  \
@@ -332,7 +340,9 @@ lyricue_display_LDADD = \
 	$(CLUTTERGTK_LIBS) \
 	$(CLUTTERGST_LIBS) \
 	$(GSTREAMER_LIBS) \
-	$(JSONGLIB_LIBS)
+	$(JSONGLIB_LIBS) \
+	$(AVAHIGLIB_LIBS) \
+	$(AVAHI_LIBS)
 
 all: all-am
 
@@ -459,6 +469,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avahi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bible.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/database.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/display.Po@am__quote@

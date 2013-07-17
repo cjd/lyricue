@@ -4025,6 +4025,27 @@ sub update_display {
     $primary   =~ s/:/#SEMI#/g;
     $secondary =~ s/:/#SEMI#/g;
     debug("Command: " . $command . ":" . $primary . ":" . $secondary);
+
+    my $avahi = `avahi-browse -t -p -r _lyricue._tcp`;
+    my @displays = split (/\n/, $avahi);
+    foreach my $display (@displays) {
+        my @display_items = split(/;/, $display);
+        if (@display_items > 8 && $display_items[2] eq "IPv4") {
+            if (($display_items[3] =~ /^Lyricue\\032Display/) && ($display_items[9] eq "\"type=Standalone\"")) {
+            debug("Updating ".$display_items[7].":".$display_items[8]);
+                if ( my $server = IO::Socket::INET->new(
+                        Proto    => "tcp",
+                        PeerAddr => $display_items[7],
+                        PeerPort => $display_items[8]
+                    )) {
+                    print $server toutf(
+                        $command . ":" . $primary . ":" . $secondary . "\n");
+                    close($server);
+                }
+            }
+        }
+    }
+if (0) {
     if (
         my $server = IO::Socket::INET->new(
             Proto    => "tcp",
@@ -4082,6 +4103,7 @@ sub update_display {
             }
         }
     }
+}
 }
 
 #***

@@ -48,6 +48,7 @@
 #include "display.h"
 #include "bible.h"
 #include "utils.h"
+#include "avahi.h"
 
 
 gboolean new_connection(GSocketService *service,

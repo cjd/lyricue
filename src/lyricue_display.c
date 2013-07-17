@@ -111,18 +111,25 @@ main (int argc, char *argv[])
     g_socket_service_start (service);
     g_signal_connect (service, "incoming", G_CALLBACK (new_connection), NULL);
 
-    // Setup tracker entry in DB
-    do_query (lyricDb, "DELETE FROM playlists WHERE id=-1");
-    do_query (lyricDb, "INSERT INTO playlists SET id=-1,ref=0,title=''");
-
     ret = create_main_window (argc, argv);
 
     if (windowid == 0) {
+        // Publish to avahi (zeroconf/bonjour)
+        publish_avahi(server_port, "Standalone");
+
+        // Setup tracker entry in DB
+        do_query (lyricDb, "DELETE FROM playlists WHERE id=-1");
+        do_query (lyricDb, "INSERT INTO playlists SET id=-1,ref=0,title=''");
         clutter_main ();
     } else {
+        // Publish to avahi (zeroconf/bonjour)
+        publish_avahi(server_port, "Embedded");
         gtk_main ();
     }
+
     ret = db_deselect ();
+
+    unpublish_avahi();
 
     l_debug("Exiting");
     return EXIT_SUCCESS;

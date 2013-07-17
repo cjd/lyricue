@@ -635,6 +635,10 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+AVAHIGLIB_LIBS
+AVAHIGLIB_CFLAGS
+AVAHI_LIBS
+AVAHI_CFLAGS
 JSONGLIB_LIBS
 JSONGLIB_CFLAGS
 GSTREAMER_LIBS
@@ -847,7 +851,11 @@ CLUTTERGST_LIBS
 GSTREAMER_CFLAGS
 GSTREAMER_LIBS
 JSONGLIB_CFLAGS
-JSONGLIB_LIBS'
+JSONGLIB_LIBS
+AVAHI_CFLAGS
+AVAHI_LIBS
+AVAHIGLIB_CFLAGS
+AVAHIGLIB_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1522,6 +1530,13 @@ Some influential environment variables:
               C compiler flags for JSONGLIB, overriding pkg-config
   JSONGLIB_LIBS
               linker flags for JSONGLIB, overriding pkg-config
+  AVAHI_CFLAGS
+              C compiler flags for AVAHI, overriding pkg-config
+  AVAHI_LIBS  linker flags for AVAHI, overriding pkg-config
+  AVAHIGLIB_CFLAGS
+              C compiler flags for AVAHIGLIB, overriding pkg-config
+  AVAHIGLIB_LIBS
+              linker flags for AVAHIGLIB, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -7712,7 +7727,8 @@ else
     ;;
   *)
     lt_cv_sys_max_cmd_len=`(getconf ARG_MAX) 2> /dev/null`
-    if test -n "$lt_cv_sys_max_cmd_len"; then
+    if test -n "$lt_cv_sys_max_cmd_len" && \
+	test undefined != "$lt_cv_sys_max_cmd_len"; then
       lt_cv_sys_max_cmd_len=`expr $lt_cv_sys_max_cmd_len \/ 4`
       lt_cv_sys_max_cmd_len=`expr $lt_cv_sys_max_cmd_len \* 3`
     else
@@ -8113,10 +8129,6 @@ freebsd* | dragonfly*)
   fi
   ;;
 
-gnu*)
-  lt_cv_deplibs_check_method=pass_all
-  ;;
-
 haiku*)
   lt_cv_deplibs_check_method=pass_all
   ;;
@@ -8155,7 +8167,7 @@ irix5* | irix6* | nonstopux*)
   ;;
 
 # This must be glibc/ELF.
-linux* | k*bsd*-gnu | kopensolaris*-gnu)
+linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
@@ -9252,7 +9264,14 @@ s390*-*linux*|s390*-*tpf*|sparc*-*linux*)
 	    LD="${LD-ld} -m elf_i386_fbsd"
 	    ;;
 	  x86_64-*linux*)
-	    LD="${LD-ld} -m elf_i386"
+	    case `/usr/bin/file conftest.o` in
+	      *x86-64*)
+		LD="${LD-ld} -m elf32_x86_64"
+		;;
+	      *)
+		LD="${LD-ld} -m elf_i386"
+		;;
+	    esac
 	    ;;
 	  ppc64-*linux*|powerpc64-*linux*)
 	    LD="${LD-ld} -m elf32ppclinux"
@@ -10810,7 +10829,7 @@ lt_prog_compiler_static=
       lt_prog_compiler_static='-non_shared'
       ;;
 
-    linux* | k*bsd*-gnu | kopensolaris*-gnu)
+    linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
       case $cc_basename in
       # old Intel for x86_64 which still supported -KPIC.
       ecc*)
@@ -12980,17 +12999,6 @@ freebsd* | dragonfly*)
   esac
   ;;
 
-gnu*)
-  version_type=linux # correct to gnu/linux during the next big refactor
-  need_lib_prefix=no
-  need_version=no
-  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}${major} ${libname}${shared_ext}'
-  soname_spec='${libname}${release}${shared_ext}$major'
-  shlibpath_var=LD_LIBRARY_PATH
-  shlibpath_overrides_runpath=no
-  hardcode_into_libs=yes
-  ;;
-
 haiku*)
   version_type=linux # correct to gnu/linux during the next big refactor
   need_lib_prefix=no
@@ -13107,7 +13115,7 @@ linux*oldld* | linux*aout* | linux*coff*)
   ;;
 
 # This must be glibc/ELF.
-linux* | k*bsd*-gnu | kopensolaris*-gnu)
+linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
   version_type=linux # correct to gnu/linux during the next big refactor
   need_lib_prefix=no
   need_version=no
@@ -15365,6 +15373,188 @@ See \`config.log' for more details" "$LINENO" 5; }
 else
 	JSONGLIB_CFLAGS=$pkg_cv_JSONGLIB_CFLAGS
 	JSONGLIB_LIBS=$pkg_cv_JSONGLIB_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for AVAHI" >&5
+$as_echo_n "checking for AVAHI... " >&6; }
+
+if test -n "$AVAHI_CFLAGS"; then
+    pkg_cv_AVAHI_CFLAGS="$AVAHI_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"avahi-client\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "avahi-client") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_AVAHI_CFLAGS=`$PKG_CONFIG --cflags "avahi-client" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$AVAHI_LIBS"; then
+    pkg_cv_AVAHI_LIBS="$AVAHI_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"avahi-client\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "avahi-client") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_AVAHI_LIBS=`$PKG_CONFIG --libs "avahi-client" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        AVAHI_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "avahi-client" 2>&1`
+        else
+	        AVAHI_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "avahi-client" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$AVAHI_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (avahi-client) were not met:
+
+$AVAHI_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables AVAHI_CFLAGS
+and AVAHI_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables AVAHI_CFLAGS
+and AVAHI_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	AVAHI_CFLAGS=$pkg_cv_AVAHI_CFLAGS
+	AVAHI_LIBS=$pkg_cv_AVAHI_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for AVAHIGLIB" >&5
+$as_echo_n "checking for AVAHIGLIB... " >&6; }
+
+if test -n "$AVAHIGLIB_CFLAGS"; then
+    pkg_cv_AVAHIGLIB_CFLAGS="$AVAHIGLIB_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"avahi-glib\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "avahi-glib") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_AVAHIGLIB_CFLAGS=`$PKG_CONFIG --cflags "avahi-glib" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$AVAHIGLIB_LIBS"; then
+    pkg_cv_AVAHIGLIB_LIBS="$AVAHIGLIB_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"avahi-glib\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "avahi-glib") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_AVAHIGLIB_LIBS=`$PKG_CONFIG --libs "avahi-glib" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        AVAHIGLIB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "avahi-glib" 2>&1`
+        else
+	        AVAHIGLIB_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "avahi-glib" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$AVAHIGLIB_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (avahi-glib) were not met:
+
+$AVAHIGLIB_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables AVAHIGLIB_CFLAGS
+and AVAHIGLIB_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables AVAHIGLIB_CFLAGS
+and AVAHIGLIB_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	AVAHIGLIB_CFLAGS=$pkg_cv_AVAHIGLIB_CFLAGS
+	AVAHIGLIB_LIBS=$pkg_cv_AVAHIGLIB_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
