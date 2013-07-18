@@ -64,6 +64,7 @@ CREATE TABLE `playlists` (
 -- Table structure for table `configuration`
 CREATE TABLE `configuration` (
   `id` int(11) NOT NULL auto_increment,
+  `host` varchar(50) NOT NULL default '',
   `key` varchar(50) NOT NULL default '',
   `value` varchar(250) default '',
   PRIMARY KEY  (`id`)
@@ -72,8 +73,18 @@ CREATE TABLE `configuration` (
 -- Table structure for table `configuration_old`
 CREATE TABLE `configuration_old` (
   `id` int(11) NOT NULL auto_increment,
+  `host` varchar(50) NOT NULL default '',
   `key` varchar(50) NOT NULL default '',
   `value` varchar(250) default '',
+  PRIMARY KEY  (`id`)
+) DEFAULT CHARSET=utf8;
+
+-- Table structure for table `status`
+CREATE TABLE `status` (
+  `id` int(11) NOT NULL auto_increment,
+  `host` varchar(50) NOT NULL default '',
+  `title` varchar(50) NOT NULL default '',
+  `ref` varchar(50) NOT NULL default '',
   PRIMARY KEY  (`id`)
 ) DEFAULT CHARSET=utf8;
 
@@ -85,4 +96,48 @@ INSERT INTO lyricMain VALUES (2,'Sample Song',0,'Sample Songbook','',20040307192
 INSERT INTO page VALUES (2,2,1,'Verse 1', 'This is a sample song');
 INSERT INTO page VALUES (3,2,2,'Chorus', 'This is the second page of the a sample song');
 INSERT INTO playlists VALUES (1,'Main Playlist','');
-
+INSERT INTO `config` VALUES (1,'','Audit','1')
+INSERT INTO `config` VALUES (2,'','BGDirectory','')
+INSERT INTO `config` VALUES (3,'','BGImage','db;1')
+INSERT INTO `config` VALUES (4,'','CentreX','0')
+INSERT INTO `config` VALUES (5,'','CentreY','1')
+INSERT INTO `config` VALUES (6,'','Colour','#ffffff')
+INSERT INTO `config` VALUES (7,'','DatabaseType','mysql')
+INSERT INTO `config` VALUES (8,'','DBHost','localhost')
+INSERT INTO `config` VALUES (9,'','DefaultTransition','Fade')
+INSERT INTO `config` VALUES (10,'','DefBible','')
+INSERT INTO `config` VALUES (11,'','DynamicPreview','1')
+INSERT INTO `config` VALUES (12,'','ExpandNew','0')
+INSERT INTO `config` VALUES (13,'','Footer','Sans 20')
+INSERT INTO `config` VALUES (14,'','FrameLeft','327')
+INSERT INTO `config` VALUES (15,'','FrameRight','259')
+INSERT INTO `config` VALUES (16,'','GeometryOverride','')
+INSERT INTO `config` VALUES (17,'','Header','Sans 20')
+INSERT INTO `config` VALUES (18,'','Height','768')
+INSERT INTO `config` VALUES (19,'','HighlightColour','yellow')
+INSERT INTO `config` VALUES (20,'','HorizontalLocation','Centre')
+INSERT INTO `config` VALUES (21,'','IgnoreMouse','0')
+INSERT INTO `config` VALUES (22,'','ImageDirectory','')
+INSERT INTO `config` VALUES (23,'','Justification','Left')
+INSERT INTO `config` VALUES (24,'','Loop','1')
+INSERT INTO `config` VALUES (25,'','Main','Sans 40')
+INSERT INTO `config` VALUES (26,'','Miniview','0')
+INSERT INTO `config` VALUES (27,'','OSD','Sans 30')
+INSERT INTO `config` VALUES (28,'','OverscanH','0')
+INSERT INTO `config` VALUES (29,'','OverscanV','0')
+INSERT INTO `config` VALUES (30,'','Preset1','Used with permission CCLI 23232')
+INSERT INTO `config` VALUES (31,'','Preset2','Used without permission')
+INSERT INTO `config` VALUES (32,'','ProjectorHost','localhost')
+INSERT INTO `config` VALUES (33,'','ShadowColour','#000000')
+INSERT INTO `config` VALUES (34,'','ShadowSize','1')
+INSERT INTO `config` VALUES (35,'','SpecialBack','Solid')
+INSERT INTO `config` VALUES (36,'','SpecialImage','Solid')
+INSERT INTO `config` VALUES (37,'','SpecialSong','Today\'s Announcements')
+INSERT INTO `config` VALUES (38,'','TrayIcons','1')
+INSERT INTO `config` VALUES (39,'','VerticalLocation','Centre')
+INSERT INTO `config` VALUES (40,'','Width','1024')
+INSERT INTO `config` VALUES (41,'','Xinerama','1')
+INSERT INTO `config` VALUES (42,'','App','Load Lyricue Display;lyricue_display')
+INSERT INTO `config` VALUES (43,'','App','Close Lyricue Display;lyricue_remote close')
+INSERT INTO `config` VALUES (44,'','App','OpenOffice Impress;ooimpress')
+INSERT INTO `config` VALUES (45,'','App','Movie Player;totem');

@@ -118,6 +118,7 @@ use File::Temp qw/tempdir tempfile/;
 use File::MimeInfo qw/globs/;
 use Cwd qw(abs_path);
 use File::Basename;
+use Sys::Hostname;
 
 eval { require Locale::gettext };
 
@@ -167,7 +168,6 @@ if ($^O eq 'MSWin32') {
     }
     $globals->{'sharedir'}   = $globals->{'sharedir'} . "/";
     $globals->{'basedir'}    = Glib::get_user_data_dir . "/lyricue/";
-    $globals->{'oldbasedir'} = $ENV{'HOME'} . "/.lyricue/";
 }
 
 #
@@ -180,8 +180,6 @@ use constant TRUE  => 1;
 
 $globals->{'version'}     = "##VERSION##";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
-$globals->{'defaultconf'} = $globals->{'etcdir'} . "default.conf";
-$globals->{'configfile'}  = $globals->{'basedir'} . "config2";
 $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 
 $globals->{'host'}        = "localhost";
@@ -401,8 +399,6 @@ if ($ARGV[0]) {
             $globals->{'debugging'} = 2;
         } elsif ($ARGV[$_] eq "-dq") {
             $globals->{'debugging'} = 2;
-        } elsif ($ARGV[$_] eq "-sqlite") {
-            $globals->{'force_sqlite'} = TRUE;
         } elsif ($ARGV[$_] eq "-w") {
             $globals->{'run_windowed'} = TRUE;
         } elsif ($ARGV[$_] eq "-s") {
@@ -444,32 +440,7 @@ if (-e $globals->{'basedir'}) {
         mkdir $globals->{'basedir'}, 0777;
     }
 } else {
-    if (-e $globals->{'oldbasedir'}) {
-        my $movexml = load_window("dialogConfirm");
-        $movexml->get_object('labelDelete')->set_text(
-            fromutf(
-                gettext(
-"The directory used to hold configuration files has changed\n"
-                      . "It is now ~/.local/share/lyricue\n"
-                      . "If you do not wish to do this press Cancel and Lyricue will exit"
-                )
-            )
-        );
-        my $confirm = $movexml->get_object('dialogConfirm')->run();
-        if ($confirm eq "ok") {
-            debug("Migrating lyricue configuration");
-            system("mkdir -p " . $globals->{'basedir'});
-            system( "cp -r "
-                  . $globals->{'oldbasedir'} . "/* "
-                  . $globals->{'basedir'});
-            close_dialog($movexml->get_object('dialogConfirm'));
-        } else {
-            print STDERR "Exiting as we are not migrating configuration";
-            exit;
-        }
-    } else {
-        system("mkdir -p " . $globals->{'basedir'});
-    }
+    system("mkdir -p " . $globals->{'basedir'});
 }
 
 # Setup logging
@@ -484,26 +455,11 @@ $widgets->{'main'} = load_window("windowMain");
 fix_widget_names();    # Needed since gtk2::builder is not setting widget names
 
 # Load the config file
-if (-d $globals->{'basedir'}) {
-    if (!-e $globals->{'configfile'}) {
-        debug("Creating new configuration");
-        system(
-            "cp " . $globals->{'defaultconf'} . " " . $globals->{'configfile'});
-        $config = load_config();
-        $globals->{'firstrun'} = TRUE;
-        firstrun_wizard();
-        Gtk2->main();
-        $globals->{'firstrun'} = FALSE;
-    } else {
-        debug("Loading config and access");
-        $config = load_config();
-    }
-    $globals->{'access'} = load_access();
+$globals->{'access'} = load_access();
 
-    # Open lyricDB, bibleDB and mediaDb
-    db_select();
-    write_config(TRUE);
-}
+# Open lyricDB, bibleDB and mediaDb
+db_select();
+$config = load_config(hostname());
 
 if ($globals->{'print_songs'}) {
     print_songs();
@@ -573,24 +529,7 @@ sub close_main {
     do_pending();
 
     # Save current state
-    unlink $globals->{'configfile'} . ".bak";
-    open(CONFIG, "$globals->{'configfile'}")
-      || display_fatal($errorcodes->{'fileopenread'}, $!);
-    my $config = "";
-    binmode(CONFIG, ":utf8");
-    while (<CONFIG>) {
-        if (!/^Frame/) {
-            $config .= $_;
-        }
-    }
-    close CONFIG;
-    rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
-    open(CONFIG, ">$globals->{'configfile'}")
-      || display_fatal($errorcodes->{'fileopenwrite'}, $!);
-    binmode(CONFIG, ":utf8");
-    print CONFIG $config;
-    print CONFIG save_state();
-    close CONFIG;
+    write_config();
 
     $lyricDbh->disconnect;
     if ((!$globals->{'usesword'}) && ($bibleDbh != NULL)) {
@@ -1156,7 +1095,7 @@ sub update_available {
         );
     }
 
-    if (($songname ne "") && ($config->{'DatabaseType'} eq "mysql")) {
+    if ($songname ne "") {
         $query =
 "SELECT id,title,songnum,book,SUBSTRING_INDEX(lyrics,'\n',1) as line FROM page,lyricMain WHERE pagenum=1 AND SUBSTRING_INDEX(lyrics,'\n',1) LIKE \"%"
           . $songname
@@ -5079,7 +5018,7 @@ sub close_playlist_chooser {
 #
 sub create_dialog_prefs {
     debug("Creating preferences dialog");
-    $config = load_config();
+    $config = load_config(hostname());
     $widgets->{'prefs'} = load_window("dialogPrefs");
     $widgets->{'prefs'}->get_object('spinPrefHeight')
       ->set_value($config->{'Height'});
@@ -5198,11 +5137,7 @@ sub create_dialog_prefs {
     $widgets->{'prefs'}->get_object('filePrefSpecialBGdir')->{'user_data'} =
       "bg";
 
-    if ($config->{'DatabaseType'} eq "mysql") {
-        $widgets->{'prefs'}->get_object('radioPrefDBMysql')->set_active(TRUE);
-    } else {
-        $widgets->{'prefs'}->get_object('radioPrefDBSqlite')->set_active(TRUE);
-    }
+    $widgets->{'prefs'}->get_object('radioPrefDBMysql')->set_active(TRUE);
     $widgets->{'prefs'}->get_object('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
     $widgets->{'prefs'}->get_object('entryPrefMain')
@@ -5294,12 +5229,7 @@ sub change_pref_xinerama {
 sub execute_app {
     my ($widget, $app) = @_;
     my $command = "";
-    if ($widget eq "") {
-        $command = $app;
-    } else {
-        $command = $config->{'App'}[$app];
-        $command =~ s/^.*?;//g;
-    }
+    $command = $app;
     debug("Executing app: " . $command);
     if ($config->{'Xinerama'}) {
         if ($command =~ /;$/) {
@@ -5452,7 +5382,7 @@ sub select_bible_db {
               $line[1] . ":" . $line[0] . ";" . $widget->get('label');
             debug("No default bible set previously, setting to "
                   . $config->{'DefBible'});
-            write_config(FALSE);
+            write_config();
         }
     }
 }
@@ -6663,89 +6593,45 @@ sub update_loop {
 # SOURCE
 #
 sub load_config {
+    my ($hostname) = @_;
     my ($conf);
     debug("Loading Preferences");
     my $bibleCount = 0;
-    my $appCount   = 0;
-    $conf->{'App'}[$appCount++] =
-      gettext("Load Lyricue Display") . ";lyricue_display";
-    $conf->{'App'}[$appCount++] =
-      gettext("Close Lyricue Display") . ";lyricue_remote close";
-    open(CONFIG, $globals->{'configfile'})
-      || display_fatal($errorcodes->{'fileopenread'} . $globals->{'configfile'},
-        $! . "\nSQL: " . $query);
-    binmode(CONFIG, ":utf8");
+    $conf->{'Apps'}->{gettext("Load Lyricue Display")} = "lyricue_display";
+    $conf->{'Apps'}->{gettext("Close Lyricue Display")} = "lyricue_remote close";
     $conf->{'Width'}  = 0;
     $conf->{'Height'} = 0;
 
-    my $lines=0;
-    while (<CONFIG>) {
-        $lines++;
-        chomp;
-        my @line = split(/=/);
-        if ($line[0]) {
-            $line[0] =~ s/ *$//g;
-        }
-        if ($line[1]) {
-            $line[1] =~ s/ *$//g;
-        }
-        if (!$line[1]) {
-            $line[1] = "";
-        }
-        $line[1] =~ s/^ *//g;
-        if ($line[0] eq "App") {
-            my $found = FALSE;
-            foreach my $app (
-                gettext("Load Lyricue Display"),
-                gettext("Close Lyricue Display"),
-                "Load Lyricue Display",
-                "Close Lyricue Display"
-              )
-            {
-                if ($line[1] =~ /^$app;/) {
-                    $found = TRUE;
-                }
-            }
-            if (!$found) {
-                $conf->{'App'}[$appCount++] = $line[1];
-            }
-        } else {
-            if (($line[0] eq "Colour") && ($line[1] eq "")) {
-                $line[1] = "#ffffff";
-            }
-            if (($line[0] eq "ShadowColour") && ($line[1] eq "")) {
-                $line[1] = "#888888";
-            }
-            $conf->{$line[0]} = $line[1];
-        }
+    my $query = "SELECT config_key, config_value FROM config WHERE host='".$hostname."'";
+    $sth   = $lyricDbh->prepare($query)
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    my @row = $sth->fetchrow_array();
+    if (! defined $row[0]) {
+        firstrun_wizard();
+        Gtk2->main();
+        $conf = load_config(hostname());
+        return $conf
     }
-    close CONFIG;
-    if ($lines < 5) {
-        if ( -e $globals->{'configfile'}.".bak" ) {
-            rename($globals->{'configfile'}, $globals->{'configfile'} . ".bad");
-            rename($globals->{'configfile'} . ".bak", $globals->{'configfile'});
-            $conf = load_config();
-            return $conf;
-        }
+    $sth   = $lyricDbh->prepare($query)
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    while ($row = $sth->fetchrow_hashref()) {
+        $conf->{$row->{'config_key'}}  = $row->{'config_value'};
     }
 
     $conf->{'BibleCount'} = $bibleCount;
-    $conf->{'AppCount'}   = $appCount;
     $conf->{'Bibles'}     = get_bibles();
     if (!defined $conf->{'HighlightColour'}) {
         $conf->{'HighlightColour'} = "yellow";
-    }
-    if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
-        $conf->{'DatabaseType'} = "SQLite";
     }
     if (!defined $conf->{'TrayIcons'}) {
         $conf->{'TrayIcons'} = "1";
     }
     if ($conf->{'TrayIcons'} ne "1") {
         $globals->{'trayicon'} = FALSE;
-    }
-    if (!defined $conf->{'DatabaseType'}) {
-        $conf->{'DatabaseType'} = "mysql";
     }
     $conf->{'LoopText'} = "";
     if (defined $conf->{'Loop'}) {
@@ -6994,19 +6880,6 @@ sub save_preferences {
     $config->{'BGDirectory'} =~ s/^\~/$ENV{'HOME'}/;
     $config->{'TrayIcons'} = $config->{'TrayIcons'};
 
-    my $db_changed = FALSE;
-    if ($widgets->{'prefs'}->get_object('radioPrefDBMysql')->get_active()) {
-        if ($config->{'DatabaseType'} ne "mysql") {
-            $db_changed = TRUE;
-        }
-        $config->{'DatabaseType'} = "mysql";
-    } else {
-        if ($config->{'DatabaseType'} ne "SQLite") {
-            $db_changed = TRUE;
-        }
-        $config->{'DatabaseType'} = "SQLite";
-    }
-
     my $iter =
       $widgets->{'prefs'}->get_object('comboPrefBible')->get_active_iter;
     if (defined $iter) {
@@ -7018,11 +6891,7 @@ sub save_preferences {
     }
 
     save_state();
-    write_config(FALSE);
-
-    if ($db_changed) {
-        db_restart();
-    }
+    write_config();
 
     init_preview();
     init_miniview();
@@ -7047,44 +6916,31 @@ sub save_preferences {
 # SOURCE
 #
 sub write_config {
-    my ($dbonly) = @_;
     debug("Writing preferences");
 
     # Backup config table
-    my $query = "DELETE FROM config_old";
+    my $query = "DELETE FROM config_old WHERE host='".hostname()."'";
     my $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "INSERT config_old SELECT * from config";
+    $query = "INSERT config_old SELECT * FROM config WHERE host='".hostname()."'";
     $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "DELETE FROM config";
+    $query = "DELETE FROM config WHERE host='".hostname()."'";
     $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-
-    if (!$dbonly) {
-
-        # Backup file
-        unlink $globals->{'configfile'} . ".bak";
-        rename($globals->{'configfile'}, $globals->{'configfile'} . ".bak");
-
-        open(CONFIG, ">$globals->{'configfile'}")
-          || display_fatal($errorcodes->{'fileopenwrite'}, $!);
-        binmode(CONFIG, ":utf8");
-    }
 
     foreach (sort keys(%$config)) {
         if ((!/^Bible/) && (!/^App/) && (!/^LoopText/)) {
-            if (!$dbonly) {
-                print CONFIG $_ . " = " . $config->{$_} . "\n";
-            }
             $query =
-                "INSERT INTO config ( config_key, config_value ) VALUES (\"" 
+                "INSERT INTO config ( host, config_key, config_value ) VALUES (\"" 
+              . hostname()
+              . "\", \""
               . $_
               . "\", \""
               . $config->{$_} . "\")";
@@ -7097,13 +6953,10 @@ sub write_config {
                 $! . "\nSQL: " . $query);
         }
     }
-    foreach (0 .. $config->{'AppCount'} - 1) {
-        if (!$dbonly) {
-            print CONFIG "App = " . $config->{'App'}[$_] . "\n";
-        }
+    foreach (keys $config->{'Apps'}) {
         $query =
-          "INSERT INTO config ( config_key, config_value ) VALUES ( \"App\", \""
-          . $config->{'App'}[$_] . "\")";
+          "INSERT INTO config ( host, config_key, config_value ) VALUES ( \"". hostname(). "\", \"App\", \""
+          . $_.";".$config->{'Apps'}->{$_} . "\")";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || database_failure($errorcodes->{'sqlprepare'},
@@ -7112,12 +6965,9 @@ sub write_config {
           || database_failure($errorcodes->{'sqlexecute'},
             $! . "\nSQL: " . $query);
     }
-    if (!$dbonly) {
-        close CONFIG;
-        preview_display("reconfig", "", "", "MINI");
-        update_display("reconfig", "", "");
-        update_display("status",   "", "");
-    }
+    preview_display("reconfig", "", "", "MINI");
+    update_display("reconfig", "", "");
+    update_display("status",   "", "");
 }
 
 #***
@@ -7693,15 +7543,11 @@ sub init_mainWindow {
     # Update the application menu
     my $menutop2 = Gtk2::Menu->new();
     my $group2   = 0;
-    my @appMenu  = ();
-    foreach (0 .. $config->{'AppCount'} - 1) {
-        my $app = $config->{'App'}[$_];
-        $app =~ s/^(.*?);.*$/$1/g;
-
-        $appMenu[$_] = Gtk2::MenuItem->new_with_label($app);
-        $appMenu[$_]->signal_connect("activate", "execute_app", $_);
-        $appMenu[$_]->show;
-        $menutop2->append($appMenu[$_]);
+    foreach (keys $config->{'Apps'}) {
+        my $appMenuItem = Gtk2::MenuItem->new_with_label($_);
+        $appMenuItem->signal_connect("activate", "execute_app", $config->{'Apps'}->{$_});
+        $appMenuItem->show;
+        $menutop2->append($appMenuItem);
     }
     $widgets->{'main'}->get_object('applications1')->set_submenu($menutop2);
 
@@ -9173,8 +9019,8 @@ sub load_access {
     debug("Loading access settings");
     my $access = "blank";
 
-    # Load the access settings (ignore if using sqlite)
-    if (($config->{'DatabaseType'} eq "SQLite") || ($^O eq 'MSWin32')) {
+    # Load the access settings
+    if ($^O eq 'MSWin32') {
         $access = "spade";
     } else {
         open(ACCESS, $globals->{'accessfile'})
@@ -11565,7 +11411,7 @@ sub get_max_verse {
     my ($book, $chapter, $startverse, $endverse) = @_;
 
     if ($config->{'Main'} eq "") {
-        $config = load_config();
+        $config = load_config(hostname());
     }
     if ($config->{'Width'} == 0) {
         $config->{'Width'}  = 800;
@@ -12079,26 +11925,14 @@ sub import_song_html {
 #
 sub db_check_app {
     debug("Checking for database servers");
-    if (defined $globals->{'force_sqlite'} && ($globals->{'force_sqlite'})) {
-        debug("Forcing usage of SQLite3");
-        $config->{'DatabaseType'} = "SQLite";
-        return;
-    }
     my @ary    = DBI->available_drivers(1);
     my $mysql  = FALSE;
-    my $sqlite = FALSE;
     foreach (@ary) {
         if ($_ eq "mysql") {
             $mysql = TRUE;
-        } elsif ($_ eq "SQLite") {
-            $sqlite = TRUE;
         }
     }
-    if ($mysql) {
-        $config->{'DatabaseType'} = "mysql";
-    } elsif ($sqlite) {
-        $config->{'DatabaseType'} = "SQLite";
-    } else {
+    if (!$mysql) {
         die("No supported DB found");
     }
 }
@@ -12122,9 +11956,7 @@ sub db_get_admin {
     my $dbh;
     eval {
         $dbh = DBI->connect(
-            "DBI:"
-              . $config->{'DatabaseType'}
-              . ":mysql:"
+            "DBI:mysql:mysql:"
               . $globals->{'mysqlhost'},
             "root", ""
         );
@@ -12135,41 +11967,33 @@ sub db_get_admin {
         return;
     }
 
-    if ($config->{'DatabaseType'} eq "mysql") {
-        my $adminxml = load_window('dialogAdminLogin');
-        my $confirm  = $adminxml->get_object('dialogAdminLogin')->run();
-        if ($confirm == 0) {
-            $globals->{'db_adminuser'} =
-              $adminxml->get_object('entryAdminLogin')->get_text();
-            $globals->{'db_adminpassword'} =
-              $adminxml->get_object('entryAdminPass')->get_text();
-        } else {
-            my $confirmxml = load_window('dialogConfirm');
-            $confirmxml->get_object('labelDelete')
-              ->set_text(
-                fromutf(gettext("Are you sure you want to exit Lyricue?")));
-            $confirm = $confirmxml->get_object('dialogConfirm')->run();
-            close_dialog($adminxml->get_object('dialogAdminLogin'));
-            if ($confirm eq "ok") {
-                debug("Exiting on request");
-                exit 1;
-            } else {
-                db_get_admin();
-                return;
-            }
-
-        }
-        close_dialog($adminxml->get_object('dialogAdminLogin'));
+    my $adminxml = load_window('dialogAdminLogin');
+    my $confirm  = $adminxml->get_object('dialogAdminLogin')->run();
+    if ($confirm == 0) {
+        $globals->{'db_adminuser'} =
+          $adminxml->get_object('entryAdminLogin')->get_text();
+        $globals->{'db_adminpassword'} =
+          $adminxml->get_object('entryAdminPass')->get_text();
     } else {
-        $globals->{'db_adminuser'}     = "lyricue";
-        $globals->{'db_adminpassword'} = "";
+        my $confirmxml = load_window('dialogConfirm');
+        $confirmxml->get_object('labelDelete')
+          ->set_text(
+            fromutf(gettext("Are you sure you want to exit Lyricue?")));
+        $confirm = $confirmxml->get_object('dialogConfirm')->run();
+        close_dialog($adminxml->get_object('dialogAdminLogin'));
+        if ($confirm eq "ok") {
+            debug("Exiting on request");
+            exit 1;
+        } else {
+            db_get_admin();
+            return;
+        }
 
     }
+    close_dialog($adminxml->get_object('dialogAdminLogin'));
     eval {
         $dbh = DBI->connect(
-            "DBI:"
-              . $config->{'DatabaseType'}
-              . ":mysql:"
+            "DBI:mysql:mysql:"
               . $globals->{'mysqlhost'},
             $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
         );
@@ -12198,35 +12022,31 @@ sub db_install_user {
     debug("Install lyric database user");
     my ($dbh);
     db_get_admin();
-    if ($config->{'DatabaseType'} eq "mysql") {
-        eval {
-            $dbh = DBI->connect(
-                "DBI:"
-                  . $config->{'DatabaseType'}
-                  . ":mysql:"
-                  . $globals->{'mysqlhost'},
-                $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
-            );
-        };
-        if ($@) {
-            my $labelText = fromutf(
+    eval {
+        $dbh = DBI->connect(
+            "DBI:mysql:mysql:"
+              . $globals->{'mysqlhost'},
+            $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
+        );
+    };
+    if ($@) {
+        my $labelText = fromutf(
 
-                gettext(
+            gettext(
 "Unable to login to database as admin, maybe the database is down.\nPlease re-enter your database admin login and retry"
-                )
-            );
-            my $loginxml = load_window('dialogConfirm');
-            $loginxml->get_object('dialogConfirm')
-              ->set_title(fromutf(gettext("Login Error")));
-            $loginxml->get_object('labelDelete')->set_text($labelText);
-            my $confirm = $loginxml->get_object('dialogConfirm')->run();
-            if ($confirm eq "ok") {
-                close_dialog($loginxml->get_object('dialogConfirm'));
-                db_install_user();
-                return;
-            } else {
-                display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
-            }
+            )
+        );
+        my $loginxml = load_window('dialogConfirm');
+        $loginxml->get_object('dialogConfirm')
+          ->set_title(fromutf(gettext("Login Error")));
+        $loginxml->get_object('labelDelete')->set_text($labelText);
+        my $confirm = $loginxml->get_object('dialogConfirm')->run();
+        if ($confirm eq "ok") {
+            close_dialog($loginxml->get_object('dialogConfirm'));
+            db_install_user();
+            return;
+        } else {
+            display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
         }
     }
     my $sth = $dbh->prepare("select * from user where User='lyric'");
@@ -12266,22 +12086,12 @@ sub db_install_user {
 #
 sub db_check_databases {
     debug("Update/install databases");
-    if ($config->{'DatabaseType'} eq "mysql") {
-        my @dbs = DBI->data_sources($config->{'DatabaseType'},
-            {"host" => $globals->{'mysqlhost'}, "user" => "lyric"});
+    my @dbs = DBI->data_sources("mysql",
+        {"host" => $globals->{'mysqlhost'}, "user" => "lyric"});
 
-        foreach (@dbs) {
-            $_ =~ s/^DBI:.*://g;
-            $globals->{'db_available_db'}{$_} = TRUE;
-        }
-    } else {
-        opendir(DIR, $globals->{'basedir'});
-        while (readdir(DIR)) {
-            if (/.db$/) {
-                $_ =~ s/.db$//g;
-                $globals->{'db_available_db'}{$_} = TRUE;
-            }
-        }
+    foreach (@dbs) {
+        $_ =~ s/^DBI:.*://g;
+        $globals->{'db_available_db'}{$_} = TRUE;
     }
 
     if ($globals->{'db_available_db'}{'lyricDb'}) {
@@ -12299,14 +12109,6 @@ sub db_check_databases {
             "mediaDb");
         db_reload();
 
-        # Don't do this anymore - leave stuff in their homes
-        #debug("Importing existing backgrounds/images\n");
-
-       # NOTE FAILS WITH SQLITE
-       #if ($config->{'DatabaseType'} eq "mysql") {
-       #    system("import_media img " . $globals->{'sharedir'} . "images");
-       #    system("import_media bg " . $globals->{'sharedir'} . "backgrounds");
-       #}
         debug("Done\n");
     }
 }
@@ -12329,17 +12131,15 @@ sub db_reload {
     if ($globals->{'db_adminuser'} eq "") {
         db_get_admin();
     }
-    if ($config->{'DatabaseType'} eq "mysql") {
-        my $drh = DBI->install_driver('mysql');
-        my $rc  = $drh->func(
-            "reload",
-            [
-                $globals->{'mysqlhost'}, $globals->{'db_adminuser'},
-                $globals->{'adminpassword'},
-            ],
-            'admin'
-        );
-    }
+    my $drh = DBI->install_driver('mysql');
+    my $rc  = $drh->func(
+        "reload",
+        [
+            $globals->{'mysqlhost'}, $globals->{'db_adminuser'},
+            $globals->{'adminpassword'},
+        ],
+        'admin'
+    );
 }
 
 #***
@@ -12363,49 +12163,14 @@ sub db_installdb {
     if ($globals->{'db_adminuser'} eq "") {
         db_get_admin();
     }
-    if ($config->{'DatabaseType'} eq "mysql") {
-        system( "cat " 
-              . $db_file
-              . " | mysql -f -h "
-              . $globals->{'mysqlhost'} . " -u "
-              . $globals->{'db_adminuser'}
-              . " --password=\""
-              . $globals->{'db_adminpassword'}
-              . "\"");
-    } else {
-        my $dbh = db_connect($db_name, "Unable to create DB:" . $db_name, TRUE);
-        open(DB, $db_file);
-        my $query = "";
-        while (<DB>) {
-            $_ =~ s/^CREATE DATABASE*;$//g;
-            $_ =~ s/^USE *;$//g;
-            if (   (/^ *UNIQUE KEY/)
-                || (/^--/)
-                || (/^CREATE DATABASE /)
-                || (/^USE /))
-            {
-                $_ = "";
-            }
-            $_ =~ s/(PRIMARY KEY .*),$/$1/g;
-            $_ =~ s/auto_increment,$/,/g;
-            $_ =~ s/TYPE=MyISAM;$/;/g;
-            $_ =~ s/unsigned NOT NULL/NOT NULL/g;
-            $_ =~ s/int(11)/INTEGER/g;
-            $_ =~ s/\\'/''/g;
-            $_ =~ s/\\n/\n/g;
-
-            if (!/;$/) {
-                $query .= $_;
-            } else {
-                $query .= $_;
-                if ($query ne "") {
-                    $dbh->do($query);
-                }
-                $query = "";
-            }
-        }
-        $dbh->disconnect();
-    }
+    system( "cat " 
+          . $db_file
+          . " | mysql -f -h "
+          . $globals->{'mysqlhost'} . " -u "
+          . $globals->{'db_adminuser'}
+          . " --password=\""
+          . $globals->{'db_adminpassword'}
+          . "\"");
 }
 
 #***
@@ -12424,19 +12189,17 @@ sub db_installdb {
 sub db_updatedb_mediaDb {
     debug("Update the mediaDb table if needed");
     my $dbh = db_connect($globals->{'mediadb'}, "", TRUE);
-    if ($config->{'DatabaseType'} eq "mysql") {
-        my $fields = $dbh->selectall_arrayref("describe media");
-        my $trans;
-        foreach (@$fields) {
-            $trans->{$_->[0]} = 1;
-        }
-        if (!defined $trans->{'textcolour'}) {
-            debug("Text Colouring fields not found\n");
-            debug("Upgrading database from 1.9 to 1.9.4\n");
-            db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.4.sql",
-                "lyricDb");
-            debug("Done\n");
-        }
+    my $fields = $dbh->selectall_arrayref("describe media");
+    my $trans;
+    foreach (@$fields) {
+        $trans->{$_->[0]} = 1;
+    }
+    if (!defined $trans->{'textcolour'}) {
+        debug("Text Colouring fields not found\n");
+        debug("Upgrading database from 1.9 to 1.9.4\n");
+        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.4.sql",
+            "lyricDb");
+        debug("Done\n");
     }
 }
 
@@ -12478,49 +12241,52 @@ sub db_updatedb_lyricDb {
             "lyricDb");
         debug("Done\n");
     }
-    if ($config->{'DatabaseType'} eq "mysql") {
-        my $fields = $dbh->selectall_arrayref("describe playlist");
-        my $trans;
-        foreach (@$fields) {
-            $trans->{$_->[0]} = 1;
-        }
-        if (!defined $trans->{'transition'}) {
-            debug("Transition field not found\n");
-            debug("Upgrading database from 1.2 to 1.9\n");
-            db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.sql",
-                "lyricDb");
-            debug("Done\n");
-        }
+    my $fields = $dbh->selectall_arrayref("describe playlist");
+    my $trans;
+    foreach (@$fields) {
+        $trans->{$_->[0]} = 1;
+    }
+    if (!defined $trans->{'transition'}) {
+        debug("Transition field not found\n");
+        debug("Upgrading database from 1.2 to 1.9\n");
+        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.sql",
+            "lyricDb");
+        debug("Done\n");
     }
 
     # Increase data size - does nothing if already done - only works for mysql
-    if ($config->{'DatabaseType'} eq "mysql") {
-        my $fields = $dbh->selectall_arrayref("describe playlist");
-        my $pl;
-        foreach (@$fields) {
-            $pl->{$_->[0]} = $_->[1];
-        }
-        if ($pl->{'data'} ne "varchar(256)") {
-            db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql",
-                "lyricDb");
-        }
-        if (!defined $pl->{'snapshot'}) {
-            db_installdb($globals->{'sharedir'} . "mysql/Update_3.5.sql",
-                "lyricDb");
-        }
+    $fields = $dbh->selectall_arrayref("describe playlist");
+    my $pl;
+    foreach (@$fields) {
+        $pl->{$_->[0]} = $_->[1];
+    }
+    if ($pl->{'data'} ne "varchar(256)") {
+        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql",
+            "lyricDb");
+    }
+    if (!defined $pl->{'snapshot'}) {
+        db_installdb($globals->{'sharedir'} . "mysql/Update_3.5.sql",
+            "lyricDb");
     }
 
     # Add page title
-    if ($config->{'DatabaseType'} eq "mysql") {
-        my $fields = $dbh->selectall_arrayref("describe page");
-        my $page;
-        foreach (@$fields) {
-            $page->{$_->[0]} = $_->[1];
-        }
-        if (!defined $page->{'pagetitle'}) {
-            db_installdb($globals->{'sharedir'} . "mysql/Update_2.1.0.sql",
-                "lyricDb");
-        }
+    $fields = $dbh->selectall_arrayref("describe page");
+    my $page;
+    foreach (@$fields) {
+        $page->{$_->[0]} = $_->[1];
+    }
+    if (!defined $page->{'pagetitle'}) {
+        db_installdb($globals->{'sharedir'} . "mysql/Update_2.1.0.sql",
+            "lyricDb");
+    }
+
+    # Add status table
+    if (!defined $table->{'status'}) {
+        debug("Status tables not found\n");
+        debug("Upgrading database from < 4.0 to 4.0\n");
+        db_installdb($globals->{'sharedir'} . "mysql/Update_4.0.sql",
+            "lyricDb");
+        debug("Done\n");
     }
 
     # Ensure all tables are in UTF8 characterset
@@ -12540,9 +12306,7 @@ sub db_updatedb_lyricDb {
         }
         eval {
             $dbh = DBI->connect(
-                "DBI:"
-                  . $config->{'DatabaseType'}
-                  . ":mysql:"
+                "DBI:mysql:mysql:"
                   . $globals->{'mysqlhost'},
                 $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
             );
@@ -12575,7 +12339,7 @@ sub db_updatedb_lyricDb {
 sub check_tracker {
 
     #debug("Check tracker");
-    my $query = "SELECT ref,title FROM playlists WHERE id=-1";
+    my $query = "SELECT ref,title,host FROM status";
 
     #qdebug($query); # Commented out because it's too noisy
     my $sth = $lyricDbh->prepare($query)
@@ -12760,67 +12524,16 @@ sub clear_search {
 sub db_connect {
     my ($dbname, $dberror, $fatal) = @_;
     my ($dbh);
-    if ($config->{'DatabaseType'} eq "SQLite") {
-        $dbh =
-          DBI->connect("dbi:SQLite:" . $globals->{'basedir'} . $dbname . ".db",
-            "", "")
-          || display_error($dberror, $DBI::errstr, $fatal);
-    } else {
-        $dbh = DBI->connect(
-            "DBI:"
-              . $config->{'DatabaseType'}
-              . ":database=$dbname;host=$globals->{'mysqlhost'}",
-            "lyric",
-            "",
-            {mysql_enable_utf8 => 1, mysql_auto_reconnect => 1}
-        ) || display_error($dberror, $DBI::errstr, $fatal);
-        if ($dbh != NULL) {
-            $dbh->do('SET NAMES utf8');
-        }
+    $dbh = DBI->connect(
+        "DBI:mysql:database=$dbname;host=$globals->{'mysqlhost'}",
+        "lyric",
+        "",
+        {mysql_enable_utf8 => 1, mysql_auto_reconnect => 1}
+    ) || display_error($dberror, $DBI::errstr, $fatal);
+    if ($dbh != NULL) {
+        $dbh->do('SET NAMES utf8');
     }
     return $dbh;
-}
-
-#***
-
-#****f* lyricue/prefs_select_mysql
-# NAME
-#   prefs_select_mysql
-# SYNOPSIS
-#   prefs_select_mysql()
-# FUNCTION
-#   Selecting MySQL DB
-# INPUTS
-# OUTPUT
-# SOURCE
-#
-sub prefs_select_mysql {
-    if ($config->{'DatabaseType'} ne "mysql") {
-        debug("Selecting MySQL DB");
-        $config->{'DatabaseType'} = "mysql";
-        db_restart();
-    }
-}
-
-#***
-
-#****f* lyricue/prefs_select_sqlite
-# NAME
-#   prefs_select_sqlite
-# SYNOPSIS
-#   prefs_select_sqlite()
-# FUNCTION
-#   Selecting SQLite DB
-# INPUTS
-# OUTPUT
-# SOURCE
-#
-sub prefs_select_sqlite {
-    if ($config->{'DatabaseType'} ne "SQLite") {
-        debug("Selecting SQLite DB");
-        $config->{'DatabaseType'} = "SQLite";
-        db_restart();
-    }
 }
 
 #***
@@ -12866,27 +12579,18 @@ sub db_restart {
 sub db_select {
 
     # Open lyricDB, bibleDB and mediaDb
-    if ($config->{'DatabaseType'} eq "mysql") {
-        my $sqldb = DBI->connect(
-            "DBI:"
-              . $config->{'DatabaseType'}
-              . ":mysql:"
-              . $globals->{'mysqlhost'},
-            "lyric", ""
-        ) || db_install_user();
-        if ($sqldb) {
-            $sqldb->disconnect()
-              ; ## ERROR HERE ### Can't call 'disconnect' without a package or object reference
-        }
+    my $sqldb = DBI->connect(
+        "DBI:mysql:mysql:"
+          . $globals->{'mysqlhost'},
+        "lyric", ""
+    ) || db_install_user();
+    if ($sqldb) {
+        $sqldb->disconnect()
+          ; ## ERROR HERE ### Can't call 'disconnect' without a package or object reference
     }
     db_check_databases();
     $lyricDbh =
       db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'}, TRUE);
-    if ($config->{'DatabaseType'} eq "SQLite") {
-
-        # Define a NOW command in sqlite
-        $lyricDbh->func('NOW', 0, sub { return time }, 'create_function');
-    }
     $mediaDbh =
       db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'}, TRUE);
     $config->{'Bibles'} = get_bibles();
@@ -13905,7 +13609,7 @@ sub biblebrowser_loaditems {
 #
 sub firstrun_wizard {
     debug("First Run Wizard");
-    $config = load_config();
+    $config = load_config('');
     $widgets->{'firstrunxml'} = load_window('assistantFirstRun');
     $widgets->{'firstrun'} =
       $widgets->{'firstrunxml'}->get_object('assistantFirstRun');
@@ -14087,10 +13791,11 @@ sub firstrun_prepare {
     $layout->set_font_description($desc);
     my ($text_width, $text_height) = $layout->get_pixel_size;
     my $pixmap = Gtk2::Gdk::Pixmap->new(undef, $text_width, $text_height, 24);
-    $pixmap->draw_rectangle($page->get_style->white_gc,
-        TRUE, 0, 0, $text_width, $text_height);
-    $pixmap->draw_layout($page->get_style->text_gc($page->state), 0, 0,
+    my $style = $page->get_default_style;
+    $pixmap->draw_layout($style->text_gc('normal'), 0, 0,
         $layout);
+    $pixmap->draw_rectangle($style->white,
+        TRUE, 0, 0, $text_width, $text_height);
     my $pixbuf =
       Gtk2::Gdk::Pixbuf->get_from_drawable($pixmap, undef, 0, 0, 0, 0,
         $text_width, $text_height);
@@ -14143,9 +13848,7 @@ sub firstrun_pw_check {
     my ($dbh);
     eval {
         $dbh = DBI->connect(
-            "DBI:"
-              . $config->{'DatabaseType'}
-              . ":mysql:"
+            "DBI:mysql:mysql:"
               . $globals->{'mysqlhost'},
             $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
         );
@@ -14275,7 +13978,7 @@ sub firstrun_apply {
     $globals->{'mysqlhost'} = $config->{'DBHost'};
 
     db_select();
-    write_config(FALSE);
+    write_config();
 
     if (!$globals->{'firstrun'}) {
         init_preview();

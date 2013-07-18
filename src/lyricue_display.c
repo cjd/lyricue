@@ -50,6 +50,7 @@ int server_port = SERVER_PORT;
 gchar *dbhostname = "localhost";
 gchar *geometry = NULL;
 unsigned long windowid = 0;
+gchar hostname[16];
 
 static GOptionEntry entries[] = {
     {"window", 'w', 0, G_OPTION_ARG_NONE, &windowed, "Run in a window", NULL},
@@ -99,6 +100,7 @@ main (int argc, char *argv[])
     // Setup network
     GSocketService *service = g_socket_service_new ();
     GInetAddress *address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
+    gethostname(hostname,sizeof(hostname));
     g_snprintf (argv[0], 29, "Lyricue Display on port %04d", server_port);
     l_debug ("Process Name:%s", argv[0]);
 
@@ -851,8 +853,8 @@ update_tracker ()
             g_string_append (title, "0;0;0");
         }
         do_query (lyricDb,
-                  "UPDATE playlists SET ref = %d, title = \"%s\" WHERE id=-1",
-                  current_item, g_string_free (title, FALSE));
+                  "UPDATE status SET ref = %d, title = \"%s\" WHERE host=\"%s\"",
+                  current_item, g_string_free (title, FALSE), hostname);
     }
     return TRUE;
 }
