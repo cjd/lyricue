@@ -47,21 +47,24 @@ GHashTable *config = NULL;
 gboolean windowed = FALSE;
 gboolean debugging = FALSE;
 int server_port = SERVER_PORT;
+gchar *server_type = "normal";
 gchar *dbhostname = "localhost";
 gchar *geometry = NULL;
 unsigned long windowid = 0;
 gchar hostname[16];
 
 static GOptionEntry entries[] = {
-    {"window", 'w', 0, G_OPTION_ARG_NONE, &windowed, "Run in a window", NULL},
+    {"type", 't', 0, G_OPTION_ARG_STRING, &server_type, "Server type",
+     "[normal | preview | miniview | simple]"},
     {"remote", 'r', 0, G_OPTION_ARG_STRING, &dbhostname, "Database hostname",
-     NULL},
+     "hostname"},
     {"geometry", 'g', 0, G_OPTION_ARG_STRING, &geometry, "Window Geometry",
-     NULL},
+     "geom"},
     {"port", 'p', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on",
-     NULL},
+     "port_number"},
     {"miniview", 'm', 0, G_OPTION_ARG_INT, &windowid, "Embed in windowid",
-     NULL},
+     "windowid"},
+    {"window", 'w', 0, G_OPTION_ARG_NONE, &windowed, "Run in a window", NULL},
     {"debug", 'd', 0, G_OPTION_ARG_NONE, &debugging, "Enable debug output",
      NULL},
     {NULL}
@@ -115,17 +118,14 @@ main (int argc, char *argv[])
 
     ret = create_main_window (argc, argv);
 
-    if (windowid == 0) {
-        // Publish to avahi (zeroconf/bonjour)
-        publish_avahi(server_port, "Standalone");
-
+    // Publish to avahi (zeroconf/bonjour)
+    publish_avahi(server_port, server_type);
+    if (g_strcmp0(server_type,"normal") == 0) {
         // Setup tracker entry in DB
         do_query (lyricDb, "DELETE FROM playlists WHERE id=-1");
         do_query (lyricDb, "INSERT INTO playlists SET id=-1,ref=0,title=''");
         clutter_main ();
     } else {
-        // Publish to avahi (zeroconf/bonjour)
-        publish_avahi(server_port, "Embedded");
         gtk_main ();
     }
 

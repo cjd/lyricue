@@ -25,6 +25,7 @@ extern gchar *default_bg;
 extern gchar *current_bg;
 extern MYSQL *mediaDb;
 extern unsigned long windowid;
+extern gchar *server_type;
 extern int server_port;
 extern MYSQL *lyricDb;
 extern int current_item;
@@ -586,7 +587,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
               clutter_gst_video_texture_get_playbin (CLUTTER_GST_VIDEO_TEXTURE
                                                      (background));
 #endif
-            if (windowid == 0) {
+            if (g_strcmp0(server_type,"normal") != 0) {
                 g_signal_connect (background, "eos", G_CALLBACK (loop_video),
                                   NULL);
                 bg_is_video =
@@ -667,7 +668,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
                                  GST_SEEK_FLAG_NONE, title);
         l_debug ("Playing DVD title:%d", title);
 
-        if (windowid == 0) {
+        if (g_strcmp0(server_type,"normal") != 0) {
             bg_is_video =
               g_timeout_add_seconds (1, (GSourceFunc) update_tracker, NULL);
         } else {
@@ -707,7 +708,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
                                                  (background));
 #endif
 
-        if (windowid == 0) {
+        if (g_strcmp0(server_type, "normal") != 0) {
             bg_is_video =
               g_timeout_add_seconds (1, (GSourceFunc) update_tracker, NULL);
         } else {

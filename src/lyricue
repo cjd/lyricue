@@ -459,6 +459,7 @@ $globals->{'access'} = load_access();
 
 # Open lyricDB, bibleDB and mediaDb
 db_select();
+debug("hostname $globals->{'host'}");
 $config = load_config($globals->{'host'});
 
 if ($globals->{'print_songs'}) {
@@ -502,7 +503,7 @@ $widgets->{'main'}->get_object('toolbuttonPlayCancel')->hide;
 
 # Setup background tasks
 $globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
-$globals->{'avahi_timer'} = Glib::Timeout->add(10000, \&check_avahi);
+$globals->{'avahi_timer'} = Glib::Timeout->add(5000, \&check_avahi);
 check_avahi();
 $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
@@ -3968,6 +3969,10 @@ sub update_display {
     debug("Command: " . $command . ":" . $primary . ":" . $secondary);
 
     my $display = 0;
+    if (!defined $globals->{'displays'}[$display]) {
+        debug("No displays running");
+        return;
+    }
     while ($globals->{'displays'}[$display] ne "") {
         my @display_items = split(/:/, $globals->{'displays'}[$display]);
         debug("Updating ".$globals->{'displays'}[$display]);
@@ -3982,65 +3987,6 @@ sub update_display {
         }
         $display++;
     }
-if (0) {
-    if (
-        my $server = IO::Socket::INET->new(
-            Proto    => "tcp",
-            PeerAddr => $globals->{'host'},
-            PeerPort => $globals->{'server_port'}
-        )
-      )
-    {
-
-        #binmode $server, ":utf8";
-        print $server toutf(
-            $command . ":" . $primary . ":" . $secondary . "\n");
-        if (defined(my $status = <$server>)) {
-            $status = fromutf($status);
-            chomp($status);
-            if ($status =~ /^pl:/) {
-                my @line = split(/:/, $status);
-                $status = fromutf(gettext("Displaying "));
-                if ($line[1] eq "v") {
-                    $status = fromutf(gettext(" verses "));
-                } else {
-                    $status = fromutf(gettext(" page ")) . $line[3];
-                    $widgets->{'main'}->get_object('treePlaylist')
-                      ->select_item($line[2]);
-                }
-                $widgets->{'main'}->get_object('statusPlaylist')
-                  ->push(1, $status);
-            } elsif ($status =~ /^Status,/) {
-                my @line = split(/,/, $status);
-                foreach (@line) {
-                    my @item = split(/:/, $_);
-                    if ($item[0] eq "W") {
-                        $config->{'Width'} = $item[1];
-                    } elsif ($item[0] eq "H") {
-                        $config->{'Height'} = $item[1];
-                    } elsif ($item[0] eq "F") {
-                        $config->{'Main'} = $item[1];
-                    } elsif ($item[0] eq "B") {
-                        if ($item[1] ne $globals->{'biblename'}) {
-                            $biblechanged = $item[1];
-                        }
-                    }
-                }
-            } else {
-                $widgets->{'main'}->get_object('statusPlaylist')
-                  ->push(1, $status);
-            }
-            debug($status);
-        }
-        close($server);
-        debug("Sent ");
-        if ($biblechanged ne "") {
-            if (defined $bibleMenu->{$biblechanged}) {
-                $bibleMenu->{$biblechanged}->set_active(TRUE);
-            }
-        }
-    }
-}
 }
 
 #***
@@ -4105,59 +4051,41 @@ sub preview_display {
         $mode     = "MINI";
         $checkret = TRUE;
     }
-    if (!$config->{'DynamicPreview'} && $mode eq "MINI") {
+    if (!defined($secondary)) {
+        $secondary = "";
+    }
+    if (!defined($primary)) {
+        $primary = "";
+    }
+    $primary   =~ s/:/#SEMI#/g;
+    $secondary =~ s/:/#SEMI#/g;
+    debug(
+        "Preview command: " . $command . ":" . $primary . ":" . $secondary);
+
+    my $display = 0;
+    if (!defined $globals->{'previews'}[$display]) {
+        debug("No preview displays running");
         return;
     }
-    my $port = 0;
-    if ($mode eq "MINI") {
-        $port = $globals->{'preview_port'};
-    } elsif ($mode eq "EDIT") {
-        $port = $globals->{'editview_port'};
-    }
-
-    if ($port > 0) {
-        if (!defined($secondary)) {
-            $secondary = "";
-        }
-        if (!defined($primary)) {
-            $primary = "";
-        }
-        $primary   =~ s/:/#SEMI#/g;
-        $secondary =~ s/:/#SEMI#/g;
-        debug(
-            "Preview command: " . $command . ":" . $primary . ":" . $secondary);
-
-        if (
-            my $server = IO::Socket::INET->new(
-                Proto    => "tcp",
-                PeerAddr => "localhost",
-                PeerPort => $port
-            )
-          )
-        {
+    while ($globals->{'previews'}[$display] ne "") {
+        my @display_items = split(/:/, $globals->{'previews'}[$display]);
+        debug("Updating Preview ".$globals->{'previews'}[$display]);
+        if ( my $server = IO::Socket::INET->new(
+            Proto    => "tcp",
+            PeerAddr => $display_items[0],
+            PeerPort => $display_items[1]
+            )) {
             print $server toutf(
                 $command . ":" . $primary . ":" . $secondary . "\n");
             if ($checkret) {
                 if (defined(my $status = <$server>)) {
                     $status = fromutf($status);
                     chomp($status);
-                    close($server);
-                    return $status;
                 }
-            } else {
-                close($server);
             }
-        } else {
-
-            #tcp/ip socket failure so server must be not running yet!
-            debug("Preview not running?");
-            if (defined $widgets->{'preview'}) {
-                $widgets->{'main'}->get_object('framePreview')
-                  ->remove($widgets->{'preview'});
-                undef $widgets->{'preview'};
-            }
-            init_preview();
+                
         }
+        $display++;
     }
 }
 
@@ -6593,7 +6521,7 @@ sub update_loop {
 sub load_config {
     my ($hostname) = @_;
     my ($conf);
-    debug("Loading Preferences");
+    debug("Loading Preferences for $hostname");
     my $bibleCount = 0;
     $conf->{'Apps'}->{gettext("Load Lyricue Display")} = "lyricue_display";
     $conf->{'Apps'}->{gettext("Close Lyricue Display")} = "lyricue_remote close";
@@ -6656,6 +6584,9 @@ sub load_config {
     {
         $conf->{'ProjectorHost'} = $globals->{'host'};
     } else {
+        if ($conf->{'ProjectorHost'} eq "localhost") {
+            $conf->{'ProjectorHost'} = hostname();
+        }
         $globals->{'host'} = $conf->{'ProjectorHost'};
     }
     if (   (!defined $conf->{'DBHost'})
@@ -9249,7 +9180,7 @@ sub init_preview {
 
             debug(
                 sprintf(
-                    "%s -r %s -m %d -p %d",
+                    "%s -r %s -m %d -p %d -t preview",
                     $globals->{'lyricue_server'},  $globals->{'mysqlhost'},
                     $widgets->{'preview'}->get_id, $globals->{'preview_port'}
                 )
@@ -9268,7 +9199,7 @@ sub init_preview {
                 }
                 exec(
                     sprintf(
-                        "%s -r %s -m %d -p %d %s\n",
+                        "%s -r %s -m %d -p %d %s -t preview\n",
                         $globals->{'lyricue_server'},
                         $globals->{'mysqlhost'},
                         $widgets->{'preview'}->get_id,
@@ -9332,7 +9263,7 @@ sub init_miniview {
               ->set_size_request(-1, -1);
             debug(
                 sprintf(
-                    "%s -r %s -m %d -p %d\n",
+                    "%s -r %s -m %d -p %d -t miniview\n",
                     $globals->{'lyricue_server'},
                     $globals->{'mysqlhost'},
                     $widgets->{'miniview'}->get_id,
@@ -9349,7 +9280,7 @@ sub init_miniview {
             if ($globals->{'miniview_pid'} == 0) {
                 exec(
                     sprintf(
-                        "%s -r %s -m %d -p %d\n",
+                        "%s -r %s -m %d -p %d -t miniview\n",
                         $globals->{'lyricue_server'},
                         $globals->{'mysqlhost'},
                         $widgets->{'miniview'}->get_id,
@@ -12281,8 +12212,8 @@ sub db_updatedb_lyricDb {
     # Add status table
     if (!defined $table->{'status'}) {
         debug("Status tables not found\n");
-        debug("Upgrading database from < 4.0 to 4.0\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Update_4.0.sql",
+        debug("Upgrading database from < 3.6 to 3.6\n");
+        db_installdb($globals->{'sharedir'} . "mysql/Update_3.6.sql",
             "lyricDb");
         debug("Done\n");
     }
@@ -12337,16 +12268,39 @@ sub db_updatedb_lyricDb {
 sub check_avahi {
     my $avahi = `avahi-browse -t -p -r _lyricue._tcp`;
     my @displays = split (/\n/, $avahi);
-    my $count=0;
+    my $dcount=0;
+    my $pcount=0;
+    my $local_preview=FALSE;
+    my $local_hostname = hostname();
     foreach my $display (@displays) {
         my @display_items = split(/;/, $display);
         if (@display_items > 8 && $display_items[2] eq "IPv4") {
-            if (($display_items[3] =~ /^Lyricue\\032Display/) && ($display_items[9] eq "\"type=Standalone\"")) {
-                $globals->{'displays'}[$count++] = $display_items[7].":".$display_items[8];
+            if ($display_items[3] =~ /^Lyricue\\032Display/) {
+                my $hostname = $display_items[6];
+                $hostname =~ s/.local$//g;
+                if (($display_items[9] eq "\"type=normal\"") || ($display_items[9] eq "\"type=simple\"")) {
+                    $globals->{'displays'}[$dcount++] = $hostname.":".$display_items[8];
+                } elsif ($display_items[9] eq "\"type=preview\"") {
+                    $globals->{'previews'}[$pcount++] = $hostname.":".$display_items[8];
+                    if ($config->{'DynamicPreview'} && ($hostname eq $local_hostname)) {
+                        $local_preview=TRUE;
+                    }
+                }
             }
         }
     }
-    $globals->{'displays'}[$count] = "";
+    $globals->{'displays'}[$dcount] = "";
+    $globals->{'previews'}[$pcount] = "";
+    if ($config->{'DynamicPreview'} && !$local_preview) {
+        debug("preview gone");
+        #if (defined $widgets->{'preview'}) {
+        #    $widgets->{'main'}->get_object('framePreview')
+        #      ->remove($widgets->{'preview'});
+        #    undef $widgets->{'preview'};
+        #}
+        #init_preview();
+    }
+
     return TRUE;
 }
 
@@ -14150,7 +14104,7 @@ sub start_editview {
     $widgets->{'add'}->get_object('frameEditPreview')
       ->add($widgets->{'EditPreview'});
     my $command = sprintf(
-        "%s -r %s -m %d -p %d",
+        "%s -r %s -m %d -p %d -t preview",
         $globals->{'lyricue_server'},      $globals->{'mysqlhost'},
         $widgets->{'EditPreview'}->get_id, $globals->{'editview_port'}
     );

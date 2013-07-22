@@ -16,7 +16,7 @@ void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_
     switch (state) {
         case AVAHI_ENTRY_GROUP_ESTABLISHED :
             /* The entry group has been established successfully */
-            fprintf(stderr, "Service '%s' successfully established.\n", name);
+            l_debug("Service '%s' successfully established.", name);
             break;
 
         case AVAHI_ENTRY_GROUP_COLLISION : {
@@ -28,7 +28,7 @@ void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_
             avahi_free(name);
             name = n;
 
-            fprintf(stderr, "Service name collision, renaming service to '%s'\n", name);
+            l_debug("Service name collision, renaming service to '%s'", name);
 
             /* And recreate the services */
             create_services(avahi_entry_group_get_client(g));
@@ -37,7 +37,7 @@ void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_
 
         case AVAHI_ENTRY_GROUP_FAILURE :
 
-            fprintf(stderr, "Entry group failure: %s\n", avahi_strerror(avahi_client_errno(avahi_entry_group_get_client(g))));
+            l_debug("Entry group failure: %s", avahi_strerror(avahi_client_errno(avahi_entry_group_get_client(g))));
 
             /* Some kind of failure happened while we were registering our services */
             avahi_simple_poll_quit(simple_poll);
@@ -58,7 +58,7 @@ void create_services(AvahiClient *c) {
 
     if (!group)
         if (!(group = avahi_entry_group_new(c, entry_group_callback, NULL))) {
-            fprintf(stderr, "avahi_entry_group_new() failed: %s\n", avahi_strerror(avahi_client_errno(c)));
+            l_debug("avahi_entry_group_new() failed: %s", avahi_strerror(avahi_client_errno(c)));
             goto fail;
         }
 
@@ -66,10 +66,10 @@ void create_services(AvahiClient *c) {
      * because it was reset previously, add our entries.  */
 
     if (avahi_entry_group_is_empty(group)) {
-        fprintf(stderr, "Adding service '%s'\n", name);
+        l_debug("Adding service '%s'", name);
 
         /* Set type of service */
-fprintf(stderr, "type(%lu) = %s\n",strlen(type_in),type_in);
+        l_debug("type(%lu) = %s",strlen(type_in),type_in);
         snprintf(type_txt, strlen(type_in)+6, "type=%s", type_in);
 
         /* Add the service for Lyricue Display */
@@ -78,13 +78,13 @@ fprintf(stderr, "type(%lu) = %s\n",strlen(type_in),type_in);
             if (ret == AVAHI_ERR_COLLISION)
                 goto collision;
 
-            fprintf(stderr, "Failed to add _lyricue._tcp service: %s\n", avahi_strerror(ret));
+            l_debug("Failed to add _lyricue._tcp service: %s", avahi_strerror(ret));
             goto fail;
         }
 
         /* Tell the server to register the service */
         if ((ret = avahi_entry_group_commit(group)) < 0) {
-            fprintf(stderr, "Failed to commit entry group: %s\n", avahi_strerror(ret));
+            l_debug("Failed to commit entry group: %s", avahi_strerror(ret));
             goto fail;
         }
     }
@@ -99,7 +99,7 @@ collision:
     avahi_free(name);
     name = n;
 
-    fprintf(stderr, "Service name collision, renaming service to '%s'\n", name);
+    l_debug("Service name collision, renaming service to '%s'", name);
 
     avahi_entry_group_reset(group);
 
@@ -125,7 +125,7 @@ void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED vo
 
         case AVAHI_CLIENT_FAILURE:
 
-            fprintf(stderr, "Client failure: %s\n", avahi_strerror(avahi_client_errno(c)));
+            l_debug("Client failure: %s", avahi_strerror(avahi_client_errno(c)));
             avahi_simple_poll_quit(simple_poll);
 
             break;
@@ -171,7 +171,7 @@ int publish_avahi(int port_passed, char *type_in_passed) {
 
     /* Check wether creating the client object succeeded */
     if (!client) {
-        fprintf(stderr, "Failed to create client: %s\n", avahi_strerror(error));
+        l_debug("Failed to create client: %s", avahi_strerror(error));
         unpublish_avahi();
     }
 
