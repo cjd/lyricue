@@ -182,7 +182,7 @@ $globals->{'version'}     = "##VERSION##";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 
-$globals->{'host'}        = "localhost";
+$globals->{'host'}        = hostname();
 $globals->{'mysqlhost'}   = "";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
@@ -459,7 +459,7 @@ $globals->{'access'} = load_access();
 
 # Open lyricDB, bibleDB and mediaDb
 db_select();
-$config = load_config(hostname());
+$config = load_config($globals->{'host'});
 
 if ($globals->{'print_songs'}) {
     print_songs();
@@ -502,6 +502,8 @@ $widgets->{'main'}->get_object('toolbuttonPlayCancel')->hide;
 
 # Setup background tasks
 $globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
+$globals->{'avahi_timer'} = Glib::Timeout->add(10000, \&check_avahi);
+check_avahi();
 $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
 Gtk2->main();
@@ -3965,24 +3967,20 @@ sub update_display {
     $secondary =~ s/:/#SEMI#/g;
     debug("Command: " . $command . ":" . $primary . ":" . $secondary);
 
-    my $avahi = `avahi-browse -t -p -r _lyricue._tcp`;
-    my @displays = split (/\n/, $avahi);
-    foreach my $display (@displays) {
-        my @display_items = split(/;/, $display);
-        if (@display_items > 8 && $display_items[2] eq "IPv4") {
-            if (($display_items[3] =~ /^Lyricue\\032Display/) && ($display_items[9] eq "\"type=Standalone\"")) {
-            debug("Updating ".$display_items[7].":".$display_items[8]);
-                if ( my $server = IO::Socket::INET->new(
-                        Proto    => "tcp",
-                        PeerAddr => $display_items[7],
-                        PeerPort => $display_items[8]
-                    )) {
-                    print $server toutf(
-                        $command . ":" . $primary . ":" . $secondary . "\n");
-                    close($server);
-                }
-            }
+    my $display = 0;
+    while ($globals->{'displays'}[$display] ne "") {
+        my @display_items = split(/:/, $globals->{'displays'}[$display]);
+        debug("Updating ".$globals->{'displays'}[$display]);
+        if ( my $server = IO::Socket::INET->new(
+            Proto    => "tcp",
+            PeerAddr => $display_items[0],
+            PeerPort => $display_items[1]
+            )) {
+            print $server toutf(
+                $command . ":" . $primary . ":" . $secondary . "\n");
+            close($server);
         }
+        $display++;
     }
 if (0) {
     if (
@@ -5018,7 +5016,7 @@ sub close_playlist_chooser {
 #
 sub create_dialog_prefs {
     debug("Creating preferences dialog");
-    $config = load_config(hostname());
+    $config = load_config($globals->{'host'});
     $widgets->{'prefs'} = load_window("dialogPrefs");
     $widgets->{'prefs'}->get_object('spinPrefHeight')
       ->set_value($config->{'Height'});
@@ -6611,7 +6609,7 @@ sub load_config {
     if (! defined $row[0]) {
         firstrun_wizard();
         Gtk2->main();
-        $conf = load_config(hostname());
+        $conf = load_config($globals->{'host'});
         return $conf
     }
     $sth   = $lyricDbh->prepare($query)
@@ -6654,7 +6652,7 @@ sub load_config {
         $conf->{'DefaultTransition'} = "Fade";
     }
     if (   (!defined $conf->{'ProjectorHost'})
-        || ($globals->{'host'} ne "localhost"))
+        || ($globals->{'host'} ne hostname()))
     {
         $conf->{'ProjectorHost'} = $globals->{'host'};
     } else {
@@ -6919,17 +6917,17 @@ sub write_config {
     debug("Writing preferences");
 
     # Backup config table
-    my $query = "DELETE FROM config_old WHERE host='".hostname()."'";
+    my $query = "DELETE FROM config_old WHERE host='".$globals->{'host'}."'";
     my $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "INSERT config_old SELECT * FROM config WHERE host='".hostname()."'";
+    $query = "INSERT config_old SELECT * FROM config WHERE host='".$globals->{'host'}."'";
     $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "DELETE FROM config WHERE host='".hostname()."'";
+    $query = "DELETE FROM config WHERE host='".$globals->{'host'}."'";
     $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
@@ -6939,7 +6937,7 @@ sub write_config {
         if ((!/^Bible/) && (!/^App/) && (!/^LoopText/)) {
             $query =
                 "INSERT INTO config ( host, config_key, config_value ) VALUES (\"" 
-              . hostname()
+              . $globals->{'host'}
               . "\", \""
               . $_
               . "\", \""
@@ -6955,7 +6953,7 @@ sub write_config {
     }
     foreach (keys $config->{'Apps'}) {
         $query =
-          "INSERT INTO config ( host, config_key, config_value ) VALUES ( \"". hostname(). "\", \"App\", \""
+          "INSERT INTO config ( host, config_key, config_value ) VALUES ( \"". $globals->{'host'}. "\", \"App\", \""
           . $_.";".$config->{'Apps'}->{$_} . "\")";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
@@ -11411,7 +11409,7 @@ sub get_max_verse {
     my ($book, $chapter, $startverse, $endverse) = @_;
 
     if ($config->{'Main'} eq "") {
-        $config = load_config(hostname());
+        $config = load_config($globals->{'host'});
     }
     if ($config->{'Width'} == 0) {
         $config->{'Width'}  = 800;
@@ -12325,6 +12323,33 @@ sub db_updatedb_lyricDb {
 
 #***
 
+#****f* lyricue/check_avahi
+# NAME
+#   check_avahi
+# SYNOPSIS
+#   check_avahi()
+# FUNCTION
+#
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+sub check_avahi {
+    my $avahi = `avahi-browse -t -p -r _lyricue._tcp`;
+    my @displays = split (/\n/, $avahi);
+    my $count=0;
+    foreach my $display (@displays) {
+        my @display_items = split(/;/, $display);
+        if (@display_items > 8 && $display_items[2] eq "IPv4") {
+            if (($display_items[3] =~ /^Lyricue\\032Display/) && ($display_items[9] eq "\"type=Standalone\"")) {
+                $globals->{'displays'}[$count++] = $display_items[7].":".$display_items[8];
+            }
+        }
+    }
+    $globals->{'displays'}[$count] = "";
+    return TRUE;
+}
+
 #****f* lyricue/check_tracker
 # NAME
 #   check_tracker
@@ -12339,7 +12364,7 @@ sub db_updatedb_lyricDb {
 sub check_tracker {
 
     #debug("Check tracker");
-    my $query = "SELECT ref,title,host FROM status";
+    my $query = "SELECT ref,title FROM status WHERE host='".$globals->{'host'}."'";
 
     #qdebug($query); # Commented out because it's too noisy
     my $sth = $lyricDbh->prepare($query)
