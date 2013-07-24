@@ -780,9 +780,11 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
     if (g_strcmp0 (maintext_bgcol, maintext_bgcol_old) != 0) {
         ClutterColor *fgcolour = clutter_color_new (0xFF, 0xFF, 0xFF, 0xFF);
         ClutterColor *bgcolour = clutter_color_new (0x00, 0x00, 0x00, 0xA0);
-        clutter_color_from_string (bgcolour, maintext_bgcol);
-        bgcolour->alpha = 0xA0;
-        clutter_color_from_string (fgcolour, maintext_fgcol);
+        if (server_mode!=SIMPLE_SERVER){
+            clutter_color_from_string (bgcolour, maintext_bgcol);
+            bgcolour->alpha = 0xA0;
+            clutter_color_from_string (fgcolour, maintext_fgcol);
+        }
 
         int n_kids = clutter_group_get_n_children(CLUTTER_GROUP(maintext));
         int i;
