@@ -4945,6 +4945,9 @@ sub close_playlist_chooser {
 sub create_dialog_prefs {
     debug("Creating preferences dialog");
     $config = load_config($globals->{'host'});
+    if (defined $widgets->{'prefs'} ) {
+        close_dialog($widgets->{'prefs'}->get_object('dialogPrefs'));
+    }
     $widgets->{'prefs'} = load_window("dialogPrefs");
     $widgets->{'prefs'}->get_object('spinPrefHeight')
       ->set_value($config->{'Height'});
@@ -5063,6 +5066,27 @@ sub create_dialog_prefs {
     $widgets->{'prefs'}->get_object('filePrefSpecialBGdir')->{'user_data'} =
       "bg";
 
+    # Hostnames
+    my $renderer = Gtk2::CellRendererText->new;
+    $widgets->{'prefs'}->get_object('comboPrefsHost')->pack_start($renderer, TRUE);
+    $widgets->{'prefs'}->get_object('comboPrefsHost')->add_attribute($renderer, text => 0);
+    my $hoststore = Gtk2::ListStore->new('Glib::String');
+    $widgets->{'prefs'}->get_object('comboPrefsHost')->set_model($hoststore);
+
+    my $query="SELECT DISTINCT host FROM config";
+        my $sth = $lyricDbh->prepare($query)
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    my $rv = $sth->execute
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    while (my @row = $sth->fetchrow_array()) {
+        my $iter = $hoststore->append;
+        $hoststore->set($iter, 0, $row[0]);
+        if ($row[0] eq $globals->{'host'}) {
+            $widgets->{'prefs'}->get_object('comboPrefsHost')->set_active_iter($iter);
+        } 
+    }
+
+
     $widgets->{'prefs'}->get_object('radioPrefDBMysql')->set_active(TRUE);
     $widgets->{'prefs'}->get_object('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
@@ -5076,6 +5100,7 @@ sub create_dialog_prefs {
       ->signal_connect("button_press_event", "open_dialogColour", "Font");
     $widgets->{'prefs'}->get_object('entryPrefShadowColour')
       ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
+    $globals->{'hostname_change_signal'} = $widgets->{'prefs'}->get_object('comboPrefsHost')->signal_connect("changed", "change_pref_host","");
 }
 
 #***
@@ -5108,6 +5133,29 @@ sub change_windowoffset {
     }
     close_dialog($offsetxml->get_object('dialogWindowOffset'));
 }
+#***
+
+#****f* lyricue/change_pref_host
+# NAME
+#   change_pref_host
+# SYNOPSIS
+#   change_pref_host($widget)
+# FUNCTION
+#   Change preferences host
+# INPUTS
+#   $widget - Calling widget
+# OUTPUT
+#   Stuff shown or hidden
+# SOURCE
+#
+sub change_pref_host {
+    my ($widget) = @_;
+    debug("Changing preferences host");
+    my $hoststore = $widgets->{'prefs'}->get_object('comboPrefsHost')->get_model();
+    $globals->{'host'} = $widgets->{'prefs'}->get_object('comboPrefsHost')->get_active_text();
+    create_dialog_prefs();
+}
+#***
 
 #****f* lyricue/change_pref_xinerama
 # NAME
@@ -13589,6 +13637,7 @@ sub biblebrowser_loaditems {
 sub firstrun_wizard {
     debug("First Run Wizard");
     $config = load_config('');
+    $globals->{'firstrun'} = TRUE;
     $widgets->{'firstrunxml'} = load_window('assistantFirstRun');
     $widgets->{'firstrun'} =
       $widgets->{'firstrunxml'}->get_object('assistantFirstRun');
