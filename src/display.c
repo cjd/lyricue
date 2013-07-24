@@ -152,7 +152,9 @@ create_main_window (int argc, char *argv[])
 
     clutter_stage_set_color (CLUTTER_STAGE (stage), &black_colour);
     default_bg = (gchar *) g_hash_table_lookup (config, "BGImage");
-    change_backdrop (default_bg, TRUE, NO_EFFECT);
+    if (server_mode != SIMPLE_SERVER) {
+        change_backdrop (default_bg, TRUE, NO_EFFECT);
+    }
     double window_scale_w =
       (double) clutter_actor_get_width (stage) / (double) stage_width;
     double window_scale_h =

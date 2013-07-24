@@ -406,11 +406,15 @@ void
 do_backdrop (const char *options)
 {
     l_debug ("do_backdrop: %s", options);
-    gchar **line = g_strsplit (options, ":", 2);
-    temp_bg = NULL;
-    default_bg = parse_special (line[0]);
-    change_backdrop (default_bg, TRUE, DEFAULT);
-    g_strfreev (line);
+    if (server_mode != SIMPLE_SERVER) {
+        gchar **line = g_strsplit (options, ":", 2);
+        temp_bg = NULL;
+        default_bg = parse_special (line[0]);
+        change_backdrop (default_bg, TRUE, DEFAULT);
+        g_strfreev (line);
+    } else {
+        if (background != NULL) destroy_actor(background);
+    }
 }
 
 void
@@ -717,8 +721,10 @@ do_display (const char *options, const int quick_show)
 
             if (g_strcmp0 (type, "back") == 0) {
                 default_bg = g_strdup (data);
-                change_backdrop (default_bg, TRUE, transition);
-                bg_changed = TRUE;
+                if (server_mode == NORMAL_SERVER) {
+                    change_backdrop (default_bg, TRUE, transition);
+                    bg_changed = TRUE;
+                }
                 g_strfreev (line);
             } else if (g_strcmp0 (type, "file") == 0) {
                 change_backdrop (data, FALSE, transition);
@@ -793,37 +799,41 @@ do_display (const char *options, const int quick_show)
 
             // Look for associated background image
             if (!bg_changed) {
-                int res = do_query (lyricDb,
-                                    "SELECT imagename FROM associations WHERE playlist=%d",
-                                    current_item);
-                int bg_changed = FALSE;
-                if (res == 0) {
-                    result = mysql_store_result (lyricDb);
-                    row = mysql_fetch_row (result);
-                    if (row != NULL) {
-                        change_backdrop (row[0], TRUE, transition);
-                        bg_changed = TRUE;
-                    }
-                    mysql_free_result (result);
-                }
-                if (!bg_changed) {
-                    res =
-                      do_query (lyricDb,
-                                "SELECT a.imagename,q.data FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder=%d",
-                                current_item);
+                if (server_mode == SIMPLE_SERVER) {
+                    if (background != NULL) clutter_actor_destroy(background);
+                } else {
+                    int res = do_query (lyricDb,
+                                        "SELECT imagename FROM associations WHERE playlist=%d",
+                                        current_item);
+                    int bg_changed = FALSE;
                     if (res == 0) {
                         result = mysql_store_result (lyricDb);
                         row = mysql_fetch_row (result);
-                        mysql_free_result (result);
                         if (row != NULL) {
                             change_backdrop (row[0], TRUE, transition);
                             bg_changed = TRUE;
                         }
+                        mysql_free_result (result);
                     }
-                }
-                if (!bg_changed && (g_strcmp0 (default_bg, current_bg) != 0)) {
-                    l_debug ("Reset bg to default");
-                    change_backdrop (default_bg, TRUE, transition);
+                    if (!bg_changed) {
+                        res =
+                          do_query (lyricDb,
+                                    "SELECT a.imagename,q.data FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder=%d",
+                                    current_item);
+                        if (res == 0) {
+                            result = mysql_store_result (lyricDb);
+                            row = mysql_fetch_row (result);
+                            mysql_free_result (result);
+                            if (row != NULL) {
+                                change_backdrop (row[0], TRUE, transition);
+                                bg_changed = TRUE;
+                            }
+                        }
+                    }
+                    if (!bg_changed && (g_strcmp0 (default_bg, current_bg) != 0)) {
+                        l_debug ("Reset bg to default");
+                        change_backdrop (default_bg, TRUE, transition);
+                    }
                 }
             }
 
