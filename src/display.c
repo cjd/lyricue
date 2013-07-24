@@ -25,8 +25,7 @@ extern gchar *default_bg;
 extern gchar *current_bg;
 extern MYSQL *mediaDb;
 extern unsigned long windowid;
-extern gchar *server_type;
-extern int server_port;
+extern int server_mode;
 extern MYSQL *lyricDb;
 extern int current_item;
 
@@ -587,7 +586,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
               clutter_gst_video_texture_get_playbin (CLUTTER_GST_VIDEO_TEXTURE
                                                      (background));
 #endif
-            if (g_strcmp0(server_type,"normal") != 0) {
+            if (server_mode != NORMAL_SERVER) {
                 g_signal_connect (background, "eos", G_CALLBACK (loop_video),
                                   NULL);
                 bg_is_video =
@@ -668,7 +667,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
                                  GST_SEEK_FLAG_NONE, title);
         l_debug ("Playing DVD title:%d", title);
 
-        if (g_strcmp0(server_type,"normal") != 0) {
+        if (server_mode != NORMAL_SERVER) {
             bg_is_video =
               g_timeout_add_seconds (1, (GSourceFunc) update_tracker, NULL);
         } else {
@@ -708,7 +707,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
                                                  (background));
 #endif
 
-        if (g_strcmp0(server_type, "normal") != 0) {
+        if (server_mode != NORMAL_SERVER) {
             bg_is_video =
               g_timeout_add_seconds (1, (GSourceFunc) update_tracker, NULL);
         } else {
@@ -831,125 +830,149 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
 
     gboolean handled = FALSE;
     gchar *ignoremouse;
-    switch (event->type) {
-        case CLUTTER_BUTTON_RELEASE:
-            ignoremouse = (gchar *) g_hash_table_lookup (config, "IgnoreMouse");
-            if (ignoremouse != NULL && atoi(ignoremouse) == 1) {
+    if (server_mode == NORMAL_SERVER || server_mode == PREVIEW_SERVER) {
+        switch (event->type) {
+            case CLUTTER_BUTTON_RELEASE:
+                ignoremouse = (gchar *) g_hash_table_lookup (config, "IgnoreMouse");
+                if (ignoremouse != NULL && atoi(ignoremouse) == 1) {
+                    break;
+                }
+                switch (clutter_event_get_button (event)) {
+                    case 1:
+                        handle_command (NULL, "display:next_page:");
+                        break;
+                    case 2:
+                        handle_command (NULL, "display:prev_song:");
+                        break;
+                    case 3:
+                        handle_command (NULL, "display:prev_page:");
+                        break;
+                    default:
+                        break;
+                }
                 break;
-            }
-            switch (clutter_event_get_button (event)) {
-                case 1:
-                    handle_command (NULL, "display:next_page:");
-                    break;
-                case 2:
-                    handle_command (NULL, "display:prev_song:");
-                    break;
-                case 3:
-                    handle_command (NULL, "display:prev_page:");
-                    break;
-                default:
-                    break;
-            }
-            break;
-        case CLUTTER_KEY_PRESS:
+            case CLUTTER_KEY_PRESS:
+                switch (clutter_event_get_key_symbol (event)) {
+                    case CLUTTER_Q:
+                    case CLUTTER_Escape:
+                        close_log ();
+                        clear_group (stage);
+                        if (server_mode == NORMAL_SERVER) {
+                            clutter_main_quit ();
+                        } else {
+                            gtk_main_quit();
+                        }
+                        handled = TRUE;
+                        break;
+                    case CLUTTER_Left:
+                    case CLUTTER_KP_Left:
+                    case CLUTTER_Page_Up:
+                        handle_command (NULL, "display:prev_page:");
+                        break;
+                    case CLUTTER_Right:
+                    case CLUTTER_KP_Right:
+                    case CLUTTER_Page_Down:
+                        handle_command (NULL, "display:next_page:");
+                        break;
+                    case CLUTTER_Up:
+                    case CLUTTER_KP_Up:
+                        handle_command (NULL, "display:prev_song:");
+                        break;
+                    case CLUTTER_Down:
+                    case CLUTTER_KP_Down:
+                        handle_command (NULL, "display:next_song:");
+                        break;
+                    case CLUTTER_0:
+                    case CLUTTER_KP_0:
+                    case CLUTTER_KP_Insert:
+                    case CLUTTER_c:
+                    case CLUTTER_x:
+                        if (blanked_state == BLANK_NONE) {
+                            handle_command (NULL, "blank::");
+                        } else {
+                            handle_command (NULL, "display:current:");
+                        }
+                        break;
+                    case CLUTTER_b:
+                        if (blanked_state == BLANK_NONE) {
+                            handle_command (NULL, "blank:solid;black:");
+                        } else {
+                            handle_command (NULL, "display:current:");
+                        }
+                        break;
+                    case CLUTTER_p:
+                    case CLUTTER_space:
+                        handle_command (NULL, "media:pause:");
+                        break;
+                    case CLUTTER_1:
+                    case CLUTTER_KP_1:
+                        handle_command (NULL, "display:page:1");
+                        break;
+                    case CLUTTER_2:
+                    case CLUTTER_KP_2:
+                        handle_command (NULL, "display:page:2");
+                        break;
+                    case CLUTTER_3:
+                    case CLUTTER_KP_3:
+                        handle_command (NULL, "display:page:3");
+                        break;
+                    case CLUTTER_4:
+                    case CLUTTER_KP_4:
+                        handle_command (NULL, "display:page:4");
+                        break;
+                    case CLUTTER_5:
+                    case CLUTTER_KP_5:
+                        handle_command (NULL, "display:page:5");
+                        break;
+                    case CLUTTER_6:
+                    case CLUTTER_KP_6:
+                        handle_command (NULL, "display:page:6");
+                        break;
+                    case CLUTTER_7:
+                    case CLUTTER_KP_7:
+                        handle_command (NULL, "display:page:7");
+                        break;
+                    case CLUTTER_8:
+                    case CLUTTER_KP_8:
+                        handle_command (NULL, "display:page:8");
+                        break;
+                    case CLUTTER_9:
+                    case CLUTTER_KP_9:
+                        handle_command (NULL, "display:page:9");
+                        break;
+                    default:
+                        l_debug ("Unknown key");
+                        break;
+                }
+                break;
+            case CLUTTER_MOTION:
+                clutter_stage_show_cursor (CLUTTER_STAGE (stage));
+                if (cursor_timeout)
+                    g_source_remove (cursor_timeout);
+                cursor_timeout =
+                  g_timeout_add_seconds (3, (GSourceFunc) hide_cursor, NULL);
+                break;
+            default:
+                break;
+        }
+    } else {
+        if (event->type == CLUTTER_KEY_PRESS) {
             switch (clutter_event_get_key_symbol (event)) {
                 case CLUTTER_Q:
                 case CLUTTER_Escape:
                     close_log ();
                     clear_group (stage);
-                    clutter_main_quit ();
+                    if (server_mode == NORMAL_SERVER) {
+                        clutter_main_quit ();
+                    } else {
+                        gtk_main_quit();
+                    }
                     handled = TRUE;
                     break;
-                case CLUTTER_Left:
-                case CLUTTER_KP_Left:
-                case CLUTTER_Page_Up:
-                    handle_command (NULL, "display:prev_page:");
-                    break;
-                case CLUTTER_Right:
-                case CLUTTER_KP_Right:
-                case CLUTTER_Page_Down:
-                    handle_command (NULL, "display:next_page:");
-                    break;
-                case CLUTTER_Up:
-                case CLUTTER_KP_Up:
-                    handle_command (NULL, "display:prev_song:");
-                    break;
-                case CLUTTER_Down:
-                case CLUTTER_KP_Down:
-                    handle_command (NULL, "display:next_song:");
-                    break;
-                case CLUTTER_0:
-                case CLUTTER_KP_0:
-                case CLUTTER_KP_Insert:
-                case CLUTTER_c:
-                case CLUTTER_x:
-                    if (blanked_state == BLANK_NONE) {
-                        handle_command (NULL, "blank::");
-                    } else {
-                        handle_command (NULL, "display:current:");
-                    }
-                    break;
-                case CLUTTER_b:
-                    if (blanked_state == BLANK_NONE) {
-                        handle_command (NULL, "blank:solid;black:");
-                    } else {
-                        handle_command (NULL, "display:current:");
-                    }
-                    break;
-                case CLUTTER_p:
-                case CLUTTER_space:
-                    handle_command (NULL, "media:pause:");
-                    break;
-                case CLUTTER_1:
-                case CLUTTER_KP_1:
-                    handle_command (NULL, "display:page:1");
-                    break;
-                case CLUTTER_2:
-                case CLUTTER_KP_2:
-                    handle_command (NULL, "display:page:2");
-                    break;
-                case CLUTTER_3:
-                case CLUTTER_KP_3:
-                    handle_command (NULL, "display:page:3");
-                    break;
-                case CLUTTER_4:
-                case CLUTTER_KP_4:
-                    handle_command (NULL, "display:page:4");
-                    break;
-                case CLUTTER_5:
-                case CLUTTER_KP_5:
-                    handle_command (NULL, "display:page:5");
-                    break;
-                case CLUTTER_6:
-                case CLUTTER_KP_6:
-                    handle_command (NULL, "display:page:6");
-                    break;
-                case CLUTTER_7:
-                case CLUTTER_KP_7:
-                    handle_command (NULL, "display:page:7");
-                    break;
-                case CLUTTER_8:
-                case CLUTTER_KP_8:
-                    handle_command (NULL, "display:page:8");
-                    break;
-                case CLUTTER_9:
-                case CLUTTER_KP_9:
-                    handle_command (NULL, "display:page:9");
-                    break;
                 default:
-                    l_debug ("Unknown key");
                     break;
             }
-            break;
-        case CLUTTER_MOTION:
-            clutter_stage_show_cursor (CLUTTER_STAGE (stage));
-            if (cursor_timeout)
-                g_source_remove (cursor_timeout);
-            cursor_timeout =
-              g_timeout_add_seconds (3, (GSourceFunc) hide_cursor, NULL);
-            break;
-        default:
-            break;
+        }
     }
     return handled;
 }

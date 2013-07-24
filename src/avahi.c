@@ -4,8 +4,10 @@ static AvahiEntryGroup *group = NULL;
 static AvahiSimplePoll *simple_poll = NULL;
 static char *name = NULL;
 static AvahiClient *client = NULL;
+static AvahiServiceBrowser *sb = NULL;
 static int port = 0;
 static char *type_in = NULL;
+extern GHashTable *miniviews;
 
 void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_GCC_UNUSED void *userdata) {
     assert(g == group || group == NULL);
@@ -66,10 +68,9 @@ void create_services(AvahiClient *c) {
      * because it was reset previously, add our entries.  */
 
     if (avahi_entry_group_is_empty(group)) {
-        l_debug("Adding service '%s'", name);
+        l_debug("Adding service '%s' type '%s'", name, type_in);
 
         /* Set type of service */
-        l_debug("type(%lu) = %s",strlen(type_in),type_in);
         snprintf(type_txt, strlen(type_in)+6, "type=%s", type_in);
 
         /* Add the service for Lyricue Display */
@@ -175,6 +176,16 @@ int publish_avahi(int port_passed, char *type_in_passed) {
         unpublish_avahi();
     }
 
+    
+    /* Create the service browser */
+    if (miniviews==NULL) {
+        miniviews = g_hash_table_new(g_str_hash, g_str_equal);
+    }
+    if (!(sb = avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_INET, "_lyricue._tcp", NULL, 0, browse_callback, client))) {
+        l_debug("Failed to create service browser: %s\n", avahi_strerror(avahi_client_errno(client)));
+    }
+
+
     return 0;
 }
 
@@ -186,3 +197,91 @@ int unpublish_avahi() {
     avahi_free(name);
     return 0;
 }
+
+void browse_callback(
+    AvahiServiceBrowser *b,
+    AvahiIfIndex interface,
+    AvahiProtocol protocol,
+    AvahiBrowserEvent event,
+    const char *name,
+    const char *type,
+    const char *domain,
+    AVAHI_GCC_UNUSED AvahiLookupResultFlags flags,
+    void* userdata) {
+
+    AvahiClient *c = userdata;
+    assert(b);
+
+    /* Called whenever a new services becomes available on the LAN or is removed from the LAN */
+
+    switch (event) {
+        case AVAHI_BROWSER_FAILURE:
+
+            fprintf(stderr, "(Browser) %s\n", avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(b))));
+            avahi_simple_poll_quit(simple_poll);
+            return;
+
+        case AVAHI_BROWSER_NEW:
+            /* We ignore the returned resolver object. In the callback
+               function we free it. If the server is terminated before
+               the callback function is called the server will free
+               the resolver for us. */
+
+            if (!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_INET, 0, resolve_callback, c)))
+                fprintf(stderr, "Failed to resolve service '%s': %s\n", name, avahi_strerror(avahi_client_errno(c)));
+
+            break;
+
+        case AVAHI_BROWSER_REMOVE:
+            fprintf(stderr, "(Browser) REMOVE: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
+            break;
+
+        case AVAHI_BROWSER_ALL_FOR_NOW:
+        case AVAHI_BROWSER_CACHE_EXHAUSTED:
+            break;
+    }
+}
+
+void resolve_callback(
+    AvahiServiceResolver *r,
+    AVAHI_GCC_UNUSED AvahiIfIndex interface,
+    AVAHI_GCC_UNUSED AvahiProtocol protocol,
+    AvahiResolverEvent event,
+    const char *name,
+    const char *type,
+    const char *domain,
+    const char *host_name,
+    const AvahiAddress *address,
+    uint16_t port,
+    AvahiStringList *txt,
+    AvahiLookupResultFlags flags,
+    AVAHI_GCC_UNUSED void* userdata) {
+
+    assert(r);
+
+    /* Called whenever a service has been resolved successfully or timed out */
+
+    switch (event) {
+        case AVAHI_RESOLVER_FAILURE:
+            l_debug("(Resolver) Failed to resolve service '%s' of type '%s' in domain '%s': %s\n", name, type, domain, avahi_strerror(avahi_client_errno(avahi_service_resolver_get_client(r))));
+            break;
+
+        case AVAHI_RESOLVER_FOUND: {
+            char a[AVAHI_ADDRESS_STR_MAX], *t;
+
+            avahi_address_snprint(a, sizeof(a), address);
+            t = avahi_string_list_to_string(txt);
+            if (g_strcmp0(t,"\"type=miniview\"") == 0) {
+                gchar *host = g_strdup_printf("%s:%u",a, port);
+                l_debug("Found miniview on %s", host);
+                if (!g_hash_table_contains(miniviews,host)) {
+                    g_hash_table_insert(miniviews, g_strdup(name), host);
+                }
+            }
+            avahi_free(t);
+        }
+    }
+
+    avahi_service_resolver_free(r);
+}
+

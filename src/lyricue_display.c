@@ -41,6 +41,7 @@ gchar *temp_bg = NULL;
 int current_item = 0;
 int current_list = 0;
 GHashTable *config = NULL;
+GHashTable *miniviews = NULL;
 #define SERVER_PORT 2346
 
 // Command line options
@@ -48,6 +49,7 @@ gboolean windowed = FALSE;
 gboolean debugging = FALSE;
 int server_port = SERVER_PORT;
 gchar *server_type = "normal";
+int server_mode = NORMAL_SERVER;
 gchar *dbhostname = "localhost";
 gchar *geometry = NULL;
 unsigned long windowid = 0;
@@ -120,7 +122,17 @@ main (int argc, char *argv[])
 
     // Publish to avahi (zeroconf/bonjour)
     publish_avahi(server_port, server_type);
-    if (g_strcmp0(server_type,"normal") == 0) {
+    if (g_strcmp0(server_type, "normal") == 0) {
+        server_mode=NORMAL_SERVER;
+    } else if (g_strcmp0(server_type, "preview") == 0) {
+        server_mode=PREVIEW_SERVER;
+    } else if (g_strcmp0(server_type, "miniview") == 0) {
+        server_mode=MINIVIEW_SERVER;
+    } else if (g_strcmp0(server_type, "simple") == 0) {
+        server_mode=SIMPLE_SERVER;
+    }
+
+    if (server_mode==NORMAL_SERVER) {
         // Setup tracker entry in DB
         do_query (lyricDb, "DELETE FROM playlists WHERE id=-1");
         do_query (lyricDb, "INSERT INTO playlists SET id=-1,ref=0,title=''");
@@ -831,7 +843,7 @@ update_tracker ()
     //l_debug ("Updating tracker");
 
     // Only do if this is main server
-    if (server_port == SERVER_PORT) {
+    if (server_mode == NORMAL_SERVER) {
         GString *title = g_string_new (NULL);
         if (blanked_state == BLANK_BG) {
             g_string_assign (title, "blank_bg");
@@ -862,20 +874,26 @@ update_tracker ()
 void
 update_miniview (const char *command)
 {
-    if (server_port == SERVER_PORT) {
+    if (server_mode == NORMAL_SERVER) {
         l_debug ("miniview time");
-        GSocketClient *client = g_socket_client_new ();
-        GSocketConnection *conn =
-          g_socket_client_connect_to_host (client, dbhostname, 2348, NULL,
-                                           NULL);
-        if (conn != NULL) {
-            GOutputStream *out =
-              g_io_stream_get_output_stream (G_IO_STREAM (conn));
-            g_output_stream_write (out, command, strlen (command), NULL,
-                                   NULL);
-            g_object_unref (conn);
+        GHashTableIter iter;
+        gpointer key, value;
+        g_hash_table_iter_init(&iter, miniviews);
+        while (g_hash_table_iter_next(&iter, &key, &value)) {
+            l_debug("Updating miniview %s",value);
+            GSocketClient *client = g_socket_client_new ();
+            GSocketConnection *conn =
+              g_socket_client_connect_to_host (client, value, 2348, NULL,
+                                               NULL);
+            if (conn != NULL) {
+                GOutputStream *out =
+                  g_io_stream_get_output_stream (G_IO_STREAM (conn));
+                g_output_stream_write (out, command, strlen (command), NULL,
+                                       NULL);
+                g_object_unref (conn);
+            }
+            g_object_unref (client);
         }
-        g_object_unref (client);
     }
 }
 

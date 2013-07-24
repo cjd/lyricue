@@ -109,3 +109,9 @@ void update_miniview (const char *command);
 #define RANDOM     5
 
 #define NO_EFFECT 65536 //(NOTRANS >> NUM_TRANS) >> NUM_TRANS
+
+// Server types
+#define NORMAL_SERVER 0
+#define PREVIEW_SERVER 1
+#define MINIVIEW_SERVER 2
+#define SIMPLE_SERVER 3
