@@ -21,6 +21,7 @@ MYSQL *mediaDb = NULL;
 MYSQL *bibleDb = NULL;
 extern GHashTable *config;
 extern char *dbhostname;
+extern char *profile;
 
 int
 db_select ()
@@ -87,7 +88,7 @@ load_configuration ()
     MYSQL_ROW row;
     MYSQL_RES *result;
     int res =
-      do_query (lyricDb, "SELECT config_key,config_value FROM config");
+      do_query (lyricDb, "SELECT config_key,config_value FROM config WHERE profile='%s'", profile);
     if (res != 0) {
         return;
     }

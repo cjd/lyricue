@@ -64,7 +64,7 @@ CREATE TABLE `playlists` (
 -- Table structure for table `configuration`
 CREATE TABLE `configuration` (
   `id` int(11) NOT NULL auto_increment,
-  `host` varchar(50) NOT NULL default '',
+  `profile` varchar(50) NOT NULL default '',
   `key` varchar(50) NOT NULL default '',
   `value` varchar(250) default '',
   PRIMARY KEY  (`id`)
@@ -73,7 +73,7 @@ CREATE TABLE `configuration` (
 -- Table structure for table `configuration_old`
 CREATE TABLE `configuration_old` (
   `id` int(11) NOT NULL auto_increment,
-  `host` varchar(50) NOT NULL default '',
+  `profile` varchar(50) NOT NULL default '',
   `key` varchar(50) NOT NULL default '',
   `value` varchar(250) default '',
   PRIMARY KEY  (`id`)

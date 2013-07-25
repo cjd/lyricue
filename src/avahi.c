@@ -8,6 +8,7 @@ static AvahiServiceBrowser *sb = NULL;
 static int port = 0;
 static char *type_in = NULL;
 extern GHashTable *miniviews;
+extern gchar *profile;
 
 void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_GCC_UNUSED void *userdata) {
     assert(g == group || group == NULL);
@@ -51,7 +52,7 @@ void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_
     }
 }
 void create_services(AvahiClient *c) {
-    char *n, type_txt[128];
+    char *n, type_txt[128], profile_txt[128];
     int ret;
     assert(c);
 
@@ -72,9 +73,10 @@ void create_services(AvahiClient *c) {
 
         /* Set type of service */
         snprintf(type_txt, strlen(type_in)+6, "type=%s", type_in);
+        snprintf(profile_txt, strlen(profile)+9, "profile=%s", profile);
 
         /* Add the service for Lyricue Display */
-        if ((ret = avahi_entry_group_add_service(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, name, "_lyricue._tcp", NULL, NULL, port, type_txt, NULL)) < 0) {
+        if ((ret = avahi_entry_group_add_service(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, name, "_lyricue._tcp", NULL, NULL, port, type_txt, profile_txt, NULL)) < 0) {
 
             if (ret == AVAHI_ERR_COLLISION)
                 goto collision;
@@ -271,13 +273,20 @@ void resolve_callback(
 
             avahi_address_snprint(a, sizeof(a), address);
             t = avahi_string_list_to_string(txt);
-            if (g_strcmp0(t,"\"type=miniview\"") == 0) {
+            char *value;
+            size_t *size;
+            char *type="type";
+            avahi_string_list_get_pair(txt,&type, &value, size);
+            l_debug("Type = %s",value);
+            if (g_strcmp0(value,"miniview") == 0) {
                 gchar *host = g_strdup_printf("%s:%u",a, port);
                 l_debug("Found miniview on %s", host);
                 if (!g_hash_table_contains(miniviews,host)) {
                     g_hash_table_insert(miniviews, g_strdup(name), host);
                 }
             }
+            avahi_free(value);
+            avahi_free(type);
             avahi_free(t);
         }
     }

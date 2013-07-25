@@ -182,8 +182,8 @@ $globals->{'version'}     = "##VERSION##";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 
-$globals->{'host'}        = hostname();
-$globals->{'mysqlhost'}   = "";
+$globals->{'profile'}     = "Default";
+$globals->{'mysqlhost'}   = "localhost";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
 $globals->{'biblename'}   = "";
@@ -324,11 +324,11 @@ $errorcodes->{'fileopenwrite'} = fromutf(
 );
 $errorcodes->{'usage'} = fromutf(
     gettext(
-            "\nUsage: lyricue <-v|-l> <-b> <-k> <-d> <-s>\n\n"
+            "\nUsage: lyricue <-v|-l> <-b> <-k> <-d> <-p>\n\n"
           . "\t-v:  Prints Lyricue version information & exits\n"
           . "\t-l:  Outputs song list in HTML & exits\n"
           . "\t-b:  Loads Lyricue without background previews\n"
-          . "\t-s:  Specify the host on which the lyric server is located\n"
+          . "\t-p:  Specify the profile to use\n"
           . "\t-r:  Specify the host on which the mysql server is located\n"
           . "\t-d:  Prints debugging messages\n"
           . "\t-w:  Don't maximize on startup\n"
@@ -401,8 +401,8 @@ if ($ARGV[0]) {
             $globals->{'debugging'} = 2;
         } elsif ($ARGV[$_] eq "-w") {
             $globals->{'run_windowed'} = TRUE;
-        } elsif ($ARGV[$_] eq "-s") {
-            $globals->{'host'} = $ARGV[$_ + 1];
+        } elsif ($ARGV[$_] eq "-p") {
+            $globals->{'profile'} = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-r") {
             $globals->{'mysqlhost'} = $ARGV[$_ + 1];
@@ -418,11 +418,6 @@ if ($ARGV[0]) {
             exit;
         }
     }
-}
-
-# Set mysql host if not already set
-if ($globals->{'mysqlhost'} eq "") {
-    $globals->{'mysqlhost'} = $globals->{'host'};
 }
 
 # Some global stuff
@@ -459,8 +454,8 @@ $globals->{'access'} = load_access();
 
 # Open lyricDB, bibleDB and mediaDb
 db_select();
-debug("hostname $globals->{'host'}");
-$config = load_config($globals->{'host'});
+debug("Profile $globals->{'profile'}");
+$config = load_config($globals->{'profile'});
 
 if ($globals->{'print_songs'}) {
     print_songs();
@@ -4944,7 +4939,7 @@ sub close_playlist_chooser {
 #
 sub create_dialog_prefs {
     debug("Creating preferences dialog");
-    $config = load_config($globals->{'host'});
+    $config = load_config($globals->{'profile'});
     if (defined $widgets->{'prefs'} ) {
         close_dialog($widgets->{'prefs'}->get_object('dialogPrefs'));
     }
@@ -5068,26 +5063,27 @@ sub create_dialog_prefs {
 
     # Hostnames
     my $renderer = Gtk2::CellRendererText->new;
-    $widgets->{'prefs'}->get_object('comboPrefsHost')->pack_start($renderer, TRUE);
-    $widgets->{'prefs'}->get_object('comboPrefsHost')->add_attribute($renderer, text => 0);
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')->pack_start($renderer, TRUE);
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')->add_attribute($renderer, text => 0);
     my $hoststore = Gtk2::ListStore->new('Glib::String');
-    $widgets->{'prefs'}->get_object('comboPrefsHost')->set_model($hoststore);
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_model($hoststore);
 
-    my $query="SELECT DISTINCT host FROM config";
+    my $query="SELECT DISTINCT profile FROM config";
         my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while (my @row = $sth->fetchrow_array()) {
-        my $iter = $hoststore->append;
-        $hoststore->set($iter, 0, $row[0]);
-        if ($row[0] eq $globals->{'host'}) {
-            $widgets->{'prefs'}->get_object('comboPrefsHost')->set_active_iter($iter);
-        } 
+        if ($row[0] ne "") {
+            my $iter = $hoststore->append;
+            $hoststore->set($iter, 0, $row[0]);
+            if ($row[0] eq $globals->{'profile'}) {
+                $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_active_iter($iter);
+            } 
+        }
     }
 
 
-    $widgets->{'prefs'}->get_object('radioPrefDBMysql')->set_active(TRUE);
     $widgets->{'prefs'}->get_object('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
     $widgets->{'prefs'}->get_object('entryPrefMain')
@@ -5100,7 +5096,7 @@ sub create_dialog_prefs {
       ->signal_connect("button_press_event", "open_dialogColour", "Font");
     $widgets->{'prefs'}->get_object('entryPrefShadowColour')
       ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
-    $globals->{'hostname_change_signal'} = $widgets->{'prefs'}->get_object('comboPrefsHost')->signal_connect("changed", "change_pref_host","");
+    $globals->{'hostname_change_signal'} = $widgets->{'prefs'}->get_object('comboPrefsProfile')->signal_connect("changed", "change_pref_profile","");
 }
 
 #***
@@ -5135,24 +5131,24 @@ sub change_windowoffset {
 }
 #***
 
-#****f* lyricue/change_pref_host
+#****f* lyricue/change_pref_profile
 # NAME
-#   change_pref_host
+#   change_pref_profile
 # SYNOPSIS
-#   change_pref_host($widget)
+#   change_pref_profile($widget)
 # FUNCTION
-#   Change preferences host
+#   Change preferences profile
 # INPUTS
 #   $widget - Calling widget
 # OUTPUT
 #   Stuff shown or hidden
 # SOURCE
 #
-sub change_pref_host {
+sub change_pref_profile {
     my ($widget) = @_;
-    debug("Changing preferences host");
-    my $hoststore = $widgets->{'prefs'}->get_object('comboPrefsHost')->get_model();
-    $globals->{'host'} = $widgets->{'prefs'}->get_object('comboPrefsHost')->get_active_text();
+    debug("Changing preferences profile");
+    my $hoststore = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_model();
+    $globals->{'profile'} = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_active_text();
     create_dialog_prefs();
 }
 #***
@@ -6576,7 +6572,7 @@ sub load_config {
     $conf->{'Width'}  = 0;
     $conf->{'Height'} = 0;
 
-    my $query = "SELECT config_key, config_value FROM config WHERE host='".$hostname."'";
+    my $query = "SELECT config_key, config_value FROM config WHERE profile='".$hostname."'";
     $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
@@ -6585,7 +6581,7 @@ sub load_config {
     if (! defined $row[0]) {
         firstrun_wizard();
         Gtk2->main();
-        $conf = load_config($globals->{'host'});
+        $conf = load_config($globals->{'profile'});
         return $conf
     }
     $sth   = $lyricDbh->prepare($query)
@@ -6626,16 +6622,6 @@ sub load_config {
 
     if (!defined $conf->{'DefaultTransition'}) {
         $conf->{'DefaultTransition'} = "Fade";
-    }
-    if (   (!defined $conf->{'ProjectorHost'})
-        || ($globals->{'host'} ne hostname()))
-    {
-        $conf->{'ProjectorHost'} = $globals->{'host'};
-    } else {
-        if ($conf->{'ProjectorHost'} eq "localhost") {
-            $conf->{'ProjectorHost'} = hostname();
-        }
-        $globals->{'host'} = $conf->{'ProjectorHost'};
     }
     if (   (!defined $conf->{'DBHost'})
         || ($globals->{'mysqlhost'} ne "localhost"))
@@ -6896,17 +6882,17 @@ sub write_config {
     debug("Writing preferences");
 
     # Backup config table
-    my $query = "DELETE FROM config_old WHERE host='".$globals->{'host'}."'";
+    my $query = "DELETE FROM config_old WHERE profile='".$globals->{'profile'}."'";
     my $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "INSERT config_old SELECT * FROM config WHERE host='".$globals->{'host'}."'";
+    $query = "INSERT config_old SELECT * FROM config WHERE profile='".$globals->{'profile'}."'";
     $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "DELETE FROM config WHERE host='".$globals->{'host'}."'";
+    $query = "DELETE FROM config WHERE profile='".$globals->{'profile'}."'";
     $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
@@ -6915,8 +6901,8 @@ sub write_config {
     foreach (sort keys(%$config)) {
         if ((!/^Bible/) && (!/^App/) && (!/^LoopText/)) {
             $query =
-                "INSERT INTO config ( host, config_key, config_value ) VALUES (\"" 
-              . $globals->{'host'}
+                "INSERT INTO config ( profile, config_key, config_value ) VALUES (\"" 
+              . $globals->{'profile'}
               . "\", \""
               . $_
               . "\", \""
@@ -6932,7 +6918,7 @@ sub write_config {
     }
     foreach (keys $config->{'Apps'}) {
         $query =
-          "INSERT INTO config ( host, config_key, config_value ) VALUES ( \"". $globals->{'host'}. "\", \"App\", \""
+          "INSERT INTO config ( profile, config_key, config_value ) VALUES ( \"". $globals->{'profile'}. "\", \"App\", \""
           . $_.";".$config->{'Apps'}->{$_} . "\")";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
@@ -9228,9 +9214,10 @@ sub init_preview {
 
             debug(
                 sprintf(
-                    "%s -r %s -m %d -p %d -t preview",
+                    "%s -r %s -m %d -l %d -p %s -t preview",
                     $globals->{'lyricue_server'},  $globals->{'mysqlhost'},
-                    $widgets->{'preview'}->get_id, $globals->{'preview_port'}
+                    $widgets->{'preview'}->get_id, $globals->{'preview_port'},
+                    $globals->{'profile'}
                 )
             );
 
@@ -9247,11 +9234,12 @@ sub init_preview {
                 }
                 exec(
                     sprintf(
-                        "%s -r %s -m %d -p %d %s -t preview\n",
+                        "%s -r %s -m %d -l %d -p %s %s -t preview\n",
                         $globals->{'lyricue_server'},
                         $globals->{'mysqlhost'},
                         $widgets->{'preview'}->get_id,
                         $globals->{'preview_port'},
+                        $globals->{'profile'},
                         $debug_cmd
                     )
                 );
@@ -9311,11 +9299,12 @@ sub init_miniview {
               ->set_size_request(-1, -1);
             debug(
                 sprintf(
-                    "%s -r %s -m %d -p %d -t miniview\n",
+                    "%s -r %s -m %d -l %d -p %s -t miniview\n",
                     $globals->{'lyricue_server'},
                     $globals->{'mysqlhost'},
                     $widgets->{'miniview'}->get_id,
-                    $globals->{'miniview_port'}
+                    $globals->{'miniview_port'},
+                    $globals->{'profile'}
                 )
             );
 
@@ -9328,11 +9317,12 @@ sub init_miniview {
             if ($globals->{'miniview_pid'} == 0) {
                 exec(
                     sprintf(
-                        "%s -r %s -m %d -p %d -t miniview\n",
+                        "%s -r %s -m %d -l %d -p %s -t miniview\n",
                         $globals->{'lyricue_server'},
                         $globals->{'mysqlhost'},
                         $widgets->{'miniview'}->get_id,
-                        $globals->{'miniview_port'}
+                        $globals->{'miniview_port'},
+                        $globals->{'profile'}
                     )
                 );
             }
@@ -11388,7 +11378,7 @@ sub get_max_verse {
     my ($book, $chapter, $startverse, $endverse) = @_;
 
     if ($config->{'Main'} eq "") {
-        $config = load_config($globals->{'host'});
+        $config = load_config($globals->{'profile'});
     }
     if ($config->{'Width'} == 0) {
         $config->{'Width'}  = 800;
@@ -12314,7 +12304,7 @@ sub db_updatedb_lyricDb {
 # SOURCE
 #
 sub check_avahi {
-    my $avahi = `avahi-browse -t -p -r _lyricue._tcp`;
+    my $avahi = `avahi-browse -t -p -k -r _lyricue._tcp`;
     my @displays = split (/\n/, $avahi);
     my $dcount=0;
     my $pcount=0;
@@ -12326,12 +12316,18 @@ sub check_avahi {
             if ($display_items[3] =~ /^Lyricue\\032Display/) {
                 my $hostname = $display_items[6];
                 $hostname =~ s/.local$//g;
-                if (($display_items[9] eq "\"type=normal\"") || ($display_items[9] eq "\"type=simple\"")) {
-                    $globals->{'displays'}[$dcount++] = $hostname.":".$display_items[8];
-                } elsif ($display_items[9] eq "\"type=preview\"") {
-                    $globals->{'previews'}[$pcount++] = $hostname.":".$display_items[8];
-                    if ($config->{'DynamicPreview'} && ($hostname eq $local_hostname)) {
-                        $local_preview=TRUE;
+                my $type = $display_items[9];
+                my $profile = $display_items[9];
+                $type =~ s/^.*type=(.*)".*$/$1/g;
+                $profile =~ s/^.*profile=(.*?)".*$/$1/g;
+                if ($profile eq $globals->{'profile'}) {
+                    if (($type eq "normal") || ($type eq "simple")) {
+                        $globals->{'displays'}[$dcount++] = $hostname.":".$display_items[8];
+                    } elsif ($type eq "preview") {
+                        $globals->{'previews'}[$pcount++] = $hostname.":".$display_items[8];
+                        if ($config->{'DynamicPreview'} && ($hostname eq $local_hostname)) {
+                            $local_preview=TRUE;
+                        }
                     }
                 }
             }
@@ -12366,7 +12362,7 @@ sub check_avahi {
 sub check_tracker {
 
     #debug("Check tracker");
-    my $query = "SELECT ref,title FROM status WHERE host='".$globals->{'host'}."'";
+    my $query = "SELECT ref,title FROM status WHERE host='".hostname()."'";
 
     #qdebug($query); # Commented out because it's too noisy
     my $sth = $lyricDbh->prepare($query)
@@ -13713,8 +13709,6 @@ sub firstrun_prepare {
         $header = gettext("Location");
         $widgets->{'firstrunxml'}->get_object('entryFRHostDB')
           ->set_text($globals->{'mysqlhost'});
-        $widgets->{'firstrunxml'}->get_object('entryFRHostServer')
-          ->set_text($globals->{'host'});
         $widgets->{'firstrun'}->set_page_complete($page, TRUE);
     } elsif ($widgets->{'firstrun'}->get_current_page == 2) {
         $globals->{'mysqlhost'} =
@@ -14000,9 +13994,6 @@ sub firstrun_apply {
       $widgets->{'firstrunxml'}->get_object('fileFRBGdir')->get_label();
     $config->{'DBHost'} =
       $widgets->{'firstrunxml'}->get_object('entryFRHostDB')->get_text();
-    $config->{'ProjectorHost'} =
-      $widgets->{'firstrunxml'}->get_object('entryFRHostServer')->get_text();
-    $globals->{'host'}      = $config->{'ProjectorHost'};
     $globals->{'mysqlhost'} = $config->{'DBHost'};
 
     db_select();
@@ -14153,9 +14144,10 @@ sub start_editview {
     $widgets->{'add'}->get_object('frameEditPreview')
       ->add($widgets->{'EditPreview'});
     my $command = sprintf(
-        "%s -r %s -m %d -p %d -t preview",
+        "%s -r %s -m %d -l %d -p %s -t preview",
         $globals->{'lyricue_server'},      $globals->{'mysqlhost'},
-        $widgets->{'EditPreview'}->get_id, $globals->{'editview_port'}
+        $widgets->{'EditPreview'}->get_id, $globals->{'editview_port'},
+        $globals->{'profile'}
     );
     debug($command);
     $globals->{'editview_pid'} = fork;
@@ -14206,7 +14198,7 @@ sub change_fade {
 
 sub start_display {
     debug("Start lyricue display");
-    execute_app("", $globals->{'lyricue_server'});
+    execute_app("", $globals->{'lyricue_server'}," -p ".$globals->{'profile'});
 }
 
 #****f* lyricue/export_playlist

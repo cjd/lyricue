@@ -52,17 +52,20 @@ gchar *server_type = "normal";
 int server_mode = NORMAL_SERVER;
 gchar *dbhostname = "localhost";
 gchar *geometry = NULL;
+gchar *profile = "Default";
 unsigned long windowid = 0;
 gchar hostname[16];
 
 static GOptionEntry entries[] = {
     {"type", 't', 0, G_OPTION_ARG_STRING, &server_type, "Server type",
      "[normal | preview | miniview | simple]"},
+    {"profile", 'p', 0, G_OPTION_ARG_STRING, &profile, "Profile",
+     "profile_name"},
     {"remote", 'r', 0, G_OPTION_ARG_STRING, &dbhostname, "Database hostname",
      "hostname"},
     {"geometry", 'g', 0, G_OPTION_ARG_STRING, &geometry, "Window Geometry",
      "geom"},
-    {"port", 'p', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on",
+    {"listen", 'l', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on",
      "port_number"},
     {"miniview", 'm', 0, G_OPTION_ARG_INT, &windowid, "Embed in windowid",
      "windowid"},

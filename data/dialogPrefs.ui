@@ -100,10 +100,10 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
-                  <object class="GtkLabel" id="labelPrefHost">
+                  <object class="GtkLabel" id="labelPrefProfile">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Settings for:</property>
+                    <property name="label" translatable="yes">Settings for Profile:</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -112,7 +112,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkComboBox" id="comboPrefsHost">
+                  <object class="GtkComboBox" id="comboPrefsProfile">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                   </object>
@@ -1497,53 +1497,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="labelPrefDB">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Database Server
-&lt;i&gt;Note: You will need to backup/restore your database when changing&lt;/i&gt;</property>
-                        <property name="use_markup">True</property>
-                        <property name="wrap">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">4</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkRadioButton" id="radioPrefDBMysql">
-                        <property name="label" translatable="yes">Use MySQL</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="active">True</property>
-                        <property name="draw_indicator">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">5</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkRadioButton" id="radioPrefDBSqlite">
-                        <property name="label" translatable="yes">Use SQLite</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="draw_indicator">True</property>
-                        <property name="group">radioPrefDBMysql</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">6</property>
-                      </packing>
+                      <placeholder/>
                     </child>
                   </object>
                   <packing>
