@@ -182,7 +182,7 @@ $globals->{'version'}     = "##VERSION##";
 $globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
 $globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
 
-$globals->{'profile'}     = "Default";
+$globals->{'profile'}     = "";
 $globals->{'mysqlhost'}   = "localhost";
 $globals->{'lyricdb'}     = "lyricDb";
 $globals->{'bibledb'}     = "";
@@ -454,6 +454,30 @@ $globals->{'access'} = load_access();
 
 # Open lyricDB, bibleDB and mediaDb
 db_select();
+$query = "SELECT profile FROM profiles WHERE host='".hostname()."'";
+qdebug($query);
+$sth = $lyricDbh->prepare($query)
+  || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+$rv = $sth->execute
+  || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+my @row = $sth->fetchrow_array();
+if (defined $row[0]) {
+    if ($globals->{'profile'} eq "") {
+        $globals->{'profile'} = $row[0];
+    }
+} else {
+    if ($globals->{'profile'} eq "") {
+        $globals->{'profile'} = "Default";
+    }
+    $query = "INSERT INTO profiles (host, profile) VALUES ('". hostname()
+             . "', '".$globals->{'profile'}."')";
+    qdebug($query);
+    $sth = $lyricDbh->prepare($query)
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+}
+
 debug("Profile $globals->{'profile'}");
 $config = load_config($globals->{'profile'});
 
@@ -5061,28 +5085,65 @@ sub create_dialog_prefs {
     $widgets->{'prefs'}->get_object('filePrefSpecialBGdir')->{'user_data'} =
       "bg";
 
-    # Hostnames
+    # Profiles
     my $renderer = Gtk2::CellRendererText->new;
     $widgets->{'prefs'}->get_object('comboPrefsProfile')->pack_start($renderer, TRUE);
     $widgets->{'prefs'}->get_object('comboPrefsProfile')->add_attribute($renderer, text => 0);
-    my $hoststore = Gtk2::ListStore->new('Glib::String');
-    $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_model($hoststore);
+    my $profilestore = Gtk2::ListStore->new('Glib::String');
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_model($profilestore);
 
     my $query="SELECT DISTINCT profile FROM config";
-        my $sth = $lyricDbh->prepare($query)
+    my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    my $combo_model = Gtk2::ListStore->new('Glib::String');
+    $profilestore->set($profilestore->append, 0, "Create New Profile");
     while (my @row = $sth->fetchrow_array()) {
         if ($row[0] ne "") {
-            my $iter = $hoststore->append;
-            $hoststore->set($iter, 0, $row[0]);
+            my $iter = $profilestore->append;
+            $profilestore->set($iter, 0, $row[0]);
+            $combo_model->set($combo_model->append,0,$row[0]);
             if ($row[0] eq $globals->{'profile'}) {
                 $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_active_iter($iter);
             } 
         }
     }
 
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Gtk2::ListStore');
+    $query = "SELECT host,profile FROM profiles";
+    $sth = $lyricDbh->prepare($query)
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    while (my @row = $sth->fetchrow_array()) {
+        $model->set($model->append,0,$row[0],1,$row[1],2,$combo_model);
+    }
+    # Profiles tab
+    $widgets->{'prefs'}->get_object('treeProfiles')->set_model($model);
+    $widgets->{'prefs'}->get_object('treeProfiles')->insert_column_with_attributes
+        (-1, 'Host', Gtk2::CellRendererText->new, text => 0, editable => FALSE);
+    my $combo_renderer = Gtk2::CellRendererCombo->new;
+    $combo_renderer->set (
+        text_column => 0, # col in combo model with text to display
+        editable => TRUE
+    );
+    $combo_renderer->signal_connect (edited => 
+        sub {
+            my ($cell, $text_path, $new_text) = @_;
+            $model->set (
+                $model->get_iter_from_string ($text_path),
+                1 , $new_text
+            );
+        }
+    );
+    $widgets->{'prefs'}->get_object('treeProfiles')->insert_column_with_attributes(
+        -1, 'Profile',
+        $combo_renderer,
+        text => 1,
+        model => 2
+
+    );
 
     $widgets->{'prefs'}->get_object('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
@@ -5101,6 +5162,39 @@ sub create_dialog_prefs {
 
 #***
 
+sub apply_profile_change {
+    debug("Applying profile changes");
+    my $store = $widgets->{'prefs'}->get_object('treeProfiles')->get_model();
+    my $iter = $store->get_iter_first;
+    while (defined $iter) {
+        my $host = $store->get_value($iter,0);
+        my $profile = $store->get_value($iter,1);
+        my $query = "SELECT profile FROM profiles WHERE host='".$host."'";
+        my $sth = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+        my $rv = $sth->execute
+          || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+        my @row = $sth->fetchrow_array();
+        if (defined $row[0]) {
+            if ($row[0] ne $profile) {
+                $query = "UPDATE profiles SET profile = '".$profile."' WHERE host='".$host."'";
+                qdebug($query);
+                $sth = $lyricDbh->prepare($query)
+                  || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+                $rv = $sth->execute
+                  || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+            }
+        } else {
+            $query = "INSERT INTO profiles SET ( profile, host) VALUES ( '".$profile."', '".$host."')";
+            qdebug($query);
+            $sth = $lyricDbh->prepare($query)
+              || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+            $rv = $sth->execute
+              || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+        }
+        $iter = $store->iter_next($iter);
+    }
+}
 #****f* lyricue/change_windowoffset
 # NAME
 #   change_windowoffset
@@ -5148,7 +5242,22 @@ sub change_pref_profile {
     my ($widget) = @_;
     debug("Changing preferences profile");
     my $hoststore = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_model();
-    $globals->{'profile'} = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_active_text();
+    my $newprofile = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_active_text();
+    if ( $newprofile eq "Create New Profile") {
+        my $newxml   = load_window("dialogPromptEntry");
+        $newxml->get_object('dialogPromptEntry')
+          ->set_title(fromutf(gettext("Create new profile")));
+        $newxml->get_object('labelPromptE')
+          ->set_text(fromutf(gettext("Name of profile")));
+
+        my $response = $newxml->get_object('dialogPromptEntry')->run();
+        if ($response eq "ok") {
+            $globals->{'profile'} = $newxml->get_object('entryPromptE')->get_text();
+        }
+        close_dialog($newxml->get_object('dialogPromptEntry'));
+    } else {
+        $globals->{'profile'} = $newprofile;
+    }
     create_dialog_prefs();
 }
 #***
@@ -9214,7 +9323,7 @@ sub init_preview {
 
             debug(
                 sprintf(
-                    "%s -r %s -m %d -l %d -p %s -t preview",
+                    "%s -r %s -m %d -l %d -p '%s' -t preview",
                     $globals->{'lyricue_server'},  $globals->{'mysqlhost'},
                     $widgets->{'preview'}->get_id, $globals->{'preview_port'},
                     $globals->{'profile'}
@@ -9234,7 +9343,7 @@ sub init_preview {
                 }
                 exec(
                     sprintf(
-                        "%s -r %s -m %d -l %d -p %s %s -t preview\n",
+                        "%s -r %s -m %d -l %d -p '%s' %s -t preview\n",
                         $globals->{'lyricue_server'},
                         $globals->{'mysqlhost'},
                         $widgets->{'preview'}->get_id,
@@ -9299,7 +9408,7 @@ sub init_miniview {
               ->set_size_request(-1, -1);
             debug(
                 sprintf(
-                    "%s -r %s -m %d -l %d -p %s -t miniview\n",
+                    "%s -r %s -m %d -l %d -p '%s' -t miniview\n",
                     $globals->{'lyricue_server'},
                     $globals->{'mysqlhost'},
                     $widgets->{'miniview'}->get_id,
@@ -9317,7 +9426,7 @@ sub init_miniview {
             if ($globals->{'miniview_pid'} == 0) {
                 exec(
                     sprintf(
-                        "%s -r %s -m %d -l %d -p %s -t miniview\n",
+                        "%s -r %s -m %d -l %d -p '%s' -t miniview\n",
                         $globals->{'lyricue_server'},
                         $globals->{'mysqlhost'},
                         $widgets->{'miniview'}->get_id,
@@ -14144,7 +14253,7 @@ sub start_editview {
     $widgets->{'add'}->get_object('frameEditPreview')
       ->add($widgets->{'EditPreview'});
     my $command = sprintf(
-        "%s -r %s -m %d -l %d -p %s -t preview",
+        "%s -r %s -m %d -l %d -p '%s' -t preview",
         $globals->{'lyricue_server'},      $globals->{'mysqlhost'},
         $widgets->{'EditPreview'}->get_id, $globals->{'editview_port'},
         $globals->{'profile'}
@@ -14198,7 +14307,7 @@ sub change_fade {
 
 sub start_display {
     debug("Start lyricue display");
-    execute_app("", $globals->{'lyricue_server'}," -p ".$globals->{'profile'});
+    execute_app("", $globals->{'lyricue_server'}," -p '".$globals->{'profile'}."'");
 }
 
 #****f* lyricue/export_playlist

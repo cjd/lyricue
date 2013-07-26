@@ -145,6 +145,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="tab_pos">left</property>
+                <property name="scrollable">True</property>
                 <child>
                   <object class="GtkVBox" id="vbox8">
                     <property name="visible">True</property>
@@ -1516,6 +1517,76 @@
                   </packing>
                 </child>
                 <child>
+                  <object class="GtkVBox" id="vbox2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkLabel" id="label2">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Assign profile to hosts</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkHSeparator" id="hseparator2">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkTreeView" id="treeProfiles">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="model">liststore1</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="buttonPrefProfileApply">
+                        <property name="label" translatable="yes">Apply</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_action_appearance">False</property>
+                        <signal name="clicked" handler="apply_profile_change" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="position">6</property>
+                  </packing>
+                </child>
+                <child type="tab">
+                  <object class="GtkLabel" id="label1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Profiles</property>
+                  </object>
+                  <packing>
+                    <property name="position">6</property>
+                    <property name="tab_fill">False</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkVBox" id="vbox14">
                     <property name="can_focus">False</property>
                     <child>
@@ -1645,7 +1716,7 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="position">6</property>
+                    <property name="position">7</property>
                   </packing>
                 </child>
                 <child type="tab">
@@ -1655,7 +1726,7 @@
                     <property name="label" translatable="yes">Customize</property>
                   </object>
                   <packing>
-                    <property name="position">6</property>
+                    <property name="position">7</property>
                     <property name="tab_fill">False</property>
                   </packing>
                 </child>
@@ -1680,6 +1751,7 @@
       <action-widget response="-5">okbutton4</action-widget>
     </action-widgets>
   </object>
+  <object class="GtkListStore" id="liststore1"/>
   <object class="GtkListStore" id="model6">
     <columns>
       <!-- column-name gchararray -->

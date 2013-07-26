@@ -52,7 +52,7 @@ gchar *server_type = "normal";
 int server_mode = NORMAL_SERVER;
 gchar *dbhostname = "localhost";
 gchar *geometry = NULL;
-gchar *profile = "Default";
+gchar *profile = NULL;
 unsigned long windowid = 0;
 gchar hostname[16];
 
@@ -101,6 +101,23 @@ main (int argc, char *argv[])
     if (ret) {
         // Really should handle this ;)
     }
+    gethostname(hostname,sizeof(hostname));
+
+    do_query(lyricDb, "SELECT profile FROM profiles WHERE host='%s'", hostname);
+    MYSQL_ROW row;
+    MYSQL_RES *result;
+    result = mysql_store_result (lyricDb);
+    row = mysql_fetch_row (result);
+    if (row != NULL) {
+        if (profile == NULL) {
+            profile=g_strdup(row[0]);
+        }
+    } else {
+        if (profile == NULL) {
+            profile = g_strdup("Default");
+        }
+        do_query(lyricDb, "INSERT INTO profiles (host, profile) VALUES ('%s', '%s')", hostname, profile);
+    }
     load_configuration (lyricDb);
     bible_load ((gchar *) g_hash_table_lookup (config, "DefBible"));
 
@@ -108,7 +125,6 @@ main (int argc, char *argv[])
     // Setup network
     GSocketService *service = g_socket_service_new ();
     GInetAddress *address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
-    gethostname(hostname,sizeof(hostname));
     g_snprintf (argv[0], 29, "Lyricue Display on port %04d", server_port);
     l_debug ("Process Name:%s", argv[0]);
 

@@ -80,7 +80,7 @@ db_disconnect (MYSQL * dbconnection)
 void
 load_configuration ()
 {
-    l_debug ("Loading configuration");
+    l_debug ("Loading configuration for Profile:%s",profile);
 
     if (config != NULL)
         g_hash_table_remove_all (config);
