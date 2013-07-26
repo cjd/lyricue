@@ -5092,21 +5092,19 @@ sub create_dialog_prefs {
     my $profilestore = Gtk2::ListStore->new('Glib::String');
     $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_model($profilestore);
 
-    my $query="SELECT DISTINCT profile FROM config";
+    my $query="SELECT DISTINCT profile FROM config WHERE profile != ''";
     my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my $combo_model = Gtk2::ListStore->new('Glib::String');
-    $profilestore->set($profilestore->append, 0, "Create New Profile");
+    $profilestore->set($profilestore->append, 0, gettext("Create New Profile"));
     while (my @row = $sth->fetchrow_array()) {
-        if ($row[0] ne "") {
-            my $iter = $profilestore->append;
-            $profilestore->set($iter, 0, $row[0]);
-            $combo_model->set($combo_model->append,0,$row[0]);
-            if ($row[0] eq $globals->{'profile'}) {
-                $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_active_iter($iter);
-            } 
+        my $iter = $profilestore->append;
+        $profilestore->set($iter, 0, $row[0]);
+        $combo_model->set($combo_model->append,0,$row[0]);
+        if ($row[0] eq $globals->{'profile'}) {
+            $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_active_iter($iter);
         }
     }
 
@@ -5157,7 +5155,7 @@ sub create_dialog_prefs {
       ->signal_connect("button_press_event", "open_dialogColour", "Font");
     $widgets->{'prefs'}->get_object('entryPrefShadowColour')
       ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
-    $globals->{'hostname_change_signal'} = $widgets->{'prefs'}->get_object('comboPrefsProfile')->signal_connect("changed", "change_pref_profile","");
+    $globals->{'hostname_change_signal'} = $widgets->{'prefs'}->get_object('comboPrefsProfile')->signal_connect("changed", "change_pref_profile","prefs");
 }
 
 #***
@@ -5239,11 +5237,14 @@ sub change_windowoffset {
 # SOURCE
 #
 sub change_pref_profile {
-    my ($widget) = @_;
+    my ($widget, $caller) = @_;
     debug("Changing preferences profile");
-    my $hoststore = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_model();
-    my $newprofile = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_active_text();
-    if ( $newprofile eq "Create New Profile") {
+    my $newprofile = gettext("Create New Profile");
+    if ($caller eq "prefs") {
+        my $hoststore = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_model();
+        $newprofile = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_active_text();
+    }
+    if ( $newprofile eq gettext("Create New Profile")) {
         my $newxml   = load_window("dialogPromptEntry");
         $newxml->get_object('dialogPromptEntry')
           ->set_title(fromutf(gettext("Create new profile")));
@@ -6691,6 +6692,7 @@ sub load_config {
         firstrun_wizard();
         Gtk2->main();
         $conf = load_config($globals->{'profile'});
+        load_profile_menu();
         return $conf
     }
     $sth   = $lyricDbh->prepare($query)
@@ -14439,7 +14441,7 @@ sub load_profile_menu {
     my $menutop = Gtk2::Menu->new();
     my $group   = -1;
 
-    my $query = "SELECT DISTINCT profile FROM profiles";
+    my $query = "SELECT DISTINCT profile FROM config WHERE profile != ''";
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
@@ -14456,6 +14458,15 @@ sub load_profile_menu {
         $menuitem->show;
         $menutop->append($menuitem);
     }
+    my $sep = Gtk2::SeparatorMenuItem->new;
+    $sep->show;
+    $menutop->append($sep);
+
+    my $menuitem = Gtk2::MenuItem->new_with_label(gettext("Create New Profile"));
+    $menuitem->signal_connect("activate", "change_pref_profile", "menu");
+    $menuitem->show;
+    $menutop->append($menuitem);
+
     $widgets->{'main'}->get_object('profiles1')->set_submenu($menutop);
 }
 
