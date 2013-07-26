@@ -9,6 +9,11 @@
     <property name="page_increment">10</property>
     <property name="page_size">10</property>
   </object>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-properties</property>
+  </object>
   <object class="GtkWindow" id="windowMain">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Lyricue</property>
@@ -84,6 +89,17 @@
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="export_db" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="profiles1">
+                        <property name="label" translatable="yes">_Profiles</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">image1</property>
+                        <property name="use_stock">False</property>
                       </object>
                     </child>
                     <child>

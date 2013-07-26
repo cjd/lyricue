@@ -7611,6 +7611,9 @@ sub init_mainWindow {
 
     # Update the bible menu
     load_biblemenu();
+    
+    # Update the profiles menu
+    load_profile_menu();
 
     # Update the application menu
     my $menutop2 = Gtk2::Menu->new();
@@ -14431,4 +14434,48 @@ sub image_playlist_toggle {
     }
     update_playlist();
 }
+sub load_profile_menu {
+    debug("Populate profiles menu");
+    my $menutop = Gtk2::Menu->new();
+    my $group   = -1;
 
+    my $query = "SELECT DISTINCT profile FROM profiles";
+    $sth = $lyricDbh->prepare($query)
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    while (my @row = $sth->fetchrow_array) {
+        my $menuitem = Gtk2::RadioMenuItem->new_with_label($group, $row[0]);
+        if ($group == -1) {
+            $group = $menuitem->get_group;
+        }
+        $menuitem->signal_connect("toggled", "select_profile", $row[0]);
+        if ($row[0] eq $globals->{'profile'}) {
+            $menuitem->set_active(TRUE);
+        }
+        $menuitem->show;
+        $menutop->append($menuitem);
+    }
+    $widgets->{'main'}->get_object('profiles1')->set_submenu($menutop);
+}
+
+sub select_profile {
+    my ($widget, $profile) = @_;
+    if ($profile ne $globals->{'profile'}) {
+        debug("Change profile");
+        $globals->{'profile'} = $profile;
+        if ($widgets->{'preview'}) {
+            $widgets->{'preview'}->destroy;
+            undef $widgets->{'preview'};
+            kill 9, $globals->{'preview_pid'};
+        }
+        if ($widgets->{'miniview'}) {
+            $widgets->{'miniview'}->destroy;
+            undef $widgets->{'miniview'};
+            kill 9, $globals->{'miniview_pid'};
+        }
+        $config = load_config($globals->{'profile'});
+        init_preview();
+        init_miniview();
+    }
+}
