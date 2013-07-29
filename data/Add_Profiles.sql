@@ -14,3 +14,4 @@ CREATE TABLE `profiles` (
 
 ALTER TABLE config ADD profile varchar(50) default '';
 ALTER TABLE config_old ADD profile varchar(50) default '';
+ALTER TABLE playlists ADD profile varchar(50) default 'Default';

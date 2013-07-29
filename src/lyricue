@@ -2357,9 +2357,10 @@ sub insert_verse {
 
     # Add entry to playlists table
     $query =
-        "INSERT INTO playlists (id,title) VALUES ("
+        "INSERT INTO playlists (id,title, profile) VALUES ("
       . $playlist . ", \""
-      . toutf($verse) . "\")";
+      . toutf($verse) . "\", \""
+      . $globals->{'profile'}."\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -2933,9 +2934,10 @@ sub add_single_song {
 
     # Add playlists entry
     $query =
-        "INSERT INTO playlists (id,title,ref) VALUES ("
+        "INSERT INTO playlists (id,title,profile,ref) VALUES ("
       . $playlist . ",\""
-      . $title . "\","
+      . $title . "\", \""
+      . $globals->{'profile'}."\", "
       . $availableSelection . ")";
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -3550,7 +3552,7 @@ sub preview_page {
     if ($type eq "SERVER") {
         update_display("preview", $titledata, $songtext);
     } else {
-        preview_display("preview", $titledata, $songtext, "EDIT");
+        preview_display("preview", $titledata, $songtext, FALSE);
     }
 }
 
@@ -3592,7 +3594,7 @@ sub preview_pageid {
         $pagetitle =~ s/\n/#BREAK#/g;
         $pagetitle =~ s/:/#SEMI#/g;
 
-        preview_display("preview", $pagetitle, $songtext, "MINI");
+        preview_display("preview", $pagetitle, $songtext, FALSE);
     }
 }
 
@@ -4033,7 +4035,7 @@ sub preview_playlist_item {
             my $model =
               $widgets->{'main'}->get_object('iconPlaylist')->get_model;
             my $iter = $model->get_iter($list[0]);
-            preview_display("display", $model->get($iter, 2), undef, "MINI");
+            preview_display("display", $model->get($iter, 2), undef, FALSE);
         }
     } else {
         my $selection =
@@ -4042,7 +4044,7 @@ sub preview_playlist_item {
         if ($iter) {
 
             # display item
-            preview_display("display", $model->get($iter, 2), undef, "MINI");
+            preview_display("display", $model->get($iter, 2), undef, FALSE);
         }
     }
 }
@@ -4063,13 +4065,8 @@ sub preview_playlist_item {
 # SOURCE
 #
 sub preview_display {
-    my ($command, $primary, $secondary, $mode) = @_;
-    debug("Preview display $mode");
-    my $checkret = FALSE;
-    if ($mode eq "MINIRET") {
-        $mode     = "MINI";
-        $checkret = TRUE;
-    }
+    my ($command, $primary, $secondary, $checkret) = @_;
+    debug("Preview display");
     if (!defined($secondary)) {
         $secondary = "";
     }
@@ -4705,7 +4702,7 @@ sub backdrop_clicked {
                     $widgets->{'buttonCurr'}->{user_data} = $prevFile;
                 }
                 update_display("backdrop", $prevFile, "");
-                preview_display("backdrop", $prevFile, "", "MINI");
+                preview_display("backdrop", $prevFile, "", FALSE);
             }
         }
     }
@@ -4753,7 +4750,7 @@ sub backdrop_preview_clicked {
             $widgets->{'buttonCurr'}->{user_data} = $prevFile;
         }
         update_display("backdrop", $prevFile, "");
-        preview_display("backdrop", $prevFile, "", "MINI");
+        preview_display("backdrop", $prevFile, "", FALSE);
     }
 }
 
@@ -6107,14 +6104,15 @@ sub new_playlist {
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array();
     $query =
-        "INSERT INTO playlists (id,title) VALUES ("
+        "INSERT INTO playlists (id,title, profile) VALUES ("
       . $row[0] . ", \""
-      . $playlist . "\")";
+      . $playlist . "\", \""
+      . $globals->{'profile'} . "\")";
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "SELECT id FROM playlists WHERE title LIKE \"" . $playlist . "\"";
+    $query = "SELECT id FROM playlists WHERE title LIKE \"" . $playlist . "\" AND profile=\"".$globals->{'profile'}."\"";
     $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
@@ -6243,7 +6241,7 @@ sub do_copy_playlist {
     my $query =
 "SELECT id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 AND title='"
       . $playlist
-      . "' ORDER BY id";
+      . "' and profile='". $globals->{'profile'}. "' ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -6281,9 +6279,10 @@ sub do_copy_playlist {
 sub copy_playlist2 {
     my ($playlistid_src, $playlistid_dst, $playlist) = @_;
     my $query =
-        "INSERT INTO playlists (id,title) VALUES ("
+        "INSERT INTO playlists (id,title,profile) VALUES ("
       . $playlistid_dst . ", \""
-      . $playlist . "\")";
+      . $playlist . "\", \""
+      . $globals->{'profile'}."\")";
     my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
@@ -6483,7 +6482,7 @@ sub update_cplayclist {
     }
 
     my $query =
-"SELECT title,id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 ORDER BY id";
+"SELECT title,id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 AND profile = '".$globals->{'profile'}."' ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -7294,9 +7293,10 @@ sub new_sublist {
 
     #create sublist playlist
     $query =
-        "INSERT INTO playlists (id, title, ref) VALUES ("
+        "INSERT INTO playlists (id, title, profile, ref) VALUES ("
       . $playlistsid . " ,'"
-      . $sublist . "','')";
+      . $sublist . "','"
+      . $globals->{'profile'} . "','')";
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
@@ -14442,19 +14442,22 @@ sub load_profile_menu {
     my $group   = -1;
 
     my $query = "SELECT DISTINCT profile FROM config WHERE profile != ''";
+    qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+    my $selected_profile = NULL;
     while (my @row = $sth->fetchrow_array) {
+        print ("Profile:".$row[0]."\n");
         my $menuitem = Gtk2::RadioMenuItem->new_with_label($group, $row[0]);
         if ($group == -1) {
             $group = $menuitem->get_group;
         }
-        $menuitem->signal_connect("toggled", "select_profile", $row[0]);
         if ($row[0] eq $globals->{'profile'}) {
-            $menuitem->set_active(TRUE);
+            $selected_profile=$menuitem;
         }
+        $menuitem->signal_connect("toggled", "select_profile", $row[0]);
         $menuitem->show;
         $menutop->append($menuitem);
     }
@@ -14466,6 +14469,7 @@ sub load_profile_menu {
     $menuitem->signal_connect("activate", "change_pref_profile", "menu");
     $menuitem->show;
     $menutop->append($menuitem);
+    $selected_profile->set_active(TRUE);
 
     $widgets->{'main'}->get_object('profiles1')->set_submenu($menutop);
 }
@@ -14475,6 +14479,7 @@ sub select_profile {
     if ($profile ne $globals->{'profile'}) {
         debug("Change profile");
         $globals->{'profile'} = $profile;
+        
         if ($widgets->{'preview'}) {
             $widgets->{'preview'}->destroy;
             undef $widgets->{'preview'};
@@ -14488,5 +14493,6 @@ sub select_profile {
         $config = load_config($globals->{'profile'});
         init_preview();
         init_miniview();
+        choose_playlist();
     }
 }

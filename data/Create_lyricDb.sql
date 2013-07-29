@@ -58,6 +58,7 @@ CREATE TABLE `playlists` (
   `id` int(11) NOT NULL default '1',
   `title` varchar(50) NOT NULL default '',
   `ref` varchar(50) NOT NULL default '',
+  `profile` varchar(50) NOT NULL default '',
   PRIMARY KEY  (`id`)
 ) DEFAULT CHARSET=utf8;
 
@@ -81,11 +82,18 @@ CREATE TABLE `configuration_old` (
 
 -- Table structure for table `status`
 CREATE TABLE `status` (
-  `id` int(11) NOT NULL auto_increment,
   `host` varchar(50) NOT NULL default '',
   `title` varchar(50) NOT NULL default '',
   `ref` varchar(50) NOT NULL default '',
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY  (`host`)
+) DEFAULT CHARSET=utf8;
+
+
+-- Table structure for table `profiles`
+CREATE TABLE `profiles` (
+  `host` varchar(50) NOT NULL default '',
+  `profile` varchar(50) NOT NULL default '',
+  PRIMARY KEY  (`host`)
 ) DEFAULT CHARSET=utf8;
 
 
