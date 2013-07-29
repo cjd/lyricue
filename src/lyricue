@@ -231,7 +231,6 @@ $globals->{'preview_pid'}        = FALSE;
 $globals->{'miniview_pid'}       = FALSE;
 $globals->{'hovering_over_link'} = FALSE;
 $globals->{'db_adminuser'}       = "";
-$globals->{'current_item'}       = -1;
 $globals->{'icon_width'}         = 96;
 $globals->{'thumb_width'}        = 128;
 $globals->{'snapshot_width'}     = 256;
@@ -656,7 +655,7 @@ sub update_playlist {
           Glib::Idle->add(\&playlist_thumbnails,
             $widgets->{'main'}->get_object('iconPlaylist'));
     }
-    $globals->{'current_item'} = 0;
+    undef $globals->{'current_items'};
 }
 
 #***
@@ -12474,53 +12473,38 @@ sub check_avahi {
 # SOURCE
 #
 sub check_tracker {
-
     #debug("Check tracker");
-    my $query = "SELECT ref,title FROM status WHERE host='".hostname()."'";
+    my $query = "SELECT title,host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE st.profile='".$globals->{'profile'}."'";
 
-    #qdebug($query); # Commented out because it's too noisy
     my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    my @row = $sth->fetchrow_array();
-
-    #Mark the row
-    if (@row && ($row[0] ne $globals->{'current_item'})) {
-        $globals->{'previous_item'} = $globals->{'current_item'};
-        $globals->{'current_item'}  = $row[0];
-        my $model = $widgets->{'main'}->get_object('treePlaylist')->get_model();
-        if ($model) {
-            $globals->{'current_item_path'} = "";
-            $model->foreach(\&update_current);
-            if ($globals->{'current_item_path'} ne "") {
-                my $path = Gtk2::TreePath->new_from_string(
-                    $globals->{'current_item_path'});
-                while ($path->up()) {
-                    if ($path->get_depth() > 0) {
-                        my $iter = $model->get_iter($path);
-                        if ($iter) {
-                            $model->set($iter, 1, $config->{'HighlightColour'});
-                        }
-                    }
-                }
-                FALSE;
-            }
-        }
+    undef $globals->{'current_items'};
+    while (my @row = $sth->fetchrow_array()) {
+        $globals->{'current_items'}->{$row[2]} = $row[1];
+        $globals->{'current_items'}->{$row[3]} = $row[1];
     }
-    if (defined($row[1]) && $row[1] ne "") {
+    
+    my $model = $widgets->{'main'}->get_object('treePlaylist')->get_model();
+    if ($model) {
+        $model->foreach(\&update_current);
+    }
+
+    ## FIXME - need to handle multiple servers running
+    if (defined($row[0]) && $row[0] ne "") {
         my $blank_text =
           $widgets->{'main'}->get_object('buttonMainClear')->get_active();
         my $blank_bg =
           $widgets->{'main'}->get_object('buttonMainBlank')->get_active();
         my $blank_text_new = $blank_text;
         my $blank_bg_new   = $blank_bg;
-        if ($row[1] =~ /^blank_bg/) {
-            $row[1] =~ s/^blank_bg//g;
+        if ($row[0] =~ /^blank_bg/) {
+            $row[0] =~ s/^blank_bg//g;
             $blank_bg_new   = TRUE;
             $blank_text_new = FALSE;
-        } elsif ($row[1] =~ /^blank_text/) {
-            $row[1] =~ s/^blank_text//g;
+        } elsif ($row[0] =~ /^blank_text/) {
+            $row[0] =~ s/^blank_text//g;
             $blank_bg_new   = FALSE;
             $blank_text_new = TRUE;
         } else {
@@ -12537,7 +12521,7 @@ sub check_tracker {
             $widgets->{'main'}->get_object('buttonMainClear')
               ->set_active($blank_text_new);
         }
-        my ($position, $duration, $status) = split(/;/, $row[1], 3);
+        my ($position, $duration, $status) = split(/;/, $row[0], 3);
         my $hscale = $widgets->{'main'}->get_object('hscaleMediaPosition');
         if (defined $globals->{'video_skip_signal'}) {
             $hscale->signal_handler_disconnect($globals->{'video_skip_signal'});
@@ -12602,24 +12586,10 @@ sub video_skip {
 sub update_current {
     my ($store, $path, $iter) = @_;
     my $playlistid = $store->get($iter, 2);
-    if ($playlistid eq $globals->{'current_item'}) {
+    if (defined $globals->{'current_items'}->{$playlistid}) {
         $store->set($iter, 1, $config->{'HighlightColour'});
-        $globals->{'current_item_path'} = $path->to_string;
     } else {
-        if ($globals->{'current_item_path'} ne "") {
-            if (
-                !$path->is_ancestor(
-                    Gtk2::TreePath->new_from_string(
-                        $globals->{'current_item_path'}
-                    )
-                )
-              )
-            {
-                $store->set($iter, 1, undef);
-            }
-        } else {
-            $store->set($iter, 1, undef);
-        }
+        $store->set($iter, 1, undef);
     }
     return FALSE;
 }
@@ -14449,7 +14419,6 @@ sub load_profile_menu {
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my $selected_profile = NULL;
     while (my @row = $sth->fetchrow_array) {
-        print ("Profile:".$row[0]."\n");
         my $menuitem = Gtk2::RadioMenuItem->new_with_label($group, $row[0]);
         if ($group == -1) {
             $group = $menuitem->get_group;

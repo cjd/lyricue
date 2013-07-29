@@ -153,8 +153,8 @@ main (int argc, char *argv[])
 
     if (server_mode==NORMAL_SERVER) {
         // Setup tracker entry in DB
-        do_query (lyricDb, "DELETE FROM playlists WHERE id=-1");
-        do_query (lyricDb, "INSERT INTO playlists SET id=-1,ref=0,title=''");
+        do_query (lyricDb, "DELETE FROM status WHERE host='%s:%d'",hostname, server_port);
+        do_query (lyricDb, "INSERT INTO status SET host='%s:%d',ref=0,title='', profile='%s'",hostname, server_port, profile);
         clutter_main ();
     } else {
         gtk_main ();
@@ -894,8 +894,8 @@ update_tracker ()
             g_string_append (title, "0;0;0");
         }
         do_query (lyricDb,
-                  "UPDATE status SET ref = %d, title = \"%s\" WHERE host=\"%s\"",
-                  current_item, g_string_free (title, FALSE), hostname);
+                  "UPDATE status SET ref = %d, title = \"%s\" WHERE host=\"%s:%d\"",
+                  current_item, g_string_free (title, FALSE), hostname, server_port);
     }
     return TRUE;
 }

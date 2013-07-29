@@ -2,6 +2,7 @@ use lyricDb;
 CREATE TABLE `status` (
   `host` varchar(50) NOT NULL default '',
   `title` varchar(50) NOT NULL default '',
+  `profile` varchar(50) NOT NULL default '',
   `ref` varchar(50) NOT NULL default '',
   PRIMARY KEY  (`host`)
 ) DEFAULT CHARSET=utf8;
