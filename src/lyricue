@@ -12277,8 +12277,8 @@ sub db_updatedb_mediaDb {
     }
     if (!defined $trans->{'textcolour'}) {
         debug("Text Colouring fields not found\n");
-        debug("Upgrading database from 1.9 to 1.9.4\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.4.sql",
+        debug("Adding fields to mediaDb\n");
+        db_installdb($globals->{'sharedir'} . "mysql/Add_mediadb_colour.sql",
             "lyricDb");
         debug("Done\n");
     }
@@ -12318,7 +12318,7 @@ sub db_updatedb_lyricDb {
     if (!defined $table->{'config'}) {
         debug("Configuration tables not found\n");
         debug("Upgrading database from < 2.4 to 2.4\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Update_2.4.sql",
+        db_installdb($globals->{'sharedir'} . "mysql/Add_config.sql",
             "lyricDb");
         debug("Done\n");
     }
@@ -12330,7 +12330,7 @@ sub db_updatedb_lyricDb {
     if (!defined $trans->{'transition'}) {
         debug("Transition field not found\n");
         debug("Upgrading database from 1.2 to 1.9\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.sql",
+        db_installdb($globals->{'sharedir'} . "mysql/Add_transition.sql",
             "lyricDb");
         debug("Done\n");
     }
@@ -12342,11 +12342,11 @@ sub db_updatedb_lyricDb {
         $pl->{$_->[0]} = $_->[1];
     }
     if ($pl->{'data'} ne "varchar(256)") {
-        db_installdb($globals->{'sharedir'} . "mysql/Update_1.9.7.sql",
+        db_installdb($globals->{'sharedir'} . "mysql/Expand_data.sql",
             "lyricDb");
     }
     if (!defined $pl->{'snapshot'}) {
-        db_installdb($globals->{'sharedir'} . "mysql/Update_3.5.sql",
+        db_installdb($globals->{'sharedir'} . "mysql/Add_snapshot.sql",
             "lyricDb");
     }
 
@@ -12357,7 +12357,7 @@ sub db_updatedb_lyricDb {
         $page->{$_->[0]} = $_->[1];
     }
     if (!defined $page->{'pagetitle'}) {
-        db_installdb($globals->{'sharedir'} . "mysql/Update_2.1.0.sql",
+        db_installdb($globals->{'sharedir'} . "mysql/Add_pagetitle.sql",
             "lyricDb");
     }
 
@@ -12365,7 +12365,7 @@ sub db_updatedb_lyricDb {
     if (!defined $table->{'status'}) {
         debug("Status tables not found\n");
         debug("Upgrading database from < 3.6 to 3.6\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Update_3.6.sql",
+        db_installdb($globals->{'sharedir'} . "mysql/Add_Profiles.sql",
             "lyricDb");
         debug("Done\n");
     }
