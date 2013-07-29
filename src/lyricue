@@ -166,8 +166,8 @@ if ($^O eq 'MSWin32') {
     if ((!defined $globals->{'sharedir'}) || (!-d $globals->{'sharedir'})) {
         $globals->{'sharedir'} = "/usr/share/lyricue";
     }
-    $globals->{'sharedir'}   = $globals->{'sharedir'} . "/";
-    $globals->{'basedir'}    = Glib::get_user_data_dir . "/lyricue/";
+    $globals->{'sharedir'} = $globals->{'sharedir'} . "/";
+    $globals->{'basedir'}  = Glib::get_user_data_dir . "/lyricue/";
 }
 
 #
@@ -178,9 +178,9 @@ if ($^O eq 'MSWin32') {
 use constant FALSE => 0;
 use constant TRUE  => 1;
 
-$globals->{'version'}     = "##VERSION##";
-$globals->{'accessfile'}  = $globals->{'etcdir'} . "access.conf";
-$globals->{'gladefile'}   = $globals->{'sharedir'} . "lyricue.glade";
+$globals->{'version'}    = "##VERSION##";
+$globals->{'accessfile'} = $globals->{'etcdir'} . "access.conf";
+$globals->{'gladefile'}  = $globals->{'sharedir'} . "lyricue.glade";
 
 $globals->{'profile'}     = "";
 $globals->{'mysqlhost'}   = "localhost";
@@ -453,7 +453,7 @@ $globals->{'access'} = load_access();
 
 # Open lyricDB, bibleDB and mediaDb
 db_select();
-$query = "SELECT profile FROM profiles WHERE host='".hostname()."'";
+$query = "SELECT profile FROM profiles WHERE host='" . hostname() . "'";
 qdebug($query);
 $sth = $lyricDbh->prepare($query)
   || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -461,6 +461,7 @@ $rv = $sth->execute
   || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 my @row = $sth->fetchrow_array();
 if (defined $row[0]) {
+
     if ($globals->{'profile'} eq "") {
         $globals->{'profile'} = $row[0];
     }
@@ -468,8 +469,10 @@ if (defined $row[0]) {
     if ($globals->{'profile'} eq "") {
         $globals->{'profile'} = "Default";
     }
-    $query = "INSERT INTO profiles (host, profile) VALUES ('". hostname()
-             . "', '".$globals->{'profile'}."')";
+    $query =
+        "INSERT INTO profiles (host, profile) VALUES ('"
+      . hostname() . "', '"
+      . $globals->{'profile'} . "')";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -521,7 +524,7 @@ $widgets->{'main'}->get_object('toolbuttonPlayCancel')->hide;
 
 # Setup background tasks
 $globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
-$globals->{'avahi_timer'} = Glib::Timeout->add(5000, \&check_avahi);
+$globals->{'avahi_timer'}   = Glib::Timeout->add(5000, \&check_avahi);
 check_avahi();
 $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
@@ -1253,7 +1256,7 @@ sub popup_avail_menu {
         my $iter   = $model->get_iter($path);
         my $songid = $model->get($iter, 3);
         my $query =
-            "SELECT pageid FROM page WHERE songid=" 
+            "SELECT pageid FROM page WHERE songid="
           . $songid
           . " ORDER BY pagenum";
         qdebug($query);
@@ -1688,7 +1691,7 @@ sub do_save_song {
         # Remove extra pages
         debug("Song number: " . $songid);
         $query =
-            "DELETE FROM page WHERE songid=" 
+            "DELETE FROM page WHERE songid="
           . $songid
           . " AND pagenum > "
           . $numpages;
@@ -1820,7 +1823,7 @@ sub do_save_song {
         my $pagequery = "";
         if ($songid != 0) {
             $query =
-                "SELECT pageid FROM page WHERE songid=" 
+                "SELECT pageid FROM page WHERE songid="
               . $songid
               . " AND pagenum="
               . $pagenum;
@@ -1834,7 +1837,7 @@ sub do_save_song {
             my @row = $sth->fetchrow_array();
             if (defined $row[0]) {
                 $pagequery =
-                    "UPDATE page SET lyrics=" 
+                    "UPDATE page SET lyrics="
                   . $lyrics
                   . ", pagetitle="
                   . $text
@@ -2358,8 +2361,9 @@ sub insert_verse {
     $query =
         "INSERT INTO playlists (id,title, profile) VALUES ("
       . $playlist . ", \""
-      . toutf($verse) . "\", \""
-      . $globals->{'profile'}."\")";
+      . toutf($verse)
+      . "\", \""
+      . $globals->{'profile'} . "\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -2746,7 +2750,7 @@ sub update_songinfo {
     if ($songid) {
         $widgets->{'add'}->get_object('windowEditSong')->{user_data} = $songid;
         $query =
-            "SELECT lyrics,pagetitle FROM page WHERE songid=\"" 
+            "SELECT lyrics,pagetitle FROM page WHERE songid=\""
           . $songid
           . "\" ORDER BY pagenum";
         qdebug($query);
@@ -2935,8 +2939,9 @@ sub add_single_song {
     $query =
         "INSERT INTO playlists (id,title,profile,ref) VALUES ("
       . $playlist . ",\""
-      . $title . "\", \""
-      . $globals->{'profile'}."\", "
+      . $title
+      . "\", \""
+      . $globals->{'profile'} . "\", "
       . $availableSelection . ")";
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -3817,7 +3822,7 @@ sub update_imagedir {
     }
 
     $query =
-        "SELECT DISTINCT category FROM media WHERE type=\"" 
+        "SELECT DISTINCT category FROM media WHERE type=\""
       . $type
       . "\" AND category != \""
       . $main
@@ -3995,12 +4000,15 @@ sub update_display {
     }
     while ($globals->{'displays'}[$display] ne "") {
         my @display_items = split(/:/, $globals->{'displays'}[$display]);
-        debug("Updating ".$globals->{'displays'}[$display]);
-        if ( my $server = IO::Socket::INET->new(
-            Proto    => "tcp",
-            PeerAddr => $display_items[0],
-            PeerPort => $display_items[1]
-            )) {
+        debug("Updating " . $globals->{'displays'}[$display]);
+        if (
+            my $server = IO::Socket::INET->new(
+                Proto    => "tcp",
+                PeerAddr => $display_items[0],
+                PeerPort => $display_items[1]
+            )
+          )
+        {
             print $server toutf(
                 $command . ":" . $primary . ":" . $secondary . "\n");
             close($server);
@@ -4074,8 +4082,7 @@ sub preview_display {
     }
     $primary   =~ s/:/#SEMI#/g;
     $secondary =~ s/:/#SEMI#/g;
-    debug(
-        "Preview command: " . $command . ":" . $primary . ":" . $secondary);
+    debug("Preview command: " . $command . ":" . $primary . ":" . $secondary);
 
     my $display = 0;
     if (!defined $globals->{'previews'}[$display]) {
@@ -4084,12 +4091,15 @@ sub preview_display {
     }
     while ($globals->{'previews'}[$display] ne "") {
         my @display_items = split(/:/, $globals->{'previews'}[$display]);
-        debug("Updating Preview ".$globals->{'previews'}[$display]);
-        if ( my $server = IO::Socket::INET->new(
-            Proto    => "tcp",
-            PeerAddr => $display_items[0],
-            PeerPort => $display_items[1]
-            )) {
+        debug("Updating Preview " . $globals->{'previews'}[$display]);
+        if (
+            my $server = IO::Socket::INET->new(
+                Proto    => "tcp",
+                PeerAddr => $display_items[0],
+                PeerPort => $display_items[1]
+            )
+          )
+        {
             print $server toutf(
                 $command . ":" . $primary . ":" . $secondary . "\n");
             if ($checkret) {
@@ -4098,7 +4108,7 @@ sub preview_display {
                     chomp($status);
                 }
             }
-                
+
         }
         $display++;
     }
@@ -4820,9 +4830,10 @@ sub add_item {
     $query =
         "INSERT INTO playlist (playorder, playlist, type, data) VALUES ("
       . $playorder . ", "
-      . $playlist
-      . ", \"" . $type."\", \""
-      . $data. "\")";
+      . $playlist . ", \""
+      . $type
+      . "\", \""
+      . $data . "\")";
     qdebug($query);
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -4837,15 +4848,22 @@ sub add_item {
     #}
     if (($type eq "file") || ($type eq "imag")) {
         if ($type eq "file") {
-            $data = "dir;".$data;
+            $data = "dir;" . $data;
         }
-        my $scaled = create_pixbuf($data,$globals->{'snapshot_width'}, $globals->{'snapshot_height'});
+        my $scaled = create_pixbuf(
+            $data,
+            $globals->{'snapshot_width'},
+            $globals->{'snapshot_height'}
+        );
         if ($scaled) {
             my $snapshot = $scaled->save_to_buffer("jpeg");
-            $sth = $lyricDbh->prepare(q{UPDATE playlist SET snapshot = ? WHERE playorder=?})
-              || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
-            $rv = $sth->execute($snapshot,$playorder)
-              || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+            $sth = $lyricDbh->prepare(
+                q{UPDATE playlist SET snapshot = ? WHERE playorder=?})
+              || database_failure($errorcodes->{'sqlprepare'},
+                $! . "\nSQL: " . $query);
+            $rv = $sth->execute($snapshot, $playorder)
+              || database_failure($errorcodes->{'sqlexecute'},
+                $! . "\nSQL: " . $query);
         }
     }
     $playorder++;
@@ -4960,7 +4978,7 @@ sub close_playlist_chooser {
 sub create_dialog_prefs {
     debug("Creating preferences dialog");
     $config = load_config($globals->{'profile'});
-    if (defined $widgets->{'prefs'} ) {
+    if (defined $widgets->{'prefs'}) {
         close_dialog($widgets->{'prefs'}->get_object('dialogPrefs'));
     }
     $widgets->{'prefs'} = load_window("dialogPrefs");
@@ -5083,13 +5101,16 @@ sub create_dialog_prefs {
 
     # Profiles
     my $renderer = Gtk2::CellRendererText->new;
-    $widgets->{'prefs'}->get_object('comboPrefsProfile')->pack_start($renderer, TRUE);
-    $widgets->{'prefs'}->get_object('comboPrefsProfile')->add_attribute($renderer, text => 0);
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')
+      ->pack_start($renderer, TRUE);
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')
+      ->add_attribute($renderer, text => 0);
     my $profilestore = Gtk2::ListStore->new('Glib::String');
-    $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_model($profilestore);
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')
+      ->set_model($profilestore);
 
-    my $query="SELECT DISTINCT profile FROM config WHERE profile != ''";
-    my $sth = $lyricDbh->prepare($query)
+    my $query = "SELECT DISTINCT profile FROM config WHERE profile != ''";
+    my $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
@@ -5098,46 +5119,51 @@ sub create_dialog_prefs {
     while (my @row = $sth->fetchrow_array()) {
         my $iter = $profilestore->append;
         $profilestore->set($iter, 0, $row[0]);
-        $combo_model->set($combo_model->append,0,$row[0]);
+        $combo_model->set($combo_model->append, 0, $row[0]);
         if ($row[0] eq $globals->{'profile'}) {
-            $widgets->{'prefs'}->get_object('comboPrefsProfile')->set_active_iter($iter);
+            $widgets->{'prefs'}->get_object('comboPrefsProfile')
+              ->set_active_iter($iter);
         }
     }
 
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Gtk2::ListStore');
+    my $model =
+      Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Gtk2::ListStore');
     $query = "SELECT host,profile FROM profiles";
-    $sth = $lyricDbh->prepare($query)
+    $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while (my @row = $sth->fetchrow_array()) {
-        $model->set($model->append,0,$row[0],1,$row[1],2,$combo_model);
+        $model->set($model->append, 0, $row[0], 1, $row[1], 2, $combo_model);
     }
+
     # Profiles tab
     $widgets->{'prefs'}->get_object('treeProfiles')->set_model($model);
-    $widgets->{'prefs'}->get_object('treeProfiles')->insert_column_with_attributes
-        (-1, 'Host', Gtk2::CellRendererText->new, text => 0, editable => FALSE);
+    $widgets->{'prefs'}->get_object('treeProfiles')
+      ->insert_column_with_attributes(
+        -1, 'Host', Gtk2::CellRendererText->new,
+        text     => 0,
+        editable => FALSE
+      );
     my $combo_renderer = Gtk2::CellRendererCombo->new;
-    $combo_renderer->set (
-        text_column => 0, # col in combo model with text to display
-        editable => TRUE
+    $combo_renderer->set(
+        text_column => 0,     # col in combo model with text to display
+        editable    => TRUE
     );
-    $combo_renderer->signal_connect (edited => 
-        sub {
+    $combo_renderer->signal_connect(
+        edited => sub {
             my ($cell, $text_path, $new_text) = @_;
-            $model->set (
-                $model->get_iter_from_string ($text_path),
-                1 , $new_text
-            );
+            $model->set($model->get_iter_from_string($text_path), 1, $new_text);
         }
     );
-    $widgets->{'prefs'}->get_object('treeProfiles')->insert_column_with_attributes(
+    $widgets->{'prefs'}->get_object('treeProfiles')
+      ->insert_column_with_attributes(
         -1, 'Profile',
         $combo_renderer,
-        text => 1,
+        text  => 1,
         model => 2
 
-    );
+      );
 
     $widgets->{'prefs'}->get_object('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
@@ -5151,7 +5177,9 @@ sub create_dialog_prefs {
       ->signal_connect("button_press_event", "open_dialogColour", "Font");
     $widgets->{'prefs'}->get_object('entryPrefShadowColour')
       ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
-    $globals->{'hostname_change_signal'} = $widgets->{'prefs'}->get_object('comboPrefsProfile')->signal_connect("changed", "change_pref_profile","prefs");
+    $globals->{'hostname_change_signal'} =
+      $widgets->{'prefs'}->get_object('comboPrefsProfile')
+      ->signal_connect("changed", "change_pref_profile", "prefs");
 }
 
 #***
@@ -5159,36 +5187,50 @@ sub create_dialog_prefs {
 sub apply_profile_change {
     debug("Applying profile changes");
     my $store = $widgets->{'prefs'}->get_object('treeProfiles')->get_model();
-    my $iter = $store->get_iter_first;
+    my $iter  = $store->get_iter_first;
     while (defined $iter) {
-        my $host = $store->get_value($iter,0);
-        my $profile = $store->get_value($iter,1);
-        my $query = "SELECT profile FROM profiles WHERE host='".$host."'";
-        my $sth = $lyricDbh->prepare($query)
-          || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+        my $host    = $store->get_value($iter, 0);
+        my $profile = $store->get_value($iter, 1);
+        my $query = "SELECT profile FROM profiles WHERE host='" . $host . "'";
+        my $sth   = $lyricDbh->prepare($query)
+          || database_failure($errorcodes->{'sqlprepare'},
+            $! . "\nSQL: " . $query);
         my $rv = $sth->execute
-          || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+          || database_failure($errorcodes->{'sqlexecute'},
+            $! . "\nSQL: " . $query);
         my @row = $sth->fetchrow_array();
         if (defined $row[0]) {
             if ($row[0] ne $profile) {
-                $query = "UPDATE profiles SET profile = '".$profile."' WHERE host='".$host."'";
+                $query =
+                    "UPDATE profiles SET profile = '"
+                  . $profile
+                  . "' WHERE host='"
+                  . $host . "'";
                 qdebug($query);
                 $sth = $lyricDbh->prepare($query)
-                  || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+                  || database_failure($errorcodes->{'sqlprepare'},
+                    $! . "\nSQL: " . $query);
                 $rv = $sth->execute
-                  || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+                  || database_failure($errorcodes->{'sqlexecute'},
+                    $! . "\nSQL: " . $query);
             }
         } else {
-            $query = "INSERT INTO profiles SET ( profile, host) VALUES ( '".$profile."', '".$host."')";
+            $query =
+                "INSERT INTO profiles SET ( profile, host) VALUES ( '"
+              . $profile . "', '"
+              . $host . "')";
             qdebug($query);
             $sth = $lyricDbh->prepare($query)
-              || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+              || database_failure($errorcodes->{'sqlprepare'},
+                $! . "\nSQL: " . $query);
             $rv = $sth->execute
-              || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+              || database_failure($errorcodes->{'sqlexecute'},
+                $! . "\nSQL: " . $query);
         }
         $iter = $store->iter_next($iter);
     }
 }
+
 #****f* lyricue/change_windowoffset
 # NAME
 #   change_windowoffset
@@ -5217,6 +5259,7 @@ sub change_windowoffset {
     }
     close_dialog($offsetxml->get_object('dialogWindowOffset'));
 }
+
 #***
 
 #****f* lyricue/change_pref_profile
@@ -5237,11 +5280,14 @@ sub change_pref_profile {
     debug("Changing preferences profile");
     my $newprofile = gettext("Create New Profile");
     if ($caller eq "prefs") {
-        my $hoststore = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_model();
-        $newprofile = $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_active_text();
+        my $hoststore =
+          $widgets->{'prefs'}->get_object('comboPrefsProfile')->get_model();
+        $newprofile =
+          $widgets->{'prefs'}->get_object('comboPrefsProfile')
+          ->get_active_text();
     }
-    if ( $newprofile eq gettext("Create New Profile")) {
-        my $newxml   = load_window("dialogPromptEntry");
+    if ($newprofile eq gettext("Create New Profile")) {
+        my $newxml = load_window("dialogPromptEntry");
         $newxml->get_object('dialogPromptEntry')
           ->set_title(fromutf(gettext("Create new profile")));
         $newxml->get_object('labelPromptE')
@@ -5249,7 +5295,8 @@ sub change_pref_profile {
 
         my $response = $newxml->get_object('dialogPromptEntry')->run();
         if ($response eq "ok") {
-            $globals->{'profile'} = $newxml->get_object('entryPromptE')->get_text();
+            $globals->{'profile'} =
+              $newxml->get_object('entryPromptE')->get_text();
         }
         close_dialog($newxml->get_object('dialogPromptEntry'));
     } else {
@@ -5257,6 +5304,7 @@ sub change_pref_profile {
     }
     create_dialog_prefs();
 }
+
 #***
 
 #****f* lyricue/change_pref_xinerama
@@ -5369,7 +5417,7 @@ sub honourise_song_lyrics {
 
     foreach $page (keys(%pageOrder)) {
         $tmppage = get_buffer_text($widgets->{'textAPageB'}{$page});
-        debug(  "Page contents of page " 
+        debug(  "Page contents of page "
               . $page
               . " before honourisation:\n"
               . $tmppage);
@@ -5420,7 +5468,7 @@ sub honourise_song_lyrics {
             $tmppage =~ s/([ \n])$key$/$1$hash{$key}/g;
             $tmppage =~ s/([ \n])$key([ \n])/$1$hash{$key}$2/g;
         }
-        debug(  "Page contents of page " 
+        debug(  "Page contents of page "
               . $page
               . " after honourisation:\n"
               . $tmppage);
@@ -5712,7 +5760,7 @@ sub update_adv_search {
         my $songid = $model->get($iter, 4);
         debug("Songid \"" . $songid . "\" selected");
         my $query =
-            "SELECT lyrics FROM page WHERE songid=" 
+            "SELECT lyrics FROM page WHERE songid="
           . $songid
           . " ORDER BY pagenum";
         $sth = $lyricDbh->prepare($query)
@@ -5908,7 +5956,7 @@ sub renumber_item {
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
 
     $query =
-        "UPDATE associations SET playlist=" 
+        "UPDATE associations SET playlist="
       . $after
       . " WHERE playlist="
       . $before;
@@ -6105,14 +6153,19 @@ sub new_playlist {
     $query =
         "INSERT INTO playlists (id,title, profile) VALUES ("
       . $row[0] . ", \""
-      . $playlist . "\", \""
+      . $playlist
+      . "\", \""
       . $globals->{'profile'} . "\")";
     $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "SELECT id FROM playlists WHERE title LIKE \"" . $playlist . "\" AND profile=\"".$globals->{'profile'}."\"";
-    $sth   = $lyricDbh->prepare($query)
+    $query =
+        "SELECT id FROM playlists WHERE title LIKE \""
+      . $playlist
+      . "\" AND profile=\""
+      . $globals->{'profile'} . "\"";
+    $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
@@ -6240,7 +6293,9 @@ sub do_copy_playlist {
     my $query =
 "SELECT id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 AND title='"
       . $playlist
-      . "' and profile='". $globals->{'profile'}. "' ORDER BY id";
+      . "' and profile='"
+      . $globals->{'profile'}
+      . "' ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -6280,8 +6335,9 @@ sub copy_playlist2 {
     my $query =
         "INSERT INTO playlists (id,title,profile) VALUES ("
       . $playlistid_dst . ", \""
-      . $playlist . "\", \""
-      . $globals->{'profile'}."\")";
+      . $playlist
+      . "\", \""
+      . $globals->{'profile'} . "\")";
     my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
@@ -6481,7 +6537,9 @@ sub update_cplayclist {
     }
 
     my $query =
-"SELECT title,id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 AND profile = '".$globals->{'profile'}."' ORDER BY id";
+"SELECT title,id FROM playlists LEFT JOIN playlist ON playlist.data=playlists.id AND playlist.data NOT LIKE '%-%' AND (type='play' OR type='sub') WHERE data IS NULL AND playlists.id > 0 AND profile = '"
+      . $globals->{'profile'}
+      . "' ORDER BY id";
     qdebug($query);
     my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -6676,29 +6734,31 @@ sub load_config {
     debug("Loading Preferences for $hostname");
     my $bibleCount = 0;
     $conf->{'Apps'}->{gettext("Load Lyricue Display")} = "lyricue_display";
-    $conf->{'Apps'}->{gettext("Close Lyricue Display")} = "lyricue_remote close";
+    $conf->{'Apps'}->{gettext("Close Lyricue Display")} =
+      "lyricue_remote close";
     $conf->{'Width'}  = 0;
     $conf->{'Height'} = 0;
 
-    my $query = "SELECT config_key, config_value FROM config WHERE profile='".$hostname."'";
-    $sth   = $lyricDbh->prepare($query)
+    my $query = "SELECT config_key, config_value FROM config WHERE profile='"
+      . $hostname . "'";
+    $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     my @row = $sth->fetchrow_array();
-    if (! defined $row[0]) {
+    if (!defined $row[0]) {
         firstrun_wizard();
         Gtk2->main();
         $conf = load_config($globals->{'profile'});
         load_profile_menu();
-        return $conf
+        return $conf;
     }
-    $sth   = $lyricDbh->prepare($query)
+    $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     while ($row = $sth->fetchrow_hashref()) {
-        $conf->{$row->{'config_key'}}  = $row->{'config_value'};
+        $conf->{$row->{'config_key'}} = $row->{'config_value'};
     }
 
     $conf->{'BibleCount'} = $bibleCount;
@@ -6991,17 +7051,19 @@ sub write_config {
     debug("Writing preferences");
 
     # Backup config table
-    my $query = "DELETE FROM config_old WHERE profile='".$globals->{'profile'}."'";
-    my $sth   = $lyricDbh->prepare($query)
+    my $query =
+      "DELETE FROM config_old WHERE profile='" . $globals->{'profile'} . "'";
+    my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "INSERT config_old SELECT * FROM config WHERE profile='".$globals->{'profile'}."'";
-    $sth   = $lyricDbh->prepare($query)
+    $query = "INSERT config_old SELECT * FROM config WHERE profile='"
+      . $globals->{'profile'} . "'";
+    $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
-    $query = "DELETE FROM config WHERE profile='".$globals->{'profile'}."'";
+    $query = "DELETE FROM config WHERE profile='" . $globals->{'profile'} . "'";
     $sth   = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
     $rv = $sth->execute
@@ -7010,7 +7072,7 @@ sub write_config {
     foreach (sort keys(%$config)) {
         if ((!/^Bible/) && (!/^App/) && (!/^LoopText/)) {
             $query =
-                "INSERT INTO config ( profile, config_key, config_value ) VALUES (\"" 
+"INSERT INTO config ( profile, config_key, config_value ) VALUES (\""
               . $globals->{'profile'}
               . "\", \""
               . $_
@@ -7027,8 +7089,11 @@ sub write_config {
     }
     foreach (keys $config->{'Apps'}) {
         $query =
-          "INSERT INTO config ( profile, config_key, config_value ) VALUES ( \"". $globals->{'profile'}. "\", \"App\", \""
-          . $_.";".$config->{'Apps'}->{$_} . "\")";
+          "INSERT INTO config ( profile, config_key, config_value ) VALUES ( \""
+          . $globals->{'profile'}
+          . "\", \"App\", \""
+          . $_ . ";"
+          . $config->{'Apps'}->{$_} . "\")";
         qdebug($query);
         $sth = $lyricDbh->prepare($query)
           || database_failure($errorcodes->{'sqlprepare'},
@@ -7612,7 +7677,7 @@ sub init_mainWindow {
 
     # Update the bible menu
     load_biblemenu();
-    
+
     # Update the profiles menu
     load_profile_menu();
 
@@ -7621,7 +7686,8 @@ sub init_mainWindow {
     my $group2   = 0;
     foreach (keys $config->{'Apps'}) {
         my $appMenuItem = Gtk2::MenuItem->new_with_label($_);
-        $appMenuItem->signal_connect("activate", "execute_app", $config->{'Apps'}->{$_});
+        $appMenuItem->signal_connect("activate", "execute_app",
+            $config->{'Apps'}->{$_});
         $appMenuItem->show;
         $menutop2->append($appMenuItem);
     }
@@ -7747,7 +7813,7 @@ sub bgdir_list {
 
     # Add categories from mediaDb
     my $query =
-        "SELECT DISTINCT category FROM media WHERE type=\"" 
+        "SELECT DISTINCT category FROM media WHERE type=\""
       . $type
       . "\" AND category !=\""
       . $special
@@ -9590,7 +9656,7 @@ sub quick_save_local {
 
         my $pageid = $lyricDbh->{'mysql_insertid'};
         $query =
-            "UPDATE playlist SET type=\"temp\", data=\"" 
+            "UPDATE playlist SET type=\"temp\", data=\""
           . $pageid
           . "\" WHERE playorder="
           . $playorder;
@@ -9769,7 +9835,7 @@ sub create_pixbuf {
                   . $id . "\" \""
                   . $thumbfile . "\"";
                 system($command);
-                debug("Command:".$command);
+                debug("Command:" . $command);
                 if (-e $thumbfile) {
                     $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($thumbfile);
                     $pixbuf =
@@ -9830,7 +9896,7 @@ sub create_pixbuf {
         }
         return $pixbuf;
     } else {
-        my $query = "SELECT format, description, data FROM media WHERE id=\"" 
+        my $query = "SELECT format, description, data FROM media WHERE id=\""
           . $id . "\"";
         qdebug($query);
         my $sth = $mediaDbh->prepare($query)
@@ -9948,7 +10014,7 @@ sub select_category {
     my $choosexml = load_window('dialogSelectCategory');
 
     my $query =
-        "SELECT DISTINCT category FROM media WHERE type=\"" 
+        "SELECT DISTINCT category FROM media WHERE type=\""
       . $type
       . "\" ORDER BY category";
     qdebug($query);
@@ -10143,7 +10209,7 @@ sub update_quickedit {
                         my ($table, $dbname) =
                           split(/@/, $globals->{'bibledb'}, 2);
                         $query =
-                            "SELECT chapternum,versenum,verse FROM " 
+                            "SELECT chapternum,versenum,verse FROM "
                           . $table
                           . " WHERE book=\""
                           . $line[0]
@@ -10261,7 +10327,7 @@ sub media_move {
         }
 
         my $query =
-            "SELECT DISTINCT category FROM media WHERE type=\"" 
+            "SELECT DISTINCT category FROM media WHERE type=\""
           . $type
           . "\" ORDER BY category";
         my $sth = $mediaDbh->prepare($query)
@@ -10359,7 +10425,7 @@ sub media_delete {
             $title =~ s/, $//;
             debug("Deleting $title");
             my $labelText =
-              fromutf(gettext("Are you sure you wish to delete ")) 
+              fromutf(gettext("Are you sure you wish to delete "))
               . $title . "\n";
             my $deletexml = load_window('dialogConfirm');
             $deletexml->get_object('labelDelete')->set_text($labelText);
@@ -10492,7 +10558,7 @@ sub change_colour_media {
         } elsif ($type eq "dir") {
             debug("change_colour_media: $fontcolour, $shadowcolour, $id");
             my $query =
-              "DELETE FROM media WHERE format=\"file\" AND category=\"" 
+              "DELETE FROM media WHERE format=\"file\" AND category=\""
               . $id . "\"";
             qdebug($query);
             my $sth = $mediaDbh->prepare($query)
@@ -10808,7 +10874,7 @@ sub do_import_songs {
             $pagenum++;
             debug("Page Add : " . $pagenum);
             $query =
-                "INSERT INTO page (songid,pagenum,lyrics) VALUES (" 
+                "INSERT INTO page (songid,pagenum,lyrics) VALUES ("
               . $songid . ", "
               . $pagenum . ", "
               . quote($_) . ")";
@@ -11127,7 +11193,7 @@ sub navigator_update {
     {
         $endverse = $startverse;
     }
-    debug(  "Book " 
+    debug(  "Book "
           . $book
           . " chapter "
           . $chapter
@@ -11140,7 +11206,7 @@ sub navigator_update {
         if (!$globals->{'usesword'}) {
             my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
             my $query =
-                "SELECT DISTINCT(book) FROM " 
+                "SELECT DISTINCT(book) FROM "
               . $table
               . " WHERE book LIKE \""
               . $book . "%\"";
@@ -11223,7 +11289,7 @@ sub navigator_update {
             $book = $bookrow[0];
             my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
             $query =
-                "SELECT book,chapternum,versenum,verse FROM " 
+                "SELECT book,chapternum,versenum,verse FROM "
               . $table
               . " WHERE book LIKE \""
               . $book
@@ -11367,7 +11433,7 @@ sub navigator_next {
     if (!$globals->{'usesword'}) {
         my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
         my $query =
-            "SELECT MAX(versenum) FROM " 
+            "SELECT MAX(versenum) FROM "
           . $table
           . " WHERE book=\""
           . $book
@@ -11517,7 +11583,7 @@ sub get_max_verse {
         my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
 
         $query =
-            "SELECT * FROM " 
+            "SELECT * FROM "
           . $table
           . " WHERE book=\""
           . $book
@@ -12005,8 +12071,8 @@ sub import_song_html {
 #
 sub db_check_app {
     debug("Checking for database servers");
-    my @ary    = DBI->available_drivers(1);
-    my $mysql  = FALSE;
+    my @ary   = DBI->available_drivers(1);
+    my $mysql = FALSE;
     foreach (@ary) {
         if ($_ eq "mysql") {
             $mysql = TRUE;
@@ -12035,11 +12101,9 @@ sub db_get_admin {
 
     my $dbh;
     eval {
-        $dbh = DBI->connect(
-            "DBI:mysql:mysql:"
-              . $globals->{'mysqlhost'},
-            "root", ""
-        );
+        $dbh =
+          DBI->connect("DBI:mysql:mysql:" . $globals->{'mysqlhost'},
+            "root", "");
     };
     if ($dbh) {
         $globals->{'db_adminuser'}     = "root";
@@ -12073,9 +12137,9 @@ sub db_get_admin {
     close_dialog($adminxml->get_object('dialogAdminLogin'));
     eval {
         $dbh = DBI->connect(
-            "DBI:mysql:mysql:"
-              . $globals->{'mysqlhost'},
-            $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
+            "DBI:mysql:mysql:" . $globals->{'mysqlhost'},
+            $globals->{'db_adminuser'},
+            $globals->{'db_adminpassword'}
         );
     };
 
@@ -12104,9 +12168,9 @@ sub db_install_user {
     db_get_admin();
     eval {
         $dbh = DBI->connect(
-            "DBI:mysql:mysql:"
-              . $globals->{'mysqlhost'},
-            $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
+            "DBI:mysql:mysql:" . $globals->{'mysqlhost'},
+            $globals->{'db_adminuser'},
+            $globals->{'db_adminpassword'}
         );
     };
     if ($@) {
@@ -12166,7 +12230,8 @@ sub db_install_user {
 #
 sub db_check_databases {
     debug("Update/install databases");
-    my @dbs = DBI->data_sources("mysql",
+    my @dbs =
+      DBI->data_sources("mysql",
         {"host" => $globals->{'mysqlhost'}, "user" => "lyric"});
 
     foreach (@dbs) {
@@ -12243,7 +12308,7 @@ sub db_installdb {
     if ($globals->{'db_adminuser'} eq "") {
         db_get_admin();
     }
-    system( "cat " 
+    system( "cat "
           . $db_file
           . " | mysql -f -h "
           . $globals->{'mysqlhost'} . " -u "
@@ -12386,15 +12451,15 @@ sub db_updatedb_lyricDb {
         }
         eval {
             $dbh = DBI->connect(
-                "DBI:mysql:mysql:"
-                  . $globals->{'mysqlhost'},
-                $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
+                "DBI:mysql:mysql:" . $globals->{'mysqlhost'},
+                $globals->{'db_adminuser'},
+                $globals->{'db_adminpassword'}
             );
         };
         if ($dbh) {
             foreach (@toconvert) {
                 debug("Converting " . $_ . " to utf8");
-                $dbh->do("ALTER TABLE lyricDb." 
+                $dbh->do("ALTER TABLE lyricDb."
                       . $_
                       . " CONVERT TO CHARACTER SET utf8");
             }
@@ -12417,11 +12482,11 @@ sub db_updatedb_lyricDb {
 # SOURCE
 #
 sub check_avahi {
-    my $avahi = `avahi-browse -t -p -k -r _lyricue._tcp`;
-    my @displays = split (/\n/, $avahi);
-    my $dcount=0;
-    my $pcount=0;
-    my $local_preview=FALSE;
+    my $avahi          = `avahi-browse -t -p -k -r _lyricue._tcp`;
+    my @displays       = split(/\n/, $avahi);
+    my $dcount         = 0;
+    my $pcount         = 0;
+    my $local_preview  = FALSE;
     my $local_hostname = hostname();
     foreach my $display (@displays) {
         my @display_items = split(/;/, $display);
@@ -12429,17 +12494,21 @@ sub check_avahi {
             if ($display_items[3] =~ /^Lyricue\\032Display/) {
                 my $hostname = $display_items[6];
                 $hostname =~ s/.local$//g;
-                my $type = $display_items[9];
+                my $type    = $display_items[9];
                 my $profile = $display_items[9];
-                $type =~ s/^.*type=(.*)".*$/$1/g;
+                $type    =~ s/^.*type=(.*)".*$/$1/g;
                 $profile =~ s/^.*profile=(.*?)".*$/$1/g;
                 if ($profile eq $globals->{'profile'}) {
                     if (($type eq "normal") || ($type eq "simple")) {
-                        $globals->{'displays'}[$dcount++] = $hostname.":".$display_items[8];
+                        $globals->{'displays'}[$dcount++] =
+                          $hostname . ":" . $display_items[8];
                     } elsif ($type eq "preview") {
-                        $globals->{'previews'}[$pcount++] = $hostname.":".$display_items[8];
-                        if ($config->{'DynamicPreview'} && ($hostname eq $local_hostname)) {
-                            $local_preview=TRUE;
+                        $globals->{'previews'}[$pcount++] =
+                          $hostname . ":" . $display_items[8];
+                        if ($config->{'DynamicPreview'}
+                            && ($hostname eq $local_hostname))
+                        {
+                            $local_preview = TRUE;
                         }
                     }
                 }
@@ -12473,8 +12542,11 @@ sub check_avahi {
 # SOURCE
 #
 sub check_tracker {
+
     #debug("Check tracker");
-    my $query = "SELECT title,host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE st.profile='".$globals->{'profile'}."'";
+    my $query =
+"SELECT title,host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE st.profile='"
+      . $globals->{'profile'} . "'";
 
     my $sth = $lyricDbh->prepare($query)
       || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
@@ -12485,9 +12557,9 @@ sub check_tracker {
     while (my @row = $sth->fetchrow_array()) {
         $globals->{'current_items'}->{$row[2]} = $row[1];
         $globals->{'current_items'}->{$row[3]} = $row[1];
-        $status = $row[0];
+        $status                                = $row[0];
     }
-    
+
     my $model = $widgets->{'main'}->get_object('treePlaylist')->get_model();
     if ($model) {
         $model->foreach(\&update_current);
@@ -12633,12 +12705,10 @@ sub clear_search {
 sub db_connect {
     my ($dbname, $dberror, $fatal) = @_;
     my ($dbh);
-    $dbh = DBI->connect(
-        "DBI:mysql:database=$dbname;host=$globals->{'mysqlhost'}",
-        "lyric",
-        "",
-        {mysql_enable_utf8 => 1, mysql_auto_reconnect => 1}
-    ) || display_error($dberror, $DBI::errstr, $fatal);
+    $dbh =
+      DBI->connect("DBI:mysql:database=$dbname;host=$globals->{'mysqlhost'}",
+        "lyric", "", {mysql_enable_utf8 => 1, mysql_auto_reconnect => 1})
+      || display_error($dberror, $DBI::errstr, $fatal);
     if ($dbh != NULL) {
         $dbh->do('SET NAMES utf8');
     }
@@ -12688,11 +12758,9 @@ sub db_restart {
 sub db_select {
 
     # Open lyricDB, bibleDB and mediaDb
-    my $sqldb = DBI->connect(
-        "DBI:mysql:mysql:"
-          . $globals->{'mysqlhost'},
-        "lyric", ""
-    ) || db_install_user();
+    my $sqldb =
+      DBI->connect("DBI:mysql:mysql:" . $globals->{'mysqlhost'}, "lyric", "")
+      || db_install_user();
     if ($sqldb) {
         $sqldb->disconnect()
           ; ## ERROR HERE ### Can't call 'disconnect' without a package or object reference
@@ -13529,7 +13597,7 @@ sub biblebrowser_chapter {
     } else {
         my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
         my $query =
-            "SELECT MAX(chapternum) FROM " 
+            "SELECT MAX(chapternum) FROM "
           . $table
           . " WHERE book like \""
           . toutf($book)
@@ -13616,7 +13684,7 @@ sub biblebrowser_verse {
     } else {
         my ($table, $dbname) = split(/@/, $globals->{'bibledb'}, 2);
         my $query =
-            "SELECT MAX(versenum) FROM " 
+            "SELECT MAX(versenum) FROM "
           . $table
           . " WHERE book=\""
           . toutf($book)
@@ -13718,8 +13786,8 @@ sub biblebrowser_loaditems {
 #
 sub firstrun_wizard {
     debug("First Run Wizard");
-    $config = load_config('');
-    $globals->{'firstrun'} = TRUE;
+    $config                   = load_config('');
+    $globals->{'firstrun'}    = TRUE;
     $widgets->{'firstrunxml'} = load_window('assistantFirstRun');
     $widgets->{'firstrun'} =
       $widgets->{'firstrunxml'}->get_object('assistantFirstRun');
@@ -13900,8 +13968,7 @@ sub firstrun_prepare {
     my ($text_width, $text_height) = $layout->get_pixel_size;
     my $pixmap = Gtk2::Gdk::Pixmap->new(undef, $text_width, $text_height, 24);
     my $style = $page->get_default_style;
-    $pixmap->draw_layout($style->text_gc('normal'), 0, 0,
-        $layout);
+    $pixmap->draw_layout($style->text_gc('normal'), 0, 0, $layout);
     $pixmap->draw_rectangle($style->white,
         TRUE, 0, 0, $text_width, $text_height);
     my $pixbuf =
@@ -13956,9 +14023,9 @@ sub firstrun_pw_check {
     my ($dbh);
     eval {
         $dbh = DBI->connect(
-            "DBI:mysql:mysql:"
-              . $globals->{'mysqlhost'},
-            $globals->{'db_adminuser'}, $globals->{'db_adminpassword'}
+            "DBI:mysql:mysql:" . $globals->{'mysqlhost'},
+            $globals->{'db_adminuser'},
+            $globals->{'db_adminpassword'}
         );
     };
 
@@ -14284,7 +14351,11 @@ sub change_fade {
 
 sub start_display {
     debug("Start lyricue display");
-    execute_app("", $globals->{'lyricue_server'}," -p '".$globals->{'profile'}."'");
+    execute_app(
+        "",
+        $globals->{'lyricue_server'},
+        " -p '" . $globals->{'profile'} . "'"
+    );
 }
 
 #****f* lyricue/export_playlist
@@ -14408,6 +14479,7 @@ sub image_playlist_toggle {
     }
     update_playlist();
 }
+
 sub load_profile_menu {
     debug("Populate profiles menu");
     my $menutop = Gtk2::Menu->new();
@@ -14426,7 +14498,7 @@ sub load_profile_menu {
             $group = $menuitem->get_group;
         }
         if ($row[0] eq $globals->{'profile'}) {
-            $selected_profile=$menuitem;
+            $selected_profile = $menuitem;
         }
         $menuitem->signal_connect("toggled", "select_profile", $row[0]);
         $menuitem->show;
@@ -14436,7 +14508,8 @@ sub load_profile_menu {
     $sep->show;
     $menutop->append($sep);
 
-    my $menuitem = Gtk2::MenuItem->new_with_label(gettext("Create New Profile"));
+    my $menuitem =
+      Gtk2::MenuItem->new_with_label(gettext("Create New Profile"));
     $menuitem->signal_connect("activate", "change_pref_profile", "menu");
     $menuitem->show;
     $menutop->append($menuitem);
@@ -14448,24 +14521,26 @@ sub load_profile_menu {
 sub select_profile {
     my ($widget, $profile) = @_;
     if ($widget->get_active()) {
-    if ($profile ne $globals->{'profile'}) {
-        debug("Change profile from ".$globals->{'profile'}." to ".$profile);
-        $globals->{'profile'} = $profile;
-        
-        if ($widgets->{'preview'}) {
-            $widgets->{'preview'}->destroy;
-            undef $widgets->{'preview'};
-            kill 9, $globals->{'preview_pid'};
+        if ($profile ne $globals->{'profile'}) {
+            debug(  "Change profile from "
+                  . $globals->{'profile'} . " to "
+                  . $profile);
+            $globals->{'profile'} = $profile;
+
+            if ($widgets->{'preview'}) {
+                $widgets->{'preview'}->destroy;
+                undef $widgets->{'preview'};
+                kill 9, $globals->{'preview_pid'};
+            }
+            if ($widgets->{'miniview'}) {
+                $widgets->{'miniview'}->destroy;
+                undef $widgets->{'miniview'};
+                kill 9, $globals->{'miniview_pid'};
+            }
+            $config = load_config($globals->{'profile'});
+            init_preview();
+            init_miniview();
+            choose_playlist();
         }
-        if ($widgets->{'miniview'}) {
-            $widgets->{'miniview'}->destroy;
-            undef $widgets->{'miniview'};
-            kill 9, $globals->{'miniview_pid'};
-        }
-        $config = load_config($globals->{'profile'});
-        init_preview();
-        init_miniview();
-        choose_playlist();
-    }
     }
 }
