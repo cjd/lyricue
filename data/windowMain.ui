@@ -2416,10 +2416,15 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
-                                  <object class="GtkLabel" id="labelPreview">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                  <object class="GtkCheckButton" id="checkPreview">
                                     <property name="label" translatable="yes">Preview</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="focus_on_click">False</property>
+                                    <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="toggle_preview" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -2447,10 +2452,14 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkLabel" id="labelCurrent">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                  <object class="GtkCheckButton" id="checkCurrent">
                                     <property name="label" translatable="yes">Current</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="toggle_miniview" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>

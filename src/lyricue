@@ -9378,7 +9378,7 @@ sub init_preview {
     # Start/stop preview as needed
     if ($config->{'DynamicPreview'}) {
         if (!defined($widgets->{'preview'})) {
-            $widgets->{'main'}->get_object('labelPreview')->show();
+            $widgets->{'main'}->get_object('checkPreview')->set_active(TRUE);
             $widgets->{'main'}->get_object('framePreview')->show();
             $widgets->{'main'}->get_object('framePreview')
               ->set_size_request(100, 75);
@@ -9440,7 +9440,7 @@ sub init_preview {
             kill 9, $globals->{'preview_pid'};
         }
         $widgets->{'main'}->get_object('framePreview')->hide();
-        $widgets->{'main'}->get_object('labelPreview')->hide();
+        $widgets->{'main'}->get_object('checkPreview')->set_active(FALSE);
     }
 }
 
@@ -9464,7 +9464,7 @@ sub init_miniview {
     if ($config->{'Miniview'}) {
         if (!defined($widgets->{'miniview'})) {
             update_display("status", "previewon", "");
-            $widgets->{'main'}->get_object('labelCurrent')->show();
+            $widgets->{'main'}->get_object('checkCurrent')->set_active(TRUE);
             $widgets->{'main'}->get_object('frameCurrent')->show();
             $widgets->{'miniview'} = Gtk2::Socket->new;
             $widgets->{'miniview'}->set_size_request(100, 75);
@@ -9524,7 +9524,7 @@ sub init_miniview {
         }
         update_display("status", "previewoff", "");
         $widgets->{'main'}->get_object('frameCurrent')->hide();
-        $widgets->{'main'}->get_object('labelCurrent')->hide();
+        $widgets->{'main'}->get_object('checkCurrent')->set_active(FALSE);
     }
 }
 
@@ -14542,5 +14542,27 @@ sub select_profile {
             init_miniview();
             choose_playlist();
         }
+    }
+}
+
+sub toggle_miniview {
+    my $new_status = FALSE;
+    if ( $widgets->{'main'}->get_object('checkCurrent')->get_active()) {
+        $new_status=TRUE;
+    }
+    if ($config->{'Miniview'} != $new_status){
+        $config->{'Miniview'} = $new_status;
+        init_miniview();
+    }
+}
+
+sub toggle_preview {
+    my $new_status = FALSE;
+    if ( $widgets->{'main'}->get_object('checkPreview')->get_active() ) {
+        $new_status=TRUE;
+    }
+    if ($config->{'DynamicPreview'} != $new_status){
+        $config->{'DynamicPreview'} = $new_status;
+        init_preview();
     }
 }
