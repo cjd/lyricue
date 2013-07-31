@@ -5,10 +5,8 @@ sql_DATA = \
 	Update_1.2.sql \
 	Add_config.sql \
 	Add_Profiles.sql \
-	Create_lyricDb.sql \
 	Add_mediadb_colour.sql \
 	Add_snapshot.sql \
-	Create_mediaDb.sql \
 	Add_pagetitle.sql \
 	Add_transition.sql \
 	Expand_data.sql
