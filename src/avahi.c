@@ -9,6 +9,9 @@ static int port = 0;
 static char *type_in = NULL;
 extern GHashTable *miniviews;
 extern gchar *profile;
+extern gchar *extra_data;
+extern gchar hostname[16];
+extern int server_port;
 
 void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_GCC_UNUSED void *userdata) {
     assert(g == group || group == NULL);
@@ -52,7 +55,8 @@ void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_
     }
 }
 void create_services(AvahiClient *c) {
-    char *n, type_txt[128], profile_txt[128];
+    char *n;
+    gchar *type_txt, *profile_txt, *data_txt; 
     int ret;
     assert(c);
 
@@ -72,11 +76,15 @@ void create_services(AvahiClient *c) {
         l_debug("Adding service '%s' type '%s'", name, type_in);
 
         /* Set type of service */
-        snprintf(type_txt, strlen(type_in)+6, "type=%s", type_in);
-        snprintf(profile_txt, strlen(profile)+9, "profile=%s", profile);
+        profile_txt = g_strdup_printf("profile=%s", profile);
+        type_txt = g_strdup_printf("type=%s", type_in);
+        if (extra_data == NULL) {
+            extra_data = g_strdup("");
+        }
+        data_txt = g_strdup_printf("data=%s", extra_data);
 
         /* Add the service for Lyricue Display */
-        if ((ret = avahi_entry_group_add_service(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, name, "_lyricue._tcp", NULL, NULL, port, type_txt, profile_txt, NULL)) < 0) {
+        if ((ret = avahi_entry_group_add_service(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, name, "_lyricue._tcp", NULL, NULL, port, type_txt, profile_txt, data_txt, NULL)) < 0) {
 
             if (ret == AVAHI_ERR_COLLISION)
                 goto collision;
@@ -84,6 +92,9 @@ void create_services(AvahiClient *c) {
             l_debug("Failed to add _lyricue._tcp service: %s", avahi_strerror(ret));
             goto fail;
         }
+        g_free(profile_txt);
+        g_free(type_txt);
+        g_free(data_txt);
 
         /* Tell the server to register the service */
         if ((ret = avahi_entry_group_commit(group)) < 0) {
@@ -269,25 +280,33 @@ void resolve_callback(
             break;
 
         case AVAHI_RESOLVER_FOUND: {
-            char a[AVAHI_ADDRESS_STR_MAX], *t;
+            char a[AVAHI_ADDRESS_STR_MAX];
 
             avahi_address_snprint(a, sizeof(a), address);
-            t = avahi_string_list_to_string(txt);
             char *value;
-            size_t *size;
-            char *type="type";
-            avahi_string_list_get_pair(txt,&type, &value, size);
+            char *type = NULL;
+            size_t *size=NULL;
+            AvahiStringList *type_txt = avahi_string_list_find(txt,"type");
+            avahi_string_list_get_pair(type_txt,&type, &value, size);
             l_debug("Type = %s",value);
             if (g_strcmp0(value,"miniview") == 0) {
-                gchar *host = g_strdup_printf("%s:%u",a, port);
-                l_debug("Found miniview on %s", host);
-                if (!g_hash_table_contains(miniviews,host)) {
-                    g_hash_table_insert(miniviews, g_strdup(name), host);
+                char *data="data";
+                char *extra_data;
+                size_t *size2=NULL;
+                AvahiStringList *data_txt = avahi_string_list_find(txt,"data");
+                avahi_string_list_get_pair(data_txt,&data, &extra_data, size2);
+                gchar *myhost = g_strdup_printf("%s:%u",hostname,server_port);
+                if (g_strcmp0(extra_data, myhost)==0) {
+                    gchar *host = g_strdup_printf("%s:%u",a, port);
+                    l_debug("Found miniview on %s", host);
+                    if (!g_hash_table_contains(miniviews,host)) {
+                        g_hash_table_insert(miniviews, g_strdup(name), host);
+                    }
                 }
+                g_free(myhost);
             }
             avahi_free(value);
             avahi_free(type);
-            avahi_free(t);
         }
     }
 

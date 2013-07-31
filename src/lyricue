@@ -219,7 +219,7 @@ chomp $globals->{'lyricue_server'};
 
 $globals->{'server_port'}        = "2346";    #port used for lyric server
 $globals->{'preview_port'}       = "2347";    #port used for preview
-$globals->{'miniview_port'}      = "2348";    #port used for miniview
+#$globals->{'miniview_port'}      = "2348";    #port used for miniview
 $globals->{'editview_port'}      = "2349";    #port used for editview
 $globals->{'update_timer'}       = FALSE;
 $globals->{'nav_update_timer'}   = FALSE;
@@ -228,7 +228,6 @@ $globals->{'debugging'}          = FALSE;
 $globals->{'spell'}              = TRUE;
 $globals->{'trayicon'}           = TRUE;
 $globals->{'preview_pid'}        = FALSE;
-$globals->{'miniview_pid'}       = FALSE;
 $globals->{'hovering_over_link'} = FALSE;
 $globals->{'db_adminuser'}       = "";
 $globals->{'icon_width'}         = 96;
@@ -515,6 +514,7 @@ if ($globals->{'trayicon'}) {
 $0 = "Lyricue Interface";
 
 $globals->{'thumbnail_factory'} = Gnome2::ThumbnailFactory->new('normal');
+check_avahi();
 init_mainWindow();
 $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data} = -1;
 choose_playlist();
@@ -525,7 +525,6 @@ $widgets->{'main'}->get_object('toolbuttonPlayCancel')->hide;
 # Setup background tasks
 $globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
 $globals->{'avahi_timer'}   = Glib::Timeout->add(5000, \&check_avahi);
-check_avahi();
 $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
 Gtk2->main();
@@ -565,9 +564,9 @@ sub close_main {
         debug("Killing $globals->{'preview_pid'}");
         kill 9, $globals->{'preview_pid'};
     }
-    if ($globals->{'miniview_pid'}) {
-        debug("Killing $globals->{'miniview_pid'}");
-        kill 9, $globals->{'miniview_pid'};
+    if ($globals->{'miniview_pid'}[0]) {
+        debug("Killing $globals->{'miniview_pid'}[0]");
+        kill 9, $globals->{'miniview_pid'}[0];
     }
     close LOG;
     exit();
@@ -9460,70 +9459,71 @@ sub init_preview {
 sub init_miniview {
     debug("init miniview");
 
+    if (!defined $globals->{'displays'}[0]) {
+        debug("No miniviews to load");
+        return;
+    }
+
     # Start/stop miniview as needed
     if ($config->{'Miniview'}) {
-        if (!defined($widgets->{'miniview'})) {
-            update_display("status", "previewon", "");
-            $widgets->{'main'}->get_object('checkCurrent')->set_active(TRUE);
-            $widgets->{'main'}->get_object('frameCurrent')->show();
-            $widgets->{'miniview'} = Gtk2::Socket->new;
-            $widgets->{'miniview'}->set_size_request(100, 75);
-            $widgets->{'main'}->get_object('frameCurrent')
-              ->set_params(0.5, 0.5, $config->{'Width'} / $config->{'Height'},
-                0);
-            $widgets->{'miniview'}->show;
-            $widgets->{'main'}->get_object('frameCurrent')
-              ->add($widgets->{'miniview'});
-            $widgets->{'main'}->get_object('frameCurrent')
-              ->set_size_request(-1, -1);
-            debug(
-                sprintf(
-                    "%s -r %s -m %d -l %d -p '%s' -t miniview\n",
-                    $globals->{'lyricue_server'},
-                    $globals->{'mysqlhost'},
-                    $widgets->{'miniview'}->get_id,
-                    $globals->{'miniview_port'},
-                    $globals->{'profile'}
-                )
-            );
-
-            $globals->{'miniview_pid'} = fork;
-            if ($globals->{'miniview_pid'} < 0) {
-                display_fatal(
-                    "Unable to start the lyricue server as a preview window",
-                    $! . "\nSQL: " . $query);
-            }
-            if ($globals->{'miniview_pid'} == 0) {
-                exec(
-                    sprintf(
-                        "%s -r %s -m %d -l %d -p '%s' -t miniview\n",
+        $widgets->{'main'}->get_object('vboxCurrent')->show();
+        $widgets->{'main'}->get_object('checkCurrent')->set_active(TRUE);
+        my $display = 0;
+        while ($globals->{'displays'}[$display] ne "") {
+            if (!defined($widgets->{'miniview'}[$display])) {
+                $widgets->{'miniview'}[$display] = Gtk2::Socket->new;
+                $widgets->{'miniview'}[$display]->set_size_request(100, 75);
+                $widgets->{'miniview_frame'}[$display] = Gtk2::AspectFrame->new($globals->{'displays'}[$display], 0.5, 0.5, $config->{'Width'} / $config->{'Height'}, FALSE);
+                $widgets->{'miniview_frame'}[$display]->add($widgets->{'miniview'}[$display]);
+                $widgets->{'main'}->get_object('vboxCurrent')->pack_end($widgets->{'miniview_frame'}[$display], TRUE,TRUE, 0);
+                $widgets->{'miniview'}[$display]->show;
+                $widgets->{'miniview_frame'}[$display]->show;
+                $widgets->{'miniview_frame'}[$display]->set_size_request(-1, -1);
+                my $command = sprintf(
+                        "%s -r %s -m %d -l %d -p '%s' -t miniview -e '%s'\n",
                         $globals->{'lyricue_server'},
                         $globals->{'mysqlhost'},
-                        $widgets->{'miniview'}->get_id,
+                        $widgets->{'miniview'}[$display]->get_id,
                         $globals->{'miniview_port'},
-                        $globals->{'profile'}
-                    )
+                        $globals->{'profile'},
+                        $globals->{'displays'}[$display]
+                    );
+                debug($command);
+
+                $globals->{'miniview_pid'}[$display] = fork;
+                if ($globals->{'miniview_pid'}[$display] < 0) {
+                   display_fatal(
+                       "Unable to start the lyricue server as a miniview window",
+                       $! . "\nSQL: " . $query);
+                }
+                if ($globals->{'miniview_pid'}[$display] == 0) {
+                    exec( $command );
+                }
+
+                $widgets->{'miniview'}[$display]->signal_connect(
+                    'plug-removed' => sub {
+                        debug("Lyricue miniview died..restarting");
+                        $widgets->{'main'}->get_object('vboxCurrent')
+                        ->remove($widgets->{'miniview_frame'}[$display]);
+                        init_miniview();
+                        1;
+                    }
                 );
             }
-
-            $widgets->{'miniview'}->signal_connect(
-                'plug-removed' => sub {
-                    debug("Lyricue miniview died..restarting");
-                    $widgets->{'main'}->get_object('frameCurrent')
-                      ->remove($widgets->{'miniview'});
-                    init_miniview();
-                    1;
-                }
-            );
+            $display++;
         }
     } else {
-        if ($widgets->{'miniview'}) {
-            $widgets->{'miniview'}->destroy;
-            undef $widgets->{'miniview'};
-            kill 9, $globals->{'miniview_pid'};
+        my @miniviews = $widgets->{'miniview'};
+        foreach my $display(0 .. @miniviews) {
+            debug("Removing ".$display); 
+            $widgets->{'miniview_frame'}[$display]->destroy;
+            undef $widgets->{'miniview_frame'}[$display];
+            $widgets->{'miniview'}[$display]->destroy;
+            undef $widgets->{'miniview'}[$display];
+            kill 9, $globals->{'miniview_pid'}[$display];
         }
         update_display("status", "previewoff", "");
-        $widgets->{'main'}->get_object('frameCurrent')->hide();
+        $widgets->{'main'}->get_object('vboxCurrent')->hide();
         $widgets->{'main'}->get_object('checkCurrent')->set_active(FALSE);
     }
 }
@@ -12485,6 +12485,7 @@ sub check_avahi {
     my $avahi          = `avahi-browse -t -p -k -r _lyricue._tcp`;
     my @displays       = split(/\n/, $avahi);
     my $dcount         = 0;
+    my $mcount         = 0;
     my $pcount         = 0;
     my $local_preview  = FALSE;
     my $local_hostname = hostname();
@@ -12502,6 +12503,9 @@ sub check_avahi {
                     if (($type eq "normal") || ($type eq "simple")) {
                         $globals->{'displays'}[$dcount++] =
                           $hostname . ":" . $display_items[8];
+                    } elsif ($type eq "miniview") {
+                        $globals->{'miniviews'}[$mcount++] =
+                          $hostname . ":" . $display_items[8];
                     } elsif ($type eq "preview") {
                         $globals->{'previews'}[$pcount++] =
                           $hostname . ":" . $display_items[8];
@@ -12516,6 +12520,7 @@ sub check_avahi {
         }
     }
     $globals->{'displays'}[$dcount] = "";
+    $globals->{'miniviews'}[$mcount] = "";
     $globals->{'previews'}[$pcount] = "";
     if ($config->{'DynamicPreview'} && !$local_preview) {
         debug("preview gone");

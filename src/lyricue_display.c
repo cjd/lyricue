@@ -53,6 +53,7 @@ int server_mode = NORMAL_SERVER;
 gchar *dbhostname = "localhost";
 gchar *geometry = NULL;
 gchar *profile = NULL;
+gchar *extra_data = NULL;
 unsigned long windowid = 0;
 gchar hostname[16];
 
@@ -69,6 +70,8 @@ static GOptionEntry entries[] = {
      "port_number"},
     {"miniview", 'm', 0, G_OPTION_ARG_INT, &windowid, "Embed in windowid",
      "windowid"},
+    {"extra", 'e', 0, G_OPTION_ARG_STRING, &extra_data, "Extra data to report to avahi",
+     "data"},
     {"window", 'w', 0, G_OPTION_ARG_NONE, &windowed, "Run in a window", NULL},
     {"debug", 'd', 0, G_OPTION_ARG_NONE, &debugging, "Enable debug output",
      NULL},
@@ -125,14 +128,17 @@ main (int argc, char *argv[])
     // Setup network
     GSocketService *service = g_socket_service_new ();
     GInetAddress *address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
-    g_snprintf (argv[0], 29, "Lyricue Display on port %04d", server_port);
-    l_debug ("Process Name:%s", argv[0]);
 
     if (!g_socket_listener_add_inet_port
         (G_SOCKET_LISTENER (service), server_port, NULL, NULL)) {
         l_debug ("Unable to listen on port %d", server_port);
-        return EXIT_FAILURE;
+        server_port = g_socket_listener_add_any_inet_port
+                        (G_SOCKET_LISTENER (service), NULL, NULL);
+        if (server_port == 0) {
+            return EXIT_FAILURE;
+        }
     }
+    l_debug("Listening on port %d", server_port);
     g_object_unref (address);
     g_socket_service_start (service);
     g_signal_connect (service, "incoming", G_CALLBACK (new_connection), NULL);
@@ -909,7 +915,7 @@ update_miniview (const char *command)
         gpointer key, value;
         g_hash_table_iter_init(&iter, miniviews);
         while (g_hash_table_iter_next(&iter, &key, &value)) {
-            l_debug("Updating miniview %s",value);
+            l_debug("Updating miniview %s on %s",key,value);
             GSocketClient *client = g_socket_client_new ();
             GSocketConnection *conn =
               g_socket_client_connect_to_host (client, value, 2348, NULL,
