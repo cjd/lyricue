@@ -6816,6 +6816,9 @@ sub load_config {
           $globals->{'snapshot_width'} / $globals->{'display_aspect'};
     }
 
+    if (defined $widgets->{'main'}) {
+        $widgets->{'main'}->get_object('windowMain')->set_title(gettext("Lyricue")." - ".$globals->{'profile'});
+    }
     return $conf;
 }
 
@@ -12570,7 +12573,7 @@ sub check_tracker {
     }
 
     ## FIXME - need to handle multiple servers running
-    if ($status eq "") {
+    if ($status ne "") {
         my $blank_text =
           $widgets->{'main'}->get_object('buttonMainClear')->get_active();
         my $blank_bg =
@@ -14536,12 +14539,13 @@ sub select_profile {
                 undef $widgets->{'preview'};
                 kill 9, $globals->{'preview_pid'};
             }
-            if ($widgets->{'miniview'}) {
-                $widgets->{'miniview'}->destroy;
-                undef $widgets->{'miniview'};
-                kill 9, $globals->{'miniview_pid'};
+            foreach my $display (keys $widgets->{'miniview'}) {
+                $widgets->{'miniview'}->{$display}->destroy;
+                undef $widgets->{'miniview'}->{$display};
+                kill 9, $globals->{'miniview_pid'}->{$display};
             }
             $config = load_config($globals->{'profile'});
+            check_avahi();
             init_preview();
             init_miniview();
             choose_playlist();
