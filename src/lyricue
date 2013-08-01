@@ -12483,7 +12483,7 @@ sub db_updatedb_lyricDb {
 # SOURCE
 #
 sub check_avahi {
-    debug("Check Avahi");
+    #debug("Check Avahi");
     $res->discover;
     my $local_preview  = FALSE;
     my $local_hostname = hostname();
@@ -14569,8 +14569,14 @@ sub toggle_preview {
 
 sub toggle_server_active {
     my ($widget, $event, $display) = @_;
-    debug("Toggle server active for ".$globals->{'displays'}->{$display});
-    if ($globals->{'displays'}->{$display}){
+    if ($globals->{'displays'}->{$display} ){
+        debug("Set server inactive for ".$display);
+        $globals->{'displays'}->{$display}=FALSE;
+        $widgets->{'miniview_frame'}->{$display}->set_label($display." - ".gettext("inactive"));
+    } else {
+        debug("Set server active for ".$display);
+        $globals->{'displays'}->{$display}=TRUE;
+        $widgets->{'miniview_frame'}->{$display}->set_label($display);
     }
 }
 
