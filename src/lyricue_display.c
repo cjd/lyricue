@@ -42,12 +42,11 @@ int current_item = 0;
 int current_list = 0;
 GHashTable *config = NULL;
 GHashTable *miniviews = NULL;
-#define SERVER_PORT 2346
 
 // Command line options
 gboolean windowed = FALSE;
 gboolean debugging = FALSE;
-int server_port = SERVER_PORT;
+int server_port = 2346;
 gchar *server_type = "normal";
 int server_mode = NORMAL_SERVER;
 gchar *dbhostname = "localhost";
