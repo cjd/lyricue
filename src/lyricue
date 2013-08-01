@@ -4096,8 +4096,8 @@ sub preview_display {
         return;
     }
     foreach my $display (keys $globals->{'previews'}) {
-        my @display_items = split(/:/, $globals->{'previews'}->{$display});
-        debug("Updating Preview " . $globals->{'previews'}->{$display});
+        my @display_items = split(/:/, $display);
+        debug("Updating Preview " . $display);
         if (
             my $server = IO::Socket::INET->new(
                 Proto    => "tcp",
@@ -12490,6 +12490,10 @@ sub check_avahi {
     foreach my $display (keys $globals->{'displays'}) {
         $globals->{'displays'}->{$display} |= GONE;
     }
+    for (keys $globals->{'previews'}) {
+        delete $globals->{'previews'}->{$_};
+    }
+
     foreach my $entry ($res->entries) {
         my $hostname = $entry->hostname;
         $hostname =~ s/.local$//g;
