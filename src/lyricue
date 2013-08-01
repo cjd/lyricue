@@ -13877,7 +13877,12 @@ sub firstrun_prepare {
 
         # Database
         $header = gettext("Database login");
-        firstrun_pw_check();
+        if (defined $lyricDbh) {
+            $widgets->{'firstrun'}->set_page_complete($page, TRUE);
+            $widgets->{'firstrun'}->set_current_page ($widgets->{'firstrun'}->get_current_page+1);      
+        } else {
+            firstrun_pw_check();
+        }
     } elsif ($widgets->{'firstrun'}->get_current_page == 3) {
 
         # Server
@@ -14540,8 +14545,10 @@ sub select_profile {
                 kill 9, $globals->{'preview_pid'};
             }
             foreach my $display (keys $widgets->{'miniview'}) {
-                $widgets->{'miniview'}->{$display}->destroy;
-                undef $widgets->{'miniview'}->{$display};
+                if (defined $widgets->{'miniview'}->{$display}) {
+                    $widgets->{'miniview'}->{$display}->destroy;
+                    delete $widgets->{'miniview'}->{$display};
+                }
                 kill 9, $globals->{'miniview_pid'}->{$display};
             }
             $config = load_config($globals->{'profile'});
