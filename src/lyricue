@@ -101,7 +101,10 @@ Lyric_interface Version ##VERSION##
 # Modules we use.
 #
 use strict;
+use Time::HiRes qw(tv_interval gettimeofday);
 use warnings;
+use threads;
+use threads::shared;
 use DBI;
 use POSIX;
 use locale;
@@ -119,7 +122,6 @@ use File::MimeInfo qw/globs/;
 use Cwd qw(abs_path);
 use File::Basename;
 use Sys::Hostname;
-use Net::Bonjour;
 
 eval { require Locale::gettext };
 
@@ -195,9 +197,7 @@ $globals->{'usesword'}    = TRUE;
 $globals->{'mediadb'}     = "mediaDb";
 $globals->{'sortby'}      = "title";
 $globals->{'bg_previews'} = TRUE;
-$globals->{'previews'} = {};
-$globals->{'miniviews'} = {};
-$globals->{'displays'} = {};
+my (%previews, %miniviews, %displays, $local_preview) :shared;
 if ($^O eq 'MSWin32') {
     $globals->{'diatheke'} = "";
 } else {
@@ -516,7 +516,6 @@ if ($globals->{'trayicon'}) {
 $0 = "Lyricue Interface";
 
 $globals->{'thumbnail_factory'} = Gnome2::ThumbnailFactory->new('normal');
-my $res = Net::Bonjour->new("lyricue","tcp");
 check_avahi();
 init_mainWindow();
 $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data} = -1;
@@ -527,7 +526,7 @@ $widgets->{'main'}->get_object('toolbuttonPlayCancel')->hide;
 
 # Setup background tasks
 $globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
-$globals->{'avahi_timer'}   = Glib::Timeout->add(5000, \&check_avahi);
+$globals->{'avahi_timer'}   = Glib::Timeout->add(3000, \&check_avahi);
 $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
 Gtk2->main();
@@ -563,6 +562,9 @@ sub close_main {
     }
     $mediaDbh->disconnect;
     Gtk2->main_quit;
+    if ($globals->{'avahi_thread'}) {
+        $globals->{'avahi_thread'}->detach();
+    }
     if ($globals->{'editview_pid'}) {
         debug("Killing $globals->{'editview_pid'}");
         kill 9, $globals->{'editview_pid'};
@@ -571,7 +573,7 @@ sub close_main {
         debug("Killing $globals->{'preview_pid'}");
         kill 9, $globals->{'preview_pid'};
     }
-    foreach my $display (keys $globals->{'miniview_pid'}) {
+    foreach my $display (keys %$globals->{'miniview_pid'}) {
         debug("Killing $globals->{'miniview_pid'}->{$display}");
         kill 9, $globals->{'miniview_pid'}->{$display};
     }
@@ -3999,14 +4001,15 @@ sub update_display {
     $secondary =~ s/:/#SEMI#/g;
     debug("Command: " . $command . ":" . $primary . ":" . $secondary);
 
-    if (!defined $globals->{'displays'} || keys($globals->{'displays'}) == 0) {
+    #lock (%displays);
+    if (keys(%displays) == 0) {
         debug("No displays running");
         return;
     }
-    foreach my $display (keys $globals->{'displays'}) {
-        if ($globals->{'displays'}->{$display}) {
+    foreach my $display (keys %displays) {
+        if ($displays{$display}) {
             my @display_items = split(/:/, $display);
-            debug("Updating " . $globals->{'displays'}->{$display});
+            debug("Updating " . $displays{$display});
             if (
                 my $server = IO::Socket::INET->new(
                     Proto    => "tcp",
@@ -4091,11 +4094,12 @@ sub preview_display {
     debug("Preview command: " . $command . ":" . $primary . ":" . $secondary);
 
     my $display = 0;
-    if (!defined $globals->{'previews'}  || scalar keys $globals->{'previews'} == 0) {
+    #lock (%previews);
+    if (scalar keys %previews == 0) {
         debug("No preview displays running");
         return;
     }
-    foreach my $display (keys $globals->{'previews'}) {
+    foreach my $display (keys %previews) {
         my @display_items = split(/:/, $display);
         debug("Updating Preview " . $display);
         if (
@@ -9467,13 +9471,17 @@ sub init_preview {
 #
 sub init_miniview {
     # Start/stop miniview as needed
+debug("miniview");
     if ($config->{'Miniview'}) {
         $widgets->{'main'}->get_object('vboxCurrent')->show();
         $widgets->{'main'}->get_object('checkCurrent')->set_active(TRUE);
-        foreach my $display (keys $globals->{'displays'}) {
-            if (($globals->{'displays'}->{$display} & GONE) == GONE) {
+        #lock (%displays);
+        #lock (%miniviews);
+        foreach my $display (keys %displays) {
+            print $display.":".$displays{$display}."\n";
+            if (($displays{$display} & GONE) == GONE) {
                 close_miniview($display);
-                delete $globals->{'displays'}->{$display};
+                delete $displays{$display};
             } elsif (!defined($widgets->{'miniview'}->{$display})) {
                 $widgets->{'miniview'}->{$display} = Gtk2::Socket->new;
                 $widgets->{'miniview'}->{$display}->set_size_request(100, 75);
@@ -9519,16 +9527,20 @@ sub init_miniview {
                 $widgets->{'miniview_event'}->{$display}->signal_connect(
                     "button_release_event", "toggle_server_active", $display);
             }
-            if (defined $globals->{'miniviews'}->{$display}) {
-                $globals->{'miniviews'}->{$display} &= 1; # Clear check bit
+            if ($miniviews{$display}) {
+                $miniviews{$display} &= 1; # Clear check bit
             }
         }
     } else {
-        foreach my $display(keys $widgets->{'miniview'}) {
-            close_miniview($display);
+        if (defined $widgets->{'miniview'}) {
+            foreach my $display(keys $widgets->{'miniview'}) {
+                close_miniview($display);
+            }
         }
-        $widgets->{'main'}->get_object('vboxCurrent')->hide();
-        $widgets->{'main'}->get_object('checkCurrent')->set_active(FALSE);
+        if (defined $widgets->{'main'}) {
+            $widgets->{'main'}->get_object('vboxCurrent')->hide();
+            $widgets->{'main'}->get_object('checkCurrent')->set_active(FALSE);
+        }
     }
 }
 
@@ -12486,43 +12498,19 @@ sub db_updatedb_lyricDb {
 # SOURCE
 #
 sub check_avahi {
-    #debug("Check Avahi");
-    $res->discover;
-    my $local_preview  = FALSE;
-    my $local_hostname = hostname();
-    foreach my $display (keys $globals->{'displays'}) {
-        $globals->{'displays'}->{$display} |= GONE;
+    debug("Check Avahi");
+    if (! defined $globals->{'avahi_thread'}) {
+        $globals->{'avahi_thread'} = threads->create(\&avahi_thread);
     }
-    for (keys $globals->{'previews'}) {
-        delete $globals->{'previews'}->{$_};
+    
+    #lock(%displays);
+    foreach my $display (keys %displays) {
+        print $display."-".$displays{$display};
     }
 
-    foreach my $entry ($res->entries) {
-        my $hostname = $entry->hostname;
-        $hostname =~ s/.local$//g;
-        my $type    = $entry->attribute("type");
-        my $profile = $entry->attribute("profile");
-        my $extra_data = $entry->attribute("data");
-        if ($profile eq $globals->{'profile'}) {
-            my $host=$hostname . ":" . $entry->port;
-            if (($type eq "normal") || ($type eq "simple")) {
-                if (defined $globals->{'displays'}->{$host}) {
-                    $globals->{'displays'}->{$host} &= TRUE;
-                } else {
-                    $globals->{'displays'}->{$host} = TRUE;
-                }
-            } elsif ($type eq "miniview") {
-                $globals->{'miniviews'}->{$extra_data} = TRUE;
-            } elsif ($type eq "preview") {
-                $globals->{'previews'}->{$host} = TRUE;
-                if ($config->{'DynamicPreview'}
-                    && ($hostname eq $local_hostname))
-                {
-                    $local_preview = TRUE;
-                }
-            }
-        }
-    }
+    init_miniview();
+    #lock ($local_preview);
+    $config->{'DynamicPreview'} =FALSE;
     if ($config->{'DynamicPreview'} && !$local_preview) {
         debug("preview gone");
         if (defined $widgets->{'preview'}) {
@@ -12532,9 +12520,72 @@ sub check_avahi {
         }
         init_preview();
     }
-    init_miniview();
-
     return TRUE;
+}
+
+sub avahi_thread {
+    use Net::Bonjour;
+    open(LG,">>/tmp/l.log");
+    print LG "discover\n";
+    close LG;
+    my $local_hostname = hostname();
+    while (TRUE) {
+        my $res = Net::Bonjour->new("lyricue","tcp");
+        open(LG,">>/tmp/l.log");
+        print LG time."discover start\n";
+print LG $res;
+print LG "\n";
+        close LG;
+        $res->discover;
+        open(LG,">>/tmp/l.log");
+        print LG time."discover done\n";
+        close LG;
+            #lock (%displays);
+            #lock (%previews);
+            #lock (%miniviews);
+            #lock ($local_preview);
+            $local_preview  = FALSE;
+            foreach my $display (keys %displays) {
+                $displays{$display} |= GONE;
+            }
+            for (keys %previews) {
+                delete $previews{$_};
+            }
+    
+            foreach my $entry ($res->entries) {
+                my $hostname = $entry->hostname;
+                open(LG,">>/tmp/l.log");
+                print LG $hostname.":".$entry->port."\n";
+                close LG;
+                $hostname =~ s/.local$//g;
+                my $type    = $entry->attribute("type");
+                my $profile = $entry->attribute("profile");
+                my $extra_data = $entry->attribute("data");
+                if ($profile eq $globals->{'profile'}) {
+                    my $host=$hostname . ":" . $entry->port;
+                    if (($type eq "normal") || ($type eq "simple")) {
+                        if (defined $displays{$host}) {
+                            $displays{$host} &= TRUE;
+                        } else {
+                            $displays{$host} = TRUE;
+                        }
+                    } elsif ($type eq "miniview") {
+                        $miniviews{$extra_data} = TRUE;
+                    } elsif ($type eq "preview") {
+                        $previews{$host} = TRUE;
+                        if ($hostname eq $local_hostname) {
+                            $local_preview = TRUE;
+                        }
+                    }
+                }
+            }
+        open(LG,">>/tmp/l.log");
+        print LG time."done\n";
+        close LG;
+    }
+        open(LG,">>/tmp/l.log");
+        print LG time."end\n";
+        close LG;
 }
 
 #****f* lyricue/check_tracker
@@ -12615,8 +12666,8 @@ sub check_tracker {
         $hscale->set_value($position);
         $position = sprintf("%d:%02d", $position / 60, $position % 60);
         $duration = sprintf("%d:%02d", $duration / 60, $duration % 60);
-        $widgets->{'main'}->get_object('labelMediaPosition')
-          ->set_text($position . "/" . $duration);
+        #$widgets->{'main'}->get_object('labelMediaPosition')
+        #  ->set_text($position . "/" . $duration);
         if ($status) {
             $widgets->{'main'}->get_object('buttonMediaPlay')->hide;
             $widgets->{'main'}->get_object('buttonMediaPause')->show_all;
@@ -14584,13 +14635,13 @@ sub toggle_preview {
 
 sub toggle_server_active {
     my ($widget, $event, $display) = @_;
-    if ($globals->{'displays'}->{$display} ){
+    if ($displays{$display} ){
         debug("Set server inactive for ".$display);
-        $globals->{'displays'}->{$display}=FALSE;
+        $displays{$display}=FALSE;
         $widgets->{'miniview_frame'}->{$display}->set_label($display." - ".gettext("inactive"));
     } else {
         debug("Set server active for ".$display);
-        $globals->{'displays'}->{$display}=TRUE;
+        $displays{$display}=TRUE;
         $widgets->{'miniview_frame'}->{$display}->set_label($display);
     }
 }
@@ -14598,13 +14649,13 @@ sub toggle_server_active {
 sub close_miniview {
     my ($display) =@_;
     debug("Removing ".$display); 
-    if (defined $globals->{'miniviews'}->{$display}) {
-    print $display.":".$globals->{'miniviews'}->{$display}."\n";
+    if (defined $miniviews{$display}) {
+    print $display.":".$miniviews{$display}."\n";
     $widgets->{'miniview_frame'}->{$display}->destroy;
     undef $widgets->{'miniview_frame'}->{$display};
     $widgets->{'miniview'}->{$display}->destroy;
     undef $widgets->{'miniview'}->{$display};
     kill 9, $globals->{'miniview_pid'}->{$display};
-    undef $globals->{'miniviews'}->{$display};
+    undef $miniviews{$display};
     }
 }
