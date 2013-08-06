@@ -237,6 +237,7 @@ $globals->{'thumb_width'}        = 128;
 $globals->{'snapshot_width'}     = 256;
 $globals->{'firstrun'}           = FALSE;
 $globals->{'image_playlist'}     = FALSE;
+$globals->{'local_hostname'}     = hostname();
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -516,7 +517,7 @@ if ($globals->{'trayicon'}) {
 $0 = "Lyricue Interface";
 
 $globals->{'thumbnail_factory'} = Gnome2::ThumbnailFactory->new('normal');
-check_avahi();
+check_displays();
 init_mainWindow();
 $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data} = -1;
 choose_playlist();
@@ -525,8 +526,7 @@ choose_playlist();
 $widgets->{'main'}->get_object('toolbuttonPlayCancel')->hide;
 
 # Setup background tasks
-$globals->{'tracker_timer'} = Glib::Timeout->add(1000, \&check_tracker);
-$globals->{'avahi_timer'}   = Glib::Timeout->add(3000, \&check_avahi);
+$globals->{'status_timer'} = Glib::Timeout->add(1000, \&check_status);
 $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
 Gtk2->main();
@@ -562,9 +562,6 @@ sub close_main {
     }
     $mediaDbh->disconnect;
     Gtk2->main_quit;
-    if ($globals->{'avahi_thread'}) {
-        $globals->{'avahi_thread'}->detach();
-    }
     if ($globals->{'editview_pid'}) {
         debug("Killing $globals->{'editview_pid'}");
         kill 9, $globals->{'editview_pid'};
@@ -4073,8 +4070,7 @@ sub preview_playlist_item {
 # SYNOPSIS
 #   preview_display ()
 # FUNCTION
-#   1. Start new server instance for preview windows (if required)
-#   2. Issues commands to the preview server
+#   Issues commands to the preview server
 # INPUTS
 # OUTPUT
 #   Updated display
@@ -4094,7 +4090,6 @@ sub preview_display {
     debug("Preview command: " . $command . ":" . $primary . ":" . $secondary);
 
     my $display = 0;
-    #lock (%previews);
     if (scalar keys %previews == 0) {
         debug("No preview displays running");
         return;
@@ -4659,7 +4654,6 @@ sub print_songs {
 #****f* lyricue/backdrop_clicked
 # NAME
 #   backdrop_clicked
-# SYNOPSIS
 #   backdrop_clicked ($widget)
 # FUNCTION
 #   A background has been clicked son change the bg in the server and update the two previews on the main window
@@ -7998,7 +7992,6 @@ sub imgdir_load {
                     $file = fromutf($file);
                     $store->set($iter, 0, $file, 2,
                         $type . ";" . $dirname . "/" . $file);
-                    print $type . ";" . $dirname . "/" . $file . "\n";
                 }
             }
             closedir DIR;
@@ -9471,14 +9464,12 @@ sub init_preview {
 #
 sub init_miniview {
     # Start/stop miniview as needed
-debug("miniview");
     if ($config->{'Miniview'}) {
         $widgets->{'main'}->get_object('vboxCurrent')->show();
         $widgets->{'main'}->get_object('checkCurrent')->set_active(TRUE);
         #lock (%displays);
         #lock (%miniviews);
         foreach my $display (keys %displays) {
-            print $display.":".$displays{$display}."\n";
             if (($displays{$display} & GONE) == GONE) {
                 close_miniview($display);
                 delete $displays{$display};
@@ -11439,7 +11430,6 @@ sub navigator_next {
     $endverse++;
     while ($loop) {
         my $maxv = get_max_verse($book, $chapter, $startverse, $endverse);
-        print $maxv. "\n";
         if ($maxv < $endverse) {
             $startverse++;
         } else {
@@ -12486,31 +12476,54 @@ sub db_updatedb_lyricDb {
 
 #***
 
-#****f* lyricue/check_avahi
+#****f* lyricue/check_displays
 # NAME
-#   check_avahi
+#   check_displays
 # SYNOPSIS
-#   check_avahi()
+#   check_displays()
 # FUNCTION
 #
 # INPUTS
 # OUTPUT
 # SOURCE
 #
-sub check_avahi {
-    debug("Check Avahi");
-    if (! defined $globals->{'avahi_thread'}) {
-        $globals->{'avahi_thread'} = threads->create(\&avahi_thread);
-    }
-    
-    #lock(%displays);
+sub check_displays{
+    #debug("Check Displays");
+
+    $local_preview  = FALSE;
     foreach my $display (keys %displays) {
-        print $display."-".$displays{$display};
+        $displays{$display} |= GONE;
+    }
+    for (keys %previews) {
+        delete $previews{$_};
+    }
+
+    my $query = "SELECT host, type FROM status WHERE TIMEDIFF(NOW(), lastupdate) < '00:00:02' AND profile='". $globals->{'profile'} . "'";
+    $sth = $lyricDbh->prepare($query)
+      || database_failure($errorcodes->{'sqlprepare'}, $! . "\nSQL: " . $query);
+    $rv = $sth->execute
+      || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
+
+    while ($row = $sth->fetchrow_hashref()) {
+        if (($row->{'type'} eq "normal") || ($row->{'type'} eq "simple")) {
+            if (defined $displays{$row->{'host'}}) {
+                $displays{$row->{'host'}} &= TRUE;
+            } else {
+                $displays{$row->{'host'}} = TRUE;
+            }
+        } elsif ($row->{'type'} =~ /^miniview/) {
+            my $extra_data = $row->{'type'};
+            $extra_data =~ s/^miniview//;
+            $miniviews{$extra_data} = TRUE;
+        } elsif ($row->{'type'} eq "preview") {
+            $previews{$row->{'host'}} = TRUE;
+            if ($row->{'host'} =~ /^$globals->{'local_hostname'}/) {
+                $local_preview = TRUE;
+            }
+        }
     }
 
     init_miniview();
-    #lock ($local_preview);
-    $config->{'DynamicPreview'} =FALSE;
     if ($config->{'DynamicPreview'} && !$local_preview) {
         debug("preview gone");
         if (defined $widgets->{'preview'}) {
@@ -12523,87 +12536,24 @@ sub check_avahi {
     return TRUE;
 }
 
-sub avahi_thread {
-    use Net::Bonjour;
-    open(LG,">>/tmp/l.log");
-    print LG "discover\n";
-    close LG;
-    my $local_hostname = hostname();
-    while (TRUE) {
-        my $res = Net::Bonjour->new("lyricue","tcp");
-        open(LG,">>/tmp/l.log");
-        print LG time."discover start\n";
-print LG $res;
-print LG "\n";
-        close LG;
-        $res->discover;
-        open(LG,">>/tmp/l.log");
-        print LG time."discover done\n";
-        close LG;
-            #lock (%displays);
-            #lock (%previews);
-            #lock (%miniviews);
-            #lock ($local_preview);
-            $local_preview  = FALSE;
-            foreach my $display (keys %displays) {
-                $displays{$display} |= GONE;
-            }
-            for (keys %previews) {
-                delete $previews{$_};
-            }
-    
-            foreach my $entry ($res->entries) {
-                my $hostname = $entry->hostname;
-                open(LG,">>/tmp/l.log");
-                print LG $hostname.":".$entry->port."\n";
-                close LG;
-                $hostname =~ s/.local$//g;
-                my $type    = $entry->attribute("type");
-                my $profile = $entry->attribute("profile");
-                my $extra_data = $entry->attribute("data");
-                if ($profile eq $globals->{'profile'}) {
-                    my $host=$hostname . ":" . $entry->port;
-                    if (($type eq "normal") || ($type eq "simple")) {
-                        if (defined $displays{$host}) {
-                            $displays{$host} &= TRUE;
-                        } else {
-                            $displays{$host} = TRUE;
-                        }
-                    } elsif ($type eq "miniview") {
-                        $miniviews{$extra_data} = TRUE;
-                    } elsif ($type eq "preview") {
-                        $previews{$host} = TRUE;
-                        if ($hostname eq $local_hostname) {
-                            $local_preview = TRUE;
-                        }
-                    }
-                }
-            }
-        open(LG,">>/tmp/l.log");
-        print LG time."done\n";
-        close LG;
-    }
-        open(LG,">>/tmp/l.log");
-        print LG time."end\n";
-        close LG;
-}
-
-#****f* lyricue/check_tracker
+#****f* lyricue/check_status
 # NAME
-#   check_tracker
+#   check_status
 # SYNOPSIS
-#   check_tracker()
+#   check_status()
 # FUNCTION
 #
 # INPUTS
 # OUTPUT
 # SOURCE
 #
-sub check_tracker {
+sub check_status {
 
-    #debug("Check tracker");
+    #debug("Check status");
+
+    # Check for playlist items of simple/normal displays
     my $query =
-"SELECT title,host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE st.profile='"
+"SELECT title,host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE (st.type='normal' OR st.type='simple') AND st.profile='"
       . $globals->{'profile'} . "'";
 
     my $sth = $lyricDbh->prepare($query)
@@ -12679,6 +12629,8 @@ sub check_tracker {
         $globals->{'video_skip_signal'} =
           $hscale->signal_connect('value-changed', "video_skip");
     }
+
+    check_displays();
     return TRUE;
 }
 
@@ -14603,7 +14555,7 @@ sub select_profile {
                 kill 9, $globals->{'miniview_pid'}->{$display};
             }
             $config = load_config($globals->{'profile'});
-            check_avahi();
+            check_displays();
             init_preview();
             init_miniview();
             choose_playlist();
@@ -14648,14 +14600,13 @@ sub toggle_server_active {
 
 sub close_miniview {
     my ($display) =@_;
-    debug("Removing ".$display); 
+    debug("Removing miniview for ".$display); 
     if (defined $miniviews{$display}) {
-    print $display.":".$miniviews{$display}."\n";
-    $widgets->{'miniview_frame'}->{$display}->destroy;
-    undef $widgets->{'miniview_frame'}->{$display};
-    $widgets->{'miniview'}->{$display}->destroy;
-    undef $widgets->{'miniview'}->{$display};
-    kill 9, $globals->{'miniview_pid'}->{$display};
-    undef $miniviews{$display};
+        $widgets->{'miniview_frame'}->{$display}->destroy;
+        undef $widgets->{'miniview_frame'}->{$display};
+        $widgets->{'miniview'}->{$display}->destroy;
+        undef $widgets->{'miniview'}->{$display};
+        kill 9, $globals->{'miniview_pid'}->{$display};
+        undef $miniviews{$display};
     }
 }

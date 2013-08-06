@@ -468,7 +468,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
 
 
     if (g_strcmp0 (line[0], "db") == 0) {
-        do_query (mediaDb,
+        do_query (FALSE, mediaDb,
                   "SELECT format, description, data, LENGTH(data) FROM media WHERE id=%s",
                   line[1]);
         MYSQL_ROW row;
@@ -588,13 +588,9 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
               clutter_gst_video_texture_get_playbin (CLUTTER_GST_VIDEO_TEXTURE
                                                      (background));
 #endif
+            g_signal_connect (background, "eos", G_CALLBACK (loop_video),
+                              NULL);
             if (server_mode != NORMAL_SERVER) {
-                g_signal_connect (background, "eos", G_CALLBACK (loop_video),
-                                  NULL);
-                bg_is_video =
-                  g_timeout_add_seconds (1, (GSourceFunc) update_tracker,
-                                         NULL);
-            } else {
                 g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
                 bg_is_video =
                   g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
@@ -670,9 +666,6 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
         l_debug ("Playing DVD title:%d", title);
 
         if (server_mode != NORMAL_SERVER) {
-            bg_is_video =
-              g_timeout_add_seconds (1, (GSourceFunc) update_tracker, NULL);
-        } else {
             g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
             bg_is_video =
               g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
@@ -710,9 +703,6 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
 #endif
 
         if (server_mode != NORMAL_SERVER) {
-            bg_is_video =
-              g_timeout_add_seconds (1, (GSourceFunc) update_tracker, NULL);
-        } else {
             g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
             bg_is_video =
               g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
@@ -753,7 +743,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
         foottext_bgcol =
           (gchar *) g_hash_table_lookup (config, "ShadowColour");
     }
-    do_query (mediaDb,
+    do_query (FALSE, mediaDb,
               "SELECT textcolour, shadowcolour FROM media WHERE CONCAT(\"db;\",id)=\"%s\" OR (format=\"file\" AND category=\"%s\")",
               current_bg, line[1]);
     MYSQL_RES *result;
@@ -1387,7 +1377,7 @@ playlist_snapshot(int playlist)
     MYSQL_RES *result;
 
     change_backdrop (default_bg, TRUE, NO_EFFECT);
-    do_query (lyricDb,
+    do_query (FALSE, lyricDb,
               "SELECT p1.playorder FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.playlist=p2.data LEFT JOIN playlist AS p3 ON p2.playlist=p3.data WHERE p1.playlist=%d OR p2.playlist=%d OR p3.playlist=%d ORDER BY p1.playorder",playlist,playlist,playlist);
     result = mysql_store_result (lyricDb);
     row = mysql_fetch_row (result);

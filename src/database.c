@@ -88,7 +88,7 @@ load_configuration ()
     MYSQL_ROW row;
     MYSQL_RES *result;
     int res =
-      do_query (lyricDb, "SELECT config_key,config_value FROM config WHERE profile='%s'", profile);
+      do_query (FALSE, lyricDb, "SELECT config_key,config_value FROM config WHERE profile='%s'", profile);
     if (res != 0) {
         return;
     }
@@ -108,7 +108,7 @@ load_configuration ()
 }
 
 int
-do_query (MYSQL * dbconnection, const char * format, ...)
+do_query (gboolean silent, MYSQL * dbconnection, const char * format, ...)
 {
     if (dbconnection != NULL) {
         GString *query = g_string_new (NULL);
@@ -117,7 +117,7 @@ do_query (MYSQL * dbconnection, const char * format, ...)
         g_string_vprintf (query, format, argp);
         va_end (argp);
     
-        l_debug ("SQL: %s", query->str);
+        if (!silent) l_debug ("SQL: %s", query->str);
         if (mysql_query (dbconnection, query->str)) {
             l_debug (_("SQL Error %u: %s"), mysql_errno (dbconnection),
                     mysql_error (dbconnection));

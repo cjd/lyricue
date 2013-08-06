@@ -100,11 +100,11 @@ do_grab_verse_db (const gchar * book, int chapter_start, int chapter_end,
     if (bible_table == NULL) return "";
 
     if (chapter_start == chapter_end) {
-        do_query (bibleDb,
+        do_query (FALSE, bibleDb,
                   "SELECT chapternum,versenum,verse FROM %s WHERE book LIKE \"%s\%\" AND chapternum=%d AND versenum >=%d AND versenum <=%d",
                   bible_table, book, chapter_start, verse_start, verse_end);
     } else {
-        do_query (bibleDb,
+        do_query (FALSE, bibleDb,
                   "SELECT chapternum,versenum,verse FROM %s WHERE book LIKE \"%s\%\" AND ((chapternum = %d AND versenum > %d) OR (chapternum > %d AND chapternum < %d) OR (chapternum = %d AND versenum < %d))",
                   bible_table, book, chapter_start, verse_start,
                   chapter_start, chapter_end, chapter_end, verse_end);
@@ -210,7 +210,7 @@ get_bibles()
         MYSQL_ROW row;
         result = mysql_list_tables(bibleDb, NULL);
         while ((row = mysql_fetch_row(result))) {
-            int res = do_query(bibleDb, "SELECT verse FROM %s WHERE book=\"Bible\"", row[0]);
+            int res = do_query(FALSE, bibleDb, "SELECT verse FROM %s WHERE book=\"Bible\"", row[0]);
             if (res == 0) {
                 MYSQL_RES *result2;
                 MYSQL_ROW row2;
@@ -266,7 +266,7 @@ get_maxchapter(const gchar * book)
     } else {
         MYSQL_ROW row;
         MYSQL_RES *result;
-        do_query(bibleDb, "SELECT MAX(chapternum) FROM %s WHERE book LIKE \"%s%%\"", bible_table, book);
+        do_query(FALSE, bibleDb, "SELECT MAX(chapternum) FROM %s WHERE book LIKE \"%s%%\"", bible_table, book);
         result = mysql_store_result(bibleDb);
         if ((row = mysql_fetch_row(result))) {
 l_debug("%s",row[0]);
@@ -309,7 +309,7 @@ get_maxverse(const gchar * options)
     } else {
         MYSQL_ROW row;
         MYSQL_RES *result;
-        do_query(bibleDb, "SELECT MAX(versenum) FROM %s WHERE book LIKE \"%s%%\" AND chapternum=\"%s\"", bible_table, verse_split[0], verse_split[1]);
+        do_query(FALSE, bibleDb, "SELECT MAX(versenum) FROM %s WHERE book LIKE \"%s%%\" AND chapternum=\"%s\"", bible_table, verse_split[0], verse_split[1]);
         result = mysql_store_result(bibleDb);
         if ((row = mysql_fetch_row(result))) {
             g_string_printf(retval, "%s",row[0]);
