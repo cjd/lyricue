@@ -238,6 +238,7 @@ $globals->{'snapshot_width'}     = 256;
 $globals->{'firstrun'}           = FALSE;
 $globals->{'image_playlist'}     = FALSE;
 $globals->{'local_hostname'}     = hostname();
+$globals->{'preview_starting'}   = 0;
 
 # Optional modules
 eval { require Gtk2::Spell };
@@ -3998,7 +3999,6 @@ sub update_display {
     $secondary =~ s/:/#SEMI#/g;
     debug("Command: " . $command . ":" . $primary . ":" . $secondary);
 
-    #lock (%displays);
     if (keys(%displays) == 0) {
         debug("No displays running");
         return;
@@ -9383,6 +9383,7 @@ sub init_preview {
     # Start/stop preview as needed
     if ($config->{'DynamicPreview'}) {
         if (!defined($widgets->{'preview'})) {
+            $globals->{'preview_starting'} = 5;
             $widgets->{'main'}->get_object('checkPreview')->set_active(TRUE);
             $widgets->{'main'}->get_object('framePreview')->show();
             $widgets->{'main'}->get_object('framePreview')
@@ -9433,6 +9434,9 @@ sub init_preview {
                     debug("Lyricue preview died..restarting\n");
                     $widgets->{'main'}->get_object('framePreview')
                       ->remove($widgets->{'preview'});
+                    $widgets->{'preview'}->destroy;
+                    undef $widgets->{'preview'};
+                    kill 9, $globals->{'preview_pid'};
                     init_preview();
                     1;
                 }
@@ -9467,8 +9471,6 @@ sub init_miniview {
     if ($config->{'Miniview'}) {
         $widgets->{'main'}->get_object('vboxCurrent')->show();
         $widgets->{'main'}->get_object('checkCurrent')->set_active(TRUE);
-        #lock (%displays);
-        #lock (%miniviews);
         foreach my $display (keys %displays) {
             if (($displays{$display} & GONE) == GONE) {
                 close_miniview($display);
@@ -12525,13 +12527,17 @@ sub check_displays{
 
     init_miniview();
     if ($config->{'DynamicPreview'} && !$local_preview) {
-        debug("preview gone");
-        if (defined $widgets->{'preview'}) {
-            $widgets->{'main'}->get_object('framePreview')
-              ->remove($widgets->{'preview'});
-            undef $widgets->{'preview'};
+        $globals->{'preview_starting'}--;
+        if ($globals->{'preview_starting'}<1) {
+            debug("preview gone");
+            $globals->{'preview_starting'}=0;
+            if (defined $widgets->{'preview'}) {
+                $widgets->{'main'}->get_object('framePreview')
+                  ->remove($widgets->{'preview'});
+                undef $widgets->{'preview'};
+            }
+            init_preview();
         }
-        init_preview();
     }
     return TRUE;
 }
