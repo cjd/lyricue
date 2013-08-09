@@ -563,7 +563,8 @@ sub close_main {
         debug("Killing $globals->{'preview_pid'}");
         kill 9, $globals->{'preview_pid'};
     }
-    foreach my $display (keys %$globals->{'miniview_pid'}) {
+    my $miniviews = $globals->{'miniview_pid'};
+    foreach my $display (keys %miniviews) {
         debug("Killing $globals->{'miniview_pid'}->{$display}");
         kill 9, $globals->{'miniview_pid'}->{$display};
     }
@@ -4804,41 +4805,6 @@ sub create_dialog_prefs {
         }
     }
 
-    my $model =
-      Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Gtk2::ListStore');
-    $query = "SELECT host,profile FROM profiles";
-    $sth   = do_query($lyricDbh, $query, FALSE);
-    while (my @row = $sth->fetchrow_array()) {
-        $model->set($model->append, 0, $row[0], 1, $row[1], 2, $combo_model);
-    }
-
-    # Profiles tab
-    $widgets->{'prefs'}->get_object('treeProfiles')->set_model($model);
-    $widgets->{'prefs'}->get_object('treeProfiles')
-      ->insert_column_with_attributes(
-        -1, 'Host', Gtk2::CellRendererText->new,
-        text     => 0,
-        editable => FALSE
-      );
-    my $combo_renderer = Gtk2::CellRendererCombo->new;
-    $combo_renderer->set(
-        text_column => 0,     # col in combo model with text to display
-        editable    => TRUE
-    );
-    $combo_renderer->signal_connect(
-        edited => sub {
-            my ($cell, $text_path, $new_text) = @_;
-            $model->set($model->get_iter_from_string($text_path), 1, $new_text);
-        }
-    );
-    $widgets->{'prefs'}->get_object('treeProfiles')
-      ->insert_column_with_attributes(
-        -1, 'Profile',
-        $combo_renderer,
-        text  => 1,
-        model => 2
-
-      );
 
     $widgets->{'prefs'}->get_object('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
@@ -4852,42 +4818,11 @@ sub create_dialog_prefs {
       ->signal_connect("button_press_event", "open_dialogColour", "Font");
     $widgets->{'prefs'}->get_object('entryPrefShadowColour')
       ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
-    $globals->{'hostname_change_signal'} =
-      $widgets->{'prefs'}->get_object('comboPrefsProfile')
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')
       ->signal_connect("changed", "change_pref_profile", "prefs");
 }
 
 #***
-
-sub apply_profile_change {
-    debug("Applying profile changes");
-    my $store = $widgets->{'prefs'}->get_object('treeProfiles')->get_model();
-    my $iter  = $store->get_iter_first;
-    while (defined $iter) {
-        my $host    = $store->get_value($iter, 0);
-        my $profile = $store->get_value($iter, 1);
-        my $query = "SELECT profile FROM profiles WHERE host='" . $host . "'";
-        my $sth   = do_query($lyricDbh, $query, FALSE);
-        my @row = $sth->fetchrow_array();
-        if (defined $row[0]) {
-            if ($row[0] ne $profile) {
-                $query =
-                    "UPDATE profiles SET profile = '"
-                  . $profile
-                  . "' WHERE host='"
-                  . $host . "'";
-                $sth = do_query($lyricDbh, $query, FALSE);
-            }
-        } else {
-            $query =
-                "INSERT INTO profiles SET ( profile, host) VALUES ( '"
-              . $profile . "', '"
-              . $host . "')";
-            $sth = do_query($lyricDbh, $query, FALSE);
-        }
-        $iter = $store->iter_next($iter);
-    }
-}
 
 #****f* lyricue/change_windowoffset
 # NAME
@@ -11727,7 +11662,7 @@ sub check_displays{
     }
 
     my $query = "SELECT host, type FROM status WHERE TIMEDIFF(NOW(), lastupdate) < '00:00:02' AND profile='". $globals->{'profile'} . "'";
-    $sth = do_query($lyricDbh, $query, FALSE);
+    $sth = do_query($lyricDbh, $query, TRUE);
 
     while ($row = $sth->fetchrow_hashref()) {
         if (($row->{'type'} eq "normal") || ($row->{'type'} eq "simple")) {
@@ -11785,7 +11720,7 @@ sub check_status {
 "SELECT title,host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE (st.type='normal' OR st.type='simple') AND st.profile='"
       . $globals->{'profile'} . "'";
 
-    my $sth = do_query($lyricDbh, $query, FALSE);
+    my $sth = do_query($lyricDbh, $query, TRUE);
     undef $globals->{'current_items'};
     my $status = "";
     while (my @row = $sth->fetchrow_array()) {
@@ -13811,4 +13746,145 @@ sub do_query {
     my $rv = $sth->execute
       || database_failure($errorcodes->{'sqlexecute'}, $! . "\nSQL: " . $query);
     return $sth;
+}
+
+sub load_profile_manager {
+    debug("Loading Profile Manager");
+    $widgets->{'profile'} = load_window("windowProfileManager");
+
+    my $query = "SELECT DISTINCT profile FROM config WHERE profile != ''";
+    my $sth   = do_query($lyricDbh, $query, FALSE);
+    my $combo_model = Gtk2::ListStore->new('Glib::String');
+    while (my @row = $sth->fetchrow_array()) {
+        $combo_model->set($combo_model->append, 0, $row[0]);
+    }
+
+    # Profiles tab
+    my $model =
+      Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Gtk2::ListStore');
+    $query = "SELECT host,profile FROM profiles";
+    $sth   = do_query($lyricDbh, $query, FALSE);
+    while (my @row = $sth->fetchrow_array()) {
+        $model->set($model->append, 0, $row[0], 1, $row[1], 2, $combo_model);
+    }
+
+    $widgets->{'profile'}->get_object('treeHosts')->set_model($model);
+    $widgets->{'profile'}->get_object('treeHosts')
+      ->insert_column_with_attributes(
+        -1, 'Host', Gtk2::CellRendererText->new,
+        text     => 0
+      );
+    my $combo_renderer = Gtk2::CellRendererCombo->new;
+    $combo_renderer->set(
+        text_column => 0,     # col in combo model with text to display
+        editable    => TRUE
+    );
+    $combo_renderer->signal_connect(
+        edited => sub {
+            my ($cell, $text_path, $new_text) = @_;
+            $model->set($model->get_iter_from_string($text_path), 1, $new_text);
+        }
+    );
+    $widgets->{'profile'}->get_object('treeHosts')
+      ->insert_column_with_attributes(
+        -1, 'Profile',
+        $combo_renderer,
+        text  => 1,
+        model => 2
+
+      );
+    $widgets->{'profile'}->get_object('treeProfile')->set_model($combo_model);
+    $widgets->{'profile'}->get_object('treeProfile')
+      ->insert_column_with_attributes(
+        -1, 'Profile Name', Gtk2::CellRendererText->new,
+        text     => 0
+      );
+    
+    $widgets->{'profile'}->get_object("windowProfileManager")->show_all;
+}
+
+sub profile_manager_create {
+    debug("Creating new profile");
+    my $newxml = load_window("dialogPromptEntry");
+    $newxml->get_object('dialogPromptEntry')
+      ->set_title(fromutf(gettext("Create new profile")));
+    $newxml->get_object('labelPromptE')
+      ->set_text(fromutf(gettext("Name of profile")));
+
+    my $response = $newxml->get_object('dialogPromptEntry')->run();
+    if ($response eq "ok") {
+        my $oldprofile = $globals->{'profile'};
+        $globals->{'profile'} =
+          $newxml->get_object('entryPromptE')->get_text();
+        firstrun_wizard();
+        Gtk2->main();
+        $globals->{'profile'} = $oldprofile;
+        load_config($globals->{'profile'});
+    }
+    close_dialog($newxml->get_object('dialogPromptEntry'));
+    close_dialog($widgets->{'profile'}->get_object('windowProfileManager'));
+    load_profile_manager();
+}
+sub profile_manager_remove {
+    debug("Removing profile");
+    my $selection = $widgets->{'profile'}->get_object('treeProfile')->get_selection;
+    if ($selection) {
+        my ($m, $i) = $selection->get_selected;
+        if ($m) {
+            my $profile = $m->get($i,0);
+            my $confirmxml = load_window("dialogConfirm");
+            $confirmxml->get_object('labelDelete')->set_text(gettext("Are you sure you wish to remove the profile \"").$profile."\"?");
+            $confirmxml->get_object('dialogConfirm')->set_title(gettext("Remove Profile \"").$profile."\"");
+            my $confirm = $confirmxml->get_object('dialogConfirm')->run();
+            if ($confirm eq "ok") {
+                my $query = "DELETE FROM config WHERE profile=\"".$profile."\"";
+                do_query($lyricDbh, $query, FALSE);
+                $query = "SELECT DISTINCT profile FROM profiles";
+                my $sth = do_query($lyricDbh, $query, FALSE);
+                my @row = $sth->fetchrow_array();
+                $query = "UPDATE profiles SET profile=\"".$row[0]."\"";
+                do_query($lyricDbh, $query, FALSE);
+                close_dialog($confirmxml->get_object('dialogConfirm'));
+                close_dialog($widgets->{'profile'}->get_object('windowProfileManager'));
+                load_profile_manager();
+            } else {
+                close_dialog($confirmxml->get_object('dialogConfirm'));
+            }
+        }
+    }
+}
+sub profile_manager_apply {
+    debug("Apply Host<->Profile mapping");
+    my $store = $widgets->{'profile'}->get_object('treeHosts')->get_model();
+    my $iter  = $store->get_iter_first;
+    while (defined $iter) {
+        my $host    = $store->get_value($iter, 0);
+        my $profile = $store->get_value($iter, 1);
+        my $query = "SELECT profile FROM profiles WHERE host='" . $host . "'";
+        my $sth   = do_query($lyricDbh, $query, FALSE);
+        my @row = $sth->fetchrow_array();
+        if (defined $row[0]) {
+            if ($row[0] ne $profile) {
+                $query =
+                    "UPDATE profiles SET profile = '"
+                  . $profile
+                  . "' WHERE host='"
+                  . $host . "'";
+                $sth = do_query($lyricDbh, $query, FALSE);
+            }
+        } else {
+            $query =
+                "INSERT INTO profiles SET ( profile, host) VALUES ( '"
+              . $profile . "', '"
+              . $host . "')";
+            $sth = do_query($lyricDbh, $query, FALSE);
+        }
+        $iter = $store->iter_next($iter);
+    }
+}
+
+sub profile_manager_revert {
+    debug("Revert Host<->Profile mapping");
+    close_dialog($widgets->{'profile'}->get_object('windowProfileManager'));
+    load_profile_manager();
 }
