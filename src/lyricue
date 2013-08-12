@@ -11941,6 +11941,20 @@ sub db_select {
       db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'}, TRUE);
     $mediaDbh =
       db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'}, TRUE);
+    use Net::Rendezvous::Publish;
+    my $publisher = Net::Rendezvous::Publish->new
+          or die "couldn't make a Responder object";
+    my $dbhost = $globals->{'mysqlhost'};
+    if ($dbhost eq "localhost") {
+        $dbhost = hostname();
+    }
+    my $service = $publisher->publish(
+            name => "Lyricue Interface",
+            type => '_lyricue._tcp',
+            port => 9,
+            txt => "database=".$dbhost
+    );
+
     $config->{'Bibles'} = get_bibles();
 }
 
