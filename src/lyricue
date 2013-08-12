@@ -13839,7 +13839,7 @@ sub profile_manager_remove {
             if ($confirm eq "ok") {
                 my $query = "DELETE FROM config WHERE profile=\"".$profile."\"";
                 do_query($lyricDbh, $query, FALSE);
-                $query = "SELECT DISTINCT profile FROM profiles";
+                $query = "SELECT DISTINCT profile FROM profiles WHERE profile !=\"".$profile."\"";
                 my $sth = do_query($lyricDbh, $query, FALSE);
                 my @row = $sth->fetchrow_array();
                 $query = "UPDATE profiles SET profile=\"".$row[0]."\"";
