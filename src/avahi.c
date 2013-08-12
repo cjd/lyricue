@@ -287,26 +287,32 @@ void resolve_callback(
             char *type = NULL;
             size_t *size=NULL;
             AvahiStringList *type_txt = avahi_string_list_find(txt,"type");
-            avahi_string_list_get_pair(type_txt,&type, &value, size);
-            l_debug("Type = %s",value);
-            if (g_strcmp0(value,"miniview") == 0) {
-                char *data="data";
-                char *extra_data;
-                size_t *size2=NULL;
-                AvahiStringList *data_txt = avahi_string_list_find(txt,"data");
-                avahi_string_list_get_pair(data_txt,&data, &extra_data, size2);
-                gchar *myhost = g_strdup_printf("%s:%u",hostname,server_port);
-                if (g_strcmp0(extra_data, myhost)==0) {
-                    gchar *host = g_strdup_printf("%s:%u",a, port);
-                    l_debug("Found miniview on %s", host);
-                    if (!g_hash_table_contains(miniviews,host)) {
-                        g_hash_table_insert(miniviews, g_strdup(name), host);
+            if (type_txt != NULL){
+                avahi_string_list_get_pair(type_txt,&type, &value, size);
+                l_debug("Type = %s",value);
+                if (g_strcmp0(value,"miniview") == 0) {
+                    char *data="data";
+                    char *extra_data;
+                    size_t *size2=NULL;
+                    AvahiStringList *data_txt = avahi_string_list_find(txt,"data");
+                    if (data_txt != NULL) {
+                        avahi_string_list_get_pair(data_txt,&data, &extra_data, size2);
+                        gchar *myhost = g_strdup_printf("%s:%u",hostname,server_port);
+                        if (g_strcmp0(extra_data, myhost)==0) {
+                            gchar *host = g_strdup_printf("%s:%u",a, port);
+                            l_debug("Found miniview on %s", host);
+                            if (!g_hash_table_contains(miniviews,host)) {
+                                g_hash_table_insert(miniviews, g_strdup(name), host);
+                            }
+                        }
+                        avahi_free(data);
+                        avahi_free(extra_data);
+                        g_free(myhost);
                     }
                 }
-                g_free(myhost);
+                avahi_free(value);
+                avahi_free(type);
             }
-            avahi_free(value);
-            avahi_free(type);
         }
     }
 
