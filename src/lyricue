@@ -360,7 +360,8 @@ my @display_items = (
     "buttonMainPrev",  "buttonMainNext",
     "buttonMainPoint", "buttonMainBlank",
     "notebookRight",   "buttonQuickShow",
-    "buttonMainClear", "clear_text1"
+    "buttonMainClear", "clear_text1",
+    "buttonMainReshow"
 );
 
 # access 'p'
@@ -3211,6 +3212,28 @@ sub clear_text {
     debug("Clear text clicked");
     reset_timer($globals->{'timer'});
     update_display("blank", "", "");
+}
+
+#***
+
+#****f* lyricue/reshow_page
+# NAME
+#   reshow_page
+# SYNOPSIS
+#   reshow_page()
+# FUNCTION
+#   Reshow the current page
+# INPUTS
+#   None
+# OUTPUT
+#   Calls update_display
+# SOURCE
+#
+sub reshow_page {
+    my ($widget) = @_;
+    debug("Reshow page clicked");
+    reset_timer($globals->{'timer'});
+    update_display("display", "current", "");
 }
 
 #***
@@ -6169,9 +6192,6 @@ sub establish_timer {
     close_dialog($widget);
 }
 
-#***
-
-### FIXME ###
 #***
 
 #****f* lyricue/update_loop
@@ -11661,15 +11681,32 @@ sub check_displays{
         delete $previews{$_};
     }
 
-    my $query = "SELECT host, type FROM status WHERE TIMEDIFF(NOW(), lastupdate) < '00:00:02' AND profile='". $globals->{'profile'} . "'";
+    my $query = "SELECT host, type, title FROM status WHERE TIMEDIFF(NOW(), lastupdate) < '00:00:02' AND profile='". $globals->{'profile'} . "'";
     $sth = do_query($lyricDbh, $query, TRUE);
 
+    my $status = "0;0;0";
     while ($row = $sth->fetchrow_hashref()) {
         if (($row->{'type'} eq "normal") || ($row->{'type'} eq "simple")) {
             if (defined $displays{$row->{'host'}}) {
                 $displays{$row->{'host'}} &= TRUE;
             } else {
                 $displays{$row->{'host'}} = TRUE;
+            }
+            if ($row->{'title'} =~ /^blank_bg/) {
+                if (defined($widgets->{'miniview_frame'}->{$row->{'host'}})) {
+                    $widgets->{'miniview_frame'}->{$row->{'host'}}->set_label($row->{'host'}."- blanked");
+                }
+            } elsif ($row->{'title'} =~ /^blank_text/) {
+                if (defined($widgets->{'miniview_frame'}->{$row->{'host'}})) {
+                    $widgets->{'miniview_frame'}->{$row->{'host'}}->set_label($row->{'host'}."- text cleared");
+                }
+            } else {
+                if (defined($widgets->{'miniview_frame'}->{$row->{'host'}})) {
+                    $widgets->{'miniview_frame'}->{$row->{'host'}}->set_label($row->{'host'});
+                }
+                if ($row->{'title'} ne "0;0;0") {
+                    $status=$row->{'title'};
+                }
             }
         } elsif ($row->{'type'} =~ /^miniview/) {
             my $extra_data = $row->{'type'};
@@ -11682,6 +11719,33 @@ sub check_displays{
             }
         }
     }
+
+    my ($position, $duration, $state) = split(/;/, $status, 3);
+    my $hscale = $widgets->{'main'}->get_object('hscaleMediaPosition');
+    if (defined $globals->{'video_skip_signal'}) {
+        $hscale->signal_handler_disconnect($globals->{'video_skip_signal'});
+    }
+    if ($duration <= 0) {
+        $hscale->set_range(0, 1000);
+    } else {
+        $hscale->set_range(0, $duration);
+    }
+    $hscale->set_value($position);
+    $position = sprintf("%d:%02d", $position / 60, $position % 60);
+    $duration = sprintf("%d:%02d", $duration / 60, $duration % 60);
+    $widgets->{'main'}->get_object('labelMediaPosition')
+      ->set_text($position . "/" . $duration);
+    if ($state) {
+        $widgets->{'main'}->get_object('buttonMediaPlay')->hide;
+        $widgets->{'main'}->get_object('buttonMediaPause')->show_all;
+    } else {
+        $widgets->{'main'}->get_object('buttonMediaPlay')->show_all;
+        $widgets->{'main'}->get_object('buttonMediaPause')->hide;
+    }
+    do_pending();
+    $globals->{'video_skip_signal'} =
+      $hscale->signal_connect('value-changed', "video_skip");
+
 
     init_miniview();
     if ($config->{'DynamicPreview'} && !$local_preview) {
@@ -11717,78 +11781,19 @@ sub check_status {
 
     # Check for playlist items of simple/normal displays
     my $query =
-"SELECT title,host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE (st.type='normal' OR st.type='simple') AND st.profile='"
+"SELECT host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE (st.type='normal' OR st.type='simple') AND st.profile='"
       . $globals->{'profile'} . "'";
 
     my $sth = do_query($lyricDbh, $query, TRUE);
     undef $globals->{'current_items'};
-    my $status = "";
-    while (my @row = $sth->fetchrow_array()) {
-        $globals->{'current_items'}->{$row[2]} = $row[1];
-        $globals->{'current_items'}->{$row[3]} = $row[1];
-        $status                                = $row[0];
+    while (my $row = $sth->fetchrow_hashref()) {
+        $globals->{'current_items'}->{$row->{'pl1'}} = $row->{'host'};
+        $globals->{'current_items'}->{$row->{'pl2'}} = $row->{'host'};
     }
 
     my $model = $widgets->{'main'}->get_object('treePlaylist')->get_model();
     if ($model) {
         $model->foreach(\&update_current);
-    }
-
-    ## FIXME - need to handle multiple servers running
-    if ($status ne "") {
-        my $blank_text =
-          $widgets->{'main'}->get_object('buttonMainClear')->get_active();
-        my $blank_bg =
-          $widgets->{'main'}->get_object('buttonMainBlank')->get_active();
-        my $blank_text_new = $blank_text;
-        my $blank_bg_new   = $blank_bg;
-        if ($status =~ /^blank_bg/) {
-            $status =~ s/^blank_bg//g;
-            $blank_bg_new   = TRUE;
-            $blank_text_new = FALSE;
-        } elsif ($status =~ /^blank_text/) {
-            $status =~ s/^blank_text//g;
-            $blank_bg_new   = FALSE;
-            $blank_text_new = TRUE;
-        } else {
-            $blank_bg_new   = FALSE;
-            $blank_text_new = FALSE;
-        }
-        if ($blank_bg != $blank_bg_new) {
-            $globals->{'ignore_blank'} = TRUE;
-            $widgets->{'main'}->get_object('buttonMainBlank')
-              ->set_active($blank_bg_new);
-        }
-        if ($blank_text != $blank_text_new) {
-            $globals->{'ignore_clear'} = TRUE;
-            $widgets->{'main'}->get_object('buttonMainClear')
-              ->set_active($blank_text_new);
-        }
-        my ($position, $duration, $status) = split(/;/, $status, 3);
-        my $hscale = $widgets->{'main'}->get_object('hscaleMediaPosition');
-        if (defined $globals->{'video_skip_signal'}) {
-            $hscale->signal_handler_disconnect($globals->{'video_skip_signal'});
-        }
-        if ($duration <= 0) {
-            $hscale->set_range(0, 1000);
-        } else {
-            $hscale->set_range(0, $duration);
-        }
-        $hscale->set_value($position);
-        $position = sprintf("%d:%02d", $position / 60, $position % 60);
-        $duration = sprintf("%d:%02d", $duration / 60, $duration % 60);
-        #$widgets->{'main'}->get_object('labelMediaPosition')
-        #  ->set_text($position . "/" . $duration);
-        if ($status) {
-            $widgets->{'main'}->get_object('buttonMediaPlay')->hide;
-            $widgets->{'main'}->get_object('buttonMediaPause')->show_all;
-        } else {
-            $widgets->{'main'}->get_object('buttonMediaPlay')->show_all;
-            $widgets->{'main'}->get_object('buttonMediaPause')->hide;
-        }
-        do_pending();
-        $globals->{'video_skip_signal'} =
-          $hscale->signal_connect('value-changed', "video_skip");
     }
 
     check_displays();

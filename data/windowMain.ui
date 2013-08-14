@@ -602,7 +602,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToggleToolButton" id="buttonMainBlank">
+              <object class="GtkToolButton" id="buttonMainBlank">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
@@ -620,7 +620,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToggleToolButton" id="buttonMainClear">
+              <object class="GtkToolButton" id="buttonMainClear">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
@@ -631,6 +631,22 @@
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-clear</property>
                 <signal name="clicked" handler="clear_text" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="buttonMainReshow">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+                <property name="is_important">True</property>
+                <property name="label" translatable="yes">Reshow</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-media-play</property>
+                <signal name="clicked" handler="reshow_page" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1120,7 +1136,6 @@
                     </child>
                     <child type="tab">
                       <object class="GtkLabel" id="label5">
-                        <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Files</property>
                       </object>
@@ -2428,7 +2443,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <child>
-                              <object class="GtkVBox" id="vbox13">
+                              <object class="GtkVBox" id="vboxStatus">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
@@ -2581,7 +2596,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkHBox" id="hbox6">
+                                  <object class="GtkHBox" id="hboxBGFilter">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <child>
@@ -2601,6 +2616,7 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="adjustment">adjustmentFade</property>
+                                        <property name="fill_level">255</property>
                                         <property name="draw_value">False</property>
                                         <property name="value_pos">left</property>
                                         <signal name="value-changed" handler="change_fade" swapped="no"/>

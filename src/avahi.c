@@ -333,7 +333,7 @@ void update_service_profile()
     data_txt = g_strdup_printf("data=%s", extra_data);
 
 
-    avahi_entry_group_update_service_txt(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, name, "_lyricue._tcp", NULL,type_txt, profile_txt, data_txt, NULL);
+    avahi_entry_group_update_service_txt(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, name, "_lyricue._tcp", NULL, type_txt, profile_txt, extra_data, NULL);
     g_free(profile_txt);
     g_free(type_txt);
     g_free(data_txt);

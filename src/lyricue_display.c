@@ -103,7 +103,7 @@ main (int argc, char *argv[])
     }
     int ret = db_select ();
     if (ret) {
-        // Really should handle this ;)
+        // Always true
     }
     gethostname(hostname,sizeof(hostname));
 
@@ -299,6 +299,9 @@ handle_command (GIOChannel * source, const char *command)
         GError *err = NULL;
         GIOStatus res = g_io_channel_write_chars (source, returnstring->str,
                                                   returnstring->len, &bytes_written, &err);
+        if (res) {
+            // Ignore it
+        }
         gsize total = bytes_written;
         // Repeat until all sent - needed since socket is non-blocking
         while (bytes_written < returnstring->len) {

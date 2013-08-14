@@ -115,6 +115,10 @@ int
 create_main_window (int argc, char *argv[])
 {
     int ret = gtk_clutter_init (&argc, &argv);
+    if (!ret) {
+        l_debug("Unable to initialise clutter");
+        return EXIT_FAILURE;
+    }
     clutter_gst_init (&argc, &argv);
     stage_width = atof ((gchar *) g_hash_table_lookup (config, "Width"));
     stage_height = atof ((gchar *) g_hash_table_lookup (config, "Height"));
@@ -594,6 +598,8 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
                 g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
                 bg_is_video =
                   g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
+            } else {
+                bg_is_video = TRUE;
             }
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
 
@@ -669,6 +675,8 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
             g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
             bg_is_video =
               g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
+        } else {
+            bg_is_video  = TRUE;
         }
 
     } else if (g_strcmp0 (line[0], "uri") == 0) {
@@ -706,6 +714,8 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
             g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
             bg_is_video =
               g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
+        } else {
+            bg_is_video = TRUE;
         }
 
     }
@@ -1264,9 +1274,10 @@ gboolean
 stop_media ()
 {
     l_debug ("Stop media");
-    clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
-    if (bg_is_video)
+    if (bg_is_video) {
+        clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
         g_source_remove (bg_is_video);
+    }
     return FALSE;
 }
 
