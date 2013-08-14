@@ -13681,11 +13681,8 @@ sub select_profile {
                   . $profile);
             $globals->{'profile'} = $profile;
 
-            if ($widgets->{'preview'}) {
-                $widgets->{'preview'}->destroy;
-                undef $widgets->{'preview'};
-                kill 9, $globals->{'preview_pid'};
-            }
+            update_display("profile",$globals->{'profile'},"");
+            preview_display("profile",$globals->{'profile'},"");
             foreach my $display (keys $widgets->{'miniview'}) {
                 if (defined $widgets->{'miniview'}->{$display}) {
                     $widgets->{'miniview'}->{$display}->destroy;
@@ -13741,12 +13738,19 @@ sub close_miniview {
     my ($display) =@_;
     debug("Removing miniview for ".$display); 
     if (defined $miniviews{$display}) {
+        undef $miniviews{$display};
+    }
+    if (defined $widgets->{'miniview_frame'}->{$display}) {
         $widgets->{'miniview_frame'}->{$display}->destroy;
         undef $widgets->{'miniview_frame'}->{$display};
+    }
+    if (defined $widgets->{'miniview'}->{$display}) {
         $widgets->{'miniview'}->{$display}->destroy;
         undef $widgets->{'miniview'}->{$display};
+    }
+    if (defined $globals->{'miniview_pid'}->{$display}) {
         kill 9, $globals->{'miniview_pid'}->{$display};
-        undef $miniviews{$display};
+            undef $globals->{'miniview_pid'}->{$display};
     }
 }
 

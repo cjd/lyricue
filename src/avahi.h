@@ -34,3 +34,4 @@ void resolve_callback(
     AvahiStringList *txt,
     AvahiLookupResultFlags flags,
     AVAHI_GCC_UNUSED void* userdata);
+void update_service_profile();

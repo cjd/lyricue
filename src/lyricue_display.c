@@ -284,6 +284,8 @@ handle_command (GIOChannel * source, const char *command)
             returnstring = do_query_json (line[1]);
         } else if (g_strcmp0 (line[0], "bible") == 0) {
             returnstring = do_bible(line[1]);
+        } else if (g_strcmp0 (line[0], "profile") == 0) {
+            do_profile_change(line[1]);
         }
     }
     g_strfreev (line);
@@ -1024,4 +1026,17 @@ do_query_json (const char *options)
     
     g_strfreev (line);
     return NULL;
+}
+
+void
+do_profile_change(const char *options)
+{
+    gchar **line = g_strsplit (options, ":", 2);
+    if (line[0] != NULL) {
+        profile = g_strdup(line[0]);
+        load_configuration();
+        update_service_profile();
+    }
+    
+    g_strfreev (line);
 }

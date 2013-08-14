@@ -80,6 +80,7 @@ void do_get(const char* options);
 void do_display(const char* options, const int quick_show);
 void do_osd(const char* options);
 void do_save(const char* options);
+void do_profile_change(const char* options);
 GString * do_query_json(const char* options);
 gboolean update_tracker();
 void update_miniview (const char *command);

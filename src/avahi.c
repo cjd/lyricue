@@ -183,7 +183,7 @@ int publish_avahi(int port_passed, char *type_in_passed) {
     /* Allocate a new client */
     client = avahi_client_new(avahi_glib_poll_get(glib_poll), 0, client_callback, NULL, &error);
 
-    /* Check wether creating the client object succeeded */
+    /* Check if creating the client object succeeded */
     if (!client) {
         l_debug("Failed to create client: %s", avahi_strerror(error));
         unpublish_avahi();
@@ -194,8 +194,10 @@ int publish_avahi(int port_passed, char *type_in_passed) {
     if (miniviews==NULL) {
         miniviews = g_hash_table_new(g_str_hash, g_str_equal);
     }
-    if (!(sb = avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_INET, "_lyricue._tcp", NULL, 0, browse_callback, client))) {
-        l_debug("Failed to create service browser: %s\n", avahi_strerror(avahi_client_errno(client)));
+    if (sb == NULL) {
+        if (!(sb = avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_INET, "_lyricue._tcp", NULL, 0, browse_callback, client))) {
+            l_debug("Failed to create service browser: %s\n", avahi_strerror(avahi_client_errno(client)));
+        }
     }
 
 
@@ -319,3 +321,21 @@ void resolve_callback(
     avahi_service_resolver_free(r);
 }
 
+void update_service_profile()
+{
+    gchar *type_txt, *profile_txt, *data_txt; 
+
+    profile_txt = g_strdup_printf("profile=%s", profile);
+    type_txt = g_strdup_printf("type=%s", type_in);
+    if (extra_data == NULL) {
+        extra_data = g_strdup("");
+    }
+    data_txt = g_strdup_printf("data=%s", extra_data);
+
+
+    avahi_entry_group_update_service_txt(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, name, "_lyricue._tcp", NULL,type_txt, profile_txt, data_txt, NULL);
+    g_free(profile_txt);
+    g_free(type_txt);
+    g_free(data_txt);
+
+}
