@@ -10,6 +10,7 @@ AM_CPPFLAGS = \
 
 AM_CFLAGS =\
 	 -Wall\
+	 -Wno-deprecated-declarations\
 	 -g
 
 bin_PROGRAMS = \
