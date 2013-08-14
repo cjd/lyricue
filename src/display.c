@@ -1013,7 +1013,7 @@ loop_video (ClutterActor * video)
 void
 media_pause ()
 {
-    if (bg_is_video) {
+    if (bg_is_video && (server_mode == NORMAL_SERVER)) {
         clutter_media_set_playing (CLUTTER_MEDIA (background),
                                    !clutter_media_get_playing (CLUTTER_MEDIA
                                                                (background)));
