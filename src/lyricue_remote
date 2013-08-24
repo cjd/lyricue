@@ -15,7 +15,6 @@ use strict;
 use warnings;
 use POSIX;
 use IO::Socket::INET;
-use Net::Bonjour;
 my $profile = "Default";
 
 if ($ARGV[0]) {
@@ -94,29 +93,23 @@ sub update_display {
     if (!defined($primary)) {
         $primary = "";
     }
-    my $res = Net::Bonjour->new("lyricue","tcp");
-    $res->discover;
+    my @lines = split("\n",`mysql -s -N -ulyric lyricDb -e 'SELECT host FROM status WHERE type="normal" OR type="simple"'`);
 
-    foreach my $entry ($res->entries) {
-        if ($entry->attribute("profile") eq $profile) {
-            my $type    = $entry->attribute("type");
-            if (($type eq "normal") || ($type eq "simple")) {
-                my $hostname = $entry->hostname;
-                $hostname =~ s/.local$//g;
-                if ( my $server = IO::Socket::INET->new(
-                        Proto    => "tcp",
-                        PeerAddr => $hostname,
-                        PeerPort => $entry->port
-                    )) {
-                    print $server $command . ":" . $primary . ":" . $secondary . "\n";
-                    if (defined(my $status = <$server>)) {
-                        print $status;
-                    }
-                    close($server);
-                }
+    foreach my $entry (@lines) {
+        my ($hostname,$port) = split(":", $entry,2);
+        if ( my $server = IO::Socket::INET->new(
+                Proto    => "tcp",
+                PeerAddr => $hostname,
+                PeerPort => $port
+            )) {
+            print $server $command . ":" . $primary . ":" . $secondary . "\n";
+            if (defined(my $status = <$server>)) {
+                print $status;
             }
+            close($server);
         }
     }
+
 }
 
 #***
