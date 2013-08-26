@@ -13142,19 +13142,7 @@ sub firstrun_prepare {
     }
 
     $header = fromutf($header);
-    my $layout = $page->create_pango_layout($header);
-    my $desc   = Gtk2::Pango::FontDescription->from_string($font);
-    $layout->set_font_description($desc);
-    my ($text_width, $text_height) = $layout->get_pixel_size;
-    my $pixmap = Gtk2::Gdk::Pixmap->new(undef, $text_width, $text_height, 24);
-    my $style = $page->get_default_style;
-    $pixmap->draw_layout($style->text_gc('normal'), 0, 0, $layout);
-    $pixmap->draw_rectangle($style->white,
-        TRUE, 0, 0, $text_width, $text_height);
-    my $pixbuf =
-      Gtk2::Gdk::Pixbuf->get_from_drawable($pixmap, undef, 0, 0, 0, 0,
-        $text_width, $text_height);
-    $widgets->{'firstrun'}->set_page_header_image($page, $pixbuf);
+    $widgets->{'firstrun'}->set_page_title($page, $header);
 }
 
 #***
