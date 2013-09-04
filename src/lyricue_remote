@@ -93,7 +93,7 @@ sub update_display {
     if (!defined($primary)) {
         $primary = "";
     }
-    my @lines = split("\n",`mysql -s -N -ulyric lyricDb -e 'SELECT host FROM status WHERE type="normal" OR type="simple"'`);
+    my @lines = split("\n",`mysql -s -N -ulyric lyricDb -e 'SELECT host FROM status WHERE type="normal" OR type="simple" OR type="headless"'`);
 
     foreach my $entry (@lines) {
         my ($hostname,$port) = split(":", $entry,2);

@@ -28,6 +28,7 @@ extern unsigned long windowid;
 extern int server_mode;
 extern MYSQL *lyricDb;
 extern int current_item;
+extern gchar *server_type;
 
 
 const ClutterColor black_colour = { 0x00, 0x00, 0x00, 0xff };
@@ -65,6 +66,12 @@ ClutterActor *background_old = NULL;
 ClutterActor *osdtext = NULL;
 ClutterActor *osdtext_bg = NULL;
 ClutterShader *shader = NULL;
+
+gchar *maintext_text = NULL;
+gchar *headtext_text = NULL;
+gchar *foottext_text = NULL;
+gchar *backdrop_text = NULL;
+gchar *osd_text = NULL;
 
 gfloat stage_width = 0;
 gfloat stage_height = 0;
@@ -222,6 +229,11 @@ void
 set_maintext (const gchar * text, int transition, gboolean wrap)
 {
     l_debug ("Setting maintext");
+    if (g_strcmp0(server_type, "headless") == 0) {
+        g_free(maintext_text);
+        maintext_text=g_strdup(text);
+        return;
+    }
     if (!G_IS_OBJECT (maintext)
         || g_strcmp0 (g_object_get_data (G_OBJECT (maintext), "text"),
                       text) == 0) {
@@ -278,6 +290,11 @@ set_maintext (const gchar * text, int transition, gboolean wrap)
 void
 set_headtext (const gchar * text, int transition, gboolean wrap)
 {
+    if (g_strcmp0(server_type, "headless") == 0) {
+        g_free(headtext_text);
+        headtext_text=g_strdup(text);
+        return;
+    }
     if (!G_IS_OBJECT (headtext)
         || g_strcmp0 (g_object_get_data (G_OBJECT (headtext), "text"),
                       text) == 0) {
@@ -300,6 +317,11 @@ set_headtext (const gchar * text, int transition, gboolean wrap)
 void
 set_foottext (const gchar * text, int transition, gboolean wrap)
 {
+    if (g_strcmp0(server_type, "headless") == 0) {
+        g_free(foottext_text);
+        foottext_text=g_strdup(text);
+        return;
+    }
     if (!G_IS_OBJECT (foottext)
         || g_strcmp0 (g_object_get_data (G_OBJECT (foottext), "text"),
                       text) == 0) {
@@ -323,6 +345,11 @@ void
 set_osd (int speed, const gchar * text)
 {
     l_debug ("Setting OSD at %d speed", speed);
+    if (g_strcmp0(server_type, "headless") == 0) {
+        g_free(osd_text);
+        osd_text=g_strdup(text);
+        return;
+    }
 
     if (osdtext != NULL) {
         clutter_actor_destroy (osdtext);
@@ -443,6 +470,12 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
         return;
     }
     l_debug ("change backdrop to %s", id);
+
+    if (g_strcmp0(server_type, "headless") == 0) {
+        g_free(backdrop_text);
+        backdrop_text=g_strdup(id);
+        return;
+    }
     if (g_strcmp0 (id, current_bg) == 0) {
         l_debug ("Backdrop ID same - not changing");
         return;
@@ -1400,3 +1433,17 @@ playlist_snapshot(int playlist)
     mysql_free_result (result);
     return TRUE;
 }
+
+GString *
+do_get (const gchar * item)
+{
+    if (g_strcmp0(item,"header")==0) {
+        return g_string_new(headtext_text);
+    } else if (g_strcmp0(item,"footer")==0) {
+        return g_string_new(foottext_text);
+    } else if (g_strcmp0(item,"main")==0) {
+        return g_string_new(maintext_text);
+    }
+    return g_string_new("");
+}
+

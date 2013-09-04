@@ -60,7 +60,7 @@ guint tracker_timeout = 0;
 
 static GOptionEntry entries[] = {
     {"type", 't', 0, G_OPTION_ARG_STRING, &server_type, "Server type",
-     "[normal | preview | miniview | simple]"},
+     "[normal | preview | miniview | simple | headless ] "},
     {"profile", 'p', 0, G_OPTION_ARG_STRING, &profile, "Profile",
      "profile_name"},
     {"remote", 'r', 0, G_OPTION_ARG_STRING, &dbhostname, "Database hostname",
@@ -144,7 +144,9 @@ main (int argc, char *argv[])
     g_socket_service_start (service);
     g_signal_connect (service, "incoming", G_CALLBACK (new_connection), NULL);
 
-    ret = create_main_window (argc, argv);
+    if (g_strcmp0(server_type, "headless") != 0) {
+        ret = create_main_window (argc, argv);
+    }
 
     // Publish to avahi (zeroconf/bonjour)
     publish_avahi(server_port, server_type);
@@ -156,6 +158,8 @@ main (int argc, char *argv[])
         server_mode=MINIVIEW_SERVER;
     } else if (g_strcmp0(server_type, "simple") == 0) {
         server_mode=SIMPLE_SERVER;
+    } else if (g_strcmp0(server_type, "headless") == 0) {
+        server_mode=HEADLESS_SERVER;
     }
 
     // Create tracker update timeout
@@ -267,7 +271,7 @@ handle_command (GIOChannel * source, const char *command)
         } else if (g_strcmp0 (line[0], "next_point") == 0) {
             do_next_point (line[1]);
         } else if (g_strcmp0 (line[0], "get") == 0) {
-            do_get (line[1]);
+            returnstring = do_get (line[1]);
         } else if (g_strcmp0 (line[0], "display") == 0) {
             do_display (line[1],FALSE);
         } else if (g_strcmp0 (line[0], "osd") == 0) {
@@ -514,12 +518,6 @@ void
 do_next_point (const char *options)
 {
     l_debug ("do_next_point not implemented");
-}
-
-void
-do_get (const char *options)
-{
-    l_debug ("do_get not implemented");
 }
 
 void

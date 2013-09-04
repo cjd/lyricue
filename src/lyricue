@@ -11686,7 +11686,7 @@ sub check_displays{
 
     my $status = "0;0;0";
     while ($row = $sth->fetchrow_hashref()) {
-        if (($row->{'type'} eq "normal") || ($row->{'type'} eq "simple")) {
+        if (($row->{'type'} eq "normal") || ($row->{'type'} eq "simple") || ($row->{'type'} eq "headless")) {
             if (defined $displays{$row->{'host'}}) {
                 $displays{$row->{'host'}} &= TRUE;
             } else {
@@ -11781,7 +11781,7 @@ sub check_status {
 
     # Check for playlist items of simple/normal displays
     my $query =
-"SELECT host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE (st.type='normal' OR st.type='simple') AND st.profile='"
+"SELECT host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE (st.type='normal' OR st.type='simple' or st.type='headless') AND st.profile='"
       . $globals->{'profile'} . "'";
 
     my $sth = do_query($lyricDbh, $query, TRUE);

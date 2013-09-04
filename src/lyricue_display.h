@@ -76,7 +76,6 @@ void do_blank(const char* options);
 void do_change_to_db(const char* options);
 void do_next_point(const char* options);
 void do_loopparent(const char* options);
-void do_get(const char* options);
 void do_display(const char* options, const int quick_show);
 void do_osd(const char* options);
 void do_save(const char* options);
@@ -116,3 +115,4 @@ void update_miniview (const char *command);
 #define PREVIEW_SERVER 1
 #define MINIVIEW_SERVER 2
 #define SIMPLE_SERVER 3
+#define HEADLESS_SERVER 4
