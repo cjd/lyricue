@@ -229,9 +229,9 @@ void
 set_maintext (const gchar * text, int transition, gboolean wrap)
 {
     l_debug ("Setting maintext");
+    g_free(maintext_text);
+    maintext_text=g_strdup(text);
     if (g_strcmp0(server_type, "headless") == 0) {
-        g_free(maintext_text);
-        maintext_text=g_strdup(text);
         return;
     }
     if (!G_IS_OBJECT (maintext)
@@ -290,9 +290,9 @@ set_maintext (const gchar * text, int transition, gboolean wrap)
 void
 set_headtext (const gchar * text, int transition, gboolean wrap)
 {
+    g_free(headtext_text);
+    headtext_text=g_strdup(text);
     if (g_strcmp0(server_type, "headless") == 0) {
-        g_free(headtext_text);
-        headtext_text=g_strdup(text);
         return;
     }
     if (!G_IS_OBJECT (headtext)
@@ -317,9 +317,9 @@ set_headtext (const gchar * text, int transition, gboolean wrap)
 void
 set_foottext (const gchar * text, int transition, gboolean wrap)
 {
+    g_free(foottext_text);
+    foottext_text=g_strdup(text);
     if (g_strcmp0(server_type, "headless") == 0) {
-        g_free(foottext_text);
-        foottext_text=g_strdup(text);
         return;
     }
     if (!G_IS_OBJECT (foottext)
@@ -345,9 +345,9 @@ void
 set_osd (int speed, const gchar * text)
 {
     l_debug ("Setting OSD at %d speed", speed);
+    g_free(osd_text);
+    osd_text=g_strdup(text);
     if (g_strcmp0(server_type, "headless") == 0) {
-        g_free(osd_text);
-        osd_text=g_strdup(text);
         return;
     }
 
@@ -471,9 +471,9 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
     }
     l_debug ("change backdrop to %s", id);
 
+    g_free(backdrop_text);
+    backdrop_text=g_strdup(id);
     if (g_strcmp0(server_type, "headless") == 0) {
-        g_free(backdrop_text);
-        backdrop_text=g_strdup(id);
         return;
     }
     if (g_strcmp0 (id, current_bg) == 0) {
@@ -1437,11 +1437,11 @@ playlist_snapshot(int playlist)
 GString *
 do_get (const gchar * item)
 {
-    if (g_strcmp0(item,"header")==0) {
+    if (g_strcmp0(item,"header:")==0) {
         return g_string_new(headtext_text);
-    } else if (g_strcmp0(item,"footer")==0) {
+    } else if (g_strcmp0(item,"footer:")==0) {
         return g_string_new(foottext_text);
-    } else if (g_strcmp0(item,"main")==0) {
+    } else if (g_strcmp0(item,"main:")==0) {
         return g_string_new(maintext_text);
     }
     return g_string_new("");

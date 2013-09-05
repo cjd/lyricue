@@ -11956,7 +11956,7 @@ sub db_select {
     my $service = $publisher->publish(
             name => "Lyricue Interface",
             type => '_lyricue._tcp',
-            port => 9,
+            port => 0,
             txt => "database=".$dbhost
     );
 

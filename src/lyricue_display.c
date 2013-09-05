@@ -918,7 +918,7 @@ update_tracker ()
 void
 update_miniview (const char *command)
 {
-    if (server_mode == NORMAL_SERVER) {
+    if (server_mode == NORMAL_SERVER || server_mode==HEADLESS_SERVER) {
         l_debug ("miniview time");
         GHashTableIter iter;
         gpointer key, value;

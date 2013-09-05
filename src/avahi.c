@@ -292,7 +292,7 @@ void resolve_callback(
             if (type_txt != NULL){
                 avahi_string_list_get_pair(type_txt,&type, &value, size);
                 l_debug("Type = %s",value);
-                if (g_strcmp0(value,"miniview") == 0) {
+                if ((g_strcmp0(value,"miniview") == 0) || (g_strcmp0(value,"android") == 0)) {
                     char *data="data";
                     char *extra_data;
                     size_t *size2=NULL;
