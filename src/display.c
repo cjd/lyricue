@@ -1437,13 +1437,40 @@ playlist_snapshot(int playlist)
 GString *
 do_get (const gchar * item)
 {
-    if (g_strcmp0(item,"header:")==0) {
-        return g_string_new(headtext_text);
-    } else if (g_strcmp0(item,"footer:")==0) {
-        return g_string_new(foottext_text);
-    } else if (g_strcmp0(item,"main:")==0) {
-        return g_string_new(maintext_text);
+    JsonGenerator *generator = json_generator_new();
+    JsonNode *rootnode = json_node_new(JSON_NODE_OBJECT);
+    JsonObject *resultnode = json_object_new();
+    JsonArray *resultarray = json_array_new();
+    JsonObject *newobject = json_object_new();
+
+    if (g_strcmp0(item,"text:")==0) {
+        json_object_set_string_member(newobject,"header",headtext_text);
+        json_object_set_string_member(newobject,"main",maintext_text);
+        json_object_set_string_member(newobject,"footer",foottext_text);
+        json_object_set_string_member(newobject,"osd",osd_text);
+    } else if (g_strcmp0(item,"bg:")==0) {
+        gchar **line = g_strsplit (backdrop_text, ";", 2);
+        if (g_strcmp0 (line[0], "dir") == 0) {
+            GFileInfo *info = g_file_query_info (g_file_new_for_path (line[1]), G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE, G_FILE_QUERY_INFO_NONE, NULL, NULL);
+            if (info && (g_content_type_is_a(g_file_info_get_content_type (info), "image/*"))) {
+                gchar *contents = NULL;
+                gsize length = 0;
+                g_file_get_contents(line[1], &contents, &length, NULL);
+                char *encoded = g_base64_encode((guchar *)contents, length);
+                json_object_set_string_member(newobject,"image",encoded);
+                g_free(encoded);
+                g_free(contents);
+            }
+        }
     }
-    return g_string_new("");
+    json_array_add_object_element(resultarray, newobject);
+    json_object_set_array_member(resultnode, "results",resultarray);
+    json_node_set_object(rootnode,resultnode);
+    json_generator_set_root(generator, rootnode);
+    gchar *str = json_generator_to_data (generator,NULL);
+    GString *ret = g_string_new(str);
+    json_array_unref (resultarray);
+    g_object_unref (generator);
+    return ret;
 }
 
