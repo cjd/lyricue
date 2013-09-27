@@ -71,8 +71,8 @@ CREATE TABLE `config` (
   PRIMARY KEY  (`id`)
 ) DEFAULT CHARSET=utf8;
 
--- Table structure for table `config`
-CREATE TABLE `config` (
+-- Table structure for table `config_old`
+CREATE TABLE `config_old` (
   `id` int(11) NOT NULL auto_increment,
   `profile` varchar(50) NOT NULL default '',
   `config_key` varchar(50) NOT NULL default '',
