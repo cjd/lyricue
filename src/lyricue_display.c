@@ -54,7 +54,7 @@ gchar *geometry = NULL;
 gchar *profile = NULL;
 gchar *extra_data = NULL;
 unsigned long windowid = 0;
-gchar hostname[16];
+gchar hostname[32];
 guint tracker_timeout = 0;
 
 
