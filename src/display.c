@@ -25,7 +25,10 @@ extern gchar *default_bg;
 extern gchar *current_bg;
 extern MYSQL *mediaDb;
 extern unsigned long windowid;
-extern int server_port;
+extern int server_mode;
+extern MYSQL *lyricDb;
+extern int current_item;
+extern gchar *server_type;
 
 
 const ClutterColor black_colour = { 0x00, 0x00, 0x00, 0xff };
@@ -63,6 +66,12 @@ ClutterActor *background_old = NULL;
 ClutterActor *osdtext = NULL;
 ClutterActor *osdtext_bg = NULL;
 ClutterShader *shader = NULL;
+
+gchar *maintext_text = NULL;
+gchar *headtext_text = NULL;
+gchar *foottext_text = NULL;
+gchar *backdrop_text = NULL;
+gchar *osd_text = NULL;
 
 gfloat stage_width = 0;
 gfloat stage_height = 0;
@@ -113,6 +122,10 @@ int
 create_main_window (int argc, char *argv[])
 {
     int ret = gtk_clutter_init (&argc, &argv);
+    if (!ret) {
+        l_debug("Unable to initialise clutter");
+        return EXIT_FAILURE;
+    }
     clutter_gst_init (&argc, &argv);
     stage_width = atof ((gchar *) g_hash_table_lookup (config, "Width"));
     stage_height = atof ((gchar *) g_hash_table_lookup (config, "Height"));
@@ -124,6 +137,10 @@ create_main_window (int argc, char *argv[])
         clutter_widget = gtk_clutter_embed_new ();
         gtk_container_add (GTK_CONTAINER (window), clutter_widget);
         gtk_widget_show_all (window);
+        GdkGeometry hints;
+        hints.min_aspect=stage_width/stage_height;
+        hints.max_aspect=stage_width/stage_height;
+        gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, &hints, GDK_HINT_ASPECT);
         if (geometry != NULL && (g_utf8_strlen (geometry, 10) > 0)) {
             if (!gtk_window_parse_geometry (GTK_WINDOW (window), geometry)) {
                 l_debug ("Failed to parse geometry '%s'", geometry);
@@ -146,7 +163,9 @@ create_main_window (int argc, char *argv[])
 
     clutter_stage_set_color (CLUTTER_STAGE (stage), &black_colour);
     default_bg = (gchar *) g_hash_table_lookup (config, "BGImage");
-    change_backdrop (default_bg, TRUE, DEFAULT);
+    if (server_mode != SIMPLE_SERVER) {
+        change_backdrop (default_bg, TRUE, NO_EFFECT);
+    }
     double window_scale_w =
       (double) clutter_actor_get_width (stage) / (double) stage_width;
     double window_scale_h =
@@ -210,6 +229,11 @@ void
 set_maintext (const gchar * text, int transition, gboolean wrap)
 {
     l_debug ("Setting maintext");
+    g_free(maintext_text);
+    maintext_text=g_strdup(text);
+    if (g_strcmp0(server_type, "headless") == 0) {
+        return;
+    }
     if (!G_IS_OBJECT (maintext)
         || g_strcmp0 (g_object_get_data (G_OBJECT (maintext), "text"),
                       text) == 0) {
@@ -266,6 +290,11 @@ set_maintext (const gchar * text, int transition, gboolean wrap)
 void
 set_headtext (const gchar * text, int transition, gboolean wrap)
 {
+    g_free(headtext_text);
+    headtext_text=g_strdup(text);
+    if (g_strcmp0(server_type, "headless") == 0) {
+        return;
+    }
     if (!G_IS_OBJECT (headtext)
         || g_strcmp0 (g_object_get_data (G_OBJECT (headtext), "text"),
                       text) == 0) {
@@ -288,6 +317,11 @@ set_headtext (const gchar * text, int transition, gboolean wrap)
 void
 set_foottext (const gchar * text, int transition, gboolean wrap)
 {
+    g_free(foottext_text);
+    foottext_text=g_strdup(text);
+    if (g_strcmp0(server_type, "headless") == 0) {
+        return;
+    }
     if (!G_IS_OBJECT (foottext)
         || g_strcmp0 (g_object_get_data (G_OBJECT (foottext), "text"),
                       text) == 0) {
@@ -311,6 +345,11 @@ void
 set_osd (int speed, const gchar * text)
 {
     l_debug ("Setting OSD at %d speed", speed);
+    g_free(osd_text);
+    osd_text=g_strdup(text);
+    if (g_strcmp0(server_type, "headless") == 0) {
+        return;
+    }
 
     if (osdtext != NULL) {
         clutter_actor_destroy (osdtext);
@@ -431,6 +470,12 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
         return;
     }
     l_debug ("change backdrop to %s", id);
+
+    g_free(backdrop_text);
+    backdrop_text=g_strdup(id);
+    if (g_strcmp0(server_type, "headless") == 0) {
+        return;
+    }
     if (g_strcmp0 (id, current_bg) == 0) {
         l_debug ("Backdrop ID same - not changing");
         return;
@@ -460,7 +505,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
 
 
     if (g_strcmp0 (line[0], "db") == 0) {
-        do_query (mediaDb,
+        do_query (FALSE, mediaDb,
                   "SELECT format, description, data, LENGTH(data) FROM media WHERE id=%s",
                   line[1]);
         MYSQL_ROW row;
@@ -521,6 +566,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
                 }
             }
         }
+        mysql_free_result (result);
     } else if (g_strcmp0 (line[0], "solid") == 0) {
         gchar **col = g_strsplit (line[1], ":", 2);
         l_debug ("Changing backdrop colour to %s", col[0]);
@@ -579,16 +625,14 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
               clutter_gst_video_texture_get_playbin (CLUTTER_GST_VIDEO_TEXTURE
                                                      (background));
 #endif
-            if (windowid == 0) {
-                g_signal_connect (background, "eos", G_CALLBACK (loop_video),
-                                  NULL);
-                bg_is_video =
-                  g_timeout_add_seconds (1, (GSourceFunc) update_tracker,
-                                         NULL);
-            } else {
+            g_signal_connect (background, "eos", G_CALLBACK (loop_video),
+                              NULL);
+            if (server_mode != NORMAL_SERVER) {
                 g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
                 bg_is_video =
                   g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
+            } else {
+                bg_is_video = TRUE;
             }
             clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
 
@@ -660,13 +704,12 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
                                  GST_SEEK_FLAG_NONE, title);
         l_debug ("Playing DVD title:%d", title);
 
-        if (windowid == 0) {
-            bg_is_video =
-              g_timeout_add_seconds (1, (GSourceFunc) update_tracker, NULL);
-        } else {
+        if (server_mode != NORMAL_SERVER) {
             g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
             bg_is_video =
               g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
+        } else {
+            bg_is_video  = TRUE;
         }
 
     } else if (g_strcmp0 (line[0], "uri") == 0) {
@@ -700,13 +743,12 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
                                                  (background));
 #endif
 
-        if (windowid == 0) {
-            bg_is_video =
-              g_timeout_add_seconds (1, (GSourceFunc) update_tracker, NULL);
-        } else {
+        if (server_mode != NORMAL_SERVER) {
             g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
             bg_is_video =
               g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
+        } else {
+            bg_is_video = TRUE;
         }
 
     }
@@ -744,7 +786,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
         foottext_bgcol =
           (gchar *) g_hash_table_lookup (config, "ShadowColour");
     }
-    do_query (mediaDb,
+    do_query (FALSE, mediaDb,
               "SELECT textcolour, shadowcolour FROM media WHERE CONCAT(\"db;\",id)=\"%s\" OR (format=\"file\" AND category=\"%s\")",
               current_bg, line[1]);
     MYSQL_RES *result;
@@ -766,13 +808,16 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
             }
         }
     }
+    mysql_free_result (result);
 
     if (g_strcmp0 (maintext_bgcol, maintext_bgcol_old) != 0) {
         ClutterColor *fgcolour = clutter_color_new (0xFF, 0xFF, 0xFF, 0xFF);
         ClutterColor *bgcolour = clutter_color_new (0x00, 0x00, 0x00, 0xA0);
-        clutter_color_from_string (bgcolour, maintext_bgcol);
-        bgcolour->alpha = 0xA0;
-        clutter_color_from_string (fgcolour, maintext_fgcol);
+        if (server_mode!=SIMPLE_SERVER){
+            clutter_color_from_string (bgcolour, maintext_bgcol);
+            bgcolour->alpha = 0xA0;
+            clutter_color_from_string (fgcolour, maintext_fgcol);
+        }
 
         int n_kids = clutter_group_get_n_children(CLUTTER_GROUP(maintext));
         int i;
@@ -786,7 +831,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
     }
     // Fade out old background
     if (CLUTTER_IS_ACTOR (background_old)) {
-        if (transition == NOTRANS) {
+        if (transition == 65536) {
             destroy_actor (background_old);
         } else {
             clutter_actor_animate (background_old, CLUTTER_LINEAR, 500,
@@ -821,121 +866,150 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
 {
 
     gboolean handled = FALSE;
-    switch (event->type) {
-        case CLUTTER_BUTTON_RELEASE:
-            switch (clutter_event_get_button (event)) {
-                case 1:
-                    handle_command (NULL, "display:next_page:");
+    gchar *ignoremouse;
+    if (server_mode == NORMAL_SERVER || server_mode == PREVIEW_SERVER) {
+        switch (event->type) {
+            case CLUTTER_BUTTON_RELEASE:
+                ignoremouse = (gchar *) g_hash_table_lookup (config, "IgnoreMouse");
+                if (ignoremouse != NULL && atoi(ignoremouse) == 1) {
                     break;
-                case 2:
-                    handle_command (NULL, "display:prev_song:");
-                    break;
-                case 3:
-                    handle_command (NULL, "display:prev_page:");
-                    break;
-                default:
-                    break;
-            }
-            break;
-        case CLUTTER_KEY_PRESS:
+                }
+                switch (clutter_event_get_button (event)) {
+                    case 1:
+                        handle_command (NULL, "display:next_page:");
+                        break;
+                    case 2:
+                        handle_command (NULL, "display:prev_song:");
+                        break;
+                    case 3:
+                        handle_command (NULL, "display:prev_page:");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case CLUTTER_KEY_PRESS:
+                switch (clutter_event_get_key_symbol (event)) {
+                    case CLUTTER_Q:
+                    case CLUTTER_Escape:
+                        close_log ();
+                        clear_group (stage);
+                        if (server_mode == NORMAL_SERVER) {
+                            clutter_main_quit ();
+                        } else {
+                            gtk_main_quit();
+                        }
+                        handled = TRUE;
+                        break;
+                    case CLUTTER_Left:
+                    case CLUTTER_KP_Left:
+                    case CLUTTER_Page_Up:
+                        handle_command (NULL, "display:prev_page:");
+                        break;
+                    case CLUTTER_Right:
+                    case CLUTTER_KP_Right:
+                    case CLUTTER_Page_Down:
+                        handle_command (NULL, "display:next_page:");
+                        break;
+                    case CLUTTER_Up:
+                    case CLUTTER_KP_Up:
+                        handle_command (NULL, "display:prev_song:");
+                        break;
+                    case CLUTTER_Down:
+                    case CLUTTER_KP_Down:
+                        handle_command (NULL, "display:next_song:");
+                        break;
+                    case CLUTTER_0:
+                    case CLUTTER_KP_0:
+                    case CLUTTER_KP_Insert:
+                    case CLUTTER_c:
+                    case CLUTTER_x:
+                        if (blanked_state == BLANK_NONE) {
+                            handle_command (NULL, "blank::");
+                        } else {
+                            handle_command (NULL, "display:current:");
+                        }
+                        break;
+                    case CLUTTER_b:
+                        if (blanked_state == BLANK_NONE) {
+                            handle_command (NULL, "blank:solid;black:");
+                        } else {
+                            handle_command (NULL, "display:current:");
+                        }
+                        break;
+                    case CLUTTER_p:
+                    case CLUTTER_space:
+                        handle_command (NULL, "media:pause:");
+                        break;
+                    case CLUTTER_1:
+                    case CLUTTER_KP_1:
+                        handle_command (NULL, "display:page:1");
+                        break;
+                    case CLUTTER_2:
+                    case CLUTTER_KP_2:
+                        handle_command (NULL, "display:page:2");
+                        break;
+                    case CLUTTER_3:
+                    case CLUTTER_KP_3:
+                        handle_command (NULL, "display:page:3");
+                        break;
+                    case CLUTTER_4:
+                    case CLUTTER_KP_4:
+                        handle_command (NULL, "display:page:4");
+                        break;
+                    case CLUTTER_5:
+                    case CLUTTER_KP_5:
+                        handle_command (NULL, "display:page:5");
+                        break;
+                    case CLUTTER_6:
+                    case CLUTTER_KP_6:
+                        handle_command (NULL, "display:page:6");
+                        break;
+                    case CLUTTER_7:
+                    case CLUTTER_KP_7:
+                        handle_command (NULL, "display:page:7");
+                        break;
+                    case CLUTTER_8:
+                    case CLUTTER_KP_8:
+                        handle_command (NULL, "display:page:8");
+                        break;
+                    case CLUTTER_9:
+                    case CLUTTER_KP_9:
+                        handle_command (NULL, "display:page:9");
+                        break;
+                    default:
+                        l_debug ("Unknown key");
+                        break;
+                }
+                break;
+            case CLUTTER_MOTION:
+                clutter_stage_show_cursor (CLUTTER_STAGE (stage));
+                if (cursor_timeout)
+                    g_source_remove (cursor_timeout);
+                cursor_timeout =
+                  g_timeout_add_seconds (3, (GSourceFunc) hide_cursor, NULL);
+                break;
+            default:
+                break;
+        }
+    } else {
+        if (event->type == CLUTTER_KEY_PRESS) {
             switch (clutter_event_get_key_symbol (event)) {
                 case CLUTTER_Q:
                 case CLUTTER_Escape:
                     close_log ();
                     clear_group (stage);
-                    clutter_main_quit ();
+                    if (server_mode == NORMAL_SERVER) {
+                        clutter_main_quit ();
+                    } else {
+                        gtk_main_quit();
+                    }
                     handled = TRUE;
                     break;
-                case CLUTTER_Left:
-                case CLUTTER_KP_Left:
-                case CLUTTER_Page_Up:
-                    handle_command (NULL, "display:prev_page:");
-                    break;
-                case CLUTTER_Right:
-                case CLUTTER_KP_Right:
-                case CLUTTER_Page_Down:
-                    handle_command (NULL, "display:next_page:");
-                    break;
-                case CLUTTER_Up:
-                case CLUTTER_KP_Up:
-                    handle_command (NULL, "display:prev_song:");
-                    break;
-                case CLUTTER_Down:
-                case CLUTTER_KP_Down:
-                    handle_command (NULL, "display:next_song:");
-                    break;
-                case CLUTTER_0:
-                case CLUTTER_KP_0:
-                case CLUTTER_KP_Insert:
-                case CLUTTER_c:
-                case CLUTTER_x:
-                    if (blanked_state == BLANK_NONE) {
-                        handle_command (NULL, "blank::");
-                    } else {
-                        handle_command (NULL, "display:current:");
-                    }
-                    break;
-                case CLUTTER_b:
-                    if (blanked_state == BLANK_NONE) {
-                        handle_command (NULL, "blank:solid;black:");
-                    } else {
-                        handle_command (NULL, "display:current:");
-                    }
-                    break;
-                case CLUTTER_p:
-                case CLUTTER_space:
-                    handle_command (NULL, "media:pause:");
-                    break;
-                case CLUTTER_1:
-                case CLUTTER_KP_1:
-                    handle_command (NULL, "display:page:1");
-                    break;
-                case CLUTTER_2:
-                case CLUTTER_KP_2:
-                    handle_command (NULL, "display:page:2");
-                    break;
-                case CLUTTER_3:
-                case CLUTTER_KP_3:
-                    handle_command (NULL, "display:page:3");
-                    break;
-                case CLUTTER_4:
-                case CLUTTER_KP_4:
-                    handle_command (NULL, "display:page:4");
-                    break;
-                case CLUTTER_5:
-                case CLUTTER_KP_5:
-                    handle_command (NULL, "display:page:5");
-                    break;
-                case CLUTTER_6:
-                case CLUTTER_KP_6:
-                    handle_command (NULL, "display:page:6");
-                    break;
-                case CLUTTER_7:
-                case CLUTTER_KP_7:
-                    handle_command (NULL, "display:page:7");
-                    break;
-                case CLUTTER_8:
-                case CLUTTER_KP_8:
-                    handle_command (NULL, "display:page:8");
-                    break;
-                case CLUTTER_9:
-                case CLUTTER_KP_9:
-                    handle_command (NULL, "display:page:9");
-                    break;
                 default:
-                    l_debug ("Unknown key");
                     break;
             }
-            break;
-        case CLUTTER_MOTION:
-            clutter_stage_show_cursor (CLUTTER_STAGE (stage));
-            if (cursor_timeout)
-                g_source_remove (cursor_timeout);
-            cursor_timeout =
-              g_timeout_add_seconds (3, (GSourceFunc) hide_cursor, NULL);
-            break;
-        default:
-            break;
+        }
     }
     return handled;
 }
@@ -972,7 +1046,7 @@ loop_video (ClutterActor * video)
 void
 media_pause ()
 {
-    if (bg_is_video) {
+    if (bg_is_video && (server_mode == NORMAL_SERVER)) {
         clutter_media_set_playing (CLUTTER_MEDIA (background),
                                    !clutter_media_get_playing (CLUTTER_MEDIA
                                                                (background)));
@@ -1233,14 +1307,15 @@ gboolean
 stop_media ()
 {
     l_debug ("Stop media");
-    clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
-    if (bg_is_video)
+    if (bg_is_video) {
+        clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
         g_source_remove (bg_is_video);
+    }
     return FALSE;
 }
 
-gboolean
-take_snapshot (const char *filename)
+GString *
+take_snapshot (const char *filename, int width)
 {
     l_debug ("Saving snapshot to %s", filename);
     guchar *data =
@@ -1251,7 +1326,151 @@ take_snapshot (const char *filename)
                                 clutter_actor_get_height (stage),
                                 clutter_actor_get_width (stage) * 4, NULL,
                                 NULL);
-    gdk_pixbuf_save (pixbuf, filename, "jpeg", NULL, "quality", "90", NULL);
+    GdkPixbuf *scaled;
+    if (width != 0) {
+        int height = ((float)width / (float)clutter_actor_get_width (stage)) * (float)clutter_actor_get_height (stage);
+l_debug("Scale:%dx%d",width,height);
+        scaled =
+          gdk_pixbuf_scale_simple (pixbuf, width, height, GDK_INTERP_BILINEAR);
+    } else {
+        scaled=pixbuf;
+    }
+    if (g_strcmp0 (filename, "-") != 0) {
+        gdk_pixbuf_save (scaled, filename, "jpeg", NULL, "quality", "90", NULL);
+        g_object_unref(pixbuf);
+        g_free (data);
+    } else {
+        gchar *buffer;
+        gsize count;
+        gdk_pixbuf_save_to_buffer (scaled, &buffer, &count, "jpeg", NULL, "quality", "90", NULL);
+/*        JsonGenerator *generator = json_generator_new();
+        JsonNode *rootnode = json_node_new(JSON_NODE_OBJECT);
+        JsonObject *resultnode = json_object_new();
+        JsonArray *resultarray = json_array_new();
+        JsonObject *newobject = json_object_new();
+        json_object_set_string_member(newobject,"snapshot",buffer);
+        json_array_add_object_element(resultarray, newobject);
+        json_object_set_array_member(resultnode, "results",resultarray);
+        json_node_set_object(rootnode,resultnode);
+        json_generator_set_root(generator, rootnode);
+        gchar *str = json_generator_to_data (generator,NULL);
+        GString *ret = g_string_new(str);
+        json_array_unref (resultarray);
+        g_object_unref (generator);*/
+        
+        g_object_unref(pixbuf);
+        g_free (data);
+        char *encoded = g_base64_encode((guchar *)buffer,count);
+        GString *ret = g_string_new(encoded);
+        g_free(encoded);
+        return ret;
+    }
+    return NULL;
+}
+
+gboolean
+take_dbsnapshot (int playorder)
+{
+    gsize buffer_size;
+    gchar *buffer;
+    gchar options[10];
+
+    if (playorder > 0) {
+        snprintf(options,10,"%d:0",playorder);
+        do_display(options,TRUE);
+    } else {
+        playorder=current_item;
+    }
+    while (gtk_events_pending ())
+        gtk_main_iteration ();
+    l_debug ("Saving snapshot of playlist item %d", playorder);
+    guchar *data =
+      clutter_stage_read_pixels (CLUTTER_STAGE (stage), 0, 0, -1, -1);
+    GdkPixbuf *pixbuf =
+      gdk_pixbuf_new_from_data (data, GDK_COLORSPACE_RGB, TRUE, 8,
+                                clutter_actor_get_width (stage),
+                                clutter_actor_get_height (stage),
+                                clutter_actor_get_width (stage) * 4, NULL,
+                                NULL);
+    float scale = clutter_actor_get_width(stage)/256;
+    GdkPixbuf *scaled =
+      gdk_pixbuf_scale_simple (pixbuf, 256, clutter_actor_get_height(stage)/scale, GDK_INTERP_BILINEAR);
+    gdk_pixbuf_save_to_buffer (scaled,&buffer,&buffer_size, "jpeg", NULL, "quality", "90", NULL);
+    char chunk[2*1024*1024]; //2Mb max - a 256-pixel wide jpg should never be bigger than that
+    mysql_real_escape_string(lyricDb, chunk, buffer, buffer_size);
+    // Custom sql connection so we don't log full image data
+    GString *query = g_string_new (NULL);
+    g_string_printf(query, "UPDATE playlist SET snapshot='%s' WHERE playorder=%d",chunk, playorder);
+    if (mysql_query (lyricDb, query->str)) {
+        l_debug (_("SQL Error %u: %s"), mysql_errno (lyricDb),
+          mysql_error (lyricDb));
+    }
+    g_object_unref(scaled);
+    g_object_unref(pixbuf);
     g_free (data);
+    g_string_free (query, TRUE);
+
     return TRUE;
 }
+
+gboolean
+playlist_snapshot(int playlist)
+{
+    l_debug("Save playlist snapshots %d",playlist);
+    MYSQL_ROW row;
+    MYSQL_RES *result;
+
+    change_backdrop (default_bg, TRUE, NO_EFFECT);
+    do_query (FALSE, lyricDb,
+              "SELECT p1.playorder FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.playlist=p2.data LEFT JOIN playlist AS p3 ON p2.playlist=p3.data WHERE p1.playlist=%d OR p2.playlist=%d OR p3.playlist=%d ORDER BY p1.playorder",playlist,playlist,playlist);
+    result = mysql_store_result (lyricDb);
+    row = mysql_fetch_row (result);
+    while (row != NULL) {
+        l_debug("Snapping playorder %d", atoi(row[0]));
+        take_dbsnapshot (atoi(row[0]));
+        row = mysql_fetch_row (result);
+    }
+    mysql_free_result (result);
+    return TRUE;
+}
+
+GString *
+do_get (const gchar * item)
+{
+    JsonGenerator *generator = json_generator_new();
+    JsonNode *rootnode = json_node_new(JSON_NODE_OBJECT);
+    JsonObject *resultnode = json_object_new();
+    JsonArray *resultarray = json_array_new();
+    JsonObject *newobject = json_object_new();
+
+    if (g_strcmp0(item,"text:")==0) {
+        json_object_set_string_member(newobject,"header",headtext_text);
+        json_object_set_string_member(newobject,"main",maintext_text);
+        json_object_set_string_member(newobject,"footer",foottext_text);
+        json_object_set_string_member(newobject,"osd",osd_text);
+    } else if (g_strcmp0(item,"bg:")==0) {
+        gchar **line = g_strsplit (backdrop_text, ";", 2);
+        if (g_strcmp0 (line[0], "dir") == 0) {
+            GFileInfo *info = g_file_query_info (g_file_new_for_path (line[1]), G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE, G_FILE_QUERY_INFO_NONE, NULL, NULL);
+            if (info && (g_content_type_is_a(g_file_info_get_content_type (info), "image/*"))) {
+                gchar *contents = NULL;
+                gsize length = 0;
+                g_file_get_contents(line[1], &contents, &length, NULL);
+                char *encoded = g_base64_encode((guchar *)contents, length);
+                json_object_set_string_member(newobject,"image",encoded);
+                g_free(encoded);
+                g_free(contents);
+            }
+        }
+    }
+    json_array_add_object_element(resultarray, newobject);
+    json_object_set_array_member(resultnode, "results",resultarray);
+    json_node_set_object(rootnode,resultnode);
+    json_generator_set_root(generator, rootnode);
+    gchar *str = json_generator_to_data (generator,NULL);
+    GString *ret = g_string_new(str);
+    json_array_unref (resultarray);
+    g_object_unref (generator);
+    return ret;
+}
+

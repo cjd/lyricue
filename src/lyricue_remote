@@ -15,26 +15,20 @@ use strict;
 use warnings;
 use POSIX;
 use IO::Socket::INET;
-my ($globals, $config);
-$globals->{'host'}          = "localhost";
-$globals->{'server_port'}   = "2346";        #port used for lyric server
-$globals->{'preview_port'}  = "2347";        #port used for preview
-$globals->{'miniview_port'} = "2348";        #port used for miniview
-
-$config->{'LOOP'} = 0;
+my $profile = "Default";
 
 if ($ARGV[0]) {
     foreach (0 .. (@ARGV - 1)) {
         if ($ARGV[$_] eq "-v") {
             print "Lyricue Remote\n";
             exit;
-        } elsif ($ARGV[$_] eq "-s") {
-            $globals->{'host'} = $ARGV[$_ + 1];
+        } elsif ($ARGV[$_] eq "-p") {
+            $profile = $ARGV[$_ + 1];
             $ARGV[$_ + 1] = "";
         } elsif ($ARGV[$_] eq "-h") {
             print "\nUsage: lyricue_remote <-v> <-s> <command>\n\n";
-            print "\t-v:      Prints Lyricue version information & exits\n";
-            print "\t-s:      Specify the host on which the lyric server is located\n";
+            print "\t-v:              Prints Lyricue version information & exits\n";
+            print "\t-p profile:      Sets the profile to send messsages to\n";
             print "\tcommand: Can be any of next_page, prev_page, next_song, prev_song,\n";
             print "\t         next_point, blank, osd, close or custom\n";
             print "\t         If custom then the next 3 arguments will be sent without parsing\n";
@@ -44,20 +38,20 @@ if ($ARGV[0]) {
 
             # ignore
         } elsif ($ARGV[$_] eq "next_page") {
-            update_display("display", "next_page", $config->{'Loop'});
+            update_display("display", "next_page", "");
         } elsif ($ARGV[$_] eq "next_song") {
-            update_display("display", "next_song", $config->{'Loop'});
+            update_display("display", "next_song", "");
         } elsif ($ARGV[$_] eq "prev_page") {
-            update_display("display", "prev_page", $config->{'Loop'});
+            update_display("display", "prev_page", "");
         } elsif ($ARGV[$_] eq "prev_song") {
-            update_display("display", "prev_song", $config->{'Loop'});
+            update_display("display", "prev_song", "");
         } elsif ($ARGV[$_] eq "blank") {
             update_display("blank", "", "");
         } elsif ($ARGV[$_] eq "next_point") {
             update_display("next_point", "", "");
         } elsif ($ARGV[$_] eq "close") {
-            system("pkill -f \"Lyricue.*2346\"");
-            system("pkill -9 -f \"Lyricue.*2346\"");
+            system("pkill -f lyricue_display");
+            system("pkill -9 -f lyricue_display");
         } elsif ($ARGV[$_] eq "osd") {
             my $osd = "";
             if ($ARGV[$_+1]) {
@@ -99,20 +93,23 @@ sub update_display {
     if (!defined($primary)) {
         $primary = "";
     }
-    if (
-        my $server = IO::Socket::INET->new(
-            Proto    => "tcp",
-            PeerAddr => $globals->{'host'},
-            PeerPort => $globals->{'server_port'}
-        )
-      )
-    {
-        print $server $command . ":" . $primary . ":" . $secondary . "\n";
-        if (defined(my $status = <$server>)) {
-            print $status;
+    my @lines = split("\n",`mysql -s -N -ulyric lyricDb -e 'SELECT host FROM status WHERE type="normal" OR type="simple" OR type="headless"'`);
+
+    foreach my $entry (@lines) {
+        my ($hostname,$port) = split(":", $entry,2);
+        if ( my $server = IO::Socket::INET->new(
+                Proto    => "tcp",
+                PeerAddr => $hostname,
+                PeerPort => $port
+            )) {
+            print $server $command . ":" . $primary . ":" . $secondary . "\n";
+            if (defined(my $status = <$server>)) {
+                print $status;
+            }
+            close($server);
         }
-        close($server);
     }
+
 }
 
 #***

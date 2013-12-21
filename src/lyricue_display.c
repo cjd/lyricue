@@ -41,27 +41,39 @@ gchar *temp_bg = NULL;
 int current_item = 0;
 int current_list = 0;
 GHashTable *config = NULL;
-gboolean transition_skip = FALSE;
-#define SERVER_PORT 2346
+GHashTable *miniviews = NULL;
 
 // Command line options
 gboolean windowed = FALSE;
 gboolean debugging = FALSE;
-int server_port = SERVER_PORT;
+int server_port = 2346;
+gchar *server_type = "normal";
+int server_mode = NORMAL_SERVER;
 gchar *dbhostname = "localhost";
 gchar *geometry = NULL;
+gchar *profile = NULL;
+gchar *extra_data = NULL;
 unsigned long windowid = 0;
+gchar hostname[32];
+guint tracker_timeout = 0;
+
 
 static GOptionEntry entries[] = {
-    {"window", 'w', 0, G_OPTION_ARG_NONE, &windowed, "Run in a window", NULL},
+    {"type", 't', 0, G_OPTION_ARG_STRING, &server_type, "Server type",
+     "[normal | preview | miniview | simple | headless ] "},
+    {"profile", 'p', 0, G_OPTION_ARG_STRING, &profile, "Profile",
+     "profile_name"},
     {"remote", 'r', 0, G_OPTION_ARG_STRING, &dbhostname, "Database hostname",
-     NULL},
+     "hostname"},
     {"geometry", 'g', 0, G_OPTION_ARG_STRING, &geometry, "Window Geometry",
-     NULL},
-    {"port", 'p', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on",
-     NULL},
+     "geom"},
+    {"listen", 'l', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on",
+     "port_number"},
     {"miniview", 'm', 0, G_OPTION_ARG_INT, &windowid, "Embed in windowid",
-     NULL},
+     "windowid"},
+    {"extra", 'e', 0, G_OPTION_ARG_STRING, &extra_data, "Extra data to report to avahi",
+     "data"},
+    {"window", 'w', 0, G_OPTION_ARG_NONE, &windowed, "Run in a window", NULL},
     {"debug", 'd', 0, G_OPTION_ARG_NONE, &debugging, "Enable debug output",
      NULL},
     {NULL}
@@ -91,7 +103,24 @@ main (int argc, char *argv[])
     }
     int ret = db_select ();
     if (ret) {
-        // Really should handle this ;)
+        // Always true
+    }
+    gethostname(hostname,sizeof(hostname));
+
+    do_query(FALSE, lyricDb, "SELECT profile FROM profiles WHERE host='%s'", hostname);
+    MYSQL_ROW row;
+    MYSQL_RES *result;
+    result = mysql_store_result (lyricDb);
+    row = mysql_fetch_row (result);
+    if (row != NULL) {
+        if (profile == NULL) {
+            profile=g_strdup(row[0]);
+        }
+    } else {
+        if (profile == NULL) {
+            profile = g_strdup("Default");
+        }
+        do_query(FALSE, lyricDb, "INSERT INTO profiles (host, profile) VALUES ('%s', '%s')", hostname, profile);
     }
     load_configuration (lyricDb);
     bible_load ((gchar *) g_hash_table_lookup (config, "DefBible"));
@@ -100,31 +129,61 @@ main (int argc, char *argv[])
     // Setup network
     GSocketService *service = g_socket_service_new ();
     GInetAddress *address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
-    g_snprintf (argv[0], 29, "Lyricue Display on port %04d", server_port);
-    l_debug ("Process Name:%s", argv[0]);
 
     if (!g_socket_listener_add_inet_port
         (G_SOCKET_LISTENER (service), server_port, NULL, NULL)) {
         l_debug ("Unable to listen on port %d", server_port);
-        return EXIT_FAILURE;
+        server_port = g_socket_listener_add_any_inet_port
+                        (G_SOCKET_LISTENER (service), NULL, NULL);
+        if (server_port == 0) {
+            return EXIT_FAILURE;
+        }
     }
+    l_debug("Listening on port %d", server_port);
     g_object_unref (address);
     g_socket_service_start (service);
     g_signal_connect (service, "incoming", G_CALLBACK (new_connection), NULL);
 
+    if (g_strcmp0(server_type, "headless") != 0) {
+        ret = create_main_window (argc, argv);
+    }
+
+    // Publish to avahi (zeroconf/bonjour)
+    publish_avahi(server_port, server_type);
+    if (g_strcmp0(server_type, "normal") == 0) {
+        server_mode=NORMAL_SERVER;
+    } else if (g_strcmp0(server_type, "preview") == 0) {
+        server_mode=PREVIEW_SERVER;
+    } else if (g_strcmp0(server_type, "miniview") == 0) {
+        server_mode=MINIVIEW_SERVER;
+    } else if (g_strcmp0(server_type, "simple") == 0) {
+        server_mode=SIMPLE_SERVER;
+    } else if (g_strcmp0(server_type, "headless") == 0) {
+        server_mode=HEADLESS_SERVER;
+    }
+
+    // Create tracker update timeout
+    tracker_timeout = g_timeout_add_seconds (1, (GSourceFunc) update_tracker,
+                                         NULL);
+
+
     // Setup tracker entry in DB
-    do_query (lyricDb, "DELETE FROM playlists WHERE id=-1");
-    do_query (lyricDb, "INSERT INTO playlists SET id=-1,ref=0,title=''");
-
-    ret = create_main_window (argc, argv);
-
-    if (windowid == 0) {
+    do_query (FALSE, lyricDb, "DELETE FROM status WHERE host='%s:%d'",hostname, server_port);
+    do_query (FALSE, lyricDb, "INSERT INTO status SET host='%s:%d',ref=0,title='', profile='%s', type='%s%s'",hostname, server_port, profile, server_type, extra_data);
+    if (server_mode==NORMAL_SERVER) {
         clutter_main ();
     } else {
         gtk_main ();
     }
+
     ret = db_deselect ();
 
+    do_query (FALSE, lyricDb,
+              "UPDATE status SET lastupdate = 0 WHERE host=\"%s:%d\"",
+              hostname, server_port);
+    unpublish_avahi();
+
+    l_debug("Exiting");
     return EXIT_SUCCESS;
 }
 
@@ -194,8 +253,13 @@ handle_command (GIOChannel * source, const char *command)
             do_preview (line[1]);
         } else if (g_strcmp0 (line[0], "status") == 0) {
             returnstring = do_status ();
+        } else if (g_strcmp0 (line[0], "dbsnapshot") == 0) {
+            do_dbsnapshot (line[1]);
+        } else if (g_strcmp0 (line[0], "plsnapshot") == 0) {
+            do_plsnapshot (line[1]);
+            returnstring = g_string_new("done");
         } else if (g_strcmp0 (line[0], "snapshot") == 0) {
-            do_snapshot (line[1]);
+            returnstring = do_snapshot (line[1]);
         } else if (g_strcmp0 (line[0], "reconfig") == 0) {
             do_reconfig ();
         } else if (g_strcmp0 (line[0], "backdrop") == 0) {
@@ -207,9 +271,9 @@ handle_command (GIOChannel * source, const char *command)
         } else if (g_strcmp0 (line[0], "next_point") == 0) {
             do_next_point (line[1]);
         } else if (g_strcmp0 (line[0], "get") == 0) {
-            do_get (line[1]);
+            returnstring = do_get (line[1]);
         } else if (g_strcmp0 (line[0], "display") == 0) {
-            do_display (line[1]);
+            do_display (line[1],FALSE);
         } else if (g_strcmp0 (line[0], "osd") == 0) {
             do_osd (line[1]);
         } else if (g_strcmp0 (line[0], "media") == 0) {
@@ -222,19 +286,45 @@ handle_command (GIOChannel * source, const char *command)
             do_save (line[1]);
         } else if (g_strcmp0 (line[0], "query") == 0) {
             returnstring = do_query_json (line[1]);
+        } else if (g_strcmp0 (line[0], "bible") == 0) {
+            returnstring = do_bible(line[1]);
+        } else if (g_strcmp0 (line[0], "profile") == 0) {
+            do_profile_change(line[1]);
         }
     }
     g_strfreev (line);
     if (returnstring != NULL) {
-        l_debug ("The status message sent is: %s", returnstring->str);
+        if ((returnstring->len > 1024) && (g_strrstr_len(returnstring->str, returnstring->len, " ") == NULL)){
+            l_debug ("The status message sent is (%d chars): [uuencoded data]", returnstring->len);
+        } else {
+            l_debug ("The status message sent is (%d chars): %s", returnstring->len, returnstring->str);
+        }
+        gsize bytes_written = 0;
+        GError *err = NULL;
         GIOStatus res = g_io_channel_write_chars (source, returnstring->str,
-                                                  returnstring->len, NULL,
-                                                  NULL);
+                                                  returnstring->len, &bytes_written, &err);
+        if (res) {
+            // Ignore it
+        }
+        gsize total = bytes_written;
+        // Repeat until all sent - needed since socket is non-blocking
+        while (bytes_written < returnstring->len) {
+            g_string_erase(returnstring, 0, bytes_written);
+            res = g_io_channel_write_chars (source, returnstring->str,
+                                                  returnstring->len, &bytes_written, &err);
+            total = total + bytes_written;
+        }
+        l_debug("Sent %d chars", total);
+        if (err != NULL) {
+            l_debug("Error: %s",err->message);
+            g_error_free(err);
+        }
         g_string_free (returnstring, TRUE);
-        if (res != G_IO_STATUS_NORMAL)
-            return;
+
         /* force flushing of the write buffer */
-        res = g_io_channel_flush (source, NULL);
+        if (source !=NULL) {
+            res = g_io_channel_flush (source, NULL);
+        }
     }
     update_tracker ();
 }
@@ -316,12 +406,35 @@ do_status ()
     return ret;
 }
 
-void
+GString *
 do_snapshot (const char *options)
 {
     l_debug ("do_snapshot");
     gchar **line = g_strsplit (options, ":", 2);
-    take_snapshot (line[0]);
+    int width=0;
+    if (line[1] != NULL) {
+        width=atoi(line[1]);
+    }
+    GString *ret = take_snapshot (line[0], width);
+    g_strfreev (line);
+    return ret;
+}
+
+void
+do_dbsnapshot (const char *options)
+{
+    l_debug ("do_snapshot");
+    gchar **line = g_strsplit (options, ":", 2);
+    take_dbsnapshot (atoi(line[0]));
+    g_strfreev (line);
+}
+
+void
+do_plsnapshot (const char *options)
+{
+    l_debug ("do_snapshot");
+    gchar **line = g_strsplit (options, ":", 2);
+    playlist_snapshot(atoi(line[0]));
     g_strfreev (line);
 }
 
@@ -336,11 +449,15 @@ void
 do_backdrop (const char *options)
 {
     l_debug ("do_backdrop: %s", options);
-    gchar **line = g_strsplit (options, ":", 2);
-    temp_bg = NULL;
-    default_bg = parse_special (line[0]);
-    change_backdrop (default_bg, TRUE, DEFAULT);
-    g_strfreev (line);
+    if (server_mode != SIMPLE_SERVER) {
+        gchar **line = g_strsplit (options, ":", 2);
+        temp_bg = NULL;
+        default_bg = parse_special (line[0]);
+        change_backdrop (default_bg, TRUE, DEFAULT);
+        g_strfreev (line);
+    } else {
+        if (background != NULL) destroy_actor(background);
+    }
 }
 
 void
@@ -363,7 +480,7 @@ do_blank (const char *options)
 
     if (blanked_state == BLANK_BG) {
         l_debug ("Re-show text");
-        do_display ("current");
+        do_display ("current",FALSE);
     } else if ((blanked_state == BLANK_TEXT) && options != NULL) {
         l_debug ("clear text and set BG");
         temp_bg = current_bg;
@@ -371,7 +488,7 @@ do_blank (const char *options)
         blanked_state = BLANK_BG;
     } else if ((blanked_state == BLANK_TEXT) && options == NULL) {
         l_debug ("Re-show text - 2");
-        do_display ("current");
+        do_display ("current",FALSE);
     } else if (options != NULL) {
         l_debug ("clear text and set BG - 2");
         temp_bg = current_bg;
@@ -404,12 +521,6 @@ do_next_point (const char *options)
 }
 
 void
-do_get (const char *options)
-{
-    l_debug ("do_get not implemented");
-}
-
-void
 do_osd (const char *options)
 {
     l_debug ("do_osd");
@@ -431,7 +542,7 @@ do_osd (const char *options)
 }
 
 void
-do_display (const char *options)
+do_display (const char *options, const int quick_show)
 {
     l_debug ("do_display");
     if (options != NULL) {
@@ -440,7 +551,7 @@ do_display (const char *options)
         MYSQL_ROW row;
         MYSQL_RES *result;
         gboolean bg_changed = FALSE;
-        do_query (lyricDb, "SELECT playlist FROM playlist WHERE playorder=%d",
+        do_query (FALSE, lyricDb, "SELECT playlist FROM playlist WHERE playorder=%d",
                   current_item);
         result = mysql_store_result (lyricDb);
         row = mysql_fetch_row (result);
@@ -463,7 +574,7 @@ do_display (const char *options)
                 bg_changed = TRUE;
             }
         } else if (g_strcmp0 (command, "next_page") == 0) {
-            do_query (lyricDb,
+            do_query (FALSE, lyricDb,
                       "SELECT MIN(playorder) FROM playlist WHERE playlist=%d AND playorder > %d ORDER BY playorder",
                       current_list, current_item);
             result = mysql_store_result (lyricDb);
@@ -483,7 +594,7 @@ do_display (const char *options)
                     }
                     if (loop_parent == 0) {
                         l_debug ("Looping a song, back to page 1");
-                        do_query (lyricDb,
+                        do_query (FALSE, lyricDb,
                                   "SELECT MIN(playorder) FROM playlist WHERE playlist=%d",
                                   current_list);
                         result = mysql_store_result (lyricDb);
@@ -494,7 +605,7 @@ do_display (const char *options)
                         }
                     } else {
                         l_debug ("Looping a sublist");
-                        do_query (lyricDb,
+                        do_query (FALSE, lyricDb,
                                   "SELECT MIN(p1.playorder) FROM playlist AS p1, playlist AS p2 WHERE p1.playorder>p2.playorder AND p2.type='play' AND p2.data=%d AND p1.playlist=%d",
                                   current_list, loop_parent);
                         result = mysql_store_result (lyricDb);
@@ -504,7 +615,7 @@ do_display (const char *options)
                             current_item = atoi (row[0]);
                         } else {
                             // Loop back to top of parent
-                            do_query (lyricDb,
+                            do_query (FALSE, lyricDb,
                                       "SELECT MIN(playorder) FROM playlist WHERE playlist=%d",
                                       loop_parent);
                             result = mysql_store_result (lyricDb);
@@ -517,13 +628,13 @@ do_display (const char *options)
                     }
                 } else {
                     // Jump to next song
-                    do_display ("next_song:0");
+                    do_display ("next_song:0",FALSE);
                     return;
                 }
             }
 
         } else if (g_strcmp0 (command, "prev_page") == 0) {
-            do_query (lyricDb,
+            do_query (FALSE, lyricDb,
                       "SELECT MAX(playorder) FROM playlist WHERE playlist=%d AND playorder < %d ORDER BY playorder",
                       current_list, current_item);
             result = mysql_store_result (lyricDb);
@@ -534,7 +645,7 @@ do_display (const char *options)
             } else {
                 if (g_strcmp0 (line[1], "loop") == 0) {
                     // Loop back to end of playlist
-                    do_query (lyricDb,
+                    do_query (FALSE, lyricDb,
                               "SELECT MAX(playorder) FROM playlist WHERE playlist=%d",
                               current_list);
                     result = mysql_store_result (lyricDb);
@@ -545,7 +656,7 @@ do_display (const char *options)
                     }
                 } else {
                     // Jump back to last page of previous song
-                    do_query(lyricDb,
+                    do_query(FALSE, lyricDb,
                              "SELECT MAX(playorder) FROM playlist "
                              "WHERE playlist="
                              "(SELECT data FROM playlist "
@@ -569,7 +680,7 @@ do_display (const char *options)
             }
 
         } else if (g_strcmp0 (command, "next_song") == 0) {
-            do_query (lyricDb,
+            do_query (FALSE, lyricDb,
                       "SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder=%d",
                       current_item);
             result = mysql_store_result (lyricDb);
@@ -580,18 +691,18 @@ do_display (const char *options)
                 current_item = atoi (row[0]);
                 current_list = atoi (row[1]);
             }
-            do_query (lyricDb,
+            do_query (FALSE, lyricDb,
                       "SELECT MIN(playorder) FROM playlist WHERE playorder > %d AND playlist=%d",
                       current_item, current_list);
             result = mysql_store_result (lyricDb);
             row = mysql_fetch_row (result);
-            mysql_free_result (result);
             if (row[0] != NULL) {
                 current_item = atoi (row[0]);
             }
+            mysql_free_result (result);
 
         } else if (g_strcmp0 (command, "prev_song") == 0) {
-            do_query (lyricDb,
+            do_query (FALSE, lyricDb,
                       "SELECT a.playorder,a.playlist FROM playlist AS a, playlist AS b WHERE a.data=b.playlist AND a.type=\"play\" AND b.playorder=%d",
                       current_item);
             result = mysql_store_result (lyricDb);
@@ -601,7 +712,7 @@ do_display (const char *options)
                 current_item = atoi (row[0]);
                 current_list = atoi (row[1]);
             }
-            do_query (lyricDb,
+            do_query (FALSE, lyricDb,
                       "SELECT MAX(playorder) FROM playlist WHERE playorder < %d AND playlist=%d",
                       current_item, current_list);
             result = mysql_store_result (lyricDb);
@@ -612,7 +723,7 @@ do_display (const char *options)
             }
 
         } else if (g_strcmp0 (command, "page") == 0) {
-            do_query (lyricDb,
+            do_query (FALSE, lyricDb,
                       "SELECT playorder FROM playlist WHERE playlist=%d",
                       current_list);
             result = mysql_store_result (lyricDb);
@@ -628,7 +739,7 @@ do_display (const char *options)
             current_item = atoi (command);
         }
 
-        do_query (lyricDb,
+        do_query (FALSE, lyricDb,
                   "SELECT type,data,transition FROM playlist WHERE playorder=%d",
                   current_item);
         result = mysql_store_result (lyricDb);
@@ -641,14 +752,16 @@ do_display (const char *options)
             gchar *footer = "";
             gboolean wrap = TRUE;
             int transition = atoi (row[2]);
-            if (transition_skip) {
-                transition = NOTRANS;
+            if (quick_show) {
+                transition = NO_EFFECT;
             }
 
             if (g_strcmp0 (type, "back") == 0) {
                 default_bg = g_strdup (data);
-                change_backdrop (default_bg, TRUE, transition);
-                bg_changed = TRUE;
+                if (server_mode == NORMAL_SERVER) {
+                    change_backdrop (default_bg, TRUE, transition);
+                    bg_changed = TRUE;
+                }
                 g_strfreev (line);
             } else if (g_strcmp0 (type, "file") == 0) {
                 change_backdrop (data, FALSE, transition);
@@ -658,7 +771,7 @@ do_display (const char *options)
                 change_backdrop (data, FALSE, transition);
                 bg_changed = TRUE;
             } else if (g_strcmp0 (type, "vers") == 0) {
-                do_query (lyricDb,
+                do_query (FALSE, lyricDb,
                           "SELECT title FROM playlist,playlists WHERE playlist.playlist=playlists.id AND playorder=%d",
                           current_item);
                 result = mysql_store_result (lyricDb);
@@ -685,16 +798,16 @@ do_display (const char *options)
                 wrap = TRUE;
             } else if ((g_strcmp0 (type, "play") == 0) ||
                        (g_strcmp0 (type, "sub") == 0)) {
-                do_query (lyricDb,
+                do_query (FALSE, lyricDb,
                           "SELECT playorder FROM playlist WHERE playlist=%s ORDER BY playorder",
                           data);
                 result = mysql_store_result (lyricDb);
                 row = mysql_fetch_row (result);
-                do_display (row[0]);
+                do_display (row[0],FALSE);
                 return;
             } else {            // Song page
-                do_query (lyricDb,
-                          "SELECT title,artist,lyrics,copyright FROM lyricMain AS l, page AS pa WHERE pa.songid=l.id AND pa.pageid=%s",
+                do_query (FALSE, lyricDb,
+                          "SELECT title,artist,lyrics,copyright FROM lyricMain AS l, page AS pa WHERE (pa.songid=l.id OR pa.songid=-l.id) AND pa.pageid=%s",
                           data);
                 result = mysql_store_result (lyricDb);
                 row = mysql_fetch_row (result);
@@ -709,6 +822,9 @@ do_display (const char *options)
                         g_string_printf (foot, "Written by %s", artist);
                     }
                     if (g_utf8_strlen (copyright, 10) != 0) {
+                        if (g_ascii_strncasecmp(copyright,"Preset",6) == 0) {
+                            copyright=(gchar *) g_hash_table_lookup (config,copyright);
+                        }
                         g_string_append_printf (foot, " - %s", copyright);
                     }
                     lyrics = g_strdup (lyrictmp);
@@ -720,47 +836,52 @@ do_display (const char *options)
 
             // Look for associated background image
             if (!bg_changed) {
-                int res = do_query (lyricDb,
-                                    "SELECT imagename FROM associations WHERE playlist=%d",
-                                    current_item);
-                int bg_changed = FALSE;
-                if (res == 0) {
-                    result = mysql_store_result (lyricDb);
-                    row = mysql_fetch_row (result);
-                    if (row != NULL) {
-                        change_backdrop (row[0], TRUE, transition);
-                        bg_changed = TRUE;
-                    }
-                    mysql_free_result (result);
-                }
-                if (!bg_changed) {
-                    res =
-                      do_query (lyricDb,
-                                "SELECT a.imagename,q.data FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder=%d",
-                                current_item);
+                if (server_mode == SIMPLE_SERVER) {
+                    if (background != NULL) clutter_actor_destroy(background);
+                } else {
+                    int res = do_query (FALSE, lyricDb,
+                                        "SELECT imagename FROM associations WHERE playlist=%d",
+                                        current_item);
+                    int bg_changed = FALSE;
                     if (res == 0) {
                         result = mysql_store_result (lyricDb);
                         row = mysql_fetch_row (result);
-                        mysql_free_result (result);
                         if (row != NULL) {
                             change_backdrop (row[0], TRUE, transition);
                             bg_changed = TRUE;
                         }
+                        mysql_free_result (result);
                     }
-                }
-                if (!bg_changed && (g_strcmp0 (default_bg, current_bg) != 0)) {
-                    l_debug ("Reset bg to default");
-                    change_backdrop (default_bg, TRUE, transition);
+                    if (!bg_changed) {
+                        res =
+                          do_query (FALSE, lyricDb,
+                                    "SELECT a.imagename,q.data FROM associations as a, playlist AS p, playlist AS q WHERE p.type='play' AND p.data=q.playlist and a.playlist=p.playorder AND q.playorder=%d",
+                                    current_item);
+                        if (res == 0) {
+                            result = mysql_store_result (lyricDb);
+                            row = mysql_fetch_row (result);
+                            mysql_free_result (result);
+                            if (row != NULL) {
+                                change_backdrop (row[0], TRUE, transition);
+                                bg_changed = TRUE;
+                            }
+                        }
+                    }
+                    if (!bg_changed && (g_strcmp0 (default_bg, current_bg) != 0)) {
+                        l_debug ("Reset bg to default");
+                        change_backdrop (default_bg, TRUE, transition);
+                    }
                 }
             }
 
+            if (quick_show) {
+                transition = NO_EFFECT;
+            }
             set_maintext (parse_special (lyrics), transition, wrap);
             set_headtext (parse_special (header), transition, wrap);
             set_foottext (parse_special (footer), transition, wrap);
         }
     }
-
-
 }
 
 gboolean
@@ -768,52 +889,55 @@ update_tracker ()
 {
     //l_debug ("Updating tracker");
 
-    // Only do if this is main server
-    if (server_port == SERVER_PORT) {
-        GString *title = g_string_new (NULL);
-        if (blanked_state == BLANK_BG) {
-            g_string_assign (title, "blank_bg");
-        } else if (blanked_state == BLANK_TEXT) {
-            g_string_assign (title, "blank_text");
-        }
-        if (bg_is_video) {
-            g_string_append_printf (title, "%.0f;%.0f;%d",
-                                    clutter_media_get_progress (CLUTTER_MEDIA
-                                                                (background))
-                                    *
-                                    clutter_media_get_duration (CLUTTER_MEDIA
-                                                                (background)),
-                                    clutter_media_get_duration (CLUTTER_MEDIA
-                                                                (background)),
-                                    clutter_media_get_playing (CLUTTER_MEDIA
-                                                               (background)));
-        } else {
-            g_string_append (title, "0;0;0");
-        }
-        do_query (lyricDb,
-                  "UPDATE playlists SET ref = %d, title = \"%s\" WHERE id=-1",
-                  current_item, g_string_free (title, FALSE));
+    GString *title = g_string_new (NULL);
+    if (blanked_state == BLANK_BG) {
+        g_string_assign (title, "blank_bg");
+    } else if (blanked_state == BLANK_TEXT) {
+        g_string_assign (title, "blank_text");
     }
+    if (bg_is_video) {
+        g_string_append_printf (title, "%.0f;%.0f;%d",
+                                clutter_media_get_progress (CLUTTER_MEDIA
+                                                            (background))
+                                *
+                                clutter_media_get_duration (CLUTTER_MEDIA
+                                                            (background)),
+                                clutter_media_get_duration (CLUTTER_MEDIA
+                                                            (background)),
+                                clutter_media_get_playing (CLUTTER_MEDIA
+                                                           (background)));
+    } else {
+        g_string_append (title, "0;0;0");
+    }
+    do_query (TRUE, lyricDb,
+              "UPDATE status SET ref = %d, title = \"%s\", lastupdate = NOW() WHERE host=\"%s:%d\"",
+              current_item, g_string_free (title, FALSE), hostname, server_port);
     return TRUE;
 }
 
 void
 update_miniview (const char *command)
 {
-    if (server_port == SERVER_PORT) {
+    if (server_mode == NORMAL_SERVER || server_mode==HEADLESS_SERVER) {
         l_debug ("miniview time");
-        GSocketClient *client = g_socket_client_new ();
-        GSocketConnection *conn =
-          g_socket_client_connect_to_host (client, dbhostname, 2348, NULL,
-                                           NULL);
-        if (conn != NULL) {
-            GOutputStream *out =
-              g_io_stream_get_output_stream (G_IO_STREAM (conn));
-            g_output_stream_write (out, command, strlen (command), NULL,
-                                   NULL);
-            g_object_unref (conn);
+        GHashTableIter iter;
+        gpointer key, value;
+        g_hash_table_iter_init(&iter, miniviews);
+        while (g_hash_table_iter_next(&iter, &key, &value)) {
+            l_debug("Updating miniview %s on %s",key,value);
+            GSocketClient *client = g_socket_client_new ();
+            GSocketConnection *conn =
+              g_socket_client_connect_to_host (client, value, 2348, NULL,
+                                               NULL);
+            if (conn != NULL) {
+                GOutputStream *out =
+                  g_io_stream_get_output_stream (G_IO_STREAM (conn));
+                g_output_stream_write (out, command, strlen (command), NULL,
+                                       NULL);
+                g_object_unref (conn);
+            }
+            g_object_unref (client);
         }
-        g_object_unref (client);
     }
 }
 
@@ -823,10 +947,9 @@ do_save (const char *options)
     l_debug ("Save as presentation");
     gchar **line = g_strsplit (options, ":", 2);
     gchar *cmd = g_strdup_printf ("playlist:%d", atoi (line[0]));
-    transition_skip = TRUE;
-    do_display (cmd);
-    do_display ("display:0");
-    do_display ("next_page:0");
+    do_display (cmd,TRUE);
+    do_display ("display:0",TRUE);
+    do_display ("next_page:0",TRUE);
     g_free (cmd);
     int count = 1;
     int last_item = -1;
@@ -834,13 +957,12 @@ do_save (const char *options)
         l_debug ("%d", current_item);
         gchar *filename = g_strdup_printf ("%s/slide-%d.jpg", line[1], count);
         last_item = current_item;
-        do_display ("next_page:0");
-        take_snapshot (filename);
+        do_display ("next_page:0",TRUE);
+        take_snapshot (filename,0);
         g_free (filename);
         count++;
     }
     g_strfreev (line);
-    transition_skip = FALSE;
 }
 
 GString *
@@ -854,13 +976,13 @@ do_query_json (const char *options)
         MYSQL_RES *result;
 
         if (g_strcmp0(line[0],"lyricdb") == 0) {
-            do_query (lyricDb,"%s",line[1]);
+            do_query (FALSE, lyricDb,"%s",parse_special(line[1]));
             result = mysql_store_result (lyricDb);
         } else if (g_strcmp0(line[0],"mediadb") == 0) {
-            do_query (mediaDb,"%s",line[1]);
+            do_query (FALSE, mediaDb,"%s",parse_special(line[1]));
             result = mysql_store_result (mediaDb);
         } else if (g_strcmp0(line[0],"bibledb") == 0) {
-            do_query (bibleDb,"%s",line[1]);
+            do_query (FALSE, bibleDb,"%s",parse_special(line[1]));
             result = mysql_store_result (bibleDb);
         } else {
             g_strfreev (line);
@@ -905,4 +1027,17 @@ do_query_json (const char *options)
     
     g_strfreev (line);
     return NULL;
+}
+
+void
+do_profile_change(const char *options)
+{
+    gchar **line = g_strsplit (options, ":", 2);
+    if (line[0] != NULL) {
+        profile = g_strdup(line[0]);
+        load_configuration();
+        update_service_profile();
+    }
+    
+    g_strfreev (line);
 }

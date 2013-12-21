@@ -48,6 +48,7 @@
 #include "display.h"
 #include "bible.h"
 #include "utils.h"
+#include "avahi.h"
 
 
 gboolean new_connection(GSocketService *service,
@@ -65,7 +66,9 @@ void do_fade (const char* options);
 void do_blur (const char* options);
 void do_preview (const char* options);
 GString * do_status ();
-void do_snapshot(const char* options);
+GString * do_snapshot(const char* options);
+void do_dbsnapshot(const char* options);
+void do_plsnapshot(const char* options);
 void do_reconfig();
 void do_backdrop(const char* options);
 void unblank();
@@ -73,10 +76,10 @@ void do_blank(const char* options);
 void do_change_to_db(const char* options);
 void do_next_point(const char* options);
 void do_loopparent(const char* options);
-void do_get(const char* options);
-void do_display(const char* options);
+void do_display(const char* options, const int quick_show);
 void do_osd(const char* options);
 void do_save(const char* options);
+void do_profile_change(const char* options);
 GString * do_query_json(const char* options);
 gboolean update_tracker();
 void update_miniview (const char *command);
@@ -105,3 +108,11 @@ void update_miniview (const char *command);
 #define ROTATE     4
 #define RANDOM     5
 
+#define NO_EFFECT 65536 //(NOTRANS >> NUM_TRANS) >> NUM_TRANS
+
+// Server types
+#define NORMAL_SERVER 0
+#define PREVIEW_SERVER 1
+#define MINIVIEW_SERVER 2
+#define SIMPLE_SERVER 3
+#define HEADLESS_SERVER 4

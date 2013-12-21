@@ -3,11 +3,13 @@ sql_DATA = \
 	Create_lyricDb.sql\
 	Create_mediaDb.sql \
 	Update_1.2.sql \
-	Update_1.9.7.sql \
-	Update_1.9.sql \
-	Update_2.1.0.sql \
-	Update_2.3.2.sql \
-	Update_2.4.sql
+	Add_config.sql \
+	Add_Profiles.sql \
+	Add_mediadb_colour.sql \
+	Add_snapshot.sql \
+	Add_pagetitle.sql \
+	Add_transition.sql \
+	Expand_data.sql
 
 share_DATA = \
 	lyricue.png  \

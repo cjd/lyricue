@@ -25,4 +25,4 @@ MYSQL* db_connect (const char *dbname, const char *dberror);
 int db_disconnect (MYSQL *dbconnection);
 void load_configuration ();
 void save_configuration ();
-int do_query(MYSQL *dbconnection, const gchar* format, ...);
+int do_query(gboolean silent, MYSQL *dbconnection, const gchar* format, ...);
