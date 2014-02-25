@@ -984,10 +984,10 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
                 break;
             case CLUTTER_MOTION:
                 clutter_stage_show_cursor (CLUTTER_STAGE (stage));
-                if (cursor_timeout)
+                /*if (cursor_timeout)
                     g_source_remove (cursor_timeout);
                 cursor_timeout =
-                  g_timeout_add_seconds (3, (GSourceFunc) hide_cursor, NULL);
+                  g_timeout_add_seconds (3, (GSourceFunc) hide_cursor, NULL);*/
                 break;
             default:
                 break;
@@ -1299,7 +1299,7 @@ set_shader_num (ClutterActor * actor, gint new_no)
 gboolean
 hide_cursor ()
 {
-    clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
+    //clutter_stage_hide_cursor (CLUTTER_STAGE (stage));
     return FALSE;
 }
 
