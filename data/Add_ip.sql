@@ -1,0 +1,2 @@
+use lyricDb;
+ALTER TABLE status ADD ip VARCHAR(16) NOT NULL DEFAULT '';
