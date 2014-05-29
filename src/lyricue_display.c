@@ -55,6 +55,7 @@ gchar *profile = NULL;
 gchar *extra_data = NULL;
 unsigned long windowid = 0;
 gchar hostname[32];
+gchar ipaddr[16];
 guint tracker_timeout = 0;
 
 
@@ -106,6 +107,23 @@ main (int argc, char *argv[])
         // Always true
     }
     gethostname(hostname,sizeof(hostname));
+    
+    struct hostent *he;
+    if ((he = gethostbyname(hostname)) == NULL) {  // get the host info
+        exit(1);
+    }
+
+    struct in_addr **addr_list;
+    addr_list = (struct in_addr **)he->h_addr_list;
+    int i;
+    for(i = 0; addr_list[i] != NULL; i++) {
+        printf("%s ", inet_ntoa(*addr_list[i]));
+        strncpy(ipaddr,inet_ntoa(*addr_list[i]),sizeof(ipaddr));
+        if (strncmp(ipaddr,"127",3)) {
+            break;
+        }
+    }
+
 
     do_query(FALSE, lyricDb, "SELECT profile FROM profiles WHERE host='%s'", hostname);
     MYSQL_ROW row;
@@ -169,7 +187,7 @@ main (int argc, char *argv[])
 
     // Setup tracker entry in DB
     do_query (FALSE, lyricDb, "DELETE FROM status WHERE host='%s:%d'",hostname, server_port);
-    do_query (FALSE, lyricDb, "INSERT INTO status SET host='%s:%d',ref=0,title='', profile='%s', type='%s%s'",hostname, server_port, profile, server_type, extra_data);
+    do_query (FALSE, lyricDb, "INSERT INTO status SET host='%s:%d',ref=0,title='', profile='%s', type='%s%s', ip='%s'",hostname, server_port, profile, server_type, extra_data, ipaddr);
     if (server_mode==NORMAL_SERVER) {
         clutter_main ();
     } else {

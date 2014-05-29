@@ -87,6 +87,7 @@ CREATE TABLE `status` (
   `lastupdate` timestamp NOT NULL default '0000-00-00 00:00:00',
   `profile` varchar(50) NOT NULL default '',
   `type` varchar(50) NOT NULL default 'normal',
+  `ip` varchar(16) NOT NULL default '',
   `ref` varchar(50) NOT NULL default '',
   PRIMARY KEY  (`host`)
 ) DEFAULT CHARSET=utf8;

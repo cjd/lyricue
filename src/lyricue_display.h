@@ -43,6 +43,11 @@
 #include <json-glib/json-glib.h>
 #include <gio/gio.h>
 #include <string.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 #include "i18n.h"
 #include "database.h"
 #include "display.h"

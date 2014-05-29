@@ -9263,19 +9263,23 @@ sub create_pixbuf {
           . $id . "\"";
         my $sth = do_query($mediaDbh, $query, FALSE);
         my $row = $sth->fetchrow_hashref();
-        if ($row->{'format'} eq "bg") {
-            my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
-            $pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
-        } else {
-            my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
-            eval { $pixbuf_loader->write($row->{'data'}); };
-            eval { $pixbuf_loader->close() };
-            if ($@) {
+        if (defined $row->{'format'}) {
+            if ($row->{'format'} eq "bg") {
                 my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
                 $pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
             } else {
-                $pixbuf = $pixbuf_loader->get_pixbuf();
+                my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+                eval { $pixbuf_loader->write($row->{'data'}); };
+                eval { $pixbuf_loader->close() };
+                if ($@) {
+                    my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
+                    $pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
+                } else {
+                    $pixbuf = $pixbuf_loader->get_pixbuf();
+                }
             }
+        } else {
+            return NULL;
         }
 
         if ($width == 0) {
@@ -11623,6 +11627,20 @@ sub db_updatedb_lyricDb {
         debug("Done\n");
     }
 
+    # Add IP column
+    $fields = $dbh->selectall_arrayref("describe status");
+    my $stat;
+    foreach (@$fields) {
+        $stat->{$_->[0]} = 1;
+    }
+    if (!defined $stat->{'ip'}) {
+        debug("IP field not found\n");
+        debug("Upgrading database to 3.6.7\n");
+        db_installdb($globals->{'sharedir'} . "mysql/Add_ip.sql",
+            "lyricDb");
+        debug("Done\n");
+    }
+
     # Ensure all tables are in UTF8 characterset
     my @toconvert = ();
     foreach my $tname (keys %$table) {
@@ -11681,28 +11699,28 @@ sub check_displays{
         delete $previews{$_};
     }
 
-    my $query = "SELECT host, type, title FROM status WHERE TIMEDIFF(NOW(), lastupdate) < '00:00:02' AND profile='". $globals->{'profile'} . "'";
+    my $query = "SELECT host, ip, type, title FROM status WHERE TIMEDIFF(NOW(), lastupdate) < '00:00:02' AND profile='". $globals->{'profile'} . "'";
     $sth = do_query($lyricDbh, $query, TRUE);
 
     my $status = "0;0;0";
     while ($row = $sth->fetchrow_hashref()) {
         if (($row->{'type'} eq "normal") || ($row->{'type'} eq "simple") || ($row->{'type'} eq "headless")) {
-            if (defined $displays{$row->{'host'}}) {
-                $displays{$row->{'host'}} &= TRUE;
+            if (defined $displays{$row->{'ip'}}) {
+                $displays{$row->{'ip'}} &= TRUE;
             } else {
-                $displays{$row->{'host'}} = TRUE;
+                $displays{$row->{'ip'}} = TRUE;
             }
             if ($row->{'title'} =~ /^blank_bg/) {
-                if (defined($widgets->{'miniview_frame'}->{$row->{'host'}})) {
-                    $widgets->{'miniview_frame'}->{$row->{'host'}}->set_label($row->{'host'}."- blanked");
+                if (defined($widgets->{'miniview_frame'}->{$row->{'ip'}})) {
+                    $widgets->{'miniview_frame'}->{$row->{'ip'}}->set_label($row->{'host'}."- blanked");
                 }
             } elsif ($row->{'title'} =~ /^blank_text/) {
-                if (defined($widgets->{'miniview_frame'}->{$row->{'host'}})) {
-                    $widgets->{'miniview_frame'}->{$row->{'host'}}->set_label($row->{'host'}."- text cleared");
+                if (defined($widgets->{'miniview_frame'}->{$row->{'ip'}})) {
+                    $widgets->{'miniview_frame'}->{$row->{'ip'}}->set_label($row->{'host'}."- text cleared");
                 }
             } else {
-                if (defined($widgets->{'miniview_frame'}->{$row->{'host'}})) {
-                    $widgets->{'miniview_frame'}->{$row->{'host'}}->set_label($row->{'host'});
+                if (defined($widgets->{'miniview_frame'}->{$row->{'ip'}})) { 
+                    $widgets->{'miniview_frame'}->{$row->{'ip'}}->set_label($row->{'host'});
                 }
                 if ($row->{'title'} ne "0;0;0") {
                     $status=$row->{'title'};
@@ -11713,7 +11731,7 @@ sub check_displays{
             $extra_data =~ s/^miniview//;
             $miniviews{$extra_data} = TRUE;
         } elsif ($row->{'type'} eq "preview") {
-            $previews{$row->{'host'}} = TRUE;
+            $previews{$row->{'ip'}} = TRUE;
             if ($row->{'host'} =~ /^$globals->{'local_hostname'}/) {
                 $local_preview = TRUE;
             }
