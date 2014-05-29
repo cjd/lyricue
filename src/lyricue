@@ -3728,7 +3728,7 @@ sub update_display {
     foreach my $display (keys %displays) {
         if ($displays{$display}) {
             my @display_items = split(/:/, $display);
-            debug("Updating " . $displays{$display});
+            debug("Updating " . $display);
             if (
                 my $server = IO::Socket::INET->new(
                     Proto    => "tcp",
@@ -11704,23 +11704,25 @@ sub check_displays{
 
     my $status = "0;0;0";
     while ($row = $sth->fetchrow_hashref()) {
+        my @keys = split(/:/, $row->{'host'});
+        my $index = $row->{'ip'}.":".$keys[1];
         if (($row->{'type'} eq "normal") || ($row->{'type'} eq "simple") || ($row->{'type'} eq "headless")) {
-            if (defined $displays{$row->{'ip'}}) {
-                $displays{$row->{'ip'}} &= TRUE;
+            if (defined $displays{$index}) {
+                $displays{$index} &= TRUE;
             } else {
-                $displays{$row->{'ip'}} = TRUE;
+                $displays{$index} = TRUE;
             }
             if ($row->{'title'} =~ /^blank_bg/) {
-                if (defined($widgets->{'miniview_frame'}->{$row->{'ip'}})) {
-                    $widgets->{'miniview_frame'}->{$row->{'ip'}}->set_label($row->{'host'}."- blanked");
+                if (defined($widgets->{'miniview_frame'}->{$index})) {
+                    $widgets->{'miniview_frame'}->{$index}->set_label($row->{'host'}."- blanked");
                 }
             } elsif ($row->{'title'} =~ /^blank_text/) {
-                if (defined($widgets->{'miniview_frame'}->{$row->{'ip'}})) {
-                    $widgets->{'miniview_frame'}->{$row->{'ip'}}->set_label($row->{'host'}."- text cleared");
+                if (defined($widgets->{'miniview_frame'}->{$index})) {
+                    $widgets->{'miniview_frame'}->{$index}->set_label($row->{'host'}."- text cleared");
                 }
             } else {
-                if (defined($widgets->{'miniview_frame'}->{$row->{'ip'}})) { 
-                    $widgets->{'miniview_frame'}->{$row->{'ip'}}->set_label($row->{'host'});
+                if (defined($widgets->{'miniview_frame'}->{$index})) { 
+                    $widgets->{'miniview_frame'}->{$index}->set_label($row->{'host'});
                 }
                 if ($row->{'title'} ne "0;0;0") {
                     $status=$row->{'title'};
@@ -11731,7 +11733,7 @@ sub check_displays{
             $extra_data =~ s/^miniview//;
             $miniviews{$extra_data} = TRUE;
         } elsif ($row->{'type'} eq "preview") {
-            $previews{$row->{'ip'}} = TRUE;
+            $previews{$index} = TRUE;
             if ($row->{'host'} =~ /^$globals->{'local_hostname'}/) {
                 $local_preview = TRUE;
             }

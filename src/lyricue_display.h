@@ -48,6 +48,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <ifaddrs.h>
 #include "i18n.h"
 #include "database.h"
 #include "display.h"

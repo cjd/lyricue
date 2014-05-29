@@ -4,10 +4,11 @@ sql_DATA = \
 	Create_mediaDb.sql \
 	Update_1.2.sql \
 	Add_config.sql \
-	Add_Profiles.sql \
+	Add_ip.sql \
 	Add_mediadb_colour.sql \
-	Add_snapshot.sql \
 	Add_pagetitle.sql \
+	Add_Profiles.sql \
+	Add_snapshot.sql \
 	Add_transition.sql \
 	Expand_data.sql
 

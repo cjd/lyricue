@@ -108,22 +108,50 @@ main (int argc, char *argv[])
     }
     gethostname(hostname,sizeof(hostname));
     
-    struct hostent *he;
-    if ((he = gethostbyname(hostname)) == NULL) {  // get the host info
-        exit(1);
-    }
+    // Find the external IP address (by finding default route)
+    FILE *f;
+    char line[100] , *p , *c;
 
-    struct in_addr **addr_list;
-    addr_list = (struct in_addr **)he->h_addr_list;
-    int i;
-    for(i = 0; addr_list[i] != NULL; i++) {
-        printf("%s ", inet_ntoa(*addr_list[i]));
-        strncpy(ipaddr,inet_ntoa(*addr_list[i]),sizeof(ipaddr));
-        if (strncmp(ipaddr,"127",3)) {
-            break;
+    f = fopen("/proc/net/route" , "r");
+    while(fgets(line , 100 , f)) {
+        p = strtok(line , " \t");
+        c = strtok(NULL , " \t");
+
+        if(p!=NULL && c!=NULL) {
+            if(strcmp(c , "00000000") == 0) {
+                //printf("Default interface is : %s \n" , p);
+                break;
+            }
         }
     }
 
+    int fm = AF_INET;
+    struct ifaddrs *ifaddr, *ifa;
+    int family , s;
+
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        exit(EXIT_FAILURE);
+    }
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL) {
+            continue;
+        }
+
+        family = ifa->ifa_addr->sa_family;
+
+        if(strcmp( ifa->ifa_name , p) == 0) {
+            if (family == fm) {
+                s = getnameinfo( ifa->ifa_addr, (family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6) , ipaddr, sizeof(ipaddr), NULL , 0 , NI_NUMERICHOST);
+
+                if (s != 0) {
+                    printf("getnameinfo() failed: %s\n", gai_strerror(s));
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+    }
+    freeifaddrs(ifaddr);
 
     do_query(FALSE, lyricDb, "SELECT profile FROM profiles WHERE host='%s'", hostname);
     MYSQL_ROW row;
