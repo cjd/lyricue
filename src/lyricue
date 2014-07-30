@@ -11394,7 +11394,6 @@ sub db_install_user {
             display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
         }
     }
-    db_reload();
     my $sth = do_query($dbh,"select * from user where User='lyric'", FALSE);
     if ($sth->rows) {
         debug("User already setup\n");
@@ -11445,7 +11444,6 @@ sub db_check_databases {
         debug("Creating mediaDb");
         db_installdb($globals->{'sharedir'} . "mysql/Create_mediaDb.sql",
             "mediaDb");
-        db_reload();
 
         debug("Done\n");
     }
