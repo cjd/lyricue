@@ -47,6 +47,7 @@ GHashTable *miniviews = NULL;
 gboolean windowed = FALSE;
 gboolean debugging = FALSE;
 int server_port = 2346;
+gchar *server_ip = "";
 gchar *server_type = "normal";
 int server_mode = NORMAL_SERVER;
 gchar *dbhostname = "localhost";
@@ -55,7 +56,7 @@ gchar *profile = NULL;
 gchar *extra_data = NULL;
 unsigned long windowid = 0;
 gchar hostname[32];
-gchar ipaddr[16];
+gchar ipaddr[16] = "127.0.0.1\0";
 guint tracker_timeout = 0;
 
 
@@ -70,6 +71,8 @@ static GOptionEntry entries[] = {
      "geom"},
     {"listen", 'l', 0, G_OPTION_ARG_INT, &server_port, "Port to listen on",
      "port_number"},
+    {"ipaddr", 'i', 0, G_OPTION_ARG_STRING, &server_ip, "IP to listen on",
+     "ip_number"},
     {"miniview", 'm', 0, G_OPTION_ARG_INT, &windowid, "Embed in windowid",
      "windowid"},
     {"extra", 'e', 0, G_OPTION_ARG_STRING, &extra_data, "Extra data to report to avahi",
@@ -107,51 +110,56 @@ main (int argc, char *argv[])
         // Always true
     }
     gethostname(hostname,sizeof(hostname));
+
+    if (g_strcmp0(server_ip,"") != 0 ) {
+        g_snprintf(ipaddr,sizeof(ipaddr),"%s",server_ip);
+    } else {
     
-    // Find the external IP address (by finding default route)
-    FILE *f;
-    char line[100] , *p , *c;
+        // Find the external IP address (by finding default route)
+        FILE *f;
+        char line[100] , *p , *c;
 
-    f = fopen("/proc/net/route" , "r");
-    while(fgets(line , 100 , f)) {
-        p = strtok(line , " \t");
-        c = strtok(NULL , " \t");
+        f = fopen("/proc/net/route" , "r");
+        while(fgets(line , 100 , f)) {
+            p = strtok(line , " \t");
+            c = strtok(NULL , " \t");
 
-        if(p!=NULL && c!=NULL) {
-            if(strcmp(c , "00000000") == 0) {
-                //printf("Default interface is : %s \n" , p);
-                break;
-            }
-        }
-    }
-
-    int fm = AF_INET;
-    struct ifaddrs *ifaddr, *ifa;
-    int family , s;
-
-    if (getifaddrs(&ifaddr) == -1) {
-        perror("getifaddrs");
-        exit(EXIT_FAILURE);
-    }
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == NULL) {
-            continue;
-        }
-
-        family = ifa->ifa_addr->sa_family;
-
-        if(strcmp( ifa->ifa_name , p) == 0) {
-            if (family == fm) {
-                s = getnameinfo( ifa->ifa_addr, (family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6) , ipaddr, sizeof(ipaddr), NULL , 0 , NI_NUMERICHOST);
-
-                if (s != 0) {
-                    printf("getnameinfo() failed: %s\n", gai_strerror(s));
-                    exit(EXIT_FAILURE);
+            if(p!=NULL && c!=NULL) {
+                if(strcmp(c , "00000000") == 0) {
+                    //printf("Default interface is : %s \n" , p);
+                    break;
                 }
             }
         }
+
+        int fm = AF_INET;
+        struct ifaddrs *ifaddr, *ifa;
+        int family , s;
+
+        if (getifaddrs(&ifaddr) == -1) {
+            perror("getifaddrs");
+            exit(EXIT_FAILURE);
+        }
+        for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+            if (ifa->ifa_addr == NULL) {
+                continue;
+            }
+    
+            family = ifa->ifa_addr->sa_family;
+    
+            if(strcmp( ifa->ifa_name , p) == 0) {
+                if (family == fm) {
+                    s = getnameinfo( ifa->ifa_addr, (family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6) , ipaddr, sizeof(ipaddr), NULL , 0 , NI_NUMERICHOST);
+    
+                    if (s != 0) {
+                        printf("getnameinfo() failed: %s\n", gai_strerror(s));
+                        exit(EXIT_FAILURE);
+                    }
+                }
+            }
+        }
+        freeifaddrs(ifaddr);
     }
-    freeifaddrs(ifaddr);
 
     do_query(FALSE, lyricDb, "SELECT profile FROM profiles WHERE host='%s'", hostname);
     MYSQL_ROW row;
