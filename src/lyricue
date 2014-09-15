@@ -11389,11 +11389,12 @@ sub db_install_user {
         if ($confirm eq "ok") {
             close_dialog($loginxml->get_object('dialogConfirm'));
             db_install_user();
-            return;
+            return NULL;
         } else {
             display_fatal($errorcodes->{'lyricdbopen'}, $DBI::errstr);
         }
     }
+    db_reload();
     my $sth = do_query($dbh,"select * from user where User='lyric'", FALSE);
     if ($sth->rows) {
         debug("User already setup\n");
@@ -11405,6 +11406,7 @@ sub db_install_user {
         debug("Done\n");
     }
     db_check_databases();
+    return NULL;
 }
 
 #***
@@ -11444,6 +11446,7 @@ sub db_check_databases {
         debug("Creating mediaDb");
         db_installdb($globals->{'sharedir'} . "mysql/Create_mediaDb.sql",
             "mediaDb");
+        db_reload();
 
         debug("Done\n");
     }
@@ -11467,15 +11470,12 @@ sub db_reload {
     if ($globals->{'db_adminuser'} eq "") {
         db_get_admin();
     }
-    my $drh = DBI->install_driver('mysql');
-    my $rc  = $drh->func(
-        "reload",
-        [
-            $globals->{'mysqlhost'}, $globals->{'db_adminuser'},
-            $globals->{'adminpassword'},
-        ],
-        'admin'
-    );
+debug("user:".$globals->{'db_adminuser'}." Pass:".$globals->{'db_adminpassword'});
+    my $sqldb =
+        DBI->connect("DBI:mysql:mysql:" . $globals->{'mysqlhost'}, $globals->{'db_adminuser'}, $globals->{'db_adminpassword'});
+    $sqldb->func('reload','admin');
+    $sqldb->disconnect();
+    debug("reload done");
 }
 
 #***
@@ -11955,9 +11955,8 @@ sub db_select {
     my $sqldb =
       DBI->connect("DBI:mysql:mysql:" . $globals->{'mysqlhost'}, "lyric", "")
       || db_install_user();
-    if ($sqldb) {
-        $sqldb->disconnect()
-          ; ## ERROR HERE ### Can't call 'disconnect' without a package or object reference
+    if (defined $sqldb && ($sqldb!=NULL)) {
+        $sqldb->disconnect();
     }
     db_check_databases();
     $lyricDbh =
