@@ -230,12 +230,11 @@ main (int argc, char *argv[])
         gtk_main ();
     }
 
-    ret = db_deselect ();
-
     do_query (FALSE, lyricDb,
               "UPDATE status SET lastupdate = 0 WHERE host=\"%s:%d\"",
               hostname, server_port);
     unpublish_avahi();
+    ret = db_deselect ();
 
     l_debug("Exiting");
     return EXIT_SUCCESS;
