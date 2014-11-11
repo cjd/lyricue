@@ -234,6 +234,7 @@ main (int argc, char *argv[])
               "UPDATE status SET lastupdate = 0 WHERE host=\"%s:%d\"",
               hostname, server_port);
     unpublish_avahi();
+
     ret = db_deselect ();
 
     l_debug("Exiting");
