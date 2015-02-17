@@ -197,7 +197,8 @@ $globals->{'usesword'}    = TRUE;
 $globals->{'mediadb'}     = "mediaDb";
 $globals->{'sortby'}      = "title";
 $globals->{'bg_previews'} = TRUE;
-my (%previews, %miniviews, %displays, $local_preview) :shared;
+my (%previews, %miniviews, %displays, $local_preview) : shared;
+
 if ($^O eq 'MSWin32') {
     $globals->{'diatheke'} = "";
 } else {
@@ -222,7 +223,7 @@ if ($globals->{'lyricue_server'} eq "") {
 }
 chomp $globals->{'lyricue_server'};
 
-$globals->{'preview_port'}       = "2347";    #port used for preview
+$globals->{'preview_port'}       = "2347";       #port used for preview
 $globals->{'update_timer'}       = FALSE;
 $globals->{'nav_update_timer'}   = FALSE;
 $globals->{'timer'}              = FALSE;
@@ -732,7 +733,7 @@ sub add_playlist {
                 my $query2 =
                   "SELECT description FROM media WHERE id=\"" . $id . "\"";
 
-                my $sth2 = do_query($mediaDbh,$query2,TRUE);
+                my $sth2 = do_query($mediaDbh, $query2, TRUE);
                 my $row2 = $sth2->fetchrow_hashref();
                 $title = "Image: " . $row2->{'description'};
             }
@@ -742,7 +743,7 @@ sub add_playlist {
             my $query2 = "SELECT pagetitle, lyrics FROM page WHERE pageid="
               . $row->{'data'};
 
-            my $sth2 = do_query($lyricDbh, $query2, TRUE);
+            my $sth2   = do_query($lyricDbh, $query2, TRUE);
             my $row2   = $sth2->fetchrow_hashref();
             my $lyrics = $row2->{'lyrics'};
             if ($globals->{'invert'}) {
@@ -784,7 +785,7 @@ sub add_playlist {
         my $query3 =
           "SELECT * FROM associations WHERE playlist=" . $row->{'playorder'};
 
-        my $sth3 = do_query($lyricDbh,$query3, TRUE);
+        my $sth3 = do_query($lyricDbh, $query3, TRUE);
         my $imagename = "";
         while (my $row3 = $sth3->fetchrow_hashref()) {
             $imagename = $row3->{'imagename'};
@@ -822,7 +823,7 @@ sub add_playlist {
                     my $query2 =
                       "SELECT description FROM media WHERE id=\"" . $id . "\"";
 
-                    my $sth2 = do_query($mediaDbh, $query2, TRUE);
+                    my $sth2    = do_query($mediaDbh, $query2, TRUE);
                     my $row2    = $sth2->fetchrow_hashref();
                     my $imgiter = $model->append($newiter);
                     $model->set(
@@ -993,15 +994,21 @@ sub update_available {
         $widgets->{'main'}->get_object('treeAvailable')->{data} = ();
     } else {
         $widgets->{'main'}->get_object('treeAvailable')->{user_data} = "load";
-        my $column1 =
-          Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Title")),
-            Gtk2::CellRendererText->new, text => 0);
-        my $column2 =
-          Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Book")),
-            Gtk2::CellRendererText->new, text => 1);
+        my $column1 = Gtk2::TreeViewColumn->new_with_attributes(
+            fromutf(gettext("Title")),
+            Gtk2::CellRendererText->new,
+            text => 0
+        );
+        my $column2 = Gtk2::TreeViewColumn->new_with_attributes(
+            fromutf(gettext("Book")),
+            Gtk2::CellRendererText->new,
+            text => 1
+        );
         my $column3 = Gtk2::TreeViewColumn->new_with_attributes(
             fromutf(gettext("Song Number")),
-            Gtk2::CellRendererText->new, text => 2);
+            Gtk2::CellRendererText->new,
+            text => 2
+        );
         $column1->set_resizable(TRUE);
         $column2->set_resizable(TRUE);
         $column3->set_resizable(TRUE);
@@ -1022,7 +1029,7 @@ sub update_available {
         my $query =
           "SELECT id,title,songnum,book FROM lyricMain WHERE title LIKE \"%"
           . $config->{'SpecialSong'} . "%\"";
-        $sth = do_query($lyricDbh,$query, FALSE);
+        $sth = do_query($lyricDbh, $query, FALSE);
         $row = $sth->fetchrow_hashref();
         my $iter = $store->append;
         $store->set(
@@ -1330,8 +1337,8 @@ sub popup_play_menu {
         foreach (@childid) {
             debug("Child sublist found. ID: " . $_);
             my $query2 = "SELECT title FROM playlists WHERE id=" . $_;
-            my $sth2 = do_query($lyricDbh, $query2, FALSE);
-            my $row2 = $sth2->fetchrow_hashref();
+            my $sth2   = do_query($lyricDbh, $query2, FALSE);
+            my $row2   = $sth2->fetchrow_hashref();
             my ($text);
             $text->{'data'}  = $row2->{'data'};
             $text->{'title'} = $row2->{'title'};
@@ -1452,18 +1459,26 @@ sub delete_song {
     );
     my $column1 =
       Gtk2::TreeViewColumn->new_with_attributes("", $renderer, active => 0);
-    my $column2 =
-      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Title")),
-        Gtk2::CellRendererText->new, text => 1);
-    my $column3 =
-      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Artist")),
-        Gtk2::CellRendererText->new, text => 2);
-    my $column4 =
-      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Book")),
-        Gtk2::CellRendererText->new, text => 3);
-    my $column5 =
-      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Song Number")),
-        Gtk2::CellRendererText->new, text => 4);
+    my $column2 = Gtk2::TreeViewColumn->new_with_attributes(
+        fromutf(gettext("Title")),
+        Gtk2::CellRendererText->new,
+        text => 1
+    );
+    my $column3 = Gtk2::TreeViewColumn->new_with_attributes(
+        fromutf(gettext("Artist")),
+        Gtk2::CellRendererText->new,
+        text => 2
+    );
+    my $column4 = Gtk2::TreeViewColumn->new_with_attributes(
+        fromutf(gettext("Book")),
+        Gtk2::CellRendererText->new,
+        text => 3
+    );
+    my $column5 = Gtk2::TreeViewColumn->new_with_attributes(
+        fromutf(gettext("Song Number")),
+        Gtk2::CellRendererText->new,
+        text => 4
+    );
     $column1->set_resizable(TRUE);
     $column2->set_resizable(TRUE);
     $column3->set_resizable(TRUE);
@@ -1532,7 +1547,7 @@ sub do_delete_song {
     $sth = do_query($lyricDbh, $query, FALSE);
 
     $query = "DELETE FROM page WHERE songid=" . $songid;
-    $sth = do_query($lyricDbh, $query, FALSE);;;;
+    $sth = do_query($lyricDbh, $query, FALSE);
 
     $query =
 "SELECT playorder FROM playlist,page WHERE playlist.data=page.pageid AND playlist.type=\"song\" AND page.songid="
@@ -1717,7 +1732,7 @@ sub do_save_song {
               . $lyrics . ")";
             debug("Page Add : " . $pagenum . "|" . $title);
         }
-        $sth = do_query($lyricDbh,$pagequery,FALSE);
+        $sth = do_query($lyricDbh, $pagequery, FALSE);
     }
     end_transaction();
     return $songid;
@@ -2186,8 +2201,8 @@ sub insert_verse {
     }
 
     # Find next playlists entry
-    $query = "SELECT MAX(id) FROM playlists";
-    $sth = do_query($lyricDbh, $query, FALSE);
+    $query    = "SELECT MAX(id) FROM playlists";
+    $sth      = do_query($lyricDbh, $query, FALSE);
     $row      = $sth->fetchrow_hashref();
     $playlist = $row->{'MAX(id)'} + 1;
 
@@ -2695,8 +2710,8 @@ sub add_single_song {
 
     # Find next playlists entry
     $query = "SELECT MAX(id) FROM playlists";
-    $sth = do_query($lyricDbh, $query, FALSE);
-    $row = $sth->fetchrow_hashref();
+    $sth   = do_query($lyricDbh, $query, FALSE);
+    $row   = $sth->fetchrow_hashref();
     my $playlist = $row->{'MAX(id)'} + 1;
 
     $query =
@@ -2817,8 +2832,8 @@ sub remove_single_item {
     debug("Deleting $item from playlist");
     reset_timer($globals->{'timer'});
     my $query = "SELECT type,data  FROM playlist WHERE playorder=" . $item;
-    my $sth = do_query($lyricDbh, $query, FALSE);
-    my @row = $sth->fetchrow_array;
+    my $sth   = do_query($lyricDbh, $query, FALSE);
+    my @row   = $sth->fetchrow_array;
 
     if ($row[0] eq "play" | $row[0] eq "sub") {
         $query = "SELECT playorder FROM playlist WHERE playlist=" . $row[1];
@@ -2835,9 +2850,9 @@ sub remove_single_item {
     }
 
     $query = "DELETE FROM playlist WHERE playorder=" . $item;
-    $sth = do_query($lyricDbh, $query, FALSE);
+    $sth   = do_query($lyricDbh, $query, FALSE);
     $query = "DELETE FROM associations WHERE playlist=" . $item;
-    $sth = do_query($lyricDbh, $query, FALSE);
+    $sth   = do_query($lyricDbh, $query, FALSE);
 
     if (($row[0] eq "file") && ($row[1] =~ /^\/var\/tmp\/lyricue-/)) {
 
@@ -3341,8 +3356,8 @@ sub preview_pageid {
      #any newlines or semicolons that would upset the split on the other end.
         my $songtext  = ($row->{'lyrics'});
         my $pagetitle = ($row->{'pagetitle'});
-        $songtext  =~ s/\n/#BREAK#/g;
-        $songtext  =~ s/:/#SEMI#/g;
+        $songtext =~ s/\n/#BREAK#/g;
+        $songtext =~ s/:/#SEMI#/g;
         $pagetitle =~ s/\n/#BREAK#/g;
         $pagetitle =~ s/:/#SEMI#/g;
 
@@ -3485,8 +3500,8 @@ sub add_image {
         foreach (@childid) {
             debug("Child sublist found. ID: " . $_);
             my $query2 = "SELECT title FROM playlists WHERE id=" . $_;
-            my $sth2 = do_query($lyricDbh, $query2, FALSE);
-            my $row2 = $sth2->fetchrow_hashref();
+            my $sth2   = do_query($lyricDbh, $query2, FALSE);
+            my $row2   = $sth2->fetchrow_hashref();
             $store->set($store->append, 0, $row2->{'title'}, 1,
                 $row2->{'data'});
         }
@@ -3717,7 +3732,7 @@ sub update_display {
     if (!defined($primary)) {
         $primary = "";
     }
-    $primary   =~ s/:/#SEMI#/g;
+    $primary =~ s/:/#SEMI#/g;
     $secondary =~ s/:/#SEMI#/g;
     debug("Command: " . $command . ":" . $primary . ":" . $secondary);
 
@@ -3807,7 +3822,7 @@ sub preview_display {
     if (!defined($primary)) {
         $primary = "";
     }
-    $primary   =~ s/:/#SEMI#/g;
+    $primary =~ s/:/#SEMI#/g;
     $secondary =~ s/:/#SEMI#/g;
     debug("Preview command: " . $command . ":" . $primary . ":" . $secondary);
 
@@ -4305,8 +4320,8 @@ sub print_songs {
     debug("Print html formatted song list");
     my $lyricDbh =
       db_connect($globals->{'lyricdb'}, $errorcodes->{'lyricdbopen'}, TRUE);
-    my $query = "SELECT COUNT(id) FROM lyricMain WHERE id > 0;";
-    my $sth   = do_query($lyricDbh, $query, FALSE);
+    my $query  = "SELECT COUNT(id) FROM lyricMain WHERE id > 0;";
+    my $sth    = do_query($lyricDbh, $query, FALSE);
     my @totals = $sth->fetchrow_array();
 
     $query =
@@ -4816,8 +4831,8 @@ sub create_dialog_prefs {
     $widgets->{'prefs'}->get_object('comboPrefsProfile')
       ->set_model($profilestore);
 
-    my $query = "SELECT DISTINCT profile FROM config WHERE profile != ''";
-    my $sth   = do_query($lyricDbh, $query, FALSE);
+    my $query       = "SELECT DISTINCT profile FROM config WHERE profile != ''";
+    my $sth         = do_query($lyricDbh, $query, FALSE);
     my $combo_model = Gtk2::ListStore->new('Glib::String');
     $profilestore->set($profilestore->append, 0, gettext("Create New Profile"));
     while (my @row = $sth->fetchrow_array()) {
@@ -4829,7 +4844,6 @@ sub create_dialog_prefs {
               ->set_active_iter($iter);
         }
     }
-
 
     $widgets->{'prefs'}->get_object('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
@@ -5307,22 +5321,30 @@ sub do_adv_search {
             $widgets->{'search'}->get_object('treeSearch')->set_model($store);
             my $column = Gtk2::TreeViewColumn->new_with_attributes(
                 fromutf(gettext("Title")),
-                Gtk2::CellRendererText->new, text => 0);
+                Gtk2::CellRendererText->new,
+                text => 0
+            );
             $widgets->{'search'}->get_object('treeSearch')
               ->append_column($column);
             $column = Gtk2::TreeViewColumn->new_with_attributes(
                 fromutf(gettext("Artist")),
-                Gtk2::CellRendererText->new, text => 1);
+                Gtk2::CellRendererText->new,
+                text => 1
+            );
             $widgets->{'search'}->get_object('treeSearch')
               ->append_column($column);
             $column = Gtk2::TreeViewColumn->new_with_attributes(
                 fromutf(gettext("Book")),
-                Gtk2::CellRendererText->new, text => 2);
+                Gtk2::CellRendererText->new,
+                text => 2
+            );
             $widgets->{'search'}->get_object('treeSearch')
               ->append_column($column);
             $column = Gtk2::TreeViewColumn->new_with_attributes(
                 fromutf(gettext("Song No")),
-                Gtk2::CellRendererText->new, text => 3);
+                Gtk2::CellRendererText->new,
+                text => 3
+            );
             $widgets->{'search'}->get_object('treeSearch')
               ->append_column($column);
         }
@@ -5404,8 +5426,8 @@ sub update_adv_search {
 sub move_item {
     my ($source, $placement, $dest) = @_;
     debug("Moving " . $source . " to " . $placement . " " . $dest);
-    my $query = "SELECT playlist FROM playlist WHERE playorder=" . $source;
-    my $sth = do_query($lyricDbh, $query, FALSE);
+    my $query    = "SELECT playlist FROM playlist WHERE playorder=" . $source;
+    my $sth      = do_query($lyricDbh, $query, FALSE);
     my @playlist = $sth->fetchrow_array;
 
     # Get list of items in this playlist
@@ -5733,7 +5755,7 @@ sub new_playlist {
 
     my $query = "SELECT MAX(id)+1 FROM playlists";
     my $sth   = do_query($lyricDbh, $query, FALSE);
-    my @row = $sth->fetchrow_array();
+    my @row   = $sth->fetchrow_array();
     $query =
         "INSERT INTO playlists (id,title, profile) VALUES ("
       . $row[0] . ", \""
@@ -5881,8 +5903,8 @@ sub do_copy_playlist {
         close_dialog($widget);
     } else {
         debug("Copying playlist");
-        my $query = "SELECT MAX(id)+1 FROM playlists";
-        my $sth   = do_query($lyricDbh, $query, FALSE);
+        my $query          = "SELECT MAX(id)+1 FROM playlists";
+        my $sth            = do_query($lyricDbh, $query, FALSE);
         my @row            = $sth->fetchrow_array();
         my $playlistid_dst = $row[0];
         $widgets->{'main'}->get_object('labelCurrentPlaylist')
@@ -5916,8 +5938,8 @@ sub copy_playlist2 {
 
     $sth = do_query($lyricDbh, $query, FALSE);
     while (my $row = $sth->fetchrow_hashref()) {
-        my $query2 = "SELECT MAX(playorder) FROM playlist";
-        my $sth2   = do_query($lyricDbh, $query2, FALSE);
+        my $query2    = "SELECT MAX(playorder) FROM playlist";
+        my $sth2      = do_query($lyricDbh, $query2, FALSE);
         my @row2      = $sth2->fetchrow_array();
         my $playorder = $row2[0] + 1;
 
@@ -5928,11 +5950,11 @@ sub copy_playlist2 {
         if ($row->{'type'} eq "play") {    # Playlist
             my $query3 = "SELECT MAX(id)+1 FROM playlists";
             my $sth3   = do_query($lyricDbh, $query3, TRUE);
-            my @row3 = $sth3->fetchrow_array();
+            my @row3   = $sth3->fetchrow_array();
             $playlistid_dst2 = $row3[0];
             $query3 = "SELECT title FROM playlists WHERE id=" . $row->{'data'};
             $sth3   = do_query($lyricDbh, $query3, TRUE);
-            @row3        = $sth3->fetchrow_array();
+            @row3   = $sth3->fetchrow_array();
             $newplaylist = $row3[0];
             $data        = $playlistid_dst2;
         }
@@ -6098,12 +6120,12 @@ sub copy_item {
         my $item  = $model->get($iter, 2);
         my $query = "SELECT * FROM playlist WHERE playorder=" . $item;
         my $sth   = do_query($lyricDbh, $query, FALSE);
-        my $row = $sth->fetchrow_hashref();
+        my $row   = $sth->fetchrow_hashref();
 
         if ($row->{'type'} ne "play") {
             my $query = "SELECT MAX(playorder) FROM playlist";
             my $sth   = do_query($lyricDbh, $query, FALSE);
-            my @row2 = $sth->fetchrow_array();
+            my @row2  = $sth->fetchrow_array();
             $row2[0]++;
 
             $query =
@@ -6180,7 +6202,7 @@ sub establish_timer {
 #Find the id of the list we will be looping (could be a playlist, sublist or song)
     my $query = "SELECT data FROM playlist WHERE playorder ="
       . $loopxml->get_object('dialogLoop')->{user_data};
-    my $sth = do_query($lyricDbh, $query, FALSE);
+    my $sth    = do_query($lyricDbh, $query, FALSE);
     my @row    = $sth->fetchrow_array();
     my $parent = $row[0];
 
@@ -6306,7 +6328,8 @@ sub load_config {
     }
 
     if (defined $widgets->{'main'}) {
-        $widgets->{'main'}->get_object('windowMain')->set_title(gettext("Lyricue")." - ".$globals->{'profile'});
+        $widgets->{'main'}->get_object('windowMain')
+          ->set_title(gettext("Lyricue") . " - " . $globals->{'profile'});
     }
     return $conf;
 }
@@ -6557,7 +6580,7 @@ sub write_config {
     my $sth = do_query($lyricDbh, $query, FALSE);
     $query = "INSERT config_old SELECT * FROM config WHERE profile='"
       . $globals->{'profile'} . "'";
-    $sth = do_query($lyricDbh, $query, FALSE);
+    $sth   = do_query($lyricDbh, $query, FALSE);
     $query = "DELETE FROM config WHERE profile='" . $globals->{'profile'} . "'";
     $sth   = do_query($lyricDbh, $query, FALSE);
 
@@ -6658,7 +6681,7 @@ sub do_add_file {
             debug("Adding ppt/odp presentation");
             $target = $file;
             $target =~ s/^.*\///g;
-            $target =~ s/'//g;       # fix handling of ' in filename
+            $target =~ s/'//g;    # fix handling of ' in filename
 
             # Add 'ppt' to end of 'pptx' files so unoconv will handle them
             if ($target =~ /pptx$/) {
@@ -6812,7 +6835,7 @@ sub new_sublist {
     #Find out the id for the playlists table
     my $playlistsid = 1;
     $query = "SELECT MAX(id) FROM playlists";
-    $sth   = do_query($lyricDbh, $query, FALSE);
+    $sth = do_query($lyricDbh, $query, FALSE);
     if ($row = $sth->fetchrow_hashref()) {
         if ($row->{'MAX(id)'}) {
             $playlistsid = $row->{'MAX(id)'} + 1;
@@ -6822,7 +6845,7 @@ sub new_sublist {
     #Find out the playorder for the playlist table
     my $playorder = 1;
     $query = "SELECT MAX(playorder) FROM playlist";
-    $sth   = do_query($lyricDbh, $query, FALSE);
+    $sth = do_query($lyricDbh, $query, FALSE);
     if ($row = $sth->fetchrow_hashref()) {
         if ($row->{'MAX(playorder)'}) {
             $playorder = $row->{'MAX(playorder)'} + 1;
@@ -6943,7 +6966,7 @@ sub associate_bg {
     debug("Associating bg " . $imagefile . " with " . $ASSOCIATE[0]);
 
     my $query = "DELETE FROM associations WHERE playlist=" . $ASSOCIATE[0];
-    my $sth   = do_query($lyricDbh, $query, FALSE);
+    my $sth = do_query($lyricDbh, $query, FALSE);
 
     $query =
 "INSERT INTO associations (id,playlist,imagename, absoluteparent) VALUES(0, "
@@ -8416,8 +8439,8 @@ sub apply_transition {
     debug("Applying transition to " . $item);
 
     my $query = "SELECT type,data FROM playlist WHERE playorder=" . $item;
-    my $sth = do_query($lyricDbh, $query, FALSE);
-    my @row = $sth->fetchrow_array();
+    my $sth   = do_query($lyricDbh, $query, FALSE);
+    my @row   = $sth->fetchrow_array();
     if ($row[0] eq "play") {
         $query =
             "UPDATE playlist SET transition="
@@ -8481,7 +8504,7 @@ sub user_admin {
         my (@username, @useraccess);
         while (<ACCESS>) {
             ($username[$users], $useraccess[$users]) = split(/=/, $_, 2);
-            $username[$users]   =~ s/ *$//g;
+            $username[$users] =~ s/ *$//g;
             $useraccess[$users] =~ s/ *$//g;
             $users++;
         }
@@ -8883,6 +8906,7 @@ sub init_preview {
 # SOURCE
 #
 sub init_miniview {
+
     # Start/stop miniview as needed
     if ($config->{'Miniview'}) {
         $widgets->{'main'}->get_object('vboxCurrent')->show();
@@ -8895,54 +8919,63 @@ sub init_miniview {
                 $widgets->{'miniview'}->{$display} = Gtk2::Socket->new;
                 $widgets->{'miniview'}->{$display}->set_size_request(100, 75);
                 $widgets->{'miniview_event'}->{$display} = Gtk2::EventBox->new;
-                $widgets->{'miniview_frame'}->{$display} = Gtk2::AspectFrame->new($display, 0.5, 0.5, $config->{'Width'} / $config->{'Height'}, FALSE);
-                $widgets->{'miniview_frame'}->{$display}->add($widgets->{'miniview'}->{$display});
-                $widgets->{'miniview_event'}->{$display}->add($widgets->{'miniview_frame'}->{$display});
-                $widgets->{'main'}->get_object('vboxCurrent')->pack_end($widgets->{'miniview_event'}->{$display}, TRUE,TRUE, 0);
+                $widgets->{'miniview_frame'}->{$display} =
+                  Gtk2::AspectFrame->new($display, 0.5, 0.5,
+                    $config->{'Width'} / $config->{'Height'}, FALSE);
+                $widgets->{'miniview_frame'}->{$display}
+                  ->add($widgets->{'miniview'}->{$display});
+                $widgets->{'miniview_event'}->{$display}
+                  ->add($widgets->{'miniview_frame'}->{$display});
+                $widgets->{'main'}->get_object('vboxCurrent')
+                  ->pack_end($widgets->{'miniview_event'}->{$display},
+                    TRUE, TRUE, 0);
                 $widgets->{'miniview_event'}->{$display}->show;
                 $widgets->{'miniview_frame'}->{$display}->show;
                 $widgets->{'miniview'}->{$display}->show;
-                $widgets->{'miniview_frame'}->{$display}->set_size_request(-1, -1);
+                $widgets->{'miniview_frame'}->{$display}
+                  ->set_size_request(-1, -1);
                 my $command = sprintf(
-                        "%s -r %s -m %d -l %d -p '%s' -t miniview -e '%s'\n",
-                        $globals->{'lyricue_server'},
-                        $globals->{'mysqlhost'},
-                        $widgets->{'miniview'}->{$display}->get_id,
-                        $globals->{'preview_port'},
-                        $globals->{'profile'},
-                        $display
-                    );
+                    "%s -r %s -m %d -l %d -p '%s' -t miniview -e '%s'\n",
+                    $globals->{'lyricue_server'},
+                    $globals->{'mysqlhost'},
+                    $widgets->{'miniview'}->{$display}->get_id,
+                    $globals->{'preview_port'},
+                    $globals->{'profile'},
+                    $display
+                );
                 debug($command);
 
                 $globals->{'miniview_pid'}->{$display} = fork;
                 if ($globals->{'miniview_pid'}->{$display} < 0) {
-                   display_fatal(
-                       "Unable to start the lyricue server as a miniview window",
-                       $! . "\nSQL: " . $query);
+                    display_fatal(
+"Unable to start the lyricue server as a miniview window",
+                        $! . "\nSQL: " . $query
+                    );
                 }
                 if ($globals->{'miniview_pid'}->{$display} == 0) {
-                    exec( $command );
+                    exec($command );
                 }
 
                 $widgets->{'miniview'}->{$display}->signal_connect(
                     'plug-removed' => sub {
                         debug("Lyricue miniview died..restarting");
                         $widgets->{'main'}->get_object('vboxCurrent')
-                        ->remove($widgets->{'miniview_frame'}->{'$display'});
+                          ->remove($widgets->{'miniview_frame'}->{'$display'});
                         init_miniview();
                         1;
                     }
                 );
-                $widgets->{'miniview_event'}->{$display}->signal_connect(
-                    "button_release_event", "toggle_server_active", $display);
+                $widgets->{'miniview_event'}->{$display}
+                  ->signal_connect("button_release_event",
+                    "toggle_server_active", $display);
             }
             if ($miniviews{$display}) {
-                $miniviews{$display} &= 1; # Clear check bit
+                $miniviews{$display} &= 1;    # Clear check bit
             }
         }
     } else {
         if (defined $widgets->{'miniview'}) {
-            foreach my $display(keys $widgets->{'miniview'}) {
+            foreach my $display (keys $widgets->{'miniview'}) {
                 close_miniview($display);
             }
         }
@@ -8972,8 +9005,8 @@ sub quick_save {
     my $songtext  = $buffer->get_text($buffer->get_bounds, FALSE);
     my $playorder = $widgets->{'main'}->get_object('textQuick')->{user_data};
     my $query = "SELECT data,type FROM playlist WHERE playorder=" . $playorder;
-    my $sth = do_query($lyricDbh, $query, FALSE);
-    my @row = $sth->fetchrow_array();
+    my $sth   = do_query($lyricDbh, $query, FALSE);
+    my @row   = $sth->fetchrow_array();
 
     if ($row[1] eq "play") {
         $query =
@@ -9014,15 +9047,15 @@ sub quick_save_local {
     my $songtext  = $buffer->get_text($buffer->get_bounds, FALSE);
     my $playorder = $widgets->{'main'}->get_object('textQuick')->{user_data};
     my $query = "SELECT data,type FROM playlist WHERE playorder=" . $playorder;
-    my $sth = do_query($lyricDbh, $query, FALSE);
-    my @row = $sth->fetchrow_array();
+    my $sth   = do_query($lyricDbh, $query, FALSE);
+    my @row   = $sth->fetchrow_array();
 
     if ($row[1] eq "play") {
         $query =
             "SELECT data,type,playorder FROM playlist WHERE playlist="
           . $row[0]
           . " ORDER BY playorder";
-        $sth = do_query($lyricDbh, $query, FALSE);
+        $sth       = do_query($lyricDbh, $query, FALSE);
         @row       = $sth->fetchrow_array();
         $playorder = $row[2];
     }
@@ -9031,8 +9064,8 @@ sub quick_save_local {
         if (!defined $row[0]) { $row[0] = ""; }
 
         $query = "SELECT songid FROM page WHERE pageid=" . $row[0];
-        $sth = do_query($lyricDbh, $query, FALSE);
-        @row = $sth->fetchrow_array();
+        $sth   = do_query($lyricDbh, $query, FALSE);
+        @row   = $sth->fetchrow_array();
         my $songid = $row[0];
 
         $query =
@@ -9936,9 +9969,9 @@ sub restore_db {
                         if ($tmptable ne $table) {
                             $table = $tmptable;
                             my $query = "DELETE FROM " . $table;
-                            my $sth   = do_query($dbh,$query, TRUE);
+                            my $sth = do_query($dbh, $query, TRUE);
                         }
-                        my $sth = do_query($dbh,$insert, TRUE);
+                        my $sth = do_query($dbh, $insert, TRUE);
                     }
                 }
             }
@@ -10008,18 +10041,26 @@ sub import_songs {
     );
     my $column1 =
       Gtk2::TreeViewColumn->new_with_attributes("", $renderer, active => 0);
-    my $column2 =
-      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Title")),
-        Gtk2::CellRendererText->new, text => 1);
-    my $column3 =
-      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Artist")),
-        Gtk2::CellRendererText->new, text => 2);
-    my $column4 =
-      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Book")),
-        Gtk2::CellRendererText->new, text => 3);
-    my $column5 =
-      Gtk2::TreeViewColumn->new_with_attributes(fromutf(gettext("Song Number")),
-        Gtk2::CellRendererText->new, text => 4);
+    my $column2 = Gtk2::TreeViewColumn->new_with_attributes(
+        fromutf(gettext("Title")),
+        Gtk2::CellRendererText->new,
+        text => 1
+    );
+    my $column3 = Gtk2::TreeViewColumn->new_with_attributes(
+        fromutf(gettext("Artist")),
+        Gtk2::CellRendererText->new,
+        text => 2
+    );
+    my $column4 = Gtk2::TreeViewColumn->new_with_attributes(
+        fromutf(gettext("Book")),
+        Gtk2::CellRendererText->new,
+        text => 3
+    );
+    my $column5 = Gtk2::TreeViewColumn->new_with_attributes(
+        fromutf(gettext("Song Number")),
+        Gtk2::CellRendererText->new,
+        text => 4
+    );
     $column1->set_resizable(TRUE);
     $column2->set_resizable(TRUE);
     $column3->set_resizable(TRUE);
@@ -10113,8 +10154,8 @@ sub do_import_songs {
         debug("Importing " . $song->{'name'});
 
         # Find next id
-        my $query = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
-        my $sth   = do_query($lyricDbh, $query, FALSE);
+        my $query  = "SELECT MAX(id)+1 FROM lyricMain WHERE id < 2000000";
+        my $sth    = do_query($lyricDbh, $query, FALSE);
         my @row    = $sth->fetchrow_array;
         my $songid = $row[0];
         if ((!defined $songid) || ($songid < 1)) {
@@ -10171,7 +10212,7 @@ sub export_songs {
             "SELECT lyrics FROM page WHERE songid="
           . $row->{'id'}
           . " ORDER BY pagenum";
-        my $sth2 = do_query($lyricDbh,$query2,TRUE);
+        my $sth2 = do_query($lyricDbh, $query2, TRUE);
         my @pages = ();
         while (my $row2 = $sth2->fetchrow_hashref()) {
             push @pages, $row2->{'lyrics'};
@@ -10341,7 +10382,7 @@ sub get_bibles {
                         "SELECT verse FROM "
                       . $tablename
                       . " WHERE book=\"Bible\";";
-                    my $sth = do_query($db,$query, FALSE);
+                    my $sth = do_query($db, $query, FALSE);
                     my $row = $sth->fetchrow_hashref();
                     if (defined $row->{'verse'}) {
                         $bibles->{$tablename . "@" . $dbname} =
@@ -11401,14 +11442,22 @@ sub db_install_user {
         }
     }
     db_reload();
-    my $sth = do_query($dbh,"select * from user where User='lyric'", FALSE);
+    my $sth = do_query($dbh, "select * from user where User='lyric'", FALSE);
     if ($sth->rows) {
         debug("User already setup\n");
     } else {
         debug("Creating mysql user..");
-        $sth = do_query($dbh, "insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'", FALSE);
-        $sth = do_query($dbh, "insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'", FALSE);
-        $sth = do_query($dbh,"flush privileges", FALSE);
+        $sth = do_query(
+            $dbh,
+"insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'",
+            FALSE
+        );
+        $sth = do_query(
+            $dbh,
+"insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'",
+            FALSE
+        );
+        $sth = do_query($dbh, "flush privileges", FALSE);
         debug("Done\n");
     }
     db_check_databases();
@@ -11476,10 +11525,16 @@ sub db_reload {
     if ($globals->{'db_adminuser'} eq "") {
         db_get_admin();
     }
-debug("user:".$globals->{'db_adminuser'}." Pass:".$globals->{'db_adminpassword'});
-    my $sqldb =
-        DBI->connect("DBI:mysql:mysql:" . $globals->{'mysqlhost'}, $globals->{'db_adminuser'}, $globals->{'db_adminpassword'});
-    $sqldb->func('reload','admin');
+    debug(  "user:"
+          . $globals->{'db_adminuser'}
+          . " Pass:"
+          . $globals->{'db_adminpassword'});
+    my $sqldb = DBI->connect(
+        "DBI:mysql:mysql:" . $globals->{'mysqlhost'},
+        $globals->{'db_adminuser'},
+        $globals->{'db_adminpassword'}
+    );
+    $sqldb->func('reload', 'admin');
     $sqldb->disconnect();
     debug("reload done");
 }
@@ -11640,8 +11695,7 @@ sub db_updatedb_lyricDb {
     if (!defined $stat->{'ip'}) {
         debug("IP field not found\n");
         debug("Upgrading database to 3.6.7\n");
-        db_installdb($globals->{'sharedir'} . "mysql/Add_ip.sql",
-            "lyricDb");
+        db_installdb($globals->{'sharedir'} . "mysql/Add_ip.sql", "lyricDb");
         debug("Done\n");
     }
 
@@ -11692,10 +11746,11 @@ sub db_updatedb_lyricDb {
 # OUTPUT
 # SOURCE
 #
-sub check_displays{
+sub check_displays {
+
     #debug("Check Displays");
 
-    $local_preview  = FALSE;
+    $local_preview = FALSE;
     foreach my $display (keys %displays) {
         $displays{$display} |= GONE;
     }
@@ -11703,14 +11758,19 @@ sub check_displays{
         delete $previews{$_};
     }
 
-    my $query = "SELECT host, ip, type, title FROM status WHERE TIMEDIFF(NOW(), lastupdate) < '00:00:02' AND profile='". $globals->{'profile'} . "'";
+    my $query =
+"SELECT host, ip, type, title FROM status WHERE TIMEDIFF(NOW(), lastupdate) < '00:00:02' AND profile='"
+      . $globals->{'profile'} . "'";
     $sth = do_query($lyricDbh, $query, TRUE);
 
     my $status = "0;0;0";
     while ($row = $sth->fetchrow_hashref()) {
         my @keys = split(/:/, $row->{'host'});
-        my $index = $row->{'ip'}.":".$keys[1];
-        if (($row->{'type'} eq "normal") || ($row->{'type'} eq "simple") || ($row->{'type'} eq "headless")) {
+        my $index = $row->{'ip'} . ":" . $keys[1];
+        if (   ($row->{'type'} eq "normal")
+            || ($row->{'type'} eq "simple")
+            || ($row->{'type'} eq "headless"))
+        {
             if (defined $displays{$index}) {
                 $displays{$index} &= TRUE;
             } else {
@@ -11718,18 +11778,21 @@ sub check_displays{
             }
             if ($row->{'title'} =~ /^blank_bg/) {
                 if (defined($widgets->{'miniview_frame'}->{$index})) {
-                    $widgets->{'miniview_frame'}->{$index}->set_label($row->{'host'}."- blanked");
+                    $widgets->{'miniview_frame'}->{$index}
+                      ->set_label($row->{'host'} . "- blanked");
                 }
             } elsif ($row->{'title'} =~ /^blank_text/) {
                 if (defined($widgets->{'miniview_frame'}->{$index})) {
-                    $widgets->{'miniview_frame'}->{$index}->set_label($row->{'host'}."- text cleared");
+                    $widgets->{'miniview_frame'}->{$index}
+                      ->set_label($row->{'host'} . "- text cleared");
                 }
             } else {
-                if (defined($widgets->{'miniview_frame'}->{$index})) { 
-                    $widgets->{'miniview_frame'}->{$index}->set_label($row->{'host'});
+                if (defined($widgets->{'miniview_frame'}->{$index})) {
+                    $widgets->{'miniview_frame'}->{$index}
+                      ->set_label($row->{'host'});
                 }
                 if ($row->{'title'} ne "0;0;0") {
-                    $status=$row->{'title'};
+                    $status = $row->{'title'};
                 }
             }
         } elsif ($row->{'type'} =~ /^miniview/) {
@@ -11770,13 +11833,12 @@ sub check_displays{
     $globals->{'video_skip_signal'} =
       $hscale->signal_connect('value-changed', "video_skip");
 
-
     init_miniview();
     if ($config->{'DynamicPreview'} && !$local_preview) {
         $globals->{'preview_starting'}--;
-        if ($globals->{'preview_starting'}<1) {
+        if ($globals->{'preview_starting'} < 1) {
             debug("preview gone");
-            $globals->{'preview_starting'}=0;
+            $globals->{'preview_starting'} = 0;
             if (defined $widgets->{'preview'}) {
                 $widgets->{'main'}->get_object('framePreview')
                   ->remove($widgets->{'preview'});
@@ -11961,7 +12023,7 @@ sub db_select {
     my $sqldb =
       DBI->connect("DBI:mysql:mysql:" . $globals->{'mysqlhost'}, "lyric", "")
       || db_install_user();
-    if (defined $sqldb && ($sqldb!=NULL)) {
+    if (defined $sqldb && ($sqldb != NULL)) {
         $sqldb->disconnect();
     }
     db_check_databases();
@@ -11971,16 +12033,16 @@ sub db_select {
       db_connect($globals->{'mediadb'}, $errorcodes->{'mediadbopen'}, TRUE);
     use Net::Rendezvous::Publish;
     my $publisher = Net::Rendezvous::Publish->new
-          or die "couldn't make a Responder object";
+      or die "couldn't make a Responder object";
     my $dbhost = $globals->{'mysqlhost'};
     if ($dbhost eq "localhost") {
         $dbhost = hostname();
     }
     my $service = $publisher->publish(
-            name => "Lyricue Interface",
-            type => '_lyricue._tcp',
-            port => 0,
-            txt => "database=".$dbhost
+        name => "Lyricue Interface",
+        type => '_lyricue._tcp',
+        port => 0,
+        txt  => "database=" . $dbhost
     );
 
     $config->{'Bibles'} = get_bibles();
@@ -13070,7 +13132,8 @@ sub firstrun_prepare {
         $header = gettext("Database login");
         if (defined $lyricDbh) {
             $widgets->{'firstrun'}->set_page_complete($page, TRUE);
-            $widgets->{'firstrun'}->set_current_page ($widgets->{'firstrun'}->get_current_page+1);      
+            $widgets->{'firstrun'}
+              ->set_current_page($widgets->{'firstrun'}->get_current_page + 1);
         } else {
             firstrun_pw_check();
         }
@@ -13123,8 +13186,8 @@ sub firstrun_prepare {
           "fr_bg";
         $widgets->{'firstrunxml'}->get_object('fileFRImagedir')
           ->set_label($config->{'ImageDirectory'});
-        $widgets->{'firstrunxml'}->get_object('fileFRImagedir')->{'user_data'} =
-          "fr_img";
+        $widgets->{'firstrunxml'}->get_object('fileFRImagedir')->{'user_data'}
+          = "fr_img";
         $widgets->{'firstrun'}->set_page_complete($page, TRUE);
     } elsif ($widgets->{'firstrun'}->get_current_page == 6) {
 
@@ -13702,8 +13765,8 @@ sub select_profile {
                   . $profile);
             $globals->{'profile'} = $profile;
 
-            update_display("profile",$globals->{'profile'},"");
-            preview_display("profile",$globals->{'profile'},"");
+            update_display("profile", $globals->{'profile'}, "");
+            preview_display("profile", $globals->{'profile'}, "");
             foreach my $display (keys $widgets->{'miniview'}) {
                 if (defined $widgets->{'miniview'}->{$display}) {
                     $widgets->{'miniview'}->{$display}->destroy;
@@ -13722,10 +13785,10 @@ sub select_profile {
 
 sub toggle_miniview {
     my $new_status = FALSE;
-    if ( $widgets->{'main'}->get_object('checkCurrent')->get_active()) {
-        $new_status=TRUE;
+    if ($widgets->{'main'}->get_object('checkCurrent')->get_active()) {
+        $new_status = TRUE;
     }
-    if ($config->{'Miniview'} != $new_status){
+    if ($config->{'Miniview'} != $new_status) {
         $config->{'Miniview'} = $new_status;
         init_miniview();
     }
@@ -13733,10 +13796,10 @@ sub toggle_miniview {
 
 sub toggle_preview {
     my $new_status = FALSE;
-    if ( $widgets->{'main'}->get_object('checkPreview')->get_active() ) {
-        $new_status=TRUE;
+    if ($widgets->{'main'}->get_object('checkPreview')->get_active()) {
+        $new_status = TRUE;
     }
-    if ($config->{'DynamicPreview'} != $new_status){
+    if ($config->{'DynamicPreview'} != $new_status) {
         $config->{'DynamicPreview'} = $new_status;
         init_preview();
     }
@@ -13744,20 +13807,21 @@ sub toggle_preview {
 
 sub toggle_server_active {
     my ($widget, $event, $display) = @_;
-    if ($displays{$display} ){
-        debug("Set server inactive for ".$display);
-        $displays{$display}=FALSE;
-        $widgets->{'miniview_frame'}->{$display}->set_label($display." - ".gettext("inactive"));
+    if ($displays{$display}) {
+        debug("Set server inactive for " . $display);
+        $displays{$display} = FALSE;
+        $widgets->{'miniview_frame'}->{$display}
+          ->set_label($display . " - " . gettext("inactive"));
     } else {
-        debug("Set server active for ".$display);
-        $displays{$display}=TRUE;
+        debug("Set server active for " . $display);
+        $displays{$display} = TRUE;
         $widgets->{'miniview_frame'}->{$display}->set_label($display);
     }
 }
 
 sub close_miniview {
-    my ($display) =@_;
-    debug("Removing miniview for ".$display); 
+    my ($display) = @_;
+    debug("Removing miniview for " . $display);
     if (defined $miniviews{$display}) {
         undef $miniviews{$display};
     }
@@ -13771,7 +13835,7 @@ sub close_miniview {
     }
     if (defined $globals->{'miniview_pid'}->{$display}) {
         kill 9, $globals->{'miniview_pid'}->{$display};
-            undef $globals->{'miniview_pid'}->{$display};
+        undef $globals->{'miniview_pid'}->{$display};
     }
 }
 
@@ -13791,8 +13855,8 @@ sub load_profile_manager {
     debug("Loading Profile Manager");
     $widgets->{'profile'} = load_window("windowProfileManager");
 
-    my $query = "SELECT DISTINCT profile FROM config WHERE profile != ''";
-    my $sth   = do_query($lyricDbh, $query, FALSE);
+    my $query       = "SELECT DISTINCT profile FROM config WHERE profile != ''";
+    my $sth         = do_query($lyricDbh, $query, FALSE);
     my $combo_model = Gtk2::ListStore->new('Glib::String');
     while (my @row = $sth->fetchrow_array()) {
         $combo_model->set($combo_model->append, 0, $row[0]);
@@ -13802,17 +13866,15 @@ sub load_profile_manager {
     my $model =
       Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Gtk2::ListStore');
     $query = "SELECT host,profile FROM profiles";
-    $sth   = do_query($lyricDbh, $query, FALSE);
+    $sth = do_query($lyricDbh, $query, FALSE);
     while (my @row = $sth->fetchrow_array()) {
         $model->set($model->append, 0, $row[0], 1, $row[1], 2, $combo_model);
     }
 
     $widgets->{'profile'}->get_object('treeHosts')->set_model($model);
     $widgets->{'profile'}->get_object('treeHosts')
-      ->insert_column_with_attributes(
-        -1, 'Host', Gtk2::CellRendererText->new,
-        text     => 0
-      );
+      ->insert_column_with_attributes(-1, 'Host', Gtk2::CellRendererText->new,
+        text => 0);
     my $combo_renderer = Gtk2::CellRendererCombo->new;
     $combo_renderer->set(
         text_column => 0,     # col in combo model with text to display
@@ -13834,11 +13896,10 @@ sub load_profile_manager {
       );
     $widgets->{'profile'}->get_object('treeProfile')->set_model($combo_model);
     $widgets->{'profile'}->get_object('treeProfile')
-      ->insert_column_with_attributes(
-        -1, 'Profile Name', Gtk2::CellRendererText->new,
-        text     => 0
-      );
-    
+      ->insert_column_with_attributes(-1, 'Profile Name',
+        Gtk2::CellRendererText->new,
+        text => 0);
+
     $widgets->{'profile'}->get_object("windowProfileManager")->show_all;
 }
 
@@ -13864,27 +13925,38 @@ sub profile_manager_create {
     close_dialog($widgets->{'profile'}->get_object('windowProfileManager'));
     load_profile_manager();
 }
+
 sub profile_manager_remove {
     debug("Removing profile");
-    my $selection = $widgets->{'profile'}->get_object('treeProfile')->get_selection;
+    my $selection =
+      $widgets->{'profile'}->get_object('treeProfile')->get_selection;
     if ($selection) {
         my ($m, $i) = $selection->get_selected;
         if ($m) {
-            my $profile = $m->get($i,0);
+            my $profile = $m->get($i, 0);
             my $confirmxml = load_window("dialogConfirm");
-            $confirmxml->get_object('labelDelete')->set_text(gettext("Are you sure you wish to remove the profile \"").$profile."\"?");
-            $confirmxml->get_object('dialogConfirm')->set_title(gettext("Remove Profile \"").$profile."\"");
+            $confirmxml->get_object('labelDelete')
+              ->set_text(
+                    gettext("Are you sure you wish to remove the profile \"")
+                  . $profile
+                  . "\"?");
+            $confirmxml->get_object('dialogConfirm')
+              ->set_title(gettext("Remove Profile \"") . $profile . "\"");
             my $confirm = $confirmxml->get_object('dialogConfirm')->run();
             if ($confirm eq "ok") {
-                my $query = "DELETE FROM config WHERE profile=\"".$profile."\"";
+                my $query =
+                  "DELETE FROM config WHERE profile=\"" . $profile . "\"";
                 do_query($lyricDbh, $query, FALSE);
-                $query = "SELECT DISTINCT profile FROM profiles WHERE profile !=\"".$profile."\"";
+                $query =
+                  "SELECT DISTINCT profile FROM profiles WHERE profile !=\""
+                  . $profile . "\"";
                 my $sth = do_query($lyricDbh, $query, FALSE);
                 my @row = $sth->fetchrow_array();
-                $query = "UPDATE profiles SET profile=\"".$row[0]."\"";
+                $query = "UPDATE profiles SET profile=\"" . $row[0] . "\"";
                 do_query($lyricDbh, $query, FALSE);
                 close_dialog($confirmxml->get_object('dialogConfirm'));
-                close_dialog($widgets->{'profile'}->get_object('windowProfileManager'));
+                close_dialog(
+                    $widgets->{'profile'}->get_object('windowProfileManager'));
                 load_profile_manager();
             } else {
                 close_dialog($confirmxml->get_object('dialogConfirm'));
@@ -13892,6 +13964,7 @@ sub profile_manager_remove {
         }
     }
 }
+
 sub profile_manager_apply {
     debug("Apply Host<->Profile mapping");
     my $store = $widgets->{'profile'}->get_object('treeHosts')->get_model();
@@ -13901,7 +13974,7 @@ sub profile_manager_apply {
         my $profile = $store->get_value($iter, 1);
         my $query = "SELECT profile FROM profiles WHERE host='" . $host . "'";
         my $sth   = do_query($lyricDbh, $query, FALSE);
-        my @row = $sth->fetchrow_array();
+        my @row   = $sth->fetchrow_array();
         if (defined $row[0]) {
             if ($row[0] ne $profile) {
                 $query =
