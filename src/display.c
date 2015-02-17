@@ -254,7 +254,7 @@ set_maintext (const gchar * text, int transition, gboolean wrap)
     g_object_set_data (G_OBJECT (maintext), "text", (gpointer) text);
     clear_group (maintext);
     create_outlined_text (maintext, text, maintext_font, maintext_fgcol,
-                          maintext_bgcol, wrap);
+                          maintext_bgcol, wrap, FALSE);
     gchar *horiloc =
       (gchar *) g_hash_table_lookup (config, "HorizontalLocation");
     gchar *vertloc =
@@ -307,7 +307,7 @@ set_headtext (const gchar * text, int transition, gboolean wrap)
     headtext = tmp;
     clear_group (headtext);
     create_outlined_text (headtext, text, headtext_font, headtext_fgcol,
-                          headtext_bgcol, wrap);
+                          headtext_bgcol, wrap, TRUE);
     clutter_actor_set_anchor_point_from_gravity (headtext,
                                                  CLUTTER_GRAVITY_NORTH);
     clutter_actor_set_position (headtext, stage_width / 2, 0);
@@ -334,7 +334,7 @@ set_foottext (const gchar * text, int transition, gboolean wrap)
     foottext = tmp;
     clear_group (foottext);
     create_outlined_text (foottext, text, foottext_font, foottext_fgcol,
-                          foottext_bgcol, wrap);
+                          foottext_bgcol, wrap, TRUE);
     clutter_actor_set_anchor_point_from_gravity (foottext,
                                                  CLUTTER_GRAVITY_SOUTH);
     clutter_actor_set_position (foottext, stage_width / 2, stage_height);
@@ -367,7 +367,7 @@ set_osd (int speed, const gchar * text)
     ClutterColor *bgcolour = clutter_color_new (0x00, 0x00, 0x00, 0xA0);
     clutter_color_from_string (bgcolour, maintext_bgcol);
     create_outlined_text (osdtext, text, osdtext_font, maintext_fgcol,
-                          maintext_bgcol, FALSE);
+                          maintext_bgcol, FALSE, FALSE);
     clutter_actor_set_anchor_point_from_gravity (osdtext,
                                                  CLUTTER_GRAVITY_CENTER);
     osdtext_bg = clutter_rectangle_new_with_color (bgcolour);
@@ -402,7 +402,8 @@ set_osd (int speed, const gchar * text)
 void
 create_outlined_text (ClutterActor * group, const gchar * text,
                       const gchar * font, const gchar * text_colour,
-                      const gchar * shadow_colour, gboolean wrap)
+                      const gchar * shadow_colour, gboolean wrap,
+                      gboolean force_centre)
 {
     ClutterActor *textline[6];
     int i;
@@ -421,6 +422,7 @@ create_outlined_text (ClutterActor * group, const gchar * text,
 
     // Get justification
     gchar *justify = (gchar *) g_hash_table_lookup (config, "Justification");
+
     // Get shadow offset
     int shadow_offset =
       atoi ((gchar *) g_hash_table_lookup (config, "ShadowSize"));
@@ -432,10 +434,10 @@ create_outlined_text (ClutterActor * group, const gchar * text,
             textline[i] = clutter_text_new_full (font, text, bgcolour);
         }
         clutter_text_set_line_wrap (CLUTTER_TEXT (textline[i]), wrap);
-        if (justify[0] == 'L') {
+        if (justify[0] == 'L' && !force_centre) {
             clutter_text_set_line_alignment (CLUTTER_TEXT (textline[i]),
                                              PANGO_ALIGN_LEFT);
-        } else if (justify[0] == 'R') {
+        } else if (justify[0] == 'R' && !force_centre) {
             clutter_text_set_line_alignment (CLUTTER_TEXT (textline[i]),
                                              PANGO_ALIGN_RIGHT);
         } else {
@@ -459,7 +461,6 @@ create_outlined_text (ClutterActor * group, const gchar * text,
     }
     clutter_actor_raise_top (textline[2]);
     clutter_actor_show_all (group);
-
 //    return group;
 }
 

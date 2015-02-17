@@ -4697,6 +4697,8 @@ sub create_dialog_prefs {
       ->set_value($config->{'OverscanH'});
     $widgets->{'prefs'}->get_object('checkPrefXinerama')
       ->set_active($config->{'Xinerama'});
+    $widgets->{'prefs'}->get_object('checkPrefInfo')
+      ->set_active($config->{'ShowInfoOnce'});
     $widgets->{'prefs'}->get_object('checkPrefMouse')
       ->set_active($config->{'IgnoreMouse'});
     $widgets->{'prefs'}->get_object('entryPrefWindowOffset')
@@ -6415,6 +6417,10 @@ sub save_preferences {
       : 0;
     $config->{'IgnoreMouse'} =
       $widgets->{'prefs'}->get_object('checkPrefMouse')->get_active()
+      ? 1
+      : 0;
+    $config->{'ShowInfoOnce'} =
+      $widgets->{'prefs'}->get_object('checkPrefInfo')->get_active()
       ? 1
       : 0;
     $config->{'GeometryOverride'} =

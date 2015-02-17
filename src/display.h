@@ -36,7 +36,8 @@ void create_outlined_text (ClutterActor *group,
                            const gchar *font,
                            const gchar *text_colour,
                            const gchar *shadow_colour,
-                           gboolean wrap);
+                           gboolean wrap,
+                           gboolean force_centre);
 
 void change_backdrop (const gchar * id, gboolean loop, gint transition);
 

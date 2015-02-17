@@ -40,12 +40,14 @@ gchar *current_bg = NULL;
 gchar *temp_bg = NULL;
 int current_item = 0;
 int current_list = 0;
+int old_list = 0;
 GHashTable *config = NULL;
 GHashTable *miniviews = NULL;
 
 // Command line options
 gboolean windowed = FALSE;
 gboolean debugging = FALSE;
+gboolean showinfoonce = FALSE;
 int server_port = 2346;
 gchar *server_ip = "";
 gchar *server_type = "normal";
@@ -201,6 +203,13 @@ main (int argc, char *argv[])
     if (g_strcmp0(server_type, "headless") != 0) {
         ret = create_main_window (argc, argv);
     }
+
+    gchar *showinfochar;
+    showinfochar = (gchar *) g_hash_table_lookup (config, "ShowInfoOnce");
+    if (showinfochar != NULL && atoi(showinfochar) == 1){
+        showinfoonce=TRUE;
+    }
+    g_free(showinfochar);
 
     // Publish to avahi (zeroconf/bonjour)
     publish_avahi(server_port, server_type);
@@ -791,6 +800,14 @@ do_display (const char *options, const int quick_show)
             }
         } else {
             current_item = atoi (command);
+            do_query (FALSE, lyricDb, "SELECT playlist FROM playlist WHERE playorder=%d",
+                      current_item);
+            result = mysql_store_result (lyricDb);
+            row = mysql_fetch_row (result);
+            if (row != NULL) {
+                current_list = atoi (row[0]);
+            }
+            mysql_free_result (result);
         }
 
         do_query (FALSE, lyricDb,
@@ -932,8 +949,18 @@ do_display (const char *options, const int quick_show)
                 transition = NO_EFFECT;
             }
             set_maintext (parse_special (lyrics), transition, wrap);
+            l_debug("show footer %d-%d/%d",showinfoonce,old_list,current_list);
+            if (!showinfoonce || (current_list != old_list)) {
+                if (showinfoonce) {
+                    header = g_strconcat(header,"\n<small><small>",footer,"</small></small>",NULL);
+                } else {
+                    set_foottext (parse_special (footer), transition, wrap);
+                }
+            } else {
+                set_foottext("",transition,0);
+            }
             set_headtext (parse_special (header), transition, wrap);
-            set_foottext (parse_special (footer), transition, wrap);
+            old_list=current_list;
         }
     }
 }
