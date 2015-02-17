@@ -950,16 +950,21 @@ do_display (const char *options, const int quick_show)
             }
             set_maintext (parse_special (lyrics), transition, wrap);
             l_debug("show footer %d-%d/%d",showinfoonce,old_list,current_list);
-            if (!showinfoonce || (current_list != old_list)) {
-                if (showinfoonce) {
-                    header = g_strconcat(header,"\n<small><small>",footer,"</small></small>",NULL);
+            if (showinfoonce) {
+                if (current_list != old_list) {
+                    if (g_strcmp0(footer,"") != 0) {
+                        header = g_strconcat(header,"\n<small><small>",footer,"</small></small>",NULL);
+                    }
+                    set_headtext (parse_special (header), transition, wrap);
+                    set_foottext ("", transition, wrap);
                 } else {
-                    set_foottext (parse_special (footer), transition, wrap);
+                    set_headtext ("", transition, wrap);
+                    set_foottext ("", transition, wrap);
                 }
             } else {
-                set_foottext("",transition,0);
+                set_headtext (parse_special (header), transition, wrap);
+                set_foottext (parse_special (footer), transition, wrap);
             }
-            set_headtext (parse_special (header), transition, wrap);
             old_list=current_list;
         }
     }
