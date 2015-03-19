@@ -137,10 +137,8 @@ create_main_window (int argc, char *argv[])
         clutter_widget = gtk_clutter_embed_new ();
         gtk_container_add (GTK_CONTAINER (window), clutter_widget);
         gtk_widget_show_all (window);
-        GdkGeometry hints;
-        hints.min_aspect=stage_width/stage_height;
-        hints.max_aspect=stage_width/stage_height;
-        gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, &hints, GDK_HINT_ASPECT);
+        int base_height=200;
+        gtk_widget_set_size_request(GTK_WIDGET(clutter_widget),base_height*stage_width/stage_height,base_height);
         if (geometry != NULL && (g_utf8_strlen (geometry, 10) > 0)) {
             if (!gtk_window_parse_geometry (GTK_WINDOW (window), geometry)) {
                 l_debug ("Failed to parse geometry '%s'", geometry);

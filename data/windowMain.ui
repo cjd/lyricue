@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.20"/>
+  <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkAdjustment" id="adjustmentFade">
     <property name="upper">255</property>
@@ -32,12 +32,10 @@
           <object class="GtkMenuBar" id="menuMain">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="ubuntu_local">True</property>
             <child>
               <object class="GtkMenuItem" id="file1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">File</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="file1_menu">
@@ -47,7 +45,6 @@
                         <property name="label" translatable="yes">Manage _Images</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_image" swapped="no"/>
@@ -58,7 +55,6 @@
                         <property name="label" translatable="yes">Manage _Background</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_background" swapped="no"/>
@@ -69,7 +65,6 @@
                         <property name="label" translatable="yes">_Clean Database</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                       </object>
@@ -79,7 +74,6 @@
                         <property name="label" translatable="yes">Import _Songlist</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="import_db" swapped="no"/>
@@ -90,7 +84,6 @@
                         <property name="label" translatable="yes">_Export Songlist</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="export_db" swapped="no"/>
@@ -101,7 +94,6 @@
                         <property name="label" translatable="yes">_Profiles</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image1</property>
                         <property name="use_stock">False</property>
@@ -112,7 +104,6 @@
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="close_main" swapped="no"/>
@@ -126,7 +117,6 @@
               <object class="GtkMenuItem" id="edit1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Edit</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="edit1_menu">
@@ -136,7 +126,6 @@
                         <property name="label" translatable="yes">_Add Song</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_song" swapped="no"/>
@@ -147,7 +136,6 @@
                         <property name="label" translatable="yes">Advanced _Search</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <accelerator key="F" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -159,7 +147,6 @@
                         <property name="label" translatable="yes">_Edit Song</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="edit_song" swapped="no"/>
@@ -170,7 +157,6 @@
                         <property name="label" translatable="yes">_Delete Song</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="delete_song" swapped="no"/>
@@ -181,7 +167,6 @@
                         <property name="label" translatable="yes">_Refresh List</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <accelerator key="R" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -193,7 +178,6 @@
                         <property name="label">gtk-preferences</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="create_dialog_prefs" swapped="no"/>
@@ -204,7 +188,6 @@
                         <property name="label" translatable="yes">Manage Profiles</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="image">image2</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="load_profile_manager" swapped="no"/>
@@ -215,7 +198,6 @@
                         <property name="label" translatable="yes">_Configuration Wizard</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="firstrun_wizard" swapped="no"/>
@@ -226,7 +208,6 @@
                         <property name="label" translatable="yes">_User Administration</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                       </object>
@@ -239,7 +220,6 @@
               <object class="GtkMenuItem" id="playlist1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Playlist</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="playlist1_menu">
@@ -249,7 +229,6 @@
                         <property name="label" translatable="yes">_Select Playlist</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="choose_playlist" swapped="no"/>
@@ -260,7 +239,6 @@
                         <property name="label" translatable="yes">_Clear Playlist</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="clear_playlist" swapped="no"/>
@@ -271,7 +249,6 @@
                         <property name="label" translatable="yes">_Refresh Playlist</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="update_playlist" swapped="no"/>
@@ -282,7 +259,6 @@
                         <property name="label" translatable="yes">_Clear Image Associations</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="clear_associations" swapped="no"/>
@@ -293,7 +269,6 @@
                         <property name="label" translatable="yes">_Invert Line Display</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="invert_lines" swapped="no"/>
@@ -304,7 +279,6 @@
                         <property name="label" translatable="yes">_Export Playlist as PDF</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="export_playlist" swapped="no"/>
@@ -318,7 +292,6 @@
               <object class="GtkMenuItem" id="playlist_item1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Playlist Item</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="playlist_item1_menu">
@@ -328,7 +301,6 @@
                         <property name="label" translatable="yes">_Add from Available</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_to_playlist" swapped="no"/>
@@ -339,7 +311,6 @@
                         <property name="label" translatable="yes">Add _Image</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <accelerator key="I" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -351,7 +322,6 @@
                         <property name="label" translatable="yes">Add _File</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_file" swapped="no"/>
@@ -362,7 +332,6 @@
                         <property name="label" translatable="yes">Add _Directory</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="add_directory" swapped="no"/>
@@ -373,7 +342,6 @@
                         <property name="label" translatable="yes">Add _DVD Video</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="media_dvd" swapped="no"/>
@@ -384,7 +352,6 @@
                         <property name="label" translatable="yes">_Remove from Playlist</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="remove_from_playlist" swapped="no"/>
@@ -398,7 +365,6 @@
               <object class="GtkMenuItem" id="display2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Display</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="display2_menu">
@@ -408,7 +374,6 @@
                         <property name="label" translatable="yes">_Previous Page</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="prev_page" swapped="no"/>
@@ -419,7 +384,6 @@
                         <property name="label" translatable="yes">_Next Page</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="next_page" swapped="no"/>
@@ -430,7 +394,6 @@
                         <property name="label" translatable="yes">_Display Now</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="display_now" swapped="no"/>
@@ -441,7 +404,6 @@
                         <property name="label" translatable="yes">_Blank Display</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="blank_page" swapped="no"/>
@@ -452,7 +414,6 @@
                         <property name="label" translatable="yes">_Clear Text</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="clear_text" swapped="no"/>
@@ -463,7 +424,6 @@
                         <property name="label" translatable="yes">_Live Video</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="media_v4l" swapped="no"/>
@@ -477,7 +437,6 @@
               <object class="GtkMenuItem" id="applications1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Applications</property>
               </object>
             </child>
@@ -485,7 +444,6 @@
               <object class="GtkMenuItem" id="bible1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Bible</property>
               </object>
             </child>
@@ -493,7 +451,6 @@
               <object class="GtkMenuItem" id="help1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Help</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="help1_menu">
@@ -503,7 +460,6 @@
                         <property name="label">gtk-help</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="online_help" swapped="no"/>
@@ -514,7 +470,6 @@
                         <property name="label">Gather troubleshooting info</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="gather_debug" swapped="no"/>
@@ -525,7 +480,6 @@
                         <property name="label">gtk-about</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="show_about" swapped="no"/>
@@ -553,7 +507,6 @@
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Prev. Page</property>
-                <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Prev. Page</property>
                 <property name="use_underline">True</property>
@@ -571,7 +524,6 @@
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Next Page</property>
-                <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Next Page</property>
                 <property name="use_underline">True</property>
@@ -589,7 +541,6 @@
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Next Point</property>
-                <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Next Point</property>
                 <property name="use_underline">True</property>
@@ -607,7 +558,6 @@
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Blank Screen</property>
-                <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Blank Screen</property>
                 <property name="use_underline">True</property>
@@ -625,7 +575,6 @@
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Clear Text</property>
-                <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Clear Text</property>
                 <property name="use_underline">True</property>
@@ -641,7 +590,6 @@
               <object class="GtkToolButton" id="buttonMainReshow">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Reshow</property>
                 <property name="use_underline">True</property>
@@ -659,7 +607,6 @@
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Add File</property>
-                <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Add File</property>
                 <property name="use_underline">True</property>
@@ -677,7 +624,6 @@
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Start Display</property>
-                <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Start Display</property>
                 <property name="use_underline">True</property>
@@ -731,7 +677,6 @@
                                 <property name="receives_default">True</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_text" translatable="yes">Advanced Search</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <signal name="clicked" handler="create_search" swapped="no"/>
                               </object>
@@ -767,7 +712,6 @@
                                 <property name="receives_default">True</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_text" translatable="yes">Clear Search Field</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_stock">True</property>
                                 <property name="focus_on_click">False</property>
                                 <signal name="clicked" handler="clear_search" swapped="no"/>
@@ -816,7 +760,6 @@
                               <object class="GtkToolButton" id="buttonMainAdd">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">New</property>
                                 <property name="use_underline">True</property>
@@ -832,7 +775,6 @@
                               <object class="GtkToolButton" id="buttonMainEdit">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">Edit</property>
                                 <property name="use_underline">True</property>
@@ -850,7 +792,6 @@
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_text" translatable="yes">Add the selected song to the playlist</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">Add to playlist</property>
                                 <property name="use_underline">True</property>
@@ -1070,7 +1011,6 @@
                               <object class="GtkToolButton" id="buttonAddImage">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">Add to Playlist</property>
                                 <property name="use_underline">True</property>
@@ -1170,7 +1110,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <signal name="clicked" handler="navigator_prev" swapped="no"/>
                               </object>
@@ -1181,22 +1120,10 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBoxEntry" id="entryNavVerse">
+                              <object class="GtkComboBox" id="entryNavVerse">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="text_column">0</property>
-                                <signal name="changed" handler="navigator_changed" swapped="no"/>
-                                <child internal-child="entry">
-                                  <object class="GtkEntry" id="entryNavVerseText">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="primary_icon_activatable">False</property>
-                                    <property name="secondary_icon_activatable">False</property>
-                                    <property name="primary_icon_sensitive">True</property>
-                                    <property name="secondary_icon_sensitive">True</property>
-                                    <signal name="activate" handler="navigator_activated" swapped="no"/>
-                                  </object>
-                                </child>
+                                <property name="has_entry">True</property>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
@@ -1210,7 +1137,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <signal name="clicked" handler="navigator_next" swapped="no"/>
                               </object>
@@ -1305,7 +1231,6 @@
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_text" translatable="yes">Add these verses to the playlist</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">Add to Playlist</property>
                                 <property name="use_underline">True</property>
@@ -1323,7 +1248,6 @@
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_text" translatable="yes">Show Now</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">Show</property>
                                 <property name="use_underline">True</property>
@@ -1339,7 +1263,6 @@
                               <object class="GtkToggleToolButton" id="checkNavAuto">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">Autoshow</property>
                                 <property name="use_underline">True</property>
@@ -1389,7 +1312,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <property name="draw_indicator">True</property>
                                 <signal name="toggled" handler="transition_type_changed" swapped="no"/>
@@ -1406,7 +1328,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">radioTransDefault</property>
@@ -1423,7 +1344,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">radioTransDefault</property>
@@ -1441,7 +1361,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">radioTransDefault</property>
@@ -1459,7 +1378,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">radioTransDefault</property>
@@ -1477,7 +1395,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">radioTransDefault</property>
@@ -1549,7 +1466,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="focus_on_click">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
@@ -1570,7 +1486,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
                                   <object class="GtkImage" id="image20">
@@ -1592,7 +1507,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
                                   <object class="GtkImage" id="image29">
@@ -1614,7 +1528,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
                                   <object class="GtkImage" id="image30">
@@ -1636,7 +1549,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
                                   <object class="GtkImage" id="image28">
@@ -1658,7 +1570,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -1671,7 +1582,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -1686,7 +1596,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -1699,7 +1608,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -1714,7 +1622,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
                                   <object class="GtkImage" id="image34">
@@ -1736,7 +1643,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
                                   <object class="GtkImage" id="image32">
@@ -1758,7 +1664,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="focus_on_click">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
@@ -1781,7 +1686,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -1796,7 +1700,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -1811,7 +1714,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
                                   <object class="GtkImage" id="image35">
@@ -1833,7 +1735,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -1848,7 +1749,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                                 <child>
                                   <object class="GtkImage" id="image33">
@@ -1870,7 +1770,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <signal name="clicked" handler="transition_dir_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -1908,7 +1807,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                               </object>
                               <packing>
                                 <property name="top_attach">1</property>
@@ -1921,7 +1819,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -1936,7 +1833,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                               </object>
                               <packing>
                                 <property name="left_attach">2</property>
@@ -1974,7 +1870,6 @@
                                 <property name="can_focus">True</property>
                                 <property name="can_default">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <signal name="clicked" handler="apply_transition_selected" swapped="no"/>
                               </object>
@@ -1991,7 +1886,6 @@
                                 <property name="can_focus">True</property>
                                 <property name="can_default">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                                 <signal name="clicked" handler="apply_transition_playlist" swapped="no"/>
                               </object>
@@ -2060,7 +1954,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="relief">none</property>
                                 <property name="image_position">top</property>
                                 <signal name="clicked" handler="update_playlist" swapped="no"/>
@@ -2119,7 +2012,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="draw_indicator">True</property>
                                 <signal name="toggled" handler="image_playlist_toggle" swapped="no"/>
                               </object>
@@ -2219,7 +2111,6 @@
                                   <object class="GtkToolButton" id="toolbuttonPlayLoad">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Load</property>
                                     <property name="use_underline">True</property>
                                     <property name="stock_id">gtk-open</property>
@@ -2234,7 +2125,6 @@
                                   <object class="GtkToolButton" id="toolbuttonPlayNew">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">New</property>
                                     <property name="use_underline">True</property>
                                     <property name="stock_id">gtk-new</property>
@@ -2249,7 +2139,6 @@
                                   <object class="GtkToolButton" id="toolbuttonPlayDelete">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Delete</property>
                                     <property name="use_underline">True</property>
                                     <property name="stock_id">gtk-delete</property>
@@ -2264,7 +2153,6 @@
                                   <object class="GtkToolButton" id="toolbuttonPlayRename">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Rename</property>
                                     <property name="use_underline">True</property>
                                     <property name="stock_id">gtk-save-as</property>
@@ -2279,7 +2167,6 @@
                                   <object class="GtkToolButton" id="toolbuttonPlayCopy">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Copy</property>
                                     <property name="use_underline">True</property>
                                     <property name="stock_id">gtk-copy</property>
@@ -2294,7 +2181,6 @@
                                   <object class="GtkToolButton" id="toolbuttonPlayCancel">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Cancel</property>
                                     <property name="use_underline">True</property>
                                     <property name="stock_id">gtk-cancel</property>
@@ -2329,7 +2215,6 @@
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_text" translatable="yes">Move the current item down</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="label" translatable="yes">Move Down</property>
                                 <property name="use_underline">True</property>
                                 <property name="stock_id">gtk-go-down</property>
@@ -2346,7 +2231,6 @@
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_text" translatable="yes">Move the current item up</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="label" translatable="yes">Move Up</property>
                                 <property name="use_underline">True</property>
                                 <property name="stock_id">gtk-go-up</property>
@@ -2363,7 +2247,6 @@
                                 <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_text" translatable="yes">Remove the current item from the playlist</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">Remove</property>
                                 <property name="use_underline">True</property>
@@ -2379,7 +2262,6 @@
                               <object class="GtkToolButton" id="buttonMainSublist">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="is_important">True</property>
                                 <property name="label" translatable="yes">Add Sublist</property>
                                 <property name="use_underline">True</property>
@@ -2452,7 +2334,6 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="draw_indicator">True</property>
                                     <signal name="toggled" handler="toggle_preview" swapped="no"/>
@@ -2488,7 +2369,6 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="draw_indicator">True</property>
                                     <signal name="toggled" handler="toggle_miniview" swapped="no"/>
                                   </object>
@@ -2548,7 +2428,6 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="relief">none</property>
                                         <property name="focus_on_click">False</property>
                                         <signal name="clicked" handler="pause_media" swapped="no"/>
@@ -2570,7 +2449,6 @@
                                       <object class="GtkButton" id="buttonMediaPlay">
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="relief">none</property>
                                         <property name="focus_on_click">False</property>
                                         <signal name="clicked" handler="pause_media" swapped="no"/>
@@ -2633,7 +2511,6 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">False</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="draw_indicator">True</property>
                                         <signal name="toggled" handler="toggle_blur" swapped="no"/>
                                       </object>
@@ -2698,7 +2575,6 @@
                                       <object class="GtkToolButton" id="buttonQuickSave">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="is_important">True</property>
                                         <property name="label" translatable="yes">Save</property>
                                         <property name="use_underline">True</property>
@@ -2714,7 +2590,6 @@
                                       <object class="GtkToolButton" id="buttonQuickSaveLocal">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="is_important">True</property>
                                         <property name="label" translatable="yes">Save Copy</property>
                                         <property name="use_underline">True</property>
@@ -2730,7 +2605,6 @@
                                       <object class="GtkToolButton" id="buttonQuickShow">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="is_important">True</property>
                                         <property name="label" translatable="yes">Show</property>
                                         <property name="use_underline">True</property>
@@ -2746,7 +2620,6 @@
                                       <object class="GtkToggleToolButton" id="buttonQuickOSD">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="is_important">True</property>
                                         <property name="label" translatable="yes">OSD</property>
                                         <property name="use_underline">True</property>
