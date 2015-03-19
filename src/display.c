@@ -137,6 +137,8 @@ create_main_window (int argc, char *argv[])
         clutter_widget = gtk_clutter_embed_new ();
         gtk_container_add (GTK_CONTAINER (window), clutter_widget);
         gtk_widget_show_all (window);
+        if (!windowed)
+            gtk_window_fullscreen (GTK_WINDOW (window));
         int base_height=200;
         gtk_widget_set_size_request(GTK_WIDGET(clutter_widget),base_height*stage_width/stage_height,base_height);
         if (geometry != NULL && (g_utf8_strlen (geometry, 10) > 0)) {
@@ -146,8 +148,6 @@ create_main_window (int argc, char *argv[])
                 l_debug ("Geometry '%s'", geometry);
             }
         }
-        if (!windowed)
-            gtk_window_fullscreen (GTK_WINDOW (window));
     } else {
         window = gtk_plug_new (windowid);
         clutter_widget = gtk_clutter_embed_new ();
