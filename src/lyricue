@@ -4702,23 +4702,52 @@ sub create_dialog_prefs {
         close_dialog($widgets->{'prefs'}->get_object('dialogPrefs'));
     }
     $widgets->{'prefs'} = load_window("dialogPrefs");
-    $widgets->{'prefs'}->get_object('spinPrefHeight')
-      ->set_value($config->{'Height'});
-    $widgets->{'prefs'}->get_object('spinPrefWidth')
-      ->set_value($config->{'Width'});
-    $widgets->{'prefs'}->get_object('spinPrefOverscanV')
-      ->set_value($config->{'OverscanV'});
-    $widgets->{'prefs'}->get_object('spinPrefOverscanH')
-      ->set_value($config->{'OverscanH'});
-    $widgets->{'prefs'}->get_object('checkPrefXinerama')
-      ->set_active($config->{'Xinerama'});
-    $widgets->{'prefs'}->get_object('checkPrefInfo')
-      ->set_active($config->{'ShowInfoOnce'});
-    $widgets->{'prefs'}->get_object('checkPrefMouse')
-      ->set_active($config->{'IgnoreMouse'});
-    $widgets->{'prefs'}->get_object('entryPrefWindowOffset')
-      ->set_text($config->{'GeometryOverride'});
 
+    # Profiles
+    my $renderer = Gtk2::CellRendererText->new;
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')
+      ->pack_start($renderer, TRUE);
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')
+      ->add_attribute($renderer, text => 0);
+    my $profilestore = Gtk2::ListStore->new('Glib::String');
+    $widgets->{'prefs'}->get_object('comboPrefsProfile')
+      ->set_model($profilestore);
+
+    my $query       = "SELECT DISTINCT profile FROM config WHERE profile != ''";
+    my $sth         = do_query($lyricDbh, $query, FALSE);
+    my $combo_model = Gtk2::ListStore->new('Glib::String');
+    $profilestore->set($profilestore->append, 0, gettext("Create New Profile"));
+    while (my @row = $sth->fetchrow_array()) {
+        my $iter = $profilestore->append;
+        $profilestore->set($iter, 0, $row[0]);
+        $combo_model->set($combo_model->append, 0, $row[0]);
+        if ($row[0] eq $globals->{'profile'}) {
+            $widgets->{'prefs'}->get_object('comboPrefsProfile')
+              ->set_active_iter($iter);
+        }
+    }
+
+    # Fonts tab
+    $widgets->{'prefs'}->get_object('entryPrefHeader')
+      ->set_text($config->{'Header'});
+    $widgets->{'prefs'}->get_object('entryPrefMain')
+      ->set_text($config->{'Main'});
+    $widgets->{'prefs'}->get_object('entryPrefFooter')
+      ->set_text($config->{'Footer'});
+    $widgets->{'prefs'}->get_object('entryPrefOSD')->set_text($config->{'OSD'});
+    $widgets->{'prefs'}->get_object('entryPrefColour')
+      ->set_text($config->{'Colour'});
+    $widgets->{'prefs'}->get_object('entryPrefShadowColour')
+      ->set_text($config->{'ShadowColour'});
+    $widgets->{'prefs'}->get_object('spinPrefShadow')
+      ->set_value($config->{'ShadowSize'});
+
+    # Projector Layout
+    if ($config->{'Aspect'}) {
+        $widgets->{'prefs'}->get_object('comboPrefAspect')
+          ->prepend_text($config->{'Aspect'});
+    }
+    $widgets->{'prefs'}->get_object('comboPrefAspect')->set_active(0);
     if ($config->{'VerticalLocation'}) {
         $widgets->{'prefs'}->get_object('comboPrefVertical')
           ->prepend_text($config->{'VerticalLocation'});
@@ -4734,25 +4763,44 @@ sub create_dialog_prefs {
           ->prepend_text($config->{'Justification'});
     }
     $widgets->{'prefs'}->get_object('comboPrefJustification')->set_active(0);
+    if ($config->{'ShowInfoLocation'}) {
+        $widgets->{'prefs'}->get_object('comboPrefInfoLoc')
+          ->prepend_text($config->{'ShowInfoLocation'});
+    }
+    $widgets->{'prefs'}->get_object('comboPrefInfoLoc')->set_active(0);
+    if ($config->{'ShowInfoPages'}) {
+        $widgets->{'prefs'}->get_object('comboPrefInfoPages')
+          ->prepend_text($config->{'ShowInfoPages'});
+    }
+    $widgets->{'prefs'}->get_object('comboPrefInfoPages')->set_active(0);
+    $widgets->{'prefs'}->get_object('spinPrefOverscanV')
+      ->set_value($config->{'OverscanV'});
+    $widgets->{'prefs'}->get_object('spinPrefOverscanH')
+      ->set_value($config->{'OverscanH'});
+
+    # projector options
+    my $scaled = create_pixbuf(
+        $config->{'BGImage'},
+        $globals->{'icon_width'},
+        $globals->{'icon_height'}
+    );
+    if ($scaled) {
+        $widgets->{'prefs'}->get_object('imagePrefBG')
+          ->set_from_pixbuf($scaled);
+        $widgets->{'prefs'}->get_object('imagePrefBG')->{user_data} =
+          $config->{'BGImage'};
+    }
     if ($config->{'DefaultTransition'}) {
         $widgets->{'prefs'}->get_object('comboPrefDefTrans')
           ->prepend_text($config->{'DefaultTransition'});
     }
     $widgets->{'prefs'}->get_object('comboPrefDefTrans')->set_active(0);
+    $widgets->{'prefs'}->get_object('checkPrefMouse')
+      ->set_active($config->{'IgnoreMouse'});
+    $widgets->{'prefs'}->get_object('entryPrefWindowOffset')
+      ->set_text($config->{'GeometryOverride'});
 
-    $widgets->{'prefs'}->get_object('entryPrefHeader')
-      ->set_text($config->{'Header'});
-    $widgets->{'prefs'}->get_object('entryPrefMain')
-      ->set_text($config->{'Main'});
-    $widgets->{'prefs'}->get_object('entryPrefFooter')
-      ->set_text($config->{'Footer'});
-    $widgets->{'prefs'}->get_object('entryPrefOSD')->set_text($config->{'OSD'});
-    $widgets->{'prefs'}->get_object('entryPrefColour')
-      ->set_text($config->{'Colour'});
-    $widgets->{'prefs'}->get_object('entryPrefShadowColour')
-      ->set_text($config->{'ShadowColour'});
-    $widgets->{'prefs'}->get_object('spinPrefShadow')
-      ->set_value($config->{'ShadowSize'});
+    # Advanced
     $widgets->{'prefs'}->get_object('checkPrefLoop')
       ->set_active($config->{'Loop'});
     $widgets->{'prefs'}->get_object('checkPrefExpandNew')
@@ -4763,19 +4811,20 @@ sub create_dialog_prefs {
       ->set_active($config->{'DynamicPreview'});
     $widgets->{'prefs'}->get_object('checkPrefMiniview')
       ->set_active($config->{'Miniview'});
-    my $scaled = create_pixbuf(
-        $config->{'BGImage'},
-        $globals->{'icon_width'},
-        $globals->{'icon_height'}
-    );
+    $widgets->{'prefs'}->get_object('checkPrefXinerama')
+      ->set_active($config->{'Xinerama'});
 
-    if ($scaled) {
-        $widgets->{'prefs'}->get_object('imagePrefBG')
-          ->set_from_pixbuf($scaled);
-        $widgets->{'prefs'}->get_object('imagePrefBG')->{user_data} =
-          $config->{'BGImage'};
-    }
-
+    # Defaults
+    $config->{'ImageDirectory'} =~ s/^\~/$ENV{'HOME'}/;
+    $widgets->{'prefs'}->get_object('filePrefSpecialImagedir')
+      ->set_label($config->{'ImageDirectory'});
+    $widgets->{'prefs'}->get_object('filePrefSpecialImagedir')->{'user_data'} =
+      "img";
+    $config->{'BGDirectory'} =~ s/^\~/$ENV{'HOME'}/;
+    $widgets->{'prefs'}->get_object('filePrefSpecialBGdir')
+      ->set_label($config->{'BGDirectory'});
+    $widgets->{'prefs'}->get_object('filePrefSpecialBGdir')->{'user_data'} =
+      "bg";
     my (@list);
     my $bibles = $config->{'Bibles'};
     my $store  = $widgets->{'prefs'}->get_object('comboPrefBible')->get_model();
@@ -4810,41 +4859,8 @@ sub create_dialog_prefs {
       ->set_text($config->{'SpecialImage'});
     $widgets->{'prefs'}->get_object('entryPrefSpecialBack')
       ->set_text($config->{'SpecialBack'});
-    $config->{'ImageDirectory'} =~ s/^\~/$ENV{'HOME'}/;
-    $widgets->{'prefs'}->get_object('filePrefSpecialImagedir')
-      ->set_label($config->{'ImageDirectory'});
-    $widgets->{'prefs'}->get_object('filePrefSpecialImagedir')->{'user_data'} =
-      "img";
-    $config->{'BGDirectory'} =~ s/^\~/$ENV{'HOME'}/;
-    $widgets->{'prefs'}->get_object('filePrefSpecialBGdir')
-      ->set_label($config->{'BGDirectory'});
-    $widgets->{'prefs'}->get_object('filePrefSpecialBGdir')->{'user_data'} =
-      "bg";
 
-    # Profiles
-    my $renderer = Gtk2::CellRendererText->new;
-    $widgets->{'prefs'}->get_object('comboPrefsProfile')
-      ->pack_start($renderer, TRUE);
-    $widgets->{'prefs'}->get_object('comboPrefsProfile')
-      ->add_attribute($renderer, text => 0);
-    my $profilestore = Gtk2::ListStore->new('Glib::String');
-    $widgets->{'prefs'}->get_object('comboPrefsProfile')
-      ->set_model($profilestore);
-
-    my $query       = "SELECT DISTINCT profile FROM config WHERE profile != ''";
-    my $sth         = do_query($lyricDbh, $query, FALSE);
-    my $combo_model = Gtk2::ListStore->new('Glib::String');
-    $profilestore->set($profilestore->append, 0, gettext("Create New Profile"));
-    while (my @row = $sth->fetchrow_array()) {
-        my $iter = $profilestore->append;
-        $profilestore->set($iter, 0, $row[0]);
-        $combo_model->set($combo_model->append, 0, $row[0]);
-        if ($row[0] eq $globals->{'profile'}) {
-            $widgets->{'prefs'}->get_object('comboPrefsProfile')
-              ->set_active_iter($iter);
-        }
-    }
-
+    # Signals
     $widgets->{'prefs'}->get_object('entryPrefHeader')
       ->signal_connect("button_press_event", "open_dialogFont", "Header");
     $widgets->{'prefs'}->get_object('entryPrefMain')
