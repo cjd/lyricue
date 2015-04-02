@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.18.3 -->
 <interface>
-  <requires lib="gtk+" version="2.20"/>
-  <!-- interface-naming-policy project-wide -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkAdjustment" id="adjustment1">
     <property name="lower">640</property>
     <property name="upper">1920</property>
@@ -72,11 +72,12 @@
     <property name="window_position">center</property>
     <property name="icon">lyricue-icon.png</property>
     <child>
-      <object class="GtkVBox" id="vboxSearchSongs">
+      <object class="GtkBox" id="vboxSearchSongs">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
         <child>
-          <object class="GtkHBox" id="hboxSearchSongs">
+          <object class="GtkBox" id="hboxSearchSongs">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
@@ -98,8 +99,6 @@
                 <property name="activates_default">True</property>
                 <property name="primary_icon_activatable">False</property>
                 <property name="secondary_icon_activatable">False</property>
-                <property name="primary_icon_sensitive">True</property>
-                <property name="secondary_icon_sensitive">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -109,12 +108,12 @@
             </child>
             <child>
               <object class="GtkButton" id="buttonSearchSongs">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="has_default">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="do_adv_search" swapped="no"/>
                 <child>
                   <object class="GtkAlignment" id="alignment31">
@@ -123,7 +122,7 @@
                     <property name="xscale">0</property>
                     <property name="yscale">0</property>
                     <child>
-                      <object class="GtkHBox" id="hbox38">
+                      <object class="GtkBox" id="hbox38">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="spacing">2</property>
@@ -178,8 +177,6 @@
               <object class="GtkScrolledWindow" id="scrollSearchSongs">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="hscrollbar_policy">automatic</property>
-                <property name="vscrollbar_policy">automatic</property>
                 <child>
                   <object class="GtkTreeView" id="treeSearch">
                     <property name="visible">True</property>
@@ -187,6 +184,9 @@
                     <property name="rules_hint">True</property>
                     <signal name="cursor-changed" handler="update_adv_search" swapped="no"/>
                     <signal name="drag-data-get" handler="on_treeSearch_drag_data_get" swapped="no"/>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="treeview-selection1"/>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -196,7 +196,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkVBox" id="vbox12">
+              <object class="GtkBox" id="vbox12">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
@@ -215,8 +215,6 @@
                   <object class="GtkScrolledWindow" id="scrollSearchText">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
                     <child>
                       <object class="GtkTextView" id="textSearch">
                         <property name="visible">True</property>
@@ -247,16 +245,16 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHButtonBox" id="hbuttonbox3">
+          <object class="GtkButtonBox" id="hbuttonbox3">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
               <object class="GtkButton" id="buttonSearchAdd">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="add_to_playlist_search" swapped="no"/>
                 <child>
                   <object class="GtkAlignment" id="alignment37">
@@ -265,7 +263,7 @@
                     <property name="xscale">0</property>
                     <property name="yscale">0</property>
                     <child>
-                      <object class="GtkHBox" id="hbox62">
+                      <object class="GtkBox" id="hbox62">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="spacing">2</property>
@@ -307,11 +305,11 @@
             </child>
             <child>
               <object class="GtkButton" id="buttonSearchCancel">
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="close_dialog" swapped="no"/>
                 <child>
                   <object class="GtkAlignment" id="alignment38">
@@ -320,7 +318,7 @@
                     <property name="xscale">0</property>
                     <property name="yscale">0</property>
                     <child>
-                      <object class="GtkHBox" id="hbox63">
+                      <object class="GtkBox" id="hbox63">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="spacing">2</property>

@@ -66,7 +66,7 @@ All configuration is done by editing the configuration section in the program
 
 =head1 REQUIRES
 
-Perl 5.6 or later, DBI::MySQL, Gtk2-Perl, MySQL database, Clutter-perl, Gstreamer
+Perl 5.6 or later, DBI::MySQL, Gtk3-Perl, MySQL database, Clutter-perl, Gstreamer
 
 =head1 SEE ALSO
 
@@ -110,18 +110,36 @@ use POSIX;
 use locale;
 use IO::Socket::INET;
 use Encode;
-die "The gtk2-perl bindings could not be initialized; we need them to run!\n"
-  unless (Gtk2->init_check);
-use Gtk2::Pango;
-use Gtk2::Gdk::Keysyms;
+use Gtk3 '-init';
 use URI::file;
 use XML::Simple;
-use Gnome2;
 use File::Temp qw/tempdir tempfile/;
 use File::MimeInfo qw/globs/;
 use Cwd qw(abs_path);
 use File::Basename;
 use Sys::Hostname;
+# Import Glib::IO
+use Glib::Object::Introspection;
+Glib::Object::Introspection->setup(
+    basename => 'Gio',
+    version => '2.0',
+    package => 'Glib::IO');
+# Import gnome-desktop
+Glib::Object::Introspection->setup(
+    basename => 'GnomeDesktop',
+    version => '3.0',
+    package => 'GnomeDesktop');
+
+#use B::Concise;
+#no strict 'refs';
+#for my $k (keys %{"GnomeDesktop\::"}) {
+#    print "found GnomeDesktop\::$k():\n";
+#    if (*{${"GnomeDesktop\::"}{$k}}{CODE}) {
+#        my $sub = \&{${"GnomeDesktop\::"}{$k}};
+#        print "Dump of GnomeDesktop\::$k():\n";
+#        B::Concise::compile($sub)->();
+#    }
+#}
 
 eval { require Locale::gettext };
 
@@ -209,14 +227,6 @@ $globals->{'unoconv'} = `which unoconv`;
 chomp $globals->{'unoconv'};
 $globals->{'convert'} = `which convert`;
 chomp $globals->{'convert'};
-$globals->{'video-thumbnailer'} = `which totem-video-thumbnailer`;
-if ($globals->{'video-thumbnailer'} eq "") {
-    $globals->{'video-thumbnailer'} = `which totem-gstreamer-thumbnailer`;
-}
-if ($globals->{'video-thumbnailer'} eq "") {
-    $globals->{'video-thumbnailer'} = `which totem-video-thumbnailer`;
-}
-chomp $globals->{'video-thumbnailer'};
 $globals->{'lyricue_server'} = `which lyricue_display`;
 if ($globals->{'lyricue_server'} eq "") {
     $globals->{'lyricue_server'} = `which lyricue_server`;
@@ -229,7 +239,6 @@ $globals->{'nav_update_timer'}   = FALSE;
 $globals->{'timer'}              = FALSE;
 $globals->{'debugging'}          = FALSE;
 $globals->{'spell'}              = TRUE;
-$globals->{'trayicon'}           = TRUE;
 $globals->{'preview_pid'}        = FALSE;
 $globals->{'hovering_over_link'} = FALSE;
 $globals->{'db_adminuser'}       = "";
@@ -242,19 +251,12 @@ $globals->{'local_hostname'}     = hostname();
 $globals->{'preview_starting'}   = 0;
 
 # Optional modules
-eval { require Gtk2::Spell };
+eval { require Gtk3::Spell };
 if ($@) {
     print STDERR "Gtk-Spell not available, spell checking turned off\n";
     $globals->{'spell'} = FALSE;
 } else {
-    import Gtk2::Spell;
-}
-eval { require Gtk2::TrayIcon };
-if ($@) {
-    print STDERR "Gtk-Trayicon not available, Tray icon turned off\n";
-    $globals->{'trayicon'} = FALSE;
-} else {
-    import Gtk2::TrayIcon;
+    import Gtk3::Spell;
 }
 if ($globals->{'diatheke'} eq "") {
     $globals->{'diatheke'} = "true";
@@ -450,6 +452,8 @@ open(LOG, ">" . $logname);
 binmode LOG, ":utf8";
 debug("Lyricue Interface version " . $globals->{'version'} . "\n" . $ID);
 debug("Running from " . $globals->{'execdir'});
+use Data::Dumper;
+$globals->{'thumbnail_factory'} = GnomeDesktop::DesktopThumbnailFactory->new('GNOME_DESKTOP_THUMBNAIL_SIZE_LARGE');
 $widgets->{'main'} = load_window("windowMain");
 fix_widget_names();    # Needed since gtk2::builder is not setting widget names
 
@@ -492,26 +496,8 @@ if (defined $config->{'DefBible'} && ($config->{'DefBible'} ne "")) {
     do_change_bible($tmpbible[1], $tmpbible[0]);
 }
 
-# Create tray icon
-if ($globals->{'trayicon'}) {
-    debug("Creating Tray icons");
-    foreach
-      my $trayicon ('trayClear', 'trayDown', 'trayUp', 'trayRight', 'trayLeft')
-    {
-        my ($tray);
-        my $trayxml = load_window("windowTray");
-        eval { $tray = Gtk2::TrayIcon->new("Lyricue-" . $trayicon); };
-        if ($@) {
-            debug("Unable to load system tray");
-        } else {
-            $trayxml->get_object($trayicon)->reparent($tray);
-            $tray->show_all;
-        }
-    }
-}
 $0 = "Lyricue Interface";
 
-$globals->{'thumbnail_factory'} = Gnome2::ThumbnailFactory->new('normal');
 check_displays();
 init_mainWindow();
 $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data} = -1;
@@ -524,7 +510,7 @@ $widgets->{'main'}->get_object('toolbuttonPlayCancel')->hide;
 $globals->{'status_timer'} = Glib::Timeout->add(1000, \&check_status);
 $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
-Gtk2->main();
+Gtk3->main();
 
 # Should never get here
 exit(0);
@@ -556,7 +542,7 @@ sub close_main {
         $bibleDbh->disconnect;
     }
     $mediaDbh->disconnect;
-    Gtk2->main_quit;
+    Gtk3->main_quit;
     if ($globals->{'editview_pid'}) {
         debug("Killing $globals->{'editview_pid'}");
         kill 9, $globals->{'editview_pid'};
@@ -621,8 +607,8 @@ sub update_playlist {
         # Column 2 -> Image
         # Column 3 -> playorder
         # Column 4 -> transition
-        $model = Gtk2::ListStore->new(
-            'Glib::String', 'Gtk2::Gdk::Pixbuf',
+        $model = Gtk3::ListStore->new(
+            'Glib::String', 'Gtk3::Gdk::Pixbuf',
             'Glib::String', 'Glib::String'
         );
         $widgets->{'main'}->get_object('iconPlaylist')->set_model($model);
@@ -637,12 +623,12 @@ sub update_playlist {
         # Column 3 -> playorder
         # Column 4 -> transition
         $model =
-          Gtk2::TreeStore->new('Glib::String', 'Glib::String', 'Glib::String',
+          Gtk3::TreeStore->new('Glib::String', 'Glib::String', 'Glib::String',
             'Glib::String');
         $widgets->{'main'}->get_object('treePlaylist')->set_model($model);
-        my $column = Gtk2::TreeViewColumn->new_with_attributes(
+        my $column = Gtk3::TreeViewColumn->new_with_attributes(
             "",
-            Gtk2::CellRendererText->new,
+            Gtk3::CellRendererText->new,
             markup     => 0,
             background => 1
         );
@@ -894,7 +880,7 @@ sub add_playlist {
             if (defined($2)) {
                 $widgets->{'main'}->get_object('treePlaylist')
                   ->expand_to_path(
-                    Gtk2::TreePath->new_from_string($pathstring));
+                    Gtk3::TreePath->new_from_string($pathstring));
             }
             $widgets->{'main'}->get_object('treePlaylist')
               ->get_selection->select_iter($newiter);
@@ -982,7 +968,7 @@ sub update_available {
     reset_timer($globals->{'update_timer'});
 
     my $store =
-      Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Glib::Uint',
+      Gtk3::ListStore->new('Glib::String', 'Glib::String', 'Glib::Uint',
         'Glib::Uint');
 
     if (
@@ -994,19 +980,19 @@ sub update_available {
         $widgets->{'main'}->get_object('treeAvailable')->{data} = ();
     } else {
         $widgets->{'main'}->get_object('treeAvailable')->{user_data} = "load";
-        my $column1 = Gtk2::TreeViewColumn->new_with_attributes(
+        my $column1 = Gtk3::TreeViewColumn->new_with_attributes(
             fromutf(gettext("Title")),
-            Gtk2::CellRendererText->new,
+            Gtk3::CellRendererText->new,
             text => 0
         );
-        my $column2 = Gtk2::TreeViewColumn->new_with_attributes(
+        my $column2 = Gtk3::TreeViewColumn->new_with_attributes(
             fromutf(gettext("Book")),
-            Gtk2::CellRendererText->new,
+            Gtk3::CellRendererText->new,
             text => 1
         );
-        my $column3 = Gtk2::TreeViewColumn->new_with_attributes(
+        my $column3 = Gtk3::TreeViewColumn->new_with_attributes(
             fromutf(gettext("Song Number")),
-            Gtk2::CellRendererText->new,
+            Gtk3::CellRendererText->new,
             text => 2
         );
         $column1->set_resizable(TRUE);
@@ -1018,9 +1004,9 @@ sub update_available {
           ->append_column($column2);
         $widgets->{'main'}->get_object('treeAvailable')
           ->append_column($column3);
-        $column1->signal_connect("clicked", "change_sort_order", 0);
-        $column2->signal_connect("clicked", "change_sort_order", 1);
-        $column3->signal_connect("clicked", "change_sort_order", 2);
+        $column1->signal_connect(clicked => \&change_sort_order, 0);
+        $column2->signal_connect(clicked => \&change_sort_order, 1);
+        $column3->signal_connect(clicked => \&change_sort_order, 2);
     }
     my $songname = $widgets->{'main'}->get_object('entrySearch')->get_text();
 
@@ -1186,7 +1172,7 @@ sub popup_avail_menu {
               );
         }
         my $factory =
-          Gtk2::ItemFactory->new('Gtk2::Menu', "<availpopup>", undef);
+          Gtk3::ItemFactory->new('Gtk3::Menu', "<availpopup>", undef);
         $factory->create_items(1, @items);
         $factory->popup($event->x_root, $event->y_root, $event->button,
             $event->time);
@@ -1242,7 +1228,7 @@ sub popup_backdrop_menu {
     push @items,
       [fromutf(gettext("/Set font colours")), undef, 'manage_bg', undef];
     my $factory =
-      Gtk2::ItemFactory->new('Gtk2::Menu', "<backdroppopup>", undef);
+      Gtk3::ItemFactory->new('Gtk3::Menu', "<backdroppopup>", undef);
     $factory->create_items(1, @items);
     $factory->popup($event->x_root, $event->y_root, $event->button,
         $event->time);
@@ -1264,7 +1250,7 @@ sub manage_bg {
     debug("Manage bg:" . $selected);
     $widgets->{'image'} = load_window("dialogImage");
     $widgets->{'image'}->get_object('vboxImageLeft')->hide;
-    my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $store = Gtk3::ListStore->new('Glib::String', 'Glib::String');
     my $iter = $store->append;
     $store->set($iter, 0, $selected, 1, $selected);
     $widgets->{'image'}->get_object('treeImage')->set_model($store);
@@ -1272,7 +1258,7 @@ sub manage_bg {
       ->get_selection->select_iter($iter);
     change_preview();
     $widgets->{'image'}->get_object('colorbuttonFontColour')
-      ->signal_connect("button_press_event", "open_dialogColour", "ImageFont");
+      ->signal_connect(button_press_event => \&open_dialogColour, "ImageFont");
     $widgets->{'image'}->get_object('colorbuttonShadowColour')
       ->signal_connect("button_press_event", "open_dialogColour",
         "ImageShadow");
@@ -1289,7 +1275,7 @@ sub reset_font_colour {
         $widgets->{'image'}->get_object('entryImageFontColour')
           ->set_text("Default");
         $widgets->{'image'}->get_object('colorbuttonFontColour')
-          ->set_color(Gtk2::Gdk::Color->parse($config->{'Colour'}));
+          ->set_color(Gtk3::Gdk::Color->parse($config->{'Colour'}));
         change_colour_media();
     } elsif (
         $widget eq $widgets->{'image'}->get_object('buttonShadowColourDefault'))
@@ -1297,7 +1283,7 @@ sub reset_font_colour {
         $widgets->{'image'}->get_object('entryImageShadowColour')
           ->set_text("Default");
         $widgets->{'image'}->get_object('colorbuttonShadowColour')
-          ->set_color(Gtk2::Gdk::Color->parse($config->{'ShadowColour'}));
+          ->set_color(Gtk3::Gdk::Color->parse($config->{'ShadowColour'}));
         change_colour_media();
     }
 
@@ -1372,7 +1358,7 @@ sub popup_play_menu {
         my $item = fromutf(gettext("/Move to sublist/")) . $_->{'title'};
         push @items, [$item, undef, 'move_item_to_sublist', $_->{'data'}],;
     }
-    my $factory = Gtk2::ItemFactory->new('Gtk2::Menu', '<playpopup>', undef);
+    my $factory = Gtk3::ItemFactory->new('Gtk3::Menu', '<playpopup>', undef);
     $factory->create_items(undef, @items);
     $factory->popup($event->x_root, $event->y_root, 0, $event->time);
 }
@@ -1432,20 +1418,19 @@ sub delete_song {
     debug("Delete song selected");
     my $selection =
       $widgets->{'main'}->get_object('treeAvailable')->get_selection;
-    my $modelTree = $widgets->{'main'}->get_object('treeAvailable')->get_model;
-    my @sel       = $selection->get_selected_rows;
+    my ($sel, $modelTree) = $selection->get_selected_rows;
     my $deletexml = load_window("dialogSelectSongs");
     $deletexml->get_object('labelSelectSongs')
       ->set_text(gettext("Are you sure you wish to delete "));
-    my $model = Gtk2::ListStore->new(
+    my $model = Gtk3::ListStore->new(
         'Glib::Boolean', 'Glib::String', 'Glib::String', 'Glib::String',
         'Glib::Uint',    'Glib::Uint'
     );
-    my $renderer = Gtk2::CellRendererToggle->new;
+    my $renderer = Gtk3::CellRendererToggle->new;
     $renderer->signal_connect(
         toggled => sub {
             my ($cell, $path_str, $model) = @_;
-            my $path   = Gtk2::TreePath->new_from_string($path_str);
+            my $path   = Gtk3::TreePath->new_from_string($path_str);
             my $column = 0;
             my $iter   = $model->get_iter($path);
             my ($toggle_item) = $model->get($iter, $column);
@@ -1458,25 +1443,25 @@ sub delete_song {
         $model
     );
     my $column1 =
-      Gtk2::TreeViewColumn->new_with_attributes("", $renderer, active => 0);
-    my $column2 = Gtk2::TreeViewColumn->new_with_attributes(
+      Gtk3::TreeViewColumn->new_with_attributes("", $renderer, active => 0);
+    my $column2 = Gtk3::TreeViewColumn->new_with_attributes(
         fromutf(gettext("Title")),
-        Gtk2::CellRendererText->new,
+        Gtk3::CellRendererText->new,
         text => 1
     );
-    my $column3 = Gtk2::TreeViewColumn->new_with_attributes(
+    my $column3 = Gtk3::TreeViewColumn->new_with_attributes(
         fromutf(gettext("Artist")),
-        Gtk2::CellRendererText->new,
+        Gtk3::CellRendererText->new,
         text => 2
     );
-    my $column4 = Gtk2::TreeViewColumn->new_with_attributes(
+    my $column4 = Gtk3::TreeViewColumn->new_with_attributes(
         fromutf(gettext("Book")),
-        Gtk2::CellRendererText->new,
+        Gtk3::CellRendererText->new,
         text => 3
     );
-    my $column5 = Gtk2::TreeViewColumn->new_with_attributes(
+    my $column5 = Gtk3::TreeViewColumn->new_with_attributes(
         fromutf(gettext("Song Number")),
-        Gtk2::CellRendererText->new,
+        Gtk3::CellRendererText->new,
         text => 4
     );
     $column1->set_resizable(TRUE);
@@ -1490,7 +1475,7 @@ sub delete_song {
     $deletexml->get_object('treeSongImport')->append_column($column4);
     $deletexml->get_object('treeSongImport')->append_column($column5);
 
-    foreach my $path (@sel) {
+    foreach my $path (@$sel) {
         my $iter = $modelTree->get_iter($path);
         my $songid = $modelTree->get($iter, 3);
         if (!($modelTree->get($iter, 1) eq $config->{'SpecialSong'})) {
@@ -1810,14 +1795,14 @@ sub add_page {
 
     #
     # Construct a GtkScrolledWindow 'scrollAPage'
-    $widgets->{'scrollAPage'}{$hashnum} = Gtk2::ScrolledWindow->new;
+    $widgets->{'scrollAPage'}{$hashnum} = Gtk3::ScrolledWindow->new;
     $widgets->{'scrollAPage'}{$hashnum}->set_policy('always', 'always');
     $widgets->{'scrollAPage'}{$hashnum}->show;
 
     #
     # Construct a GtkText 'textAPage'
-    $widgets->{'textAPage'}{$hashnum}  = Gtk2::TextView->new;
-    $widgets->{'textAPageB'}{$hashnum} = Gtk2::TextBuffer->new(undef);
+    $widgets->{'textAPage'}{$hashnum}  = Gtk3::TextView->new;
+    $widgets->{'textAPageB'}{$hashnum} = Gtk3::TextBuffer->new(undef);
     $widgets->{'textAPage'}{$hashnum}
       ->set_buffer($widgets->{'textAPageB'}{$hashnum});
     $widgets->{'textAPage'}{$hashnum}->set_editable(TRUE);
@@ -1828,14 +1813,14 @@ sub add_page {
     #
     # Construct a GtkLabel 'labelAPage'
     $widgets->{'labelAPage'}{$hashnum} =
-      new Gtk2::Label(fromutf(gettext('Page') . " 1"));
+      new Gtk3::Label(fromutf(gettext('Page') . " 1"));
     $widgets->{'labelAPage'}{$hashnum}->set_justify('center');
     $widgets->{'labelAPage'}{$hashnum}->set_line_wrap(0);
     $widgets->{'labelAPage'}{$hashnum}->show;
     $widgets->{'labelAPage'}{$hashnum}->set_alignment(0.5, 0.5);
 
     # And a event box so you can change it
-    $widgets->{'eventAPage'}{$hashnum} = Gtk2::EventBox->new;
+    $widgets->{'eventAPage'}{$hashnum} = Gtk3::EventBox->new;
     $widgets->{'eventAPage'}{$hashnum}->{user_data} = $hashnum;
     $widgets->{'eventAPage'}{$hashnum}->add($widgets->{'labelAPage'}{$hashnum});
     $widgets->{'eventAPage'}{$hashnum}->set_above_child(FALSE);
@@ -1875,7 +1860,7 @@ sub update_pagename {
     if ($event->type eq '2button-press') {
         debug("Changing page name");
         my $hashnum = $widget->{user_data};
-        my $entry   = Gtk2::Entry->new;
+        my $entry   = Gtk3::Entry->new;
         $entry->{user_data} = $hashnum;
         $entry->set_text($widgets->{'labelAPage'}{$hashnum}->get_label);
         $entry->signal_connect('activate', 'do_update_pagename');
@@ -2071,9 +2056,8 @@ sub edit_song {
     debug("Edit clicked");
     my $selection =
       $widgets->{'main'}->get_object('treeAvailable')->get_selection;
-    my @sel   = $selection->get_selected_rows;
-    my $model = $widgets->{'main'}->get_object('treeAvailable')->get_model;
-    my $iter  = $model->get_iter($sel[0]);
+    my ($sel, $model) = $selection->get_selected_rows;
+    my $iter  = $model->get_iter(@$sel[0]);
 
     if ($iter) {
         my $songid = $model->get($iter, 3);
@@ -2112,10 +2096,10 @@ sub edit_song {
 #***
 
 sub load_presets() {
-    my $menutop    = Gtk2::Menu->new();
+    my $menutop    = Gtk3::Menu->new();
     my $preset_num = 1;
     while (defined $config->{'Preset' . $preset_num}) {
-        my $presetMenuItem = Gtk2::MenuItem->new_with_label(
+        my $presetMenuItem = Gtk3::MenuItem->new_with_label(
             "Preset " . $preset_num . ": " . $config->{'Preset' . $preset_num});
         $presetMenuItem->{user_data} = $preset_num;
         $presetMenuItem->signal_connect("activate", "add_copyright_preset",
@@ -2659,9 +2643,8 @@ sub add_to_playlist {
     debug("Add to playlist clicked");
     my $selection =
       $widgets->{'main'}->get_object('treeAvailable')->get_selection;
-    my $model = $widgets->{'main'}->get_object('treeAvailable')->get_model;
-    my @sel   = $selection->get_selected_rows;
-    foreach my $path (@sel) {
+    my ($sel, $model) = $selection->get_selected_rows;
+    foreach my $path (@$sel) {
         add_single_song($model->get($model->get_iter($path), 3));
     }
 
@@ -3444,7 +3427,7 @@ sub add_image {
 
     $widgets->{'image'} = load_window("dialogImage");
     $widgets->{'image'}->get_object('buttonImageAdd')
-      ->signal_connect('clicked', 'import_image');
+      ->signal_connect(clicked => \&import_image);
     $widgets->{'image'}->get_object('dialogImage')->show;
 
     if ($widgets->{'image'}->get_object('treeImage')->{user_data}
@@ -3454,17 +3437,17 @@ sub add_image {
         $widgets->{'image'}->get_object('treeImage')->{data} = ();
     } else {
         $widgets->{'image'}->get_object('treeImage')->{user_data} = "load";
-        my $renderer = Gtk2::CellRendererText->new;
+        my $renderer = Gtk3::CellRendererText->new;
         $renderer->set("editable", TRUE);
-        $renderer->signal_connect("edited", "rename_media");
+        $renderer->signal_connect(edited => \&rename_media);
         my $column =
-          Gtk2::TreeViewColumn->new_with_attributes("Filename", $renderer,
+          Gtk3::TreeViewColumn->new_with_attributes("Filename", $renderer,
             text => 0);
         $widgets->{'image'}->get_object('treeImage')->append_column($column);
         $widgets->{'image'}->get_object('treeImage')
           ->get_selection->set_mode('multiple');
         $widgets->{'image'}->get_object('buttonImageOK')
-          ->signal_connect('clicked', "close_dialog");
+          ->signal_connect(clicked => \&close_dialog);
     }
 
     # Fill sublists dropbox
@@ -3473,12 +3456,12 @@ sub add_image {
     if ($store) {
         $store->clear;
     } else {
-        $store = Gtk2::ListStore->new('Glib::String', 'Glib::Uint');
+        $store = Gtk3::ListStore->new('Glib::String', 'Glib::Uint');
         $widgets->{'image'}->get_object('optionImageSublist')
           ->set_model($store);
     }
 
-    my $cell = Gtk2::CellRendererText->new;
+    my $cell = Gtk3::CellRendererText->new;
     $widgets->{'image'}->get_object('optionImageSublist')
       ->pack_start($cell, TRUE);
     $widgets->{'image'}->get_object('optionImageSublist')
@@ -3556,10 +3539,10 @@ sub update_imagedir {
     if ($store) {
         $store->clear;
     } else {
-        $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+        $store = Gtk3::ListStore->new('Glib::String', 'Glib::String');
         $widgets->{'image'}->get_object('optionImageCategory')
           ->set_model($store);
-        my $cell = Gtk2::CellRendererText->new;
+        my $cell = Gtk3::CellRendererText->new;
         $widgets->{'image'}->get_object('optionImageCategory')
           ->pack_start($cell, TRUE);
         $widgets->{'image'}->get_object('optionImageCategory')
@@ -3612,7 +3595,7 @@ sub update_imagedir {
     }
 
     # Load list of files
-    $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    $store = Gtk3::ListStore->new('Glib::String', 'Glib::String');
 
     if ($access eq "dir") {
         my $dirname = "";
@@ -3654,11 +3637,11 @@ sub update_imagedir {
     $widgets->{'image'}->get_object('entryImageFontColour')
       ->set_text("Default");
     $widgets->{'image'}->get_object('colorbuttonFontColour')
-      ->set_color(Gtk2::Gdk::Color->parse($config->{'Colour'}));
+      ->set_color(Gtk3::Gdk::Color->parse($config->{'Colour'}));
     $widgets->{'image'}->get_object('entryImageShadowColour')
       ->set_text("Default");
     $widgets->{'image'}->get_object('colorbuttonShadowColour')
-      ->set_color(Gtk2::Gdk::Color->parse($config->{'ShadowColour'}));
+      ->set_color(Gtk3::Gdk::Color->parse($config->{'ShadowColour'}));
 }
 
 #***
@@ -3885,14 +3868,14 @@ sub open_dialogColour {
 
     if ($item eq "Font") {
         $colourxml->get_object('colourSelect')->set_current_color(
-            Gtk2::Gdk::Color->parse(
+            Gtk3::Gdk::Color->parse(
                 $widgets->{'prefs'}->get_object('entryPrefColour')->get_text()
             )
         );
     }
     if ($item eq "Shadow") {
         $colourxml->get_object('colourSelect')->set_current_color(
-            Gtk2::Gdk::Color->parse(
+            Gtk3::Gdk::Color->parse(
                 $widgets->{'prefs'}->get_object('entryPrefShadowColour')
                   ->get_text()
             )
@@ -3900,20 +3883,20 @@ sub open_dialogColour {
     }
     if ($item eq "ImageFont") {
 
-#$colourxml->get_object('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'image'}->get_object('entryImageFontColour')->get_text()));
+#$colourxml->get_object('colourSelect')->set_current_color(Gtk3::Gdk::Color->parse($widgets->{'image'}->get_object('entryImageFontColour')->get_text()));
         $colourxml->get_object('colourSelect')
           ->set_current_color($widget->get_color());
     }
     if ($item eq "ImageShadow") {
 
-#$colourxml->get_object('colourSelect')->set_current_color(Gtk2::Gdk::Color->parse($widgets->{'image'}->get_object('entryImageShadowColour')->get_text()));
+#$colourxml->get_object('colourSelect')->set_current_color(Gtk3::Gdk::Color->parse($widgets->{'image'}->get_object('entryImageShadowColour')->get_text()));
         $colourxml->get_object('colourSelect')
           ->set_current_color($widget->get_color());
     }
     $colourxml->get_object('buttonColourOK')
       ->signal_connect("clicked", "change_font_colour", $colourxml);
     $colourxml->get_object('buttonColourCancel')
-      ->signal_connect("clicked", "close_dialog");
+      ->signal_connect(clicked => \&close_dialog);
     my $response = $colourxml->get_object('dialogColour')->run();
 }
 
@@ -3984,13 +3967,13 @@ sub change_font_colour {
         $widgets->{'image'}->get_object('entryImageShadowColour')
           ->set_text($color2);
         $widgets->{'image'}->get_object('colorbuttonShadowColour')
-          ->set_color(Gtk2::Gdk::Color->parse($color2));
+          ->set_color(Gtk3::Gdk::Color->parse($color2));
         change_colour_media();
     } elsif ($item eq "ImageFont") {
         $widgets->{'image'}->get_object('entryImageFontColour')
           ->set_text($color2);
         $widgets->{'image'}->get_object('colorbuttonFontColour')
-          ->set_color(Gtk2::Gdk::Color->parse($color2));
+          ->set_color(Gtk3::Gdk::Color->parse($color2));
         change_colour_media();
     }
     close_dialog($widget);
@@ -4123,39 +4106,27 @@ sub changeVerseStatus {
 sub change_preview {
     debug("Changing Preview");
     my $selection = $widgets->{'image'}->get_object('treeImage')->get_selection;
-    my @selecteditems = $selection->get_selected_rows();
-    if ($selecteditems[0]) {
+    my ($selecteditems, $model) = $selection->get_selected_rows();
+    if (@$selecteditems[0]) {
 
         # Find what has changed
-        my $newsel = $selecteditems[0];
-        my $iter =
-          $widgets->{'image'}->get_object('treeImage')
-          ->get_model->get_iter($newsel);
-        my $data =
-          $widgets->{'image'}->get_object('treeImage')
-          ->get_model->get($iter, 1);
+        my $newsel = @$selecteditems[0];
+        my $iter = $model->get_iter($newsel);
+        my $data = $model->get($iter, 1);
         my ($type, $id) = split /;/, $data;
         my $tmp = 0;
-        foreach $tmp (@selecteditems) {
-            my $iter2 =
-              $widgets->{'image'}->get_object('treeImage')
-              ->get_model->get_iter($tmp);
-            my $data2 =
-              $widgets->{'image'}->get_object('treeImage')
-              ->get_model->get($iter2, 1);
-            if (!defined $selectedimages{$data2}) {
+        foreach $tmp (@$selecteditems) {
+            my $iter2 = $model->get_iter($tmp);
+            my $data2 = $model->get($iter2, 1);
+            if (!defined @$selecteditems{$data2}) {
                 $data = $data2;
                 ($type, $id) = split /;/, $data;
             }
         }
         %selectedimages = ();
-        foreach $tmp (@selecteditems) {
-            my $iter2 =
-              $widgets->{'image'}->get_object('treeImage')
-              ->get_model->get_iter($tmp);
-            my $id2 =
-              $widgets->{'image'}->get_object('treeImage')
-              ->get_model->get($iter2, 1);
+        foreach $tmp (@$selecteditems) {
+            my $iter2 = $model->get_iter($tmp);
+            my $id2 = $modelage->get($iter2, 1);
             $selectedimages{$id2} = TRUE;
         }
 
@@ -4203,13 +4174,13 @@ sub change_preview {
                       ->set_text($row->{'textcolour'});
                     $widgets->{'image'}->get_object('colorbuttonFontColour')
                       ->set_color(
-                        Gtk2::Gdk::Color->parse($row->{'textcolour'}));
+                        Gtk3::Gdk::Color->parse($row->{'textcolour'}));
                     $fg_span = "<span color=\"" . $row->{'textcolour'} . "\">";
                 } else {
                     $widgets->{'image'}->get_object('entryImageFontColour')
                       ->set_text("Default");
                     $widgets->{'image'}->get_object('colorbuttonFontColour')
-                      ->set_color(Gtk2::Gdk::Color->parse($config->{'Colour'}));
+                      ->set_color(Gtk3::Gdk::Color->parse($config->{'Colour'}));
                     $fg_span = "<span color=\"" . $config->{'Colour'} . "\">";
                 }
                 if (   ($row->{'shadowcolour'} ne "")
@@ -4220,7 +4191,7 @@ sub change_preview {
                       ->set_text($row->{'shadowcolour'});
                     $widgets->{'image'}->get_object('colorbuttonShadowColour')
                       ->set_color(
-                        Gtk2::Gdk::Color->parse($row->{'shadowcolour'}));
+                        Gtk3::Gdk::Color->parse($row->{'shadowcolour'}));
                     $bg_span =
                       "<span color=\"" . $row->{'shadowcolour'} . "\">";
                 } else {
@@ -4228,7 +4199,7 @@ sub change_preview {
                       ->set_text("Default");
                     $widgets->{'image'}->get_object('colorbuttonShadowColour')
                       ->set_color(
-                        Gtk2::Gdk::Color->parse($config->{'ShadowColour'}));
+                        Gtk3::Gdk::Color->parse($config->{'ShadowColour'}));
                     $bg_span =
                       "<span color=\"" . $config->{'ShadowColour'} . "\">";
                 }
@@ -4239,11 +4210,11 @@ sub change_preview {
                   $widgets->{'image'}->get_object('imageImage')
                   ->create_pango_layout("");
                 $pango_layout->set_font_description(
-                    Gtk2::Pango::FontDescription->from_string(
+                    Pango::FontDescription->from_string(
                         $config->{'Main'}
                     )
                 );
-                my $gc = Gtk2::Gdk::GC->new($pixmap);
+                my $gc = Gtk3::Gdk::GC->new($pixmap);
                 $pango_layout->set_markup(
                     $bg_span . fromutf(gettext("Song Contents")) . "</span>");
                 my ($text_w, $text_h) = $pango_layout->get_pixel_size();
@@ -4508,12 +4479,11 @@ sub do_add_image {
     my ($widget) = @_;
     debug("do add image");
     my $selection = $widgets->{'image'}->get_object('treeImage')->get_selection;
-    my @list      = $selection->get_selected_rows();
-    my $model     = $widgets->{'image'}->get_object('treeImage')->get_model();
+    my ($list, $model)  = $selection->get_selected_rows();
     my $playlist =
       $widgets->{'image'}->get_object('optionImageSublist')
       ->get_menu->get_active->{'user_data'};
-    foreach (@list) {
+    foreach (@$list) {
         my $image = $model->get($model->get_iter($_), 1);
         add_image_item($playlist, $image);
     }
@@ -4704,18 +4674,18 @@ sub create_dialog_prefs {
     $widgets->{'prefs'} = load_window("dialogPrefs");
 
     # Profiles
-    my $renderer = Gtk2::CellRendererText->new;
+    my $renderer = Gtk3::CellRendererText->new;
     $widgets->{'prefs'}->get_object('comboPrefsProfile')
       ->pack_start($renderer, TRUE);
     $widgets->{'prefs'}->get_object('comboPrefsProfile')
       ->add_attribute($renderer, text => 0);
-    my $profilestore = Gtk2::ListStore->new('Glib::String');
+    my $profilestore = Gtk3::ListStore->new('Glib::String');
     $widgets->{'prefs'}->get_object('comboPrefsProfile')
       ->set_model($profilestore);
 
     my $query       = "SELECT DISTINCT profile FROM config WHERE profile != ''";
     my $sth         = do_query($lyricDbh, $query, FALSE);
-    my $combo_model = Gtk2::ListStore->new('Glib::String');
+    my $combo_model = Gtk3::ListStore->new('Glib::String');
     $profilestore->set($profilestore->append, 0, gettext("Create New Profile"));
     while (my @row = $sth->fetchrow_array()) {
         my $iter = $profilestore->append;
@@ -4743,36 +4713,12 @@ sub create_dialog_prefs {
       ->set_value($config->{'ShadowSize'});
 
     # Projector Layout
-    if ($config->{'Aspect'}) {
-        $widgets->{'prefs'}->get_object('comboPrefAspect')
-          ->prepend_text($config->{'Aspect'});
-    }
-    $widgets->{'prefs'}->get_object('comboPrefAspect')->set_active(0);
-    if ($config->{'VerticalLocation'}) {
-        $widgets->{'prefs'}->get_object('comboPrefVertical')
-          ->prepend_text($config->{'VerticalLocation'});
-    }
-    $widgets->{'prefs'}->get_object('comboPrefVertical')->set_active(0);
-    if ($config->{'HorizontalLocation'}) {
-        $widgets->{'prefs'}->get_object('comboPrefHorizontal')
-          ->prepend_text($config->{'HorizontalLocation'});
-    }
-    $widgets->{'prefs'}->get_object('comboPrefHorizontal')->set_active(0);
-    if ($config->{'Justification'}) {
-        $widgets->{'prefs'}->get_object('comboPrefJustification')
-          ->prepend_text($config->{'Justification'});
-    }
-    $widgets->{'prefs'}->get_object('comboPrefJustification')->set_active(0);
-    if ($config->{'ShowInfoLocation'}) {
-        $widgets->{'prefs'}->get_object('comboPrefInfoLoc')
-          ->prepend_text($config->{'ShowInfoLocation'});
-    }
-    $widgets->{'prefs'}->get_object('comboPrefInfoLoc')->set_active(0);
-    if ($config->{'ShowInfoPages'}) {
-        $widgets->{'prefs'}->get_object('comboPrefInfoPages')
-          ->prepend_text($config->{'ShowInfoPages'});
-    }
-    $widgets->{'prefs'}->get_object('comboPrefInfoPages')->set_active(0);
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefAspect'), $config->{'Aspect'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefVertical'),$config->{'VerticalLocation'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefHorizontal'),$config->{'HorizontalLocation'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefJustification'), $config->{'Justification'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefInfoLoc'), $config->{'ShowInfoLocation'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefInfoPages'),$config->{'ShowInfoPages'});
     $widgets->{'prefs'}->get_object('spinPrefOverscanV')
       ->set_value($config->{'OverscanV'});
     $widgets->{'prefs'}->get_object('spinPrefOverscanH')
@@ -4790,11 +4736,7 @@ sub create_dialog_prefs {
         $widgets->{'prefs'}->get_object('imagePrefBG')->{user_data} =
           $config->{'BGImage'};
     }
-    if ($config->{'DefaultTransition'}) {
-        $widgets->{'prefs'}->get_object('comboPrefDefTrans')
-          ->prepend_text($config->{'DefaultTransition'});
-    }
-    $widgets->{'prefs'}->get_object('comboPrefDefTrans')->set_active(0);
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefDefTrans'), $config->{'DefaultTransition'});
     $widgets->{'prefs'}->get_object('checkPrefMouse')
       ->set_active($config->{'IgnoreMouse'});
     $widgets->{'prefs'}->get_object('entryPrefWindowOffset')
@@ -4811,8 +4753,6 @@ sub create_dialog_prefs {
       ->set_active($config->{'DynamicPreview'});
     $widgets->{'prefs'}->get_object('checkPrefMiniview')
       ->set_active($config->{'Miniview'});
-    $widgets->{'prefs'}->get_object('checkPrefXinerama')
-      ->set_active($config->{'Xinerama'});
 
     # Defaults
     $config->{'ImageDirectory'} =~ s/^\~/$ENV{'HOME'}/;
@@ -4831,7 +4771,7 @@ sub create_dialog_prefs {
     if ($store) {
         $store->clear();
     } else {
-        $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+        $store = Gtk3::ListStore->new('Glib::String', 'Glib::String');
         $widgets->{'prefs'}->get_object('comboPrefBible')->set_model($store);
     }
     my $iter_sel;
@@ -4849,7 +4789,7 @@ sub create_dialog_prefs {
         $widgets->{'prefs'}->get_object('comboPrefBible')
           ->set_active_iter($iter_sel);
     }
-    my $cell = Gtk2::CellRendererText->new;
+    my $cell = Gtk3::CellRendererText->new;
     $widgets->{'prefs'}->get_object('comboPrefBible')->pack_start($cell, TRUE);
     $widgets->{'prefs'}->get_object('comboPrefBible')
       ->add_attribute($cell, text => 0);
@@ -4955,35 +4895,6 @@ sub change_pref_profile {
 
 #***
 
-#****f* lyricue/change_pref_xinerama
-# NAME
-#   change_pref_xinerama
-# SYNOPSIS
-#   change_pref_xinerama($widget)
-# FUNCTION
-#   Show/Hide xinerama-specific bits
-# INPUTS
-#   $widget - Calling widget
-# OUTPUT
-#   Stuff shown or hidden
-# SOURCE
-#
-sub change_pref_xinerama {
-    my ($widget) = @_;
-    debug("Hide/Show xinerama stuff");
-    foreach my $name ('buttonPrefWindowOffset', 'labelPrefWindowOffset',
-        'entryPrefWindowOffset')
-    {
-        if ($widget->get_active) {
-            $widgets->{'prefs'}->get_object($name)->show;
-        } else {
-            $widgets->{'prefs'}->get_object($name)->hide;
-        }
-    }
-}
-
-#***
-
 #****f* lyricue/execute_app
 # NAME
 #   execute_app
@@ -5003,22 +4914,18 @@ sub execute_app {
     my $command = "";
     $command = $app;
     debug("Executing app: " . $command);
-    if ($config->{'Xinerama'}) {
-        if ($command =~ /;$/) {
-            $command =~ s/;$//;
-            system($command . " &");
-        } else {
-            my $geom = "+"
-              . ($widgets->{'main'}->get_object('windowMain')
-                  ->get_screen->get_width - 100)
-              . "+100";
-            if ($config->{'GeometryOverride'}) {
-                $geom = $config->{'GeometryOverride'};
-            }
-            system($command. " --geometry " . $geom . " &");
-        }
+    if ($command =~ /;$/) {
+        $command =~ s/;$//;
+        system($command . " &");
     } else {
-        system("DISPLAY=:0.1 " . $command . " &");
+        my $geom = "+"
+          . ($widgets->{'main'}->get_object('windowMain')
+              ->get_screen->get_width - 100)
+          . "+100";
+        if ($config->{'GeometryOverride'}) {
+            $geom = $config->{'GeometryOverride'};
+        }
+        system($command. " --geometry " . $geom . " &");
     }
 }
 
@@ -5239,7 +5146,7 @@ sub export_song {
     debug("Export song");
     my $filexml = load_window("dialogFileChooser");
     $filexml->get_object('buttonFileOK')
-      ->signal_connect("clicked", "complete_export_song", $filexml);
+      ->signal_connect(clicked => \&complete_export_song, $filexml);
     $filexml->get_object('dialogFileChooser')
       ->set_title(gettext("Enter filename for export"));
     $filexml->get_object('dialogFileChooser')->show_all();
@@ -5329,36 +5236,36 @@ sub do_adv_search {
         if ($store) {
             $store->clear;
         } else {
-            $store = Gtk2::ListStore->new(
+            $store = Gtk3::ListStore->new(
                 'Glib::String', 'Glib::String',
                 'Glib::String', 'Glib::String',
                 'Glib::String'
             );
             $widgets->{'search'}->get_object('treeSearch')->set_model($store);
-            my $column = Gtk2::TreeViewColumn->new_with_attributes(
+            my $column = Gtk3::TreeViewColumn->new_with_attributes(
                 fromutf(gettext("Title")),
-                Gtk2::CellRendererText->new,
+                Gtk3::CellRendererText->new,
                 text => 0
             );
             $widgets->{'search'}->get_object('treeSearch')
               ->append_column($column);
-            $column = Gtk2::TreeViewColumn->new_with_attributes(
+            $column = Gtk3::TreeViewColumn->new_with_attributes(
                 fromutf(gettext("Artist")),
-                Gtk2::CellRendererText->new,
+                Gtk3::CellRendererText->new,
                 text => 1
             );
             $widgets->{'search'}->get_object('treeSearch')
               ->append_column($column);
-            $column = Gtk2::TreeViewColumn->new_with_attributes(
+            $column = Gtk3::TreeViewColumn->new_with_attributes(
                 fromutf(gettext("Book")),
-                Gtk2::CellRendererText->new,
+                Gtk3::CellRendererText->new,
                 text => 2
             );
             $widgets->{'search'}->get_object('treeSearch')
               ->append_column($column);
-            $column = Gtk2::TreeViewColumn->new_with_attributes(
+            $column = Gtk3::TreeViewColumn->new_with_attributes(
                 fromutf(gettext("Song No")),
-                Gtk2::CellRendererText->new,
+                Gtk3::CellRendererText->new,
                 text => 3
             );
             $widgets->{'search'}->get_object('treeSearch')
@@ -5835,7 +5742,7 @@ sub copy_playlist {
         $copyxml->get_object('entryPromptE')->{user_data} = $playlist;
         $copyxml->get_object('entryPromptE')->set_text($playlist);
         $copyxml->get_object('buttonPromptEOK')
-          ->signal_connect("clicked", "do_copy_playlist", $copyxml);
+          ->signal_connect(clicked => \&do_copy_playlist, $copyxml);
     }
 }
 
@@ -5876,7 +5783,7 @@ sub rename_playlist {
         $renamexml->get_object('labelPromptE')->{user_data} = $playlistid;
         $renamexml->get_object('entryPromptE')->set_text($playlist);
         $renamexml->get_object('buttonPromptEOK')
-          ->signal_connect("clicked", "do_rename_playlist", $renamexml);
+          ->signal_connect(clicked => \&do_rename_playlist, $renamexml);
     }
 }
 
@@ -6089,13 +5996,13 @@ sub update_cplayclist {
     if ($store) {
         $store->clear;
     } else {
-        $store = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+        $store = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
         $widgets->{'main'}->get_object('treeChoosePlay')->set_model($store);
-        $renderer = Gtk2::CellRendererText->new;
+        $renderer = Gtk3::CellRendererText->new;
         $selection =
           $widgets->{'main'}->get_object('treeChoosePlay')->get_selection;
         $column =
-          Gtk2::TreeViewColumn->new_with_attributes("Playlist", $renderer,
+          Gtk3::TreeViewColumn->new_with_attributes("Playlist", $renderer,
             text => 0);
         $widgets->{'main'}->get_object('treeChoosePlay')
           ->append_column($column);
@@ -6181,7 +6088,7 @@ sub begin_loop {
         my $loopxml = load_window("dialogLoop");
         $loopxml->get_object('dialogLoop')->{user_data} = $model->get($iter, 2);
         $loopxml->get_object('buttonLoopOK')
-          ->signal_connect('clicked', "establish_timer", $loopxml);
+          ->signal_connect(clicked => \&establish_timer, $loopxml);
     }
 }
 
@@ -6283,7 +6190,7 @@ sub load_config {
     my @row = $sth->fetchrow_array();
     if (!defined $row[0]) {
         firstrun_wizard();
-        Gtk2->main();
+        Gtk3->main();
         $conf = load_config($globals->{'profile'});
         load_profile_menu();
         return $conf;
@@ -6297,12 +6204,6 @@ sub load_config {
     $conf->{'Bibles'}     = get_bibles();
     if (!defined $conf->{'HighlightColour'}) {
         $conf->{'HighlightColour'} = "yellow";
-    }
-    if (!defined $conf->{'TrayIcons'}) {
-        $conf->{'TrayIcons'} = "1";
-    }
-    if ($conf->{'TrayIcons'} ne "1") {
-        $globals->{'trayicon'} = FALSE;
     }
     $conf->{'LoopText'} = "";
     if (defined $conf->{'Loop'}) {
@@ -6414,10 +6315,11 @@ sub save_and_close_prefs {
 #
 sub save_preferences {
     debug("Saving preferences");
-    $config->{'Main'} =
-      $widgets->{'prefs'}->get_object('entryPrefMain')->get_text();
+    # Fonts tab
     $config->{'Header'} =
       $widgets->{'prefs'}->get_object('entryPrefHeader')->get_text();
+    $config->{'Main'} =
+      $widgets->{'prefs'}->get_object('entryPrefMain')->get_text();
     $config->{'Footer'} =
       $widgets->{'prefs'}->get_object('entryPrefFooter')->get_text();
     $config->{'OSD'} =
@@ -6428,14 +6330,32 @@ sub save_preferences {
       $widgets->{'prefs'}->get_object('entryPrefShadowColour')->get_text();
     $config->{'ShadowSize'} =
       $widgets->{'prefs'}->get_object('spinPrefShadow')->get_value();
-    $config->{'Height'} =
-      $widgets->{'prefs'}->get_object('spinPrefHeight')->get_value();
-    $config->{'Width'} =
-      $widgets->{'prefs'}->get_object('spinPrefWidth')->get_value();
+
+    # Projector Layout
+    $config->{'Aspect'} =
+      $widgets->{'prefs'}->get_object('comboPrefAspect')->get_active_id();
+    $config->{'VerticalLocation'} = $widgets->{'prefs'}->get_object('comboPrefVertical')->get_active_id();
+    $config->{'HorizontalLocation'} = $widgets->{'prefs'}->get_object('comboPrefHorizontal') ->get_active_id();
+    $config->{'Justification'} = $widgets->{'prefs'}->get_object('comboPrefJustification') ->get_active_id();
+    $config->{'ShowInfoLocation'} = $widgets->{'prefs'}->get_object('comboPrefInfoLoc')->get_active_id();
+    $config->{'ShowInfoPages'} = $widgets->{'prefs'}->get_object('comboPrefInfoPages')->get_active_id();
     $config->{'OverscanH'} =
       $widgets->{'prefs'}->get_object('spinPrefOverscanH')->get_value();
     $config->{'OverscanV'} =
       $widgets->{'prefs'}->get_object('spinPrefOverscanV')->get_value();
+
+    # projector options
+    $config->{'BGImage'} =
+      $widgets->{'prefs'}->get_object('imagePrefBG')->{user_data};
+    $config->{'DefaultTransition'} = $widgets->{'prefs'}->get_object('comboPrefDefTrans')->get_active_id();
+    $config->{'IgnoreMouse'} =
+      $widgets->{'prefs'}->get_object('checkPrefMouse')->get_active()
+      ? 1
+      : 0;
+    $config->{'GeometryOverride'} =
+      $widgets->{'prefs'}->get_object('entryPrefWindowOffset')->get_text();
+
+    # Advanced
     $config->{'Loop'} =
       $widgets->{'prefs'}->get_object('checkPrefLoop')->get_active() ? 1 : 0;
     $config->{'ExpandNew'} =
@@ -6450,108 +6370,14 @@ sub save_preferences {
       $widgets->{'prefs'}->get_object('checkPrefMiniview')->get_active()
       ? 1
       : 0;
-    $config->{'Xinerama'} =
-      $widgets->{'prefs'}->get_object('checkPrefXinerama')->get_active()
-      ? 1
-      : 0;
-    $config->{'IgnoreMouse'} =
-      $widgets->{'prefs'}->get_object('checkPrefMouse')->get_active()
-      ? 1
-      : 0;
-    $config->{'ShowInfoOnce'} =
-      $widgets->{'prefs'}->get_object('checkPrefInfo')->get_active()
-      ? 1
-      : 0;
-    $config->{'GeometryOverride'} =
-      $widgets->{'prefs'}->get_object('entryPrefWindowOffset')->get_text();
-    my $set = "";
 
-    foreach my $value ("Top", "Bottom", "Centre") {
-        if (
-            fromutf(gettext($value)) eq ucfirst(
-                $widgets->{'prefs'}->get_object('comboPrefVertical')
-                  ->get_active_text()
-            )
-          )
-        {
-            $set = $value;
-        }
-    }
-    if ($set eq "") {
-        $set =
-          $widgets->{'prefs'}->get_object('comboPrefVertical')
-          ->get_active_text();
-    }
-    $config->{'VerticalLocation'} = $set;
-    $set = "";
-    my $set2 = "";
-    foreach my $value ("Left", "Right", "Centre") {
-        if (
-            fromutf(gettext($value)) eq ucfirst(
-                $widgets->{'prefs'}->get_object('comboPrefHorizontal')
-                  ->get_active_text()
-            )
-          )
-        {
-            $set = $value;
-        }
-        if (
-            fromutf(gettext($value)) eq ucfirst(
-                $widgets->{'prefs'}->get_object('comboPrefJustification')
-                  ->get_active_text()
-            )
-          )
-        {
-            $set2 = $value;
-        }
-    }
-    if ($set eq "") {
-        $set =
-          $widgets->{'prefs'}->get_object('comboPrefHorizontal')
-          ->get_active_text();
-    }
-    if ($set2 eq "") {
-        $set2 =
-          $widgets->{'prefs'}->get_object('comboPrefJustification')
-          ->get_active_text();
-    }
-    $config->{'HorizontalLocation'} = $set;
-    $config->{'Justification'}      = $set2;
-    $set                            = "";
-    foreach my $value ("Fade", "None") {
-        if (
-            fromutf(gettext($value)) eq ucfirst(
-                $widgets->{'prefs'}->get_object('comboPrefDefTrans')
-                  ->get_active_text()
-            )
-          )
-        {
-            $set = $value;
-        }
-    }
-    if ($set eq "") {
-        $set =
-          $widgets->{'prefs'}->get_object('comboPrefDefTrans')
-          ->get_active_text();
-    }
-    $config->{'DefaultTransition'} = $set;
-
-    $config->{'BGImage'} =
-      $widgets->{'prefs'}->get_object('imagePrefBG')->{user_data};
-    $config->{'SpecialSong'} =
-      $widgets->{'prefs'}->get_object('entryPrefSpecialSong')->get_text();
-    $config->{'SpecialImage'} =
-      $widgets->{'prefs'}->get_object('entryPrefSpecialImage')->get_text();
-    $config->{'SpecialBack'} =
-      $widgets->{'prefs'}->get_object('entryPrefSpecialBack')->get_text();
+    # Defaults
     $config->{'ImageDirectory'} =
       $widgets->{'prefs'}->get_object('filePrefSpecialImagedir')->get_label();
     $config->{'ImageDirectory'} =~ s/^\~/$ENV{'HOME'}/;
     $config->{'BGDirectory'} =
       $widgets->{'prefs'}->get_object('filePrefSpecialBGdir')->get_label();
     $config->{'BGDirectory'} =~ s/^\~/$ENV{'HOME'}/;
-    $config->{'TrayIcons'} = $config->{'TrayIcons'};
-
     my $iter =
       $widgets->{'prefs'}->get_object('comboPrefBible')->get_active_iter;
     if (defined $iter) {
@@ -6561,6 +6387,12 @@ sub save_preferences {
     } else {
         debug("No default bible selected");
     }
+    $config->{'SpecialSong'} =
+      $widgets->{'prefs'}->get_object('entryPrefSpecialSong')->get_text();
+    $config->{'SpecialImage'} =
+      $widgets->{'prefs'}->get_object('entryPrefSpecialImage')->get_text();
+    $config->{'SpecialBack'} =
+      $widgets->{'prefs'}->get_object('entryPrefSpecialBack')->get_text();
 
     save_state();
     write_config();
@@ -6684,7 +6516,7 @@ sub do_add_file {
         || ($file =~ /pdf$/))
     {
         my $dialog =
-          Gtk2::MessageDialog->new($widgets->{'main'}->get_object('windowMain'),
+          Gtk3::MessageDialog->new($widgets->{'main'}->get_object('windowMain'),
             'destroy-with-parent', 'info', 'none',
             gettext("Importing presentation"));
         $dialog->show_all();
@@ -7115,9 +6947,9 @@ sub init_mainWindow {
         $globals->{'icon_height'}
     );
     if ($scaled) {
-        my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
+        my $pixmap = Gtk3::Image->new_from_pixbuf($scaled);
         $widgets->{'pixmapCurr'} = $pixmap;
-        $widgets->{'buttonCurr'} = new Gtk2::Button();
+        $widgets->{'buttonCurr'} = new Gtk3::Button();
         $widgets->{'buttonCurr'}->add($widgets->{'pixmapCurr'});
         $widgets->{'buttonCurr'}->{user_data} = $config->{'BGImage'};
         $widgets->{'main'}->get_object('vboxCurrentBG')
@@ -7125,7 +6957,7 @@ sub init_mainWindow {
         $widgets->{'pixmapCurr'}->show();
         $widgets->{'buttonCurr'}->show();
         $widgets->{'buttonCurr'}
-          ->signal_connect("clicked", "backdrop_preview_clicked");
+          ->signal_connect(clicked => \&backdrop_preview_clicked);
     }
     $scaled = create_pixbuf(
         $config->{'BGImage'},
@@ -7133,9 +6965,9 @@ sub init_mainWindow {
         $globals->{'icon_height'}
     );
     if ($scaled) {
-        my $pixmap = Gtk2::Image->new_from_pixbuf($scaled);
+        my $pixmap = Gtk3::Image->new_from_pixbuf($scaled);
         $widgets->{'pixmapPrev'} = $pixmap;
-        $widgets->{'buttonPrev'} = new Gtk2::Button();
+        $widgets->{'buttonPrev'} = new Gtk3::Button();
         $widgets->{'buttonPrev'}->add($widgets->{'pixmapPrev'});
         $widgets->{'buttonPrev'}->{user_data} = $config->{'BGImage'};
         $widgets->{'main'}->get_object('vboxPrevBG')
@@ -7143,7 +6975,7 @@ sub init_mainWindow {
         $widgets->{'pixmapPrev'}->show();
         $widgets->{'buttonPrev'}->show();
         $widgets->{'buttonPrev'}
-          ->signal_connect("clicked", "backdrop_preview_clicked");
+          ->signal_connect(clicked => \&backdrop_preview_clicked);
     }
 
     # Update list of background/image directories
@@ -7163,11 +6995,11 @@ sub init_mainWindow {
     load_profile_menu();
 
     # Update the application menu
-    my $menutop2 = Gtk2::Menu->new();
+    my $menutop2 = Gtk3::Menu->new();
     my $group2   = 0;
     foreach (keys $config->{'Apps'}) {
-        my $appMenuItem = Gtk2::MenuItem->new_with_label($_);
-        $appMenuItem->signal_connect("activate", "execute_app",
+        my $appMenuItem = Gtk3::MenuItem->new_with_label($_);
+        $appMenuItem->signal_connect(activate => \&execute_app,
             $config->{'Apps'}->{$_});
         $appMenuItem->show;
         $menutop2->append($appMenuItem);
@@ -7175,25 +7007,17 @@ sub init_mainWindow {
     $widgets->{'main'}->get_object('applications1')->set_submenu($menutop2);
 
     # DRAG and DROP
+    my @targets= ( Gtk3::TargetEntry->new('STRING',0,0));
     $widgets->{'main'}->get_object('treeAvailable')
-      ->drag_source_set(['button1_mask'], ['copy'],
-        {'target' => "STRING", 'flags' => [], 'info' => 0});
+      ->drag_source_set(['button1_mask'], \@targets, ['copy']);
     $widgets->{'main'}->get_object('iconviewBack')
-      ->drag_source_set(['button1_mask'], ['copy'],
-        {'target' => "STRING", 'flags' => [], 'info' => 0});
+      ->drag_source_set(['button1_mask'], \@targets, ['copy']);
     $widgets->{'main'}->get_object('iconviewImage')
-      ->drag_source_set(['button1_mask'], ['copy'],
-        {'target' => "STRING", 'flags' => [], 'info' => 0});
-    $widgets->{'main'}->get_object('treePlaylist')->drag_source_set(
-        'button1_mask',
-        ['move', 'copy'],
-        {'target' => "STRING", 'flags' => [], 'info' => 0}
-    );
+      ->drag_source_set(['button1_mask'], \@targets, ['copy']);
+    $widgets->{'main'}->get_object('treePlaylist')
+      ->drag_source_set(['button1_mask'], \@targets, ['copy', 'move']);
     $widgets->{'main'}->get_object('treePlaylist')->drag_dest_set(
-        'all',
-        ['copy', 'move'],
-        {'target' => "STRING", 'flags' => [], 'info' => 0}
-    );
+        'all', \@targets, ['copy', 'move']);
 
     init_preview();
     init_miniview();
@@ -7233,8 +7057,8 @@ sub init_mainWindow {
         }
     }
 
-    $globals->{'hand_cursor'} = Gtk2::Gdk::Cursor->new('hand2');
-    $globals->{'text_cursor'} = Gtk2::Gdk::Cursor->new('xterm');
+    $globals->{'hand_cursor'} = Gtk3::Gdk::Cursor->new('hand2');
+    $globals->{'text_cursor'} = Gtk3::Gdk::Cursor->new('xterm');
 }
 
 #***
@@ -7256,7 +7080,7 @@ sub bgdir_list {
     debug("Loading " . $type . " directory list");
     my $counter = 0;
     my $cat     = "";
-    my $store   = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $store   = Gtk3::ListStore->new('Glib::String', 'Glib::String');
     my $iter    = $store->append;
     $store->set($iter, 0, fromutf(gettext("Select Category")), 1, "");
 
@@ -7272,7 +7096,7 @@ sub bgdir_list {
     }
     $combo->clear();
     $combo->set_model($store);
-    my $renderer = Gtk2::CellRendererText->new;
+    my $renderer = Gtk3::CellRendererText->new;
     $combo->pack_start($renderer, TRUE);
     $combo->add_attribute($renderer, text => 0);
     my @dbcategories  = ();
@@ -7422,7 +7246,7 @@ sub imgdir_load {
 
     $iconview->hide();
     my $store =
-      Gtk2::ListStore->new('Glib::String', 'Gtk2::Gdk::Pixbuf', 'Glib::String');
+      Gtk3::ListStore->new('Glib::String', 'Gtk3::Gdk::Pixbuf', 'Glib::String');
     $iconview->set_model($store);
     $iconview->set_text_column(0);
     $iconview->set_pixbuf_column(1);
@@ -7454,6 +7278,7 @@ sub imgdir_load {
         if ($ret) {
             foreach $file (sort readdir(DIR)) {
                 if ((!($file =~ /^\./)) && (!(-d $dirname . "/" . $file))) {
+                    print $type . ";" . $dirname . "/" . $file."\n";
                     do_pending();
                     my $iter = $store->append;
                     $file = fromutf($file);
@@ -7488,6 +7313,7 @@ sub imgdir_thumbnails {
     my ($iconview) = @_;
     debug("Loading thumbnails");
     my $store = $iconview->get_model;
+    if (!defined $store) { return;}
     my $iter  = $store->get_iter_first;
     while (defined $iter) {
         my $id = $store->get_value($iter, 2);
@@ -7499,8 +7325,8 @@ sub imgdir_thumbnails {
         if ($scaled) {
             $store->set($iter, 1, $scaled);
         }
-        my $nextiter = $store->iter_next($iter);
-        $iter = $nextiter;
+        my $ret = $store->iter_next($iter);
+        if (!$ret) { undef $iter; }
         do_pending();
     }
 }
@@ -7540,8 +7366,8 @@ sub playlist_thumbnails {
                 $store->set($iter, 1, $scaled);
             }
         }
-        my $nextiter = $store->iter_next($iter);
-        $iter = $nextiter;
+        my $ret = $store->iter_next($iter);
+        if (!$ret) { undef $iter; }
         do_pending();
     }
 }
@@ -7574,7 +7400,7 @@ sub spell_check {
         {
             if (!defined $widgets->{'spellAPage'}{$page}) {
                 $widgets->{'spellAPage'}{$page} =
-                  Gtk2::Spell->new($widgets->{'textAPage'}{$page});
+                  Gtk3::Spell->new($widgets->{'textAPage'}{$page});
             }
 
         }
@@ -7629,12 +7455,12 @@ sub add_file {
     debug("Open a file dialog");
     my $filexml = load_window("dialogFileChooser");
     $filexml->get_object('dialogFileChooser')
-      ->set_preview_widget(Gtk2::Image->new());
+      ->set_preview_widget(Gtk3::Image->new());
     $filexml->get_object('dialogFileChooser')->set_preview_widget_active(FALSE);
     $filexml->get_object('dialogFileChooser')
-      ->signal_connect("update-preview", "update_file_preview");
+      ->signal_connect('update-preview' => \&update_file_preview);
     $filexml->get_object('buttonFileOK')
-      ->signal_connect("clicked", "file_ok_sel", $filexml);
+      ->signal_connect(clicked => \&file_ok_sel, $filexml);
     $filexml->get_object('dialogFileChooser')->show_all();
 }
 
@@ -7672,7 +7498,7 @@ sub update_file_preview {
 #
 sub add_directory {
     debug("Add a directory to the playlist");
-    my $d = Gtk2::FileChooserDialog->new(
+    my $d = Gtk3::FileChooserDialog->new(
         fromutf(gettext("Choose a Directory")),
         $widgets->{'main'}->get_object('windowMain'), 'select-folder',
         fromutf(gettext("Cancel")) => "cancel",
@@ -7786,7 +7612,7 @@ sub change_bgimage {
     $widgets->{'image'}->get_object('dialogImage')
       ->set_title(fromutf(gettext("Choose a Background")));
     $widgets->{'image'}->get_object('buttonImageAdd')
-      ->signal_connect('clicked', 'import_background');
+      ->signal_connect(clicked => \&import_background);
     $widgets->{'image'}->get_object('hboxImageSublist')->hide;
     $widgets->{'image'}->get_object('dialogImage')->show;
 
@@ -7807,34 +7633,34 @@ sub change_bgimage {
             $widgets->{'image'}->get_object('buttonImageOK')
               ->set_label(fromutf(gettext("Set as Default")));
             $widgets->{'image'}->get_object('buttonImageOK')
-              ->signal_connect('clicked', "set_default_backdrop");
+              ->signal_connect(clicked => \&set_default_backdrop);
             $widgets->{'image'}->get_object('buttonImageAdd')->hide();
             $widgets->{'image'}->get_object('buttonImageDelete')->hide();
             $widgets->{'image'}->get_object('buttonImageChange')->hide();
         } else {
             $widgets->{'image'}->get_object('buttonImageCancel')->hide();
             $widgets->{'image'}->get_object('buttonImageOK')
-              ->signal_connect('clicked', "close_dialog");
+              ->signal_connect(clicked => \&close_dialog);
             $widgets->{'image'}->get_object('hboxImageColour')->show();
             $widgets->{'image'}->get_object('colorbuttonFontColour')
-              ->signal_connect("button_press_event", "open_dialogColour",
+              ->signal_connect(button_press_event => \&open_dialogColour,
                 "ImageFont");
 
             #$widgets->{'image'}->get_object('entryImageFontColour')
             #->signal_connect("changed", "change_colour_media");
             $widgets->{'image'}->get_object('colorbuttonShadowColour')
-              ->signal_connect("button_press_event", "open_dialogColour",
+              ->signal_connect(button_press_event => \&open_dialogColour,
                 "ImageShadow");
 
             #$widgets->{'image'}->get_object('entryImageShadowColour')
             #->signal_connect("changed", "change_colour_media");
         }
         $widgets->{'image'}->get_object('treeImage')->{user_data} = "load";
-        my $renderer = Gtk2::CellRendererText->new;
+        my $renderer = Gtk3::CellRendererText->new;
         $renderer->set("editable", TRUE);
-        $renderer->signal_connect("edited", "rename_media");
+        $renderer->signal_connect(edited => \&rename_media);
         my $column =
-          Gtk2::TreeViewColumn->new_with_attributes("Filename", $renderer,
+          Gtk3::TreeViewColumn->new_with_attributes("Filename", $renderer,
             text => 0);
         $widgets->{'image'}->get_object('treeImage')->append_column($column);
     }
@@ -7865,7 +7691,7 @@ sub create_dialogSublist {
     $sublistxml->get_object('labelPromptE')
       ->set_text(fromutf(gettext("Name of sublist")));
     $sublistxml->get_object('buttonPromptEOK')
-      ->signal_connect("clicked", "new_sublist_from_xml", $sublistxml);
+      ->signal_connect(clicked => \&new_sublist_from_xml, $sublistxml);
 }
 
 #***
@@ -7911,9 +7737,8 @@ sub on_treeAvailable_drag_data_get {
     my ($widget, $context, $data, $info, $time) = @_;
     debug("Dragged from available songs");
     my $selection = $widget->get_selection;
-    my @sel       = $selection->get_selected_rows;
-    my $model     = $widgets->{'main'}->get_object('treeAvailable')->get_model;
-    my $iter      = $model->get_iter($sel[0]);
+    my ($sel, $model)  = $selection->get_selected_rows;
+    my $iter      = $model->get_iter(@$sel[0]);
     if ($iter) {
         $data->set($data->target, 8, $model->get($iter, 3));
     }
@@ -8304,9 +8129,8 @@ sub apply_transition_selected {
     my $selection =
       $widgets->{'main'}->get_object('treePlaylist')->get_selection;
     if ($selection) {
-        my @list  = $selection->get_selected_rows();
-        my $model = $widgets->{'main'}->get_object('treePlaylist')->get_model();
-        foreach (@list) {
+        my ($list, $model)  = $selection->get_selected_rows();
+        foreach (@$list) {
             apply_transition($model->get($model->get_iter($_), 2), $trans_type);
         }
     }
@@ -8529,28 +8353,28 @@ sub user_admin {
         foreach my $count (0 .. ($users - 1)) {
             debug("Users: " . $username[$count]);
             $widgets->{'adminUsername'}[$count] =
-              Gtk2::Label->new($username[$count]);
+              Gtk3::Label->new($username[$count]);
             $widgets->{'admin'}->get_object('tableAccess')
               ->attach($widgets->{'adminUsername'}[$count],
                 0, 1, $count + 2, $count + 3, 'fill', 'expand', 0, 0);
 
-            $widgets->{'adminPlaylist'}[$count] = Gtk2::CheckButton->new();
+            $widgets->{'adminPlaylist'}[$count] = Gtk3::CheckButton->new();
             $widgets->{'admin'}->get_object('tableAccess')
               ->attach($widgets->{'adminPlaylist'}[$count],
                 1, 2, $count + 2, $count + 3, 'fill', 'expand', 0, 0);
-            $widgets->{'adminEdit'}[$count] = Gtk2::CheckButton->new();
+            $widgets->{'adminEdit'}[$count] = Gtk3::CheckButton->new();
             $widgets->{'admin'}->get_object('tableAccess')
               ->attach($widgets->{'adminEdit'}[$count],
                 2, 3, $count + 2, $count + 3, 'fill', 'expand', 0, 0);
-            $widgets->{'adminDelete'}[$count] = Gtk2::CheckButton->new();
+            $widgets->{'adminDelete'}[$count] = Gtk3::CheckButton->new();
             $widgets->{'admin'}->get_object('tableAccess')
               ->attach($widgets->{'adminDelete'}[$count],
                 3, 4, $count + 2, $count + 3, 'fill', 'expand', 0, 0);
-            $widgets->{'adminDisplay'}[$count] = Gtk2::CheckButton->new();
+            $widgets->{'adminDisplay'}[$count] = Gtk3::CheckButton->new();
             $widgets->{'admin'}->get_object('tableAccess')
               ->attach($widgets->{'adminDisplay'}[$count],
                 4, 5, $count + 2, $count + 3, 'fill', 'expand', 0, 0);
-            $widgets->{'adminAdmin'}[$count] = Gtk2::CheckButton->new();
+            $widgets->{'adminAdmin'}[$count] = Gtk3::CheckButton->new();
             $widgets->{'admin'}->get_object('tableAccess')
               ->attach($widgets->{'adminAdmin'}[$count],
                 5, 6, $count + 2, $count + 3, 'fill', 'expand', 0, 0);
@@ -8721,27 +8545,27 @@ sub add_user {
         debug("Users :" . $users);
         $widgets->{'admin'}->get_object('tableAccess')->resize($users + 3, 6);
         $widgets->{'adminUsername'}[$users] =
-          Gtk2::Label->new($userxml->get_object('entryPromptE')->get_text());
+          Gtk3::Label->new($userxml->get_object('entryPromptE')->get_text());
         $widgets->{'admin'}->get_object('tableAccess')
           ->attach($widgets->{'adminUsername'}[$users],
             0, 1, $users + 2, $users + 3, 'fill', 'expand', 0, 0);
-        $widgets->{'adminPlaylist'}[$users] = Gtk2::CheckButton->new();
+        $widgets->{'adminPlaylist'}[$users] = Gtk3::CheckButton->new();
         $widgets->{'admin'}->get_object('tableAccess')
           ->attach($widgets->{'adminPlaylist'}[$users],
             1, 2, $users + 2, $users + 3, 'fill', 'expand', 0, 0);
-        $widgets->{'adminEdit'}[$users] = Gtk2::CheckButton->new();
+        $widgets->{'adminEdit'}[$users] = Gtk3::CheckButton->new();
         $widgets->{'admin'}->get_object('tableAccess')
           ->attach($widgets->{'adminEdit'}[$users],
             2, 3, $users + 2, $users + 3, 'fill', 'expand', 0, 0);
-        $widgets->{'adminDelete'}[$users] = Gtk2::CheckButton->new();
+        $widgets->{'adminDelete'}[$users] = Gtk3::CheckButton->new();
         $widgets->{'admin'}->get_object('tableAccess')
           ->attach($widgets->{'adminDelete'}[$users],
             3, 4, $users + 2, $users + 3, 'fill', 'expand', 0, 0);
-        $widgets->{'adminDisplay'}[$users] = Gtk2::CheckButton->new();
+        $widgets->{'adminDisplay'}[$users] = Gtk3::CheckButton->new();
         $widgets->{'admin'}->get_object('tableAccess')
           ->attach($widgets->{'adminDisplay'}[$users],
             4, 5, $users + 2, $users + 3, 'fill', 'expand', 0, 0);
-        $widgets->{'adminAdmin'}[$users] = Gtk2::CheckButton->new();
+        $widgets->{'adminAdmin'}[$users] = Gtk3::CheckButton->new();
         $widgets->{'admin'}->get_object('tableAccess')
           ->attach($widgets->{'adminAdmin'}[$users],
             5, 6, $users + 2, $users + 3, 'fill', 'expand', 0, 0);
@@ -8812,7 +8636,7 @@ sub navigator_activated {
       $widgets->{'main'}->get_object('entryNavVerse')->get_active_text();
     my $store = $widgets->{'main'}->get_object('entryNavVerse')->get_model();
     if (!defined $store) {
-        $store = Gtk2::ListStore->new('Glib::String');
+        $store = Gtk3::ListStore->new('Glib::String');
         $widgets->{'main'}->get_object('entryNavVerse')->set_model($store);
     }
     $store->set($store->prepend, 0, $verse);
@@ -8844,9 +8668,9 @@ sub init_preview {
             $widgets->{'main'}->get_object('framePreview')
               ->set_size_request(100, 75);
             $widgets->{'main'}->get_object('framePreview')
-              ->set_params(0.5, 0.5, $config->{'Width'} / $config->{'Height'},
+              ->set(0.5, 0.5, $config->{'Width'} / $config->{'Height'},
                 0);
-            $widgets->{'preview'} = Gtk2::Socket->new;
+            $widgets->{'preview'} = Gtk3::Socket->new;
             $widgets->{'preview'}->show;
             $widgets->{'main'}->get_object('framePreview')
               ->add($widgets->{'preview'});
@@ -8932,11 +8756,11 @@ sub init_miniview {
                 close_miniview($display);
                 delete $displays{$display};
             } elsif (!defined($widgets->{'miniview'}->{$display})) {
-                $widgets->{'miniview'}->{$display} = Gtk2::Socket->new;
+                $widgets->{'miniview'}->{$display} = Gtk3::Socket->new;
                 $widgets->{'miniview'}->{$display}->set_size_request(100, 75);
-                $widgets->{'miniview_event'}->{$display} = Gtk2::EventBox->new;
+                $widgets->{'miniview_event'}->{$display} = Gtk3::EventBox->new;
                 $widgets->{'miniview_frame'}->{$display} =
-                  Gtk2::AspectFrame->new($display, 0.5, 0.5,
+                  Gtk3::AspectFrame->new($display, 0.5, 0.5,
                     $config->{'Width'} / $config->{'Height'}, FALSE);
                 $widgets->{'miniview_frame'}->{$display}
                   ->add($widgets->{'miniview'}->{$display});
@@ -8982,8 +8806,8 @@ sub init_miniview {
                     }
                 );
                 $widgets->{'miniview_event'}->{$display}
-                  ->signal_connect("button_release_event",
-                    "toggle_server_active", $display);
+                  ->signal_connect(button_release_event =>
+                    \&toggle_server_active, $display);
             }
             if ($miniviews{$display}) {
                 $miniviews{$display} &= 1;    # Clear check bit
@@ -9208,13 +9032,12 @@ sub create_pixbuf {
     my ($pixbuf);
     my ($type, $id) = split /;/, $data;
     if ($type eq "thmb") {
-        debug("checking for thumbnail");
         my $query =
           "SELECT snapshot FROM playlist WHERE playorder=\"" . $id . "\"";
         my $sth = do_query($lyricDbh, $query, FALSE);
         my @row = $sth->fetchrow_array();
         if (defined $row[0]) {
-            my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+            my $pixbuf_loader = Gtk3::Gdk::PixbufLoader->new();
             eval { $pixbuf_loader->write($row[0]); };
             eval { $pixbuf_loader->close() };
             $pixbuf = $pixbuf_loader->get_pixbuf();
@@ -9234,83 +9057,25 @@ sub create_pixbuf {
         if (($width > $globals->{'thumb_width'}) || ($width == 0)) {
 
             # Bigger than cache value so just send new pixbuf
-            eval {
-                $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file_at_scale($id, $width,
-                    $height, TRUE);
-            };
-
-            # Try thumbnailing with video thumbnailer
-            my $thumbfile = "/tmp/lyricue-tmpthumb.png";
-            if (-e $thumbfile) {
-                unlink $thumbfile;
-            }
-            if ($@) {
-                $id =~ s/\/[\/]*/\//g;
-
-                my $command =
-                    $globals->{'video-thumbnailer'}
-                  . " --time=2 \""
-                  . $id . "\" \""
-                  . $thumbfile . "\"";
-                system($command);
-                debug("Command:" . $command);
-                if (-e $thumbfile) {
-                    $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($thumbfile);
-                    $pixbuf =
-                      $pixbuf->scale_simple($width, $height, 'bilinear');
-                } else {
-                    return undef;
-                }
-            } else {
+            $pixbuf = Gtk3::Gdk::Pixbuf->new_from_file_at_scale($id, $width, $height, TRUE);
+            if (defined $pixbuf) {
                 return $pixbuf;
             }
         }
         my $mtime = (stat($id))[9];
         $id =~ s/\/+/\//g;
-        my $filename =
-          $globals->{'thumbnail_factory'}->lookup("file://" . $id, $mtime);
-        if (!defined $filename) {
-            if ($globals->{'thumbnail_factory'}
-                ->has_valid_failed_thumbnail("file://" . $id, $mtime))
-            {
-                return undef;
-            } else {
-                $pixbuf =
-                  $globals->{'thumbnail_factory'}
-                  ->generate_thumbnail("file://" . $id, $mtime);
-                if ($pixbuf) {
-                    $globals->{'thumbnail_factory'}
-                      ->save_thumbnail($pixbuf, "file://" . $id, $mtime);
-                    $pixbuf =
-                      $pixbuf->scale_simple($width, $height, 'bilinear');
-                } else {
-
-                    # Try thumbnailing with video thumbnailer
-                    my $thumbfile = "/tmp/lyricue-tmpthumb.png";
-                    if (-e $thumbfile) {
-                        unlink $thumbfile;
-                    }
-                    my $command =
-                        $globals->{'video-thumbnailer'}
-                      . " --time=2 \""
-                      . $id . "\" \""
-                      . $thumbfile . "\"";
-                    system($command);
-                    if (-e $thumbfile) {
-                        $pixbuf = Gtk2::Gdk::Pixbuf->new_from_file($thumbfile);
-                        $globals->{'thumbnail_factory'}
-                          ->save_thumbnail($pixbuf, "file://" . $id, $mtime);
-                        $pixbuf =
-                          $pixbuf->scale_simple($width, $height, 'bilinear');
-                    } else {
-                        return undef;
-                    }
-                }
-            }
+        
+        my $gfile = Glib::IO::File::new_for_path($id);
+        if (!$gfile->query_exists()) {
+            return undef;
+        }
+        my $thumbpath = $globals->{'thumbnail_factory'}->lookup($gfile->get_uri(),$mtime);
+        if (defined $thumbpath) {
+            $pixbuf = Gtk3::Gdk::Pixbuf->new_from_file_at_scale($thumbpath, $width,$height, TRUE);
         } else {
-            $pixbuf =
-              Gtk2::Gdk::Pixbuf->new_from_file_at_scale($filename, $width,
-                $height, TRUE);
+            $pixbuf = $globals->{'thumbnail_factory'}->generate_thumbnail($gfile->get_uri());
+            $globals->{'thumbnail_factory'}->save_thumbnail($pixbuf,$gfile->get_uri(),(stat($id))[9]);
+            $pixbuf=$pixbuf->scale_simple($width,$height, 'bilinear');
         }
         return $pixbuf;
     } else {
@@ -9321,14 +9086,14 @@ sub create_pixbuf {
         if (defined $row->{'format'}) {
             if ($row->{'format'} eq "bg") {
                 my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
-                $pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
+                $pixbuf = Gtk3::Gdk::Pixbuf->new_from_xpm_data(@xpm);
             } else {
-                my $pixbuf_loader = Gtk2::Gdk::PixbufLoader->new();
+                my $pixbuf_loader = Gtk3::Gdk::PixbufLoader->new();
                 eval { $pixbuf_loader->write($row->{'data'}); };
                 eval { $pixbuf_loader->close() };
                 if ($@) {
                     my @xpm = ("1 1 1 1", "  c " . $row->{'description'}, " ");
-                    $pixbuf = Gtk2::Gdk::Pixbuf->new_from_xpm_data(@xpm);
+                    $pixbuf = Gtk3::Gdk::Pixbuf->new_from_xpm_data(@xpm);
                 } else {
                     $pixbuf = $pixbuf_loader->get_pixbuf();
                 }
@@ -9398,7 +9163,7 @@ sub import_media {
     debug("Import media to db of type:" . $type);
     my $filexml = load_window('dialogFileChooser');
     $filexml->get_object('buttonFileOK')
-      ->signal_connect("clicked", "select_category", $filexml);
+      ->signal_connect(clicked => \&select_category, $filexml);
     $filexml->get_object('dialogFileChooser')->{user_data} = $type;
     $filexml->get_object('dialogFileChooser')->set_select_multiple(TRUE);
     $filexml->get_object('dialogFileChooser')->show_all();
@@ -9435,7 +9200,7 @@ sub select_category {
       . "\" ORDER BY category";
     my $sth = do_query($mediaDbh, $query, FALSE);
     my @row;
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
     $choosexml->get_object('comboSelectCategory')->set_model($model);
     $choosexml->get_object('comboSelectCategory')->set_text_column(0);
 
@@ -9656,18 +9421,14 @@ sub update_quickedit {
 sub media_move {
     debug("Moving media");
     my $selection = $widgets->{'image'}->get_object('treeImage')->get_selection;
-    my @selecteditems = $selection->get_selected_rows();
+    my ($selecteditems,$model) = $selection->get_selected_rows();
     my @id            = ();
     my $type =
       $widgets->{'image'}->get_object('optionImageCategory')->{'user_data'};
-    if ($selecteditems[0]) {
-        foreach (@selecteditems) {
-            my $iter =
-              $widgets->{'image'}->get_object('treeImage')
-              ->get_model->get_iter($_);
-            push @id,
-              $widgets->{'image'}->get_object('treeImage')
-              ->get_model->get($iter, 1);
+    if (@$selecteditems[0]) {
+        foreach (@$selecteditems) {
+            my $iter = $model->get_iter($_);
+            push @id, $model->get($iter, 1);
         }
     }
     if (@id) {
@@ -9678,11 +9439,11 @@ sub media_move {
         $choosexml->get_object('buttonDelete')->hide();
         $choosexml->get_object('buttonRename')->hide();
         $choosexml->get_object('buttonLoad')
-          ->signal_connect("clicked", "do_move_media", $choosexml);
+          ->signal_connect(clicked => \&do_move_media, $choosexml);
         $choosexml->get_object('buttonNew')
-          ->signal_connect("clicked", "do_move_media", $choosexml);
+          ->signal_connect(clicked => \&do_move_media, $choosexml);
         $choosexml->get_object('buttonCancel')
-          ->signal_connect("clicked", "close_dialog");
+          ->signal_connect(clicked => \&close_dialog);
         $choosexml->get_object('windowChoosePlay')->show;
         $choosexml->get_object('treeChoosePlay')->{'user_data'}   = $type;
         $choosexml->get_object('windowChoosePlay')->{'user_data'} = \@id;
@@ -9691,15 +9452,15 @@ sub media_move {
         if ($store) {
             $store->clear;
         } else {
-            $store = Gtk2::ListStore->new('Glib::String');
+            $store = Gtk3::ListStore->new('Glib::String');
             $choosexml->get_object('treeChoosePlay')->set_model($store);
-            my $renderer = Gtk2::CellRendererText->new;
+            my $renderer = Gtk3::CellRendererText->new;
             my $selection =
               $choosexml->get_object('treeChoosePlay')->get_selection;
-            $selection->signal_connect("changed", "update_category",
+            $selection->signal_connect(changed => \&update_category,
                 $choosexml);
             my $column =
-              Gtk2::TreeViewColumn->new_with_attributes("Category", $renderer,
+              Gtk3::TreeViewColumn->new_with_attributes("Category", $renderer,
                 text => 0);
             $choosexml->get_object('treeChoosePlay')->append_column($column);
         }
@@ -9773,20 +9534,14 @@ sub do_move_media {
 sub media_delete {
     debug("Deleting media");
     my $selection = $widgets->{'image'}->get_object('treeImage')->get_selection;
-    my @selecteditems = $selection->get_selected_rows();
+    my ($selecteditems, $model) = $selection->get_selected_rows(); 
     my @id            = ();
-    if ($selecteditems[0]) {
+    if (@$selecteditems[0]) {
         my $title = "";
-        foreach (@selecteditems) {
-            my $iter =
-              $widgets->{'image'}->get_object('treeImage')
-              ->get_model->get_iter($_);
-            push @id,
-              $widgets->{'image'}->get_object('treeImage')
-              ->get_model->get($iter, 1);
-            $title .= "\""
-              . $widgets->{'image'}->get_object('treeImage')
-              ->get_model->get($iter, 0) . "\", ";
+        foreach (@$selecteditems) {
+            my $iter = $model->get_iter($_);
+            push @id, $model->get($iter, 1);
+            $title .= "\"" . $model->get($iter, 0) . "\", ";
         }
         if ($title ne "") {
             $title =~ s/, $//;
@@ -10035,15 +9790,15 @@ sub import_songs {
 
     $widgets->{'select_songs'} = load_window('dialogSelectSongs');
 
-    my $model = Gtk2::ListStore->new(
+    my $model = Gtk3::ListStore->new(
         'Glib::Boolean', 'Glib::String', 'Glib::String', 'Glib::String',
         'Glib::Uint',    'Glib::Uint'
     );
-    my $renderer = Gtk2::CellRendererToggle->new;
+    my $renderer = Gtk3::CellRendererToggle->new;
     $renderer->signal_connect(
         toggled => sub {
             my ($cell, $path_str, $model) = @_;
-            my $path   = Gtk2::TreePath->new_from_string($path_str);
+            my $path   = Gtk3::TreePath->new_from_string($path_str);
             my $column = 0;
             my $iter   = $model->get_iter($path);
             my ($toggle_item) = $model->get($iter, $column);
@@ -10056,25 +9811,25 @@ sub import_songs {
         $model
     );
     my $column1 =
-      Gtk2::TreeViewColumn->new_with_attributes("", $renderer, active => 0);
-    my $column2 = Gtk2::TreeViewColumn->new_with_attributes(
+      Gtk3::TreeViewColumn->new_with_attributes("", $renderer, active => 0);
+    my $column2 = Gtk3::TreeViewColumn->new_with_attributes(
         fromutf(gettext("Title")),
-        Gtk2::CellRendererText->new,
+        Gtk3::CellRendererText->new,
         text => 1
     );
-    my $column3 = Gtk2::TreeViewColumn->new_with_attributes(
+    my $column3 = Gtk3::TreeViewColumn->new_with_attributes(
         fromutf(gettext("Artist")),
-        Gtk2::CellRendererText->new,
+        Gtk3::CellRendererText->new,
         text => 2
     );
-    my $column4 = Gtk2::TreeViewColumn->new_with_attributes(
+    my $column4 = Gtk3::TreeViewColumn->new_with_attributes(
         fromutf(gettext("Book")),
-        Gtk2::CellRendererText->new,
+        Gtk3::CellRendererText->new,
         text => 3
     );
-    my $column5 = Gtk2::TreeViewColumn->new_with_attributes(
+    my $column5 = Gtk3::TreeViewColumn->new_with_attributes(
         fromutf(gettext("Song Number")),
-        Gtk2::CellRendererText->new,
+        Gtk3::CellRendererText->new,
         text => 4
     );
     $column1->set_resizable(TRUE);
@@ -10454,7 +10209,7 @@ sub navigator_update {
         display_message($errorcodes->{'nobible'});
         return;
     }
-    my $buffer = Gtk2::TextBuffer->new();
+    my $buffer = Gtk3::TextBuffer->new();
     $buffer->set_text("");
     my $iter = $buffer->get_iter_at_offset(0);
     my $verse =
@@ -10803,8 +10558,8 @@ sub reset_timer {
 # SOURCE
 #
 sub do_pending {
-    while (Gtk2->events_pending) {
-        Gtk2->main_iteration;
+    while (Gtk3::events_pending) {
+        Gtk3::main_iteration;
     }
 }
 
@@ -10844,10 +10599,10 @@ sub get_max_verse {
     my $layout =
       $widgets->{'main'}->get_object('windowMain')->create_pango_layout("");
     $layout->set_wrap('word');
-    $layout->set_width(
-        ($config->{'Width'} - $config->{'OverscanH'}) * PANGO_SCALE);
+    ##FIXME $layout->set_width(
+    ##FIXME    ($config->{'Width'} - $config->{'OverscanH'}) * PANGO_SCALE);
     $layout->set_font_description(
-        Gtk2::Pango::FontDescription->from_string($config->{'Main'}));
+        Pango::FontDescription->from_string($config->{'Main'}));
     my $page = "";
     my (@command_out);
 
@@ -11847,7 +11602,7 @@ sub check_displays {
     }
     do_pending();
     $globals->{'video_skip_signal'} =
-      $hscale->signal_connect('value-changed', "video_skip");
+      $hscale->signal_connect('value-changed' => \&video_skip);
 
     init_miniview();
     if ($config->{'DynamicPreview'} && !$local_preview) {
@@ -12334,13 +12089,13 @@ sub media_dvd {
         return;
     }
     my $longest =
-      Gtk2::RadioButton->new(undef, "Longest title (" . $longest_track . ")");
+      Gtk3::RadioButton->new(undef, "Longest title (" . $longest_track . ")");
     $longest->{user_data} = $longest_track;
     $vbox->add($longest);
     $longest->show();
     foreach (@$tracks) {
         my $radio =
-          Gtk2::RadioButton->new($longest,
+          Gtk3::RadioButton->new($longest,
             "Title " . $_->{"ix"} . " - " . sec_to_time($_->{"length"}));
         debug("Title " . $_->{"ix"} . " - " . sec_to_time($_->{"length"}));
         $radio->{user_data} = $_->{"ix"};
@@ -12610,12 +12365,12 @@ sub load_link {
 #
 sub load_biblemenu {
     debug("Populate biblemenu");
-    my $menutop = Gtk2::Menu->new();
+    my $menutop = Gtk3::Menu->new();
     my $group   = -1;
 
     my $bibleMenuAdd =
-      Gtk2::MenuItem->new_with_label(gettext("Install new bibles"));
-    $bibleMenuAdd->signal_connect("activate", "install_bibles");
+      Gtk3::MenuItem->new_with_label(gettext("Install new bibles"));
+    $bibleMenuAdd->signal_connect(activate => \&install_bibles);
     $bibleMenuAdd->show();
     $menutop->append($bibleMenuAdd);
 
@@ -12635,17 +12390,17 @@ sub load_biblemenu {
 
     foreach (@dbBibles, "", @swordBibles) {
         if ($_ eq "") {
-            my $sep = Gtk2::SeparatorMenuItem->new;
+            my $sep = Gtk3::SeparatorMenuItem->new;
             $sep->show;
             $menutop->append($sep);
         } else {
             my @bible = split(/;/, $config->{'Bibles'}->{$_}, 2);
             $bibleMenu->{$_} =
-              Gtk2::RadioMenuItem->new_with_label($group, $bible[1]);
+              Gtk3::RadioMenuItem->new_with_label($group, $bible[1]);
             if ($group == -1) {
                 $group = $bibleMenu->{$_}->get_group;
             }
-            $bibleMenu->{$_}->signal_connect("toggled", "select_bible_db",
+            $bibleMenu->{$_}->signal_connect(toggled => \&select_bible_db,
                 $bible[0] . ";" . $_);
             if (defined($defbible) && ($_ eq $defbible)) {
                 $bibleMenu->{$_}->set_active(TRUE);
@@ -12716,7 +12471,7 @@ sub open_dirchooser {
 sub import_db {
     debug("Import DB selected");
     my $importxml = load_window('dialogImportData');
-    my $filter    = Gtk2::FileFilter->new();
+    my $filter    = Gtk3::FileFilter->new();
     $filter->add_pattern("*.xmlz");
     $filter->add_pattern("*.xml");
     $importxml->get_object('fileImportData')->set_filter($filter);
@@ -12750,7 +12505,7 @@ sub import_db {
 sub export_db {
     debug("Export DB selected");
     my $exportxml = load_window('dialogFileChooser');
-    my $filter    = Gtk2::FileFilter->new;
+    my $filter    = Gtk3::FileFilter->new;
     $filter->add_pattern("*.xmlz");
     $exportxml->get_object('dialogFileChooser')->set_filter($filter);
     $exportxml->get_object('dialogFileChooser')->set_filename("lyricue.xmlz");
@@ -13020,19 +12775,19 @@ sub biblebrowser_loaditems {
     }
 
     my $size   = @$items;
-    my $buffer = Gtk2::TextBuffer->new();
+    my $buffer = Gtk3::TextBuffer->new();
     $widgets->{'main'}->get_object('textBible')->set_buffer($buffer);
-    my $sizegroup = Gtk2::SizeGroup->new('both');
+    my $sizegroup = Gtk3::SizeGroup->new('both');
     foreach my $itemnum (0 .. ($size - 1)) {
         if ($section eq "verses") {
             $widgets->{'bibleBrowser'}{'button' . $itemnum} =
-              Gtk2::ToggleButton->new(@$items[$itemnum]);
+              Gtk3::ToggleButton->new(@$items[$itemnum]);
             $widgets->{'bibleBrowser'}{'button' . $itemnum}
-              ->signal_connect("event", "changeVerseStatus", $size);
+              ->signal_connect(event => \&changeVerseStatus, $size);
             $widgets->{'bibleBrowser'}{'button' . $itemnum}->show();
         } else {
             $widgets->{'bibleBrowser'}{'button' . $itemnum} =
-              Gtk2::Button->new(fromutf(gettext(@$items[$itemnum])));
+              Gtk3::Button->new(fromutf(gettext(@$items[$itemnum])));
             $widgets->{'bibleBrowser'}{'button' . $itemnum}
               ->signal_connect("clicked", "biblebrowser_" . $section,
                 @$items[$itemnum]);
@@ -13105,7 +12860,7 @@ sub firstrun_close {
     debug("Closing Wizard");
     close_dialog($widgets->{'firstrun'});
     if ($globals->{'firstrun'}) {
-        Gtk2->main_quit();
+        Gtk3->main_quit();
     }
 }
 
@@ -13216,7 +12971,7 @@ sub firstrun_prepare {
         $widgets->{'firstrunxml'}->get_object('entryFRBack')
           ->set_text($config->{'SpecialBack'});
         my $bibles = $config->{'Bibles'};
-        my $store = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+        my $store = Gtk3::ListStore->new('Glib::String', 'Glib::String');
         $widgets->{'firstrunxml'}->get_object('comboFRBible')->remove_text(0);
         my ($iter, $activeiter);
 
@@ -13548,7 +13303,7 @@ sub start_editview {
     if (defined($widgets->{'EditPreview'})) {
         stop_editview();
     }
-    $widgets->{'EditPreview'} = Gtk2::Socket->new;
+    $widgets->{'EditPreview'} = Gtk3::Socket->new;
     $widgets->{'EditPreview'}->show;
     $widgets->{'EditPreview'}->set_size_request(-1, -1);
     $widgets->{'add'}->get_object('frameEditPreview')->show;
@@ -13631,8 +13386,8 @@ sub export_playlist {
     debug("Export playlist");
     my $filexml = load_window('dialogFileChooser');
     $filexml->get_object('buttonFileOK')
-      ->signal_connect("clicked", "complete_export_playlist", $filexml);
-    my $filter = Gtk2::FileFilter->new;
+      ->signal_connect(clicked => \&complete_export_playlist, $filexml);
+    my $filter = Gtk3::FileFilter->new;
     $filter->add_pattern("*.pdf");
     $filexml->get_object('dialogFileChooser')->set_filter($filter);
     $filexml->get_object('dialogFileChooser')->set_filename("presentation.pdf");
@@ -13685,9 +13440,8 @@ sub gather_debug {
 
 sub load_window {
     my ($ui_name) = @_;
-    my $builder = Gtk2::Builder->new();
+    my $builder = Gtk3::Builder->new_from_file($globals->{'sharedir'} . $ui_name . ".ui");
     $builder->set_translation_domain('lyricue');
-    $builder->add_from_file($globals->{'sharedir'} . $ui_name . ".ui");
     $builder->connect_signals(undef);
 
     return $builder;
@@ -13740,31 +13494,30 @@ sub image_playlist_toggle {
 
 sub load_profile_menu {
     debug("Populate profiles menu");
-    my $menutop = Gtk2::Menu->new();
+    my $menutop = Gtk3::Menu->new();
     my $group   = -1;
 
     my $query = "SELECT DISTINCT profile FROM config WHERE profile != ''";
     $sth = do_query($lyricDbh, $query, FALSE);
     my $selected_profile = NULL;
     while (my @row = $sth->fetchrow_array) {
-        my $menuitem = Gtk2::RadioMenuItem->new_with_label($group, $row[0]);
+        my $menuitem = Gtk3::RadioMenuItem->new_with_label($group, $row[0]);
         if ($group == -1) {
             $group = $menuitem->get_group;
         }
         if ($row[0] eq $globals->{'profile'}) {
             $selected_profile = $menuitem;
         }
-        $menuitem->signal_connect("toggled", "select_profile", $row[0]);
+        $menuitem->signal_connect(toggled => \&select_profile, $row[0]);
         $menuitem->show;
         $menutop->append($menuitem);
     }
-    my $sep = Gtk2::SeparatorMenuItem->new;
+    my $sep = Gtk3::SeparatorMenuItem->new;
     $sep->show;
     $menutop->append($sep);
-
     my $menuitem =
-      Gtk2::MenuItem->new_with_label(gettext("Create New Profile"));
-    $menuitem->signal_connect("activate", "change_pref_profile", "menu");
+      Gtk3::MenuItem->new_with_label(gettext("Create New Profile"));
+    $menuitem->signal_connect(activate => \&change_pref_profile, "menu");
     $menuitem->show;
     $menutop->append($menuitem);
     $selected_profile->set_active(TRUE);
@@ -13873,14 +13626,14 @@ sub load_profile_manager {
 
     my $query       = "SELECT DISTINCT profile FROM config WHERE profile != ''";
     my $sth         = do_query($lyricDbh, $query, FALSE);
-    my $combo_model = Gtk2::ListStore->new('Glib::String');
+    my $combo_model = Gtk3::ListStore->new('Glib::String');
     while (my @row = $sth->fetchrow_array()) {
         $combo_model->set($combo_model->append, 0, $row[0]);
     }
 
     # Profiles tab
     my $model =
-      Gtk2::ListStore->new('Glib::String', 'Glib::String', 'Gtk2::ListStore');
+      Gtk3::ListStore->new('Glib::String', 'Glib::String', 'Gtk3::ListStore');
     $query = "SELECT host,profile FROM profiles";
     $sth = do_query($lyricDbh, $query, FALSE);
     while (my @row = $sth->fetchrow_array()) {
@@ -13889,9 +13642,9 @@ sub load_profile_manager {
 
     $widgets->{'profile'}->get_object('treeHosts')->set_model($model);
     $widgets->{'profile'}->get_object('treeHosts')
-      ->insert_column_with_attributes(-1, 'Host', Gtk2::CellRendererText->new,
+      ->insert_column_with_attributes(-1, 'Host', Gtk3::CellRendererText->new,
         text => 0);
-    my $combo_renderer = Gtk2::CellRendererCombo->new;
+    my $combo_renderer = Gtk3::CellRendererCombo->new;
     $combo_renderer->set(
         text_column => 0,     # col in combo model with text to display
         editable    => TRUE
@@ -13913,7 +13666,7 @@ sub load_profile_manager {
     $widgets->{'profile'}->get_object('treeProfile')->set_model($combo_model);
     $widgets->{'profile'}->get_object('treeProfile')
       ->insert_column_with_attributes(-1, 'Profile Name',
-        Gtk2::CellRendererText->new,
+        Gtk3::CellRendererText->new,
         text => 0);
 
     $widgets->{'profile'}->get_object("windowProfileManager")->show_all;
@@ -13933,7 +13686,7 @@ sub profile_manager_create {
         $globals->{'profile'} =
           $newxml->get_object('entryPromptE')->get_text();
         firstrun_wizard();
-        Gtk2->main();
+        Gtk3->main();
         $globals->{'profile'} = $oldprofile;
         load_config($globals->{'profile'});
     }
@@ -14007,7 +13760,8 @@ sub profile_manager_apply {
               . $host . "')";
             $sth = do_query($lyricDbh, $query, FALSE);
         }
-        $iter = $store->iter_next($iter);
+        my $ret = $store->iter_next($iter);
+        if (!$ret) { undef $iter; }
     }
 }
 
@@ -14016,3 +13770,18 @@ sub profile_manager_revert {
     close_dialog($widgets->{'profile'}->get_object('windowProfileManager'));
     load_profile_manager();
 }
+
+sub combo_set_active {
+    my ($combo, $value) = @_;
+    my $id_col = $combo->get_id_column();
+    if (defined $value) {
+        my $model = $combo->get_model();
+        my $iter = $model->get_iter_first();
+        while ($model->get($iter,$id_col) ne $value) {
+            my $ret = $model->iter_next($iter);
+            if (!$ret) { return; }
+        }
+        $combo->set_active_iter($iter);
+    }
+}
+

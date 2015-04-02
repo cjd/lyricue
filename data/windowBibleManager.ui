@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.18.3 -->
 <interface>
-  <requires lib="gtk+" version="2.20"/>
-  <!-- interface-naming-policy project-wide -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkWindow" id="windowBibleManager">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Bible Installer</property>
     <child>
-      <object class="GtkVBox" id="vbox15">
+      <object class="GtkBox" id="vbox15">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkLabel" id="labelBibleInstall">
             <property name="visible">True</property>
@@ -30,10 +31,10 @@ Once downloaded come back here to install.</property>
           <object class="GtkButton" id="buttonBibleSword">
             <property name="label" translatable="yes">Sword bibles
 http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles</property>
+            <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
-            <property name="use_action_appearance">False</property>
             <property name="use_underline">True</property>
             <signal name="clicked" handler="load_link" swapped="no"/>
           </object>
@@ -47,10 +48,10 @@ http://crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles</property>
           <object class="GtkButton" id="buttonBibleDB">
             <property name="label" translatable="yes">LyricueDB bibles
 http://www.lyricue.org/bibles</property>
+            <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
-            <property name="use_action_appearance">False</property>
             <property name="use_underline">True</property>
             <signal name="clicked" handler="load_link" swapped="no"/>
           </object>
@@ -61,7 +62,7 @@ http://www.lyricue.org/bibles</property>
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="hbox64">
+          <object class="GtkBox" id="hbox64">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
@@ -95,18 +96,18 @@ http://www.lyricue.org/bibles</property>
           </packing>
         </child>
         <child>
-          <object class="GtkHButtonBox" id="hbuttonbox4">
+          <object class="GtkButtonBox" id="hbuttonbox4">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="layout_style">spread</property>
             <child>
               <object class="GtkButton" id="buttonBibleClose">
                 <property name="label">gtk-apply</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <signal name="clicked" handler="do_install_bible" swapped="no"/>
               </object>
@@ -119,11 +120,11 @@ http://www.lyricue.org/bibles</property>
             <child>
               <object class="GtkButton" id="buttonBibleCancel">
                 <property name="label">gtk-cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <signal name="clicked" handler="close_dialog" swapped="no"/>
               </object>

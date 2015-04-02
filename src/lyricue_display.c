@@ -47,7 +47,9 @@ GHashTable *miniviews = NULL;
 // Command line options
 gboolean windowed = FALSE;
 gboolean debugging = FALSE;
-gboolean showinfoonce = FALSE;
+gboolean name_at_top = TRUE;
+gboolean details_at_top = FALSE;
+gboolean info_on_all_pages = TRUE;
 int server_port = 2346;
 gchar *server_ip = "";
 gchar *server_type = "normal";
@@ -205,11 +207,30 @@ main (int argc, char *argv[])
     }
 
     gchar *showinfochar;
-    showinfochar = (gchar *) g_hash_table_lookup (config, "ShowInfoOnce");
-    if (showinfochar != NULL && atoi(showinfochar) == 1){
-        showinfoonce=TRUE;
+    showinfochar = (gchar *) g_hash_table_lookup (config, "ShowInfoLocation");
+    if (showinfochar != NULL) {
+        if (g_strcmp0(showinfochar, "top") == 0){
+            name_at_top = TRUE;
+            details_at_top = TRUE;
+        } else if (g_strcmp0(showinfochar, "split") == 0){
+            name_at_top = TRUE;
+            details_at_top = FALSE;
+        } else if (g_strcmp0(showinfochar, "bottom") == 0){
+            name_at_top = FALSE;
+            details_at_top = FALSE;
+        }
     }
     g_free(showinfochar);
+
+    gchar *infopageschar;
+    infopageschar = (gchar *) g_hash_table_lookup (config, "ShowInfoPages");
+    if (infopageschar != NULL && g_strcmp0(infopageschar, "all") == 0) {
+        info_on_all_pages = TRUE;
+    } else {
+        info_on_all_pages = FALSE;
+    }
+    g_free(infopageschar);
+
 
     // Publish to avahi (zeroconf/bonjour)
     publish_avahi(server_port, server_type);
@@ -949,21 +970,26 @@ do_display (const char *options, const int quick_show)
                 transition = NO_EFFECT;
             }
             set_maintext (parse_special (lyrics), transition, wrap);
-            l_debug("show footer %d-%d/%d",showinfoonce,old_list,current_list);
-            if (showinfoonce) {
-                if (current_list != old_list) {
+            if (info_on_all_pages || (current_list != old_list)) {
+                if (name_at_top && details_at_top) {
                     if (g_strcmp0(footer,"") != 0) {
                         header = g_strconcat(header,"\n<small><small>",footer,"</small></small>",NULL);
                     }
                     set_headtext (parse_special (header), transition, wrap);
                     set_foottext ("", transition, wrap);
-                } else {
+                } else if (!name_at_top && !details_at_top) {
+                    if (g_strcmp0(footer,"") != 0) {
+                        footer = g_strconcat(header,"\n<small><small>",footer,"</small></small>",NULL);
+                    }
                     set_headtext ("", transition, wrap);
-                    set_foottext ("", transition, wrap);
+                    set_foottext (parse_special (footer), transition, wrap);
+                } else {
+                    set_headtext (parse_special (header), transition, wrap);
+                    set_foottext (parse_special (footer), transition, wrap);
                 }
             } else {
-                set_headtext (parse_special (header), transition, wrap);
-                set_foottext (parse_special (footer), transition, wrap);
+                set_headtext ("", transition, wrap);
+                set_foottext ("", transition, wrap);
             }
             old_list=current_list;
         }
