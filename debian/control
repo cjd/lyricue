@@ -2,20 +2,19 @@ Source: lyricue
 Section: x11
 Priority: extra
 Maintainer: Chris Debenham <chris@adebenham.com>
-Build-Depends: debhelper (>= 7), autotools-dev, po-debconf, libclutter-1.0-dev, libclutter-gtk-1.0-dev|libclutter-gtk-0.10-dev, libclutter-gst-2.0-dev|libclutter-gst-0.10-dev|libclutter-gst-dev, libmysqlclient-dev, libgtk2.0-dev, libglib2.0-dev, intltool, libjson-glib-dev, libavahi-glib-dev, libavahi-client-dev
+Build-Depends: debhelper (>= 7), autotools-dev, po-debconf, libclutter-1.0-dev, libclutter-gtk-1.0-dev|libclutter-gtk-0.10-dev, libclutter-gst-2.0-dev|libclutter-gst-0.10-dev|libclutter-gst-dev, libmysqlclient-dev, intltool, libjson-glib-dev, libavahi-glib-dev, libavahi-client-dev
 Standards-Version: 3.8.3
 Homepage: http://www.adebenham.com/
 
 Package: lyricue
 Architecture: any
-Depends: unoconv, libdbd-mysql-perl, libgtk2-perl, libgtk2-spell-perl, libgtk2-trayicon-perl, libdbi-perl, libglib-perl, imagemagick|graphicsmagick-imagemagick-compat, libxml-simple-perl, diatheke, libgnome2-perl, lsdvd, libfile-mimeinfo-perl, liburi-perl, libnet-rendezvous-publish-backend-avahi-perl, avahi-daemon, ${misc:Depends}, ${perl:Depends}, ${shlibs:Depends}
+Depends: unoconv, libdbd-mysql-perl, libgtk3-perl, libdbi-perl, imagemagick|graphicsmagick-imagemagick-compat, libxml-simple-perl, diatheke, lsdvd, libfile-mimeinfo-perl, liburi-perl, libnet-rendezvous-publish-backend-avahi-perl, avahi-daemon, ${misc:Depends}, ${perl:Depends}, ${shlibs:Depends}
 Recommends: mysql-server
 Conflicts: lyricue3 (<= 1:3.0.23), lyricue-cvs (<= 2.4.0)
 Description: The GNU Lyric Display System
  This application is used to edit/display song lyrics on a second
  screen/projector for use at singing events such as church services.
  Features
-    * Spellchecking
     * User access controls 
     * Networkable (ie run interface and server on different machines)
     * Multiple Playlists
