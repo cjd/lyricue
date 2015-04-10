@@ -118,17 +118,21 @@ use File::MimeInfo qw/globs/;
 use Cwd qw(abs_path);
 use File::Basename;
 use Sys::Hostname;
+
 # Import Glib::IO
 use Glib::Object::Introspection;
 Glib::Object::Introspection->setup(
     basename => 'Gio',
-    version => '2.0',
-    package => 'Glib::IO');
+    version  => '2.0',
+    package  => 'Glib::IO'
+);
+
 # Import gnome-desktop
 Glib::Object::Introspection->setup(
     basename => 'GnomeDesktop',
-    version => '3.0',
-    package => 'GnomeDesktop');
+    version  => '3.0',
+    package  => 'GnomeDesktop'
+);
 
 #use B::Concise;
 #no strict 'refs';
@@ -252,10 +256,13 @@ $globals->{'preview_starting'}   = 0;
 
 # Optional modules
 # Import Gtkspell
-eval { Glib::Object::Introspection->setup(
-    basename => 'GtkSpell',
-    version => '3.0',
-    package => 'GtkSpell'); };
+eval {
+    Glib::Object::Introspection->setup(
+        basename => 'GtkSpell',
+        version  => '3.0',
+        package  => 'GtkSpell'
+    );
+};
 if ($@) {
     print STDERR "Gtk-Spell not available, spell checking turned off\n";
     $globals->{'spell'} = FALSE;
@@ -455,7 +462,8 @@ binmode LOG, ":utf8";
 debug("Lyricue Interface version " . $globals->{'version'} . "\n" . $ID);
 debug("Running from " . $globals->{'execdir'});
 use Data::Dumper;
-$globals->{'thumbnail_factory'} = GnomeDesktop::DesktopThumbnailFactory->new('GNOME_DESKTOP_THUMBNAIL_SIZE_LARGE');
+$globals->{'thumbnail_factory'} = GnomeDesktop::DesktopThumbnailFactory->new(
+    'GNOME_DESKTOP_THUMBNAIL_SIZE_LARGE');
 $widgets->{'main'} = load_window("windowMain");
 fix_widget_names();    # Needed since gtk2::builder is not setting widget names
 
@@ -1261,9 +1269,10 @@ sub manage_bg {
     change_preview();
     $widgets->{'image'}->get_object('colorbuttonFontColour')
       ->signal_connect(button_press_event => \&open_dialogColour, "ImageFont");
-    $widgets->{'image'}->get_object('colorbuttonShadowColour')
-      ->signal_connect("button_press_event" => \&open_dialogColour,
-        "ImageShadow");
+    $widgets->{'image'}->get_object('colorbuttonShadowColour')->signal_connect(
+        "button_press_event" => \&open_dialogColour,
+        "ImageShadow"
+    );
     $widgets->{'image'}->get_object('buttonImageOK')
       ->signal_connect('clicked' => \&close_dialog);
     $widgets->{'image'}->get_object('buttonImageCancel')->hide();
@@ -2059,7 +2068,7 @@ sub edit_song {
     my $selection =
       $widgets->{'main'}->get_object('treeAvailable')->get_selection;
     my ($sel, $model) = $selection->get_selected_rows;
-    my $iter  = $model->get_iter(@$sel[0]);
+    my $iter = $model->get_iter(@$sel[0]);
 
     if ($iter) {
         my $songid = $model->get($iter, 3);
@@ -2104,8 +2113,10 @@ sub load_presets() {
         my $presetMenuItem = Gtk3::MenuItem->new_with_label(
             "Preset " . $preset_num . ": " . $config->{'Preset' . $preset_num});
         $presetMenuItem->{user_data} = $preset_num;
-        $presetMenuItem->signal_connect("activate" => \&add_copyright_preset,
-            $preset_num);
+        $presetMenuItem->signal_connect(
+            "activate" => \&add_copyright_preset,
+            $preset_num
+        );
         $menutop->append($presetMenuItem);
         $presetMenuItem->show();
         $preset_num++;
@@ -4113,8 +4124,8 @@ sub change_preview {
 
         # Find what has changed
         my $newsel = @$selecteditems[0];
-        my $iter = $model->get_iter($newsel);
-        my $data = $model->get($iter, 1);
+        my $iter   = $model->get_iter($newsel);
+        my $data   = $model->get($iter, 1);
         my ($type, $id) = split /;/, $data;
         my $tmp = 0;
         foreach $tmp (@$selecteditems) {
@@ -4212,10 +4223,7 @@ sub change_preview {
                   $widgets->{'image'}->get_object('imageImage')
                   ->create_pango_layout("");
                 $pango_layout->set_font_description(
-                    Pango::FontDescription->from_string(
-                        $config->{'Main'}
-                    )
-                );
+                    Pango::FontDescription->from_string($config->{'Main'}));
                 my $gc = Gtk3::Gdk::GC->new($pixmap);
                 $pango_layout->set_markup(
                     $bg_span . fromutf(gettext("Song Contents")) . "</span>");
@@ -4481,7 +4489,7 @@ sub do_add_image {
     my ($widget) = @_;
     debug("do add image");
     my $selection = $widgets->{'image'}->get_object('treeImage')->get_selection;
-    my ($list, $model)  = $selection->get_selected_rows();
+    my ($list, $model) = $selection->get_selected_rows();
     my $playlist =
       $widgets->{'image'}->get_object('optionImageSublist')
       ->get_menu->get_active->{'user_data'};
@@ -4715,12 +4723,18 @@ sub create_dialog_prefs {
       ->set_value($config->{'ShadowSize'});
 
     # Projector Layout
-    combo_set_active($widgets->{'prefs'}->get_object('comboPrefAspect'), $config->{'Aspect'});
-    combo_set_active($widgets->{'prefs'}->get_object('comboPrefVertical'),$config->{'VerticalLocation'});
-    combo_set_active($widgets->{'prefs'}->get_object('comboPrefHorizontal'),$config->{'HorizontalLocation'});
-    combo_set_active($widgets->{'prefs'}->get_object('comboPrefJustification'), $config->{'Justification'});
-    combo_set_active($widgets->{'prefs'}->get_object('comboPrefInfoLoc'), $config->{'ShowInfoLocation'});
-    combo_set_active($widgets->{'prefs'}->get_object('comboPrefInfoPages'),$config->{'ShowInfoPages'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefAspect'),
+        $config->{'Aspect'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefVertical'),
+        $config->{'VerticalLocation'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefHorizontal'),
+        $config->{'HorizontalLocation'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefJustification'),
+        $config->{'Justification'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefInfoLoc'),
+        $config->{'ShowInfoLocation'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefInfoPages'),
+        $config->{'ShowInfoPages'});
     $widgets->{'prefs'}->get_object('spinPrefOverscanV')
       ->set_value($config->{'OverscanV'});
     $widgets->{'prefs'}->get_object('spinPrefOverscanH')
@@ -4738,7 +4752,8 @@ sub create_dialog_prefs {
         $widgets->{'prefs'}->get_object('imagePrefBG')->{user_data} =
           $config->{'BGImage'};
     }
-    combo_set_active($widgets->{'prefs'}->get_object('comboPrefDefTrans'), $config->{'DefaultTransition'});
+    combo_set_active($widgets->{'prefs'}->get_object('comboPrefDefTrans'),
+        $config->{'DefaultTransition'});
     $widgets->{'prefs'}->get_object('checkPrefMouse')
       ->set_active($config->{'IgnoreMouse'});
     $widgets->{'prefs'}->get_object('entryPrefWindowOffset')
@@ -4770,6 +4785,7 @@ sub create_dialog_prefs {
     my (@list);
     my $bibles = $config->{'Bibles'};
     my $store  = $widgets->{'prefs'}->get_object('comboPrefBible')->get_model();
+
     if ($store) {
         $store->clear();
     } else {
@@ -6317,6 +6333,7 @@ sub save_and_close_prefs {
 #
 sub save_preferences {
     debug("Saving preferences");
+
     # Fonts tab
     $config->{'Header'} =
       $widgets->{'prefs'}->get_object('entryPrefHeader')->get_text();
@@ -6336,11 +6353,17 @@ sub save_preferences {
     # Projector Layout
     $config->{'Aspect'} =
       $widgets->{'prefs'}->get_object('comboPrefAspect')->get_active_id();
-    $config->{'VerticalLocation'} = $widgets->{'prefs'}->get_object('comboPrefVertical')->get_active_id();
-    $config->{'HorizontalLocation'} = $widgets->{'prefs'}->get_object('comboPrefHorizontal') ->get_active_id();
-    $config->{'Justification'} = $widgets->{'prefs'}->get_object('comboPrefJustification') ->get_active_id();
-    $config->{'ShowInfoLocation'} = $widgets->{'prefs'}->get_object('comboPrefInfoLoc')->get_active_id();
-    $config->{'ShowInfoPages'} = $widgets->{'prefs'}->get_object('comboPrefInfoPages')->get_active_id();
+    $config->{'VerticalLocation'} =
+      $widgets->{'prefs'}->get_object('comboPrefVertical')->get_active_id();
+    $config->{'HorizontalLocation'} =
+      $widgets->{'prefs'}->get_object('comboPrefHorizontal')->get_active_id();
+    $config->{'Justification'} =
+      $widgets->{'prefs'}->get_object('comboPrefJustification')
+      ->get_active_id();
+    $config->{'ShowInfoLocation'} =
+      $widgets->{'prefs'}->get_object('comboPrefInfoLoc')->get_active_id();
+    $config->{'ShowInfoPages'} =
+      $widgets->{'prefs'}->get_object('comboPrefInfoPages')->get_active_id();
     $config->{'OverscanH'} =
       $widgets->{'prefs'}->get_object('spinPrefOverscanH')->get_value();
     $config->{'OverscanV'} =
@@ -6349,7 +6372,8 @@ sub save_preferences {
     # projector options
     $config->{'BGImage'} =
       $widgets->{'prefs'}->get_object('imagePrefBG')->{user_data};
-    $config->{'DefaultTransition'} = $widgets->{'prefs'}->get_object('comboPrefDefTrans')->get_active_id();
+    $config->{'DefaultTransition'} =
+      $widgets->{'prefs'}->get_object('comboPrefDefTrans')->get_active_id();
     $config->{'IgnoreMouse'} =
       $widgets->{'prefs'}->get_object('checkPrefMouse')->get_active()
       ? 1
@@ -7001,15 +7025,17 @@ sub init_mainWindow {
     my $group2   = 0;
     foreach (keys $config->{'Apps'}) {
         my $appMenuItem = Gtk3::MenuItem->new_with_label($_);
-        $appMenuItem->signal_connect(activate => \&execute_app,
-            $config->{'Apps'}->{$_});
+        $appMenuItem->signal_connect(
+            activate => \&execute_app,
+            $config->{'Apps'}->{$_}
+        );
         $appMenuItem->show;
         $menutop2->append($appMenuItem);
     }
     $widgets->{'main'}->get_object('applications1')->set_submenu($menutop2);
 
     # DRAG and DROP
-    my @targets= ( Gtk3::TargetEntry->new('STRING',0,0));
+    my @targets = (Gtk3::TargetEntry->new('STRING', 0, 0));
     $widgets->{'main'}->get_object('treeAvailable')
       ->drag_source_set(['button1_mask'], \@targets, ['copy']);
     $widgets->{'main'}->get_object('iconviewBack')
@@ -7018,8 +7044,8 @@ sub init_mainWindow {
       ->drag_source_set(['button1_mask'], \@targets, ['copy']);
     $widgets->{'main'}->get_object('treePlaylist')
       ->drag_source_set(['button1_mask'], \@targets, ['copy', 'move']);
-    $widgets->{'main'}->get_object('treePlaylist')->drag_dest_set(
-        'all', \@targets, ['copy', 'move']);
+    $widgets->{'main'}->get_object('treePlaylist')
+      ->drag_dest_set('all', \@targets, ['copy', 'move']);
 
     init_preview();
     init_miniview();
@@ -7280,7 +7306,7 @@ sub imgdir_load {
         if ($ret) {
             foreach $file (sort readdir(DIR)) {
                 if ((!($file =~ /^\./)) && (!(-d $dirname . "/" . $file))) {
-                    print $type . ";" . $dirname . "/" . $file."\n";
+                    print $type . ";" . $dirname . "/" . $file . "\n";
                     do_pending();
                     my $iter = $store->append;
                     $file = fromutf($file);
@@ -7315,8 +7341,8 @@ sub imgdir_thumbnails {
     my ($iconview) = @_;
     debug("Loading thumbnails");
     my $store = $iconview->get_model;
-    if (!defined $store) { return;}
-    my $iter  = $store->get_iter_first;
+    if (!defined $store) { return; }
+    my $iter = $store->get_iter_first;
     while (defined $iter) {
         my $id = $store->get_value($iter, 2);
         my $scaled = create_pixbuf(
@@ -7397,17 +7423,22 @@ sub spell_check {
             debug("Running spell checker");
             foreach $page (
                 sort { $pageOrder{$a} cmp $pageOrder{$b} }
-                keys %pageOrder) {
+                keys %pageOrder
+              )
+            {
                 if (!defined $widgets->{'spellAPage'}{$page}) {
                     $widgets->{'spellAPage'}{$page} = GtkSpell::Checker->new();
-                    $widgets->{'spellAPage'}{$page}->attach($widgets->{'textAPage'}{$page});
+                    $widgets->{'spellAPage'}{$page}
+                      ->attach($widgets->{'textAPage'}{$page});
                 }
             }
         } else {
             debug("Disable spell checker");
             foreach $page (
                 sort { $pageOrder{$a} cmp $pageOrder{$b} }
-                keys %pageOrder) {
+                keys %pageOrder
+              )
+            {
                 if (defined $widgets->{'spellAPage'}{$page}) {
                     $widgets->{'spellAPage'}{$page}->detach();
                 }
@@ -7652,14 +7683,18 @@ sub change_bgimage {
               ->signal_connect(clicked => \&close_dialog);
             $widgets->{'image'}->get_object('hboxImageColour')->show();
             $widgets->{'image'}->get_object('colorbuttonFontColour')
-              ->signal_connect(button_press_event => \&open_dialogColour,
-                "ImageFont");
+              ->signal_connect(
+                button_press_event => \&open_dialogColour,
+                "ImageFont"
+              );
 
             #$widgets->{'image'}->get_object('entryImageFontColour')
             #->signal_connect("changed" => \&change_colour_media);
             $widgets->{'image'}->get_object('colorbuttonShadowColour')
-              ->signal_connect(button_press_event => \&open_dialogColour,
-                "ImageShadow");
+              ->signal_connect(
+                button_press_event => \&open_dialogColour,
+                "ImageShadow"
+              );
 
             #$widgets->{'image'}->get_object('entryImageShadowColour')
             #->signal_connect("changed" => \&change_colour_media);
@@ -7746,8 +7781,8 @@ sub on_treeAvailable_drag_data_get {
     my ($widget, $context, $data, $info, $time) = @_;
     debug("Dragged from available songs");
     my $selection = $widget->get_selection;
-    my ($sel, $model)  = $selection->get_selected_rows;
-    my $iter      = $model->get_iter(@$sel[0]);
+    my ($sel, $model) = $selection->get_selected_rows;
+    my $iter = $model->get_iter(@$sel[0]);
     if ($iter) {
         $data->set($data->target, 8, $model->get($iter, 3));
     }
@@ -8138,7 +8173,7 @@ sub apply_transition_selected {
     my $selection =
       $widgets->{'main'}->get_object('treePlaylist')->get_selection;
     if ($selection) {
-        my ($list, $model)  = $selection->get_selected_rows();
+        my ($list, $model) = $selection->get_selected_rows();
         foreach (@$list) {
             apply_transition($model->get($model->get_iter($_), 2), $trans_type);
         }
@@ -8677,8 +8712,7 @@ sub init_preview {
             $widgets->{'main'}->get_object('framePreview')
               ->set_size_request(100, 75);
             $widgets->{'main'}->get_object('framePreview')
-              ->set(0.5, 0.5, $config->{'Width'} / $config->{'Height'},
-                0);
+              ->set(0.5, 0.5, $config->{'Width'} / $config->{'Height'}, 0);
             $widgets->{'preview'} = Gtk3::Socket->new;
             $widgets->{'preview'}->show;
             $widgets->{'main'}->get_object('framePreview')
@@ -8814,9 +8848,10 @@ sub init_miniview {
                         1;
                     }
                 );
-                $widgets->{'miniview_event'}->{$display}
-                  ->signal_connect(button_release_event =>
-                    \&toggle_server_active, $display);
+                $widgets->{'miniview_event'}->{$display}->signal_connect(
+                    button_release_event => \&toggle_server_active,
+                    $display
+                );
             }
             if ($miniviews{$display}) {
                 $miniviews{$display} &= 1;    # Clear check bit
@@ -9066,25 +9101,32 @@ sub create_pixbuf {
         if (($width > $globals->{'thumb_width'}) || ($width == 0)) {
 
             # Bigger than cache value so just send new pixbuf
-            $pixbuf = Gtk3::Gdk::Pixbuf->new_from_file_at_scale($id, $width, $height, TRUE);
+            $pixbuf =
+              Gtk3::Gdk::Pixbuf->new_from_file_at_scale($id, $width, $height,
+                TRUE);
             if (defined $pixbuf) {
                 return $pixbuf;
             }
         }
         my $mtime = (stat($id))[9];
         $id =~ s/\/+/\//g;
-        
+
         my $gfile = Glib::IO::File::new_for_path($id);
         if (!$gfile->query_exists()) {
             return undef;
         }
-        my $thumbpath = $globals->{'thumbnail_factory'}->lookup($gfile->get_uri(),$mtime);
+        my $thumbpath =
+          $globals->{'thumbnail_factory'}->lookup($gfile->get_uri(), $mtime);
         if (defined $thumbpath) {
-            $pixbuf = Gtk3::Gdk::Pixbuf->new_from_file_at_scale($thumbpath, $width,$height, TRUE);
+            $pixbuf =
+              Gtk3::Gdk::Pixbuf->new_from_file_at_scale($thumbpath, $width,
+                $height, TRUE);
         } else {
-            $pixbuf = $globals->{'thumbnail_factory'}->generate_thumbnail($gfile->get_uri());
-            $globals->{'thumbnail_factory'}->save_thumbnail($pixbuf,$gfile->get_uri(),(stat($id))[9]);
-            $pixbuf=$pixbuf->scale_simple($width,$height, 'bilinear');
+            $pixbuf = $globals->{'thumbnail_factory'}
+              ->generate_thumbnail($gfile->get_uri());
+            $globals->{'thumbnail_factory'}
+              ->save_thumbnail($pixbuf, $gfile->get_uri(), (stat($id))[9]);
+            $pixbuf = $pixbuf->scale_simple($width, $height, 'bilinear');
         }
         return $pixbuf;
     } else {
@@ -9430,8 +9472,8 @@ sub update_quickedit {
 sub media_move {
     debug("Moving media");
     my $selection = $widgets->{'image'}->get_object('treeImage')->get_selection;
-    my ($selecteditems,$model) = $selection->get_selected_rows();
-    my @id            = ();
+    my ($selecteditems, $model) = $selection->get_selected_rows();
+    my @id = ();
     my $type =
       $widgets->{'image'}->get_object('optionImageCategory')->{'user_data'};
     if (@$selecteditems[0]) {
@@ -9466,8 +9508,10 @@ sub media_move {
             my $renderer = Gtk3::CellRendererText->new;
             my $selection =
               $choosexml->get_object('treeChoosePlay')->get_selection;
-            $selection->signal_connect(changed => \&update_category,
-                $choosexml);
+            $selection->signal_connect(
+                changed => \&update_category,
+                $choosexml
+            );
             my $column =
               Gtk3::TreeViewColumn->new_with_attributes("Category", $renderer,
                 text => 0);
@@ -9543,8 +9587,8 @@ sub do_move_media {
 sub media_delete {
     debug("Deleting media");
     my $selection = $widgets->{'image'}->get_object('treeImage')->get_selection;
-    my ($selecteditems, $model) = $selection->get_selected_rows(); 
-    my @id            = ();
+    my ($selecteditems, $model) = $selection->get_selected_rows();
+    my @id = ();
     if (@$selecteditems[0]) {
         my $title = "";
         foreach (@$selecteditems) {
@@ -12364,8 +12408,10 @@ sub load_biblemenu {
             if ($group == -1) {
                 $group = $bibleMenu->{$_}->get_group;
             }
-            $bibleMenu->{$_}->signal_connect(toggled => \&select_bible_db,
-                $bible[0] . ";" . $_);
+            $bibleMenu->{$_}->signal_connect(
+                toggled => \&select_bible_db,
+                $bible[0] . ";" . $_
+            );
             if (defined($defbible) && ($_ eq $defbible)) {
                 $bibleMenu->{$_}->set_active(TRUE);
             }
@@ -12753,16 +12799,22 @@ sub biblebrowser_loaditems {
               Gtk3::Button->new(fromutf(gettext(@$items[$itemnum])));
             if ($section eq "book") {
                 $widgets->{'bibleBrowser'}{'button' . $itemnum}
-                  ->signal_connect("clicked" => \&biblebrowser_book,
-                    @$items[$itemnum]);
+                  ->signal_connect(
+                    "clicked" => \&biblebrowser_book,
+                    @$items[$itemnum]
+                  );
             } elsif ($section eq "chapter") {
                 $widgets->{'bibleBrowser'}{'button' . $itemnum}
-                  ->signal_connect("clicked" => \&biblebrowser_chapter,
-                    @$items[$itemnum]);
+                  ->signal_connect(
+                    "clicked" => \&biblebrowser_chapter,
+                    @$items[$itemnum]
+                  );
             } elsif ($section eq "verse") {
                 $widgets->{'bibleBrowser'}{'button' . $itemnum}
-                  ->signal_connect("clicked" => \&biblebrowser_verse,
-                    @$items[$itemnum]);
+                  ->signal_connect(
+                    "clicked" => \&biblebrowser_verse,
+                    @$items[$itemnum]
+                  );
             }
         }
         $sizegroup->add_widget($widgets->{'bibleBrowser'}{'button' . $itemnum});
@@ -13413,7 +13465,8 @@ sub gather_debug {
 
 sub load_window {
     my ($ui_name) = @_;
-    my $builder = Gtk3::Builder->new_from_file($globals->{'sharedir'} . $ui_name . ".ui");
+    my $builder =
+      Gtk3::Builder->new_from_file($globals->{'sharedir'} . $ui_name . ".ui");
     $builder->set_translation_domain('lyricue');
     $builder->connect_signals(undef);
 
@@ -13749,8 +13802,8 @@ sub combo_set_active {
     my $id_col = $combo->get_id_column();
     if (defined $value) {
         my $model = $combo->get_model();
-        my $iter = $model->get_iter_first();
-        while ($model->get($iter,$id_col) ne $value) {
+        my $iter  = $model->get_iter_first();
+        while ($model->get($iter, $id_col) ne $value) {
             my $ret = $model->iter_next($iter);
             if (!$ret) { return; }
         }
