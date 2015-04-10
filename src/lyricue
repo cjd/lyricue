@@ -251,12 +251,14 @@ $globals->{'local_hostname'}     = hostname();
 $globals->{'preview_starting'}   = 0;
 
 # Optional modules
-eval { require Gtk3::Spell };
+# Import Gtkspell
+eval { Glib::Object::Introspection->setup(
+    basename => 'GtkSpell',
+    version => '3.0',
+    package => 'GtkSpell'); };
 if ($@) {
     print STDERR "Gtk-Spell not available, spell checking turned off\n";
     $globals->{'spell'} = FALSE;
-} else {
-    import Gtk3::Spell;
 }
 if ($globals->{'diatheke'} eq "") {
     $globals->{'diatheke'} = "true";
@@ -1260,10 +1262,10 @@ sub manage_bg {
     $widgets->{'image'}->get_object('colorbuttonFontColour')
       ->signal_connect(button_press_event => \&open_dialogColour, "ImageFont");
     $widgets->{'image'}->get_object('colorbuttonShadowColour')
-      ->signal_connect("button_press_event", "open_dialogColour",
+      ->signal_connect("button_press_event" => \&open_dialogColour,
         "ImageShadow");
     $widgets->{'image'}->get_object('buttonImageOK')
-      ->signal_connect('clicked', "close_dialog");
+      ->signal_connect('clicked' => \&close_dialog);
     $widgets->{'image'}->get_object('buttonImageCancel')->hide();
     $widgets->{'image'}->get_object('hboxImageColour')->show();
     $widgets->{'image'}->get_object('dialogImage')->show;
@@ -1391,7 +1393,7 @@ sub add_song {
     load_presets();
     start_editview();
     $widgets->{'add'}->get_object('buttonEditPreviewServer')
-      ->signal_connect("clicked", "preview_page", "SERVER");
+      ->signal_connect("clicked" => \&preview_page, "SERVER");
     $widgets->{'add'}->get_object('notebookEditPages')->remove_page(0);
     %pageOrder = ();
     add_page();
@@ -1826,7 +1828,7 @@ sub add_page {
     $widgets->{'eventAPage'}{$hashnum}->set_above_child(FALSE);
     $widgets->{'eventAPage'}{$hashnum}->set_visible_window(FALSE);
     $widgets->{'eventAPage'}{$hashnum}
-      ->signal_connect('button-press-event', 'update_pagename');
+      ->signal_connect('button-press-event' => \&update_pagename);
 
     $pageOrder{$hashnum} = $pagenum;
     $widgets->{'add'}->get_object('notebookEditPages')
@@ -1863,7 +1865,7 @@ sub update_pagename {
         my $entry   = Gtk3::Entry->new;
         $entry->{user_data} = $hashnum;
         $entry->set_text($widgets->{'labelAPage'}{$hashnum}->get_label);
-        $entry->signal_connect('activate', 'do_update_pagename');
+        $entry->signal_connect(activate => \&do_update_pagename);
         $widgets->{'add'}->get_object('notebookEditPages')
           ->set_tab_label($widgets->{'scrollAPage'}{$hashnum}, $entry);
     }
@@ -2072,7 +2074,7 @@ sub edit_song {
                 load_presets();
                 start_editview();
                 $widgets->{'add'}->get_object('buttonEditPreviewServer')
-                  ->signal_connect("clicked", "preview_page", "SERVER");
+                  ->signal_connect("clicked" => \&preview_page, "SERVER");
                 %pageOrder = ();
                 $widgets->{'add'}->get_object('notebookEditPages')
                   ->remove_page(0);
@@ -2082,7 +2084,7 @@ sub edit_song {
         } else {
             $widgets->{'add'} = load_window("windowEditSong");
             $widgets->{'add'}->get_object('buttonEditPreviewServer')
-              ->signal_connect("clicked", "preview_page", "SERVER");
+              ->signal_connect("clicked" => \&preview_page, "SERVER");
             load_presets();
             start_editview();
             %pageOrder = ();
@@ -2102,7 +2104,7 @@ sub load_presets() {
         my $presetMenuItem = Gtk3::MenuItem->new_with_label(
             "Preset " . $preset_num . ": " . $config->{'Preset' . $preset_num});
         $presetMenuItem->{user_data} = $preset_num;
-        $presetMenuItem->signal_connect("activate", "add_copyright_preset",
+        $presetMenuItem->signal_connect("activate" => \&add_copyright_preset,
             $preset_num);
         $menutop->append($presetMenuItem);
         $presetMenuItem->show();
@@ -2253,7 +2255,7 @@ sub import_song {
     debug("import song");
     my $filexml = load_window("dialogFileChooser");
     $filexml->get_object('buttonFileOK')
-      ->signal_connect("clicked", "do_import_song", $filexml);
+      ->signal_connect("clicked" => \&do_import_song, $filexml);
     $filexml->get_object('dialogFileChooser')
       ->set_title(gettext("Select song to import"));
     $filexml->get_object('dialogFileChooser')->show_all();
@@ -3894,7 +3896,7 @@ sub open_dialogColour {
           ->set_current_color($widget->get_color());
     }
     $colourxml->get_object('buttonColourOK')
-      ->signal_connect("clicked", "change_font_colour", $colourxml);
+      ->signal_connect("clicked" => \&change_font_colour, $colourxml);
     $colourxml->get_object('buttonColourCancel')
       ->signal_connect(clicked => \&close_dialog);
     my $response = $colourxml->get_object('dialogColour')->run();
@@ -3924,7 +3926,7 @@ sub open_dialogFont {
     my $fontname = $config->{$font};
     $widgets->{'font'}->get_object('selectFont')->set_font_name($fontname);
     $widgets->{'font'}->get_object('buttonFontOK')
-      ->signal_connect("clicked", "apply_font", $font);
+      ->signal_connect("clicked" => \&apply_font, $font);
     $widgets->{'font'}->get_object('dialogFont')->show;
     return TRUE;
 }
@@ -4126,7 +4128,7 @@ sub change_preview {
         %selectedimages = ();
         foreach $tmp (@$selecteditems) {
             my $iter2 = $model->get_iter($tmp);
-            my $id2 = $modelage->get($iter2, 1);
+            my $id2 = $model->get($iter2, 1);
             $selectedimages{$id2} = TRUE;
         }
 
@@ -4802,19 +4804,19 @@ sub create_dialog_prefs {
 
     # Signals
     $widgets->{'prefs'}->get_object('entryPrefHeader')
-      ->signal_connect("button_press_event", "open_dialogFont", "Header");
+      ->signal_connect("button_press_event" => \&open_dialogFont, "Header");
     $widgets->{'prefs'}->get_object('entryPrefMain')
-      ->signal_connect("button_press_event", "open_dialogFont", "Main");
+      ->signal_connect("button_press_event" => \&open_dialogFont, "Main");
     $widgets->{'prefs'}->get_object('entryPrefFooter')
-      ->signal_connect("button_press_event", "open_dialogFont", "Footer");
+      ->signal_connect("button_press_event" => \&open_dialogFont, "Footer");
     $widgets->{'prefs'}->get_object('entryPrefOSD')
-      ->signal_connect("button_press_event", "open_dialogFont", "OSD");
+      ->signal_connect("button_press_event" => \&open_dialogFont, "OSD");
     $widgets->{'prefs'}->get_object('entryPrefColour')
-      ->signal_connect("button_press_event", "open_dialogColour", "Font");
+      ->signal_connect("button_press_event" => \&open_dialogColour, "Font");
     $widgets->{'prefs'}->get_object('entryPrefShadowColour')
-      ->signal_connect("button_press_event", "open_dialogColour", "Shadow");
+      ->signal_connect("button_press_event" => \&open_dialogColour, "Shadow");
     $widgets->{'prefs'}->get_object('comboPrefsProfile')
-      ->signal_connect("changed", "change_pref_profile", "prefs");
+      ->signal_connect("changed" => \&change_pref_profile, "prefs");
 }
 
 #***
@@ -7391,18 +7393,25 @@ sub spell_check {
     my ($widget) = @_;
     my ($page);
     if ($globals->{'spell'}) {
-        debug("Running spell checker");
-
-        foreach $page (
-            sort { $pageOrder{$a} cmp $pageOrder{$b} }
-            keys %pageOrder
-          )
-        {
-            if (!defined $widgets->{'spellAPage'}{$page}) {
-                $widgets->{'spellAPage'}{$page} =
-                  Gtk3::Spell->new($widgets->{'textAPage'}{$page});
+        if ($widget->get_active) {
+            debug("Running spell checker");
+            foreach $page (
+                sort { $pageOrder{$a} cmp $pageOrder{$b} }
+                keys %pageOrder) {
+                if (!defined $widgets->{'spellAPage'}{$page}) {
+                    $widgets->{'spellAPage'}{$page} = GtkSpell::Checker->new();
+                    $widgets->{'spellAPage'}{$page}->attach($widgets->{'textAPage'}{$page});
+                }
             }
-
+        } else {
+            debug("Disable spell checker");
+            foreach $page (
+                sort { $pageOrder{$a} cmp $pageOrder{$b} }
+                keys %pageOrder) {
+                if (defined $widgets->{'spellAPage'}{$page}) {
+                    $widgets->{'spellAPage'}{$page}->detach();
+                }
+            }
         }
     }
 }
@@ -7647,13 +7656,13 @@ sub change_bgimage {
                 "ImageFont");
 
             #$widgets->{'image'}->get_object('entryImageFontColour')
-            #->signal_connect("changed", "change_colour_media");
+            #->signal_connect("changed" => \&change_colour_media);
             $widgets->{'image'}->get_object('colorbuttonShadowColour')
               ->signal_connect(button_press_event => \&open_dialogColour,
                 "ImageShadow");
 
             #$widgets->{'image'}->get_object('entryImageShadowColour')
-            #->signal_connect("changed", "change_colour_media");
+            #->signal_connect("changed" => \&change_colour_media);
         }
         $widgets->{'image'}->get_object('treeImage')->{user_data} = "load";
         my $renderer = Gtk3::CellRendererText->new;
@@ -10822,54 +10831,9 @@ sub text_set_cursor_if_appropriate {
 #
 #***
 
-#****f* lyricue/text_motion_notify_event
-# NAME
-#   text_motion_notify_event
-# SYNOPSIS
-#   text_motion_notify_event($text_view, $event)
-# FUNCTION
-#
-# INPUTS
-#   $text_view -
-#    $event -
-# OUTPUT
-# SOURCE
-#
-sub text_motion_notify_event {
-    my ($text_view, $event) = @_;
-    my ($x, $y) =
-      $text_view->window_to_buffer_coords('widget', $event->x, $event->y);
-    text_set_cursor_if_appropriate($text_view, $x, $y);
-    $text_view->window->get_pointer;
-    return FALSE;
-}
-
 # Also update the cursor image if the window becomes visible
 # (e.g. when a window covering it got iconified).
 #
-#***
-
-#****f* lyricue/text_visibility_notify_event
-# NAME
-#   text_visibility_notify_event
-# SYNOPSIS
-#   text_visibility_notify_event($text_view, $event)
-# FUNCTION
-#
-# INPUTS
-#   $text_view -
-#    $event -
-# OUTPUT
-# SOURCE
-#
-sub text_visibility_notify_event {
-    my ($text_view, $event) = @_;
-    my (undef, $wx, $wy, undef) = $text_view->window->get_pointer;
-    my ($bx, $by) = $text_view->window_to_buffer_coords('widget', $wx, $wy);
-    text_set_cursor_if_appropriate($text_view, $bx, $by);
-    return FALSE;
-}
-
 #***
 
 #****f* lyricue/import_song_from_file
@@ -12662,10 +12626,9 @@ sub biblebrowser_chapter {
         }
         biblebrowser_loaditems("verse", \@items, 8);
         if ($source ne "entry") {
-            $widgets->{'main'}->get_object('entryNavVerseText')
-              ->set_text($book . " ");
-            $widgets->{'main'}->get_object('entryNavVerseText')
-              ->set_position(-1);
+            $widgets->{'main'}->get_object('entryNavVerse')
+              ->prepend(text => $book . " ");
+            $widgets->{'main'}->get_object('entryNavVerse')->set_active(0);
         }
     }
 }
@@ -12788,9 +12751,19 @@ sub biblebrowser_loaditems {
         } else {
             $widgets->{'bibleBrowser'}{'button' . $itemnum} =
               Gtk3::Button->new(fromutf(gettext(@$items[$itemnum])));
-            $widgets->{'bibleBrowser'}{'button' . $itemnum}
-              ->signal_connect("clicked", "biblebrowser_" . $section,
-                @$items[$itemnum]);
+            if ($section eq "book") {
+                $widgets->{'bibleBrowser'}{'button' . $itemnum}
+                  ->signal_connect("clicked" => \&biblebrowser_book,
+                    @$items[$itemnum]);
+            } elsif ($section eq "chapter") {
+                $widgets->{'bibleBrowser'}{'button' . $itemnum}
+                  ->signal_connect("clicked" => \&biblebrowser_chapter,
+                    @$items[$itemnum]);
+            } elsif ($section eq "verse") {
+                $widgets->{'bibleBrowser'}{'button' . $itemnum}
+                  ->signal_connect("clicked" => \&biblebrowser_verse,
+                    @$items[$itemnum]);
+            }
         }
         $sizegroup->add_widget($widgets->{'bibleBrowser'}{'button' . $itemnum});
         $widgets->{'bibleBrowser'}{'button' . $itemnum}->show;
