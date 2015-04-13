@@ -545,7 +545,7 @@ sub close_main {
     do_pending();
 
     # Save current state
-    write_config();
+    write_config_quick();
 
     $lyricDbh->disconnect;
     if ((!$globals->{'usesword'}) && ($bibleDbh != NULL)) {
@@ -1188,14 +1188,24 @@ sub popup_avail_menu {
             $event->time);
         return (TRUE);
     } else {
-        my $path = $widget->get_path_at_pos($event->x, $event->y);
+debug ($event->x.", ".$event->y);
+        my ($x1,$y1) = $widgets->{'main'}->get_object('treeAvailable')->convert_widget_to_bin_window_coords($event->x, $event->y);
+        #my $path = $widgets->{'main'}->get_object('treeAvailable')->get_path_at_pos($event->x, $event->y);
+        my $path = $widgets->{'main'}->get_object('treeAvailable')->get_path_at_pos($x1, $y1);
         if (!defined $path) {
             return FALSE;
         }
         debug("song selected");
         my $model  = $widgets->{'main'}->get_object('treeAvailable')->get_model;
-        my $iter   = $model->get_iter($path);
+debug ($model);
+debug ($path);
+        my $pstr = Gtk3::TreePath->new($path);
+debug ($pstr);
+        my $iter   = $model->get_iter($pstr);
+print $iter;
+debug ($iter);
         my $songid = $model->get($iter, 3);
+debug ("c");
         my $query =
             "SELECT pageid FROM page WHERE songid="
           . $songid
@@ -1251,7 +1261,7 @@ sub manage_bg {
       $widgets->{'main'}->get_object('iconviewBack')->get_selected_items;
     if (defined $list[0]) {
         my $model = $widgets->{'main'}->get_object('iconviewBack')->get_model;
-        my $iter  = $model->get_iter($list[0]);
+        my $iter  = $model->get_iter($list[0][0]);
         $selected = $model->get($iter, 2);
     }
     if ($selected eq "") {
@@ -2968,7 +2978,7 @@ sub display_song {
         if (defined $list[0]) {
             my $model =
               $widgets->{'main'}->get_object('iconPlaylist')->get_model;
-            my $iter = $model->get_iter($list[0]);
+            my $iter = $model->get_iter($list[0][0]);
             update_display("display", $model->get($iter, 2), "");
         }
     } else {
@@ -3408,7 +3418,7 @@ sub add_image_pl {
     my @list     = $widget->get_selected_items;
     if (defined $list[0]) {
         my $model = $widget->get_model;
-        my $iter  = $model->get_iter($list[0]);
+        my $iter  = $model->get_iter($list[0][0]);
         $selected = $model->get($iter, 2);
     }
     if ($selected ne "") {
@@ -3780,7 +3790,7 @@ sub preview_playlist_item {
         if (defined $list[0]) {
             my $model =
               $widgets->{'main'}->get_object('iconPlaylist')->get_model;
-            my $iter = $model->get_iter($list[0]);
+            my $iter = $model->get_iter($list[0][0]);
             preview_display("display", $model->get($iter, 2), undef, FALSE);
         }
     } else {
@@ -4383,7 +4393,7 @@ sub backdrop_clicked {
         my @list     = $widget->get_selected_items;
         if (defined $list[0]) {
             my $model = $widget->get_model;
-            my $iter  = $model->get_iter($list[0]);
+            my $iter  = $model->get_iter($list[0][0]);
             $selected = $model->get($iter, 2);
         }
         if ($selected eq "") {
@@ -4557,13 +4567,17 @@ sub add_item {
         );
         if ($scaled) {
             my $snapshot = $scaled->save_to_buffer("jpeg");
+            my $data = "";
+            foreach my $c (@$snapshot) {
+                $data .= chr($c);
+            }
             $sth = $lyricDbh->prepare(
                 q{UPDATE playlist SET snapshot = ? WHERE playorder=?})
               || database_failure($errorcodes->{'sqlprepare'},
-                $! . "\nSQL: " . $query);
-            my $rv = $sth->execute($snapshot, $playorder)
+                $! . "\nSQL: UPDATE playlist SET snapshot = ? WHERE playorder=?");
+            my $rv = $sth->execute($data, $playorder)
               || database_failure($errorcodes->{'sqlexecute'},
-                $! . "\nSQL: " . $query);
+                $! . "\nSQL: UPDATE playlist SET snapshot = ? WHERE playorder=?");
         }
     }
     $playorder++;
@@ -6434,6 +6448,27 @@ sub save_preferences {
 
 #***
 
+#****f* lyricue/write_config_quick
+# NAME
+#   write_config_quick
+# SYNOPSIS
+#   write_config_quick()
+# FUNCTION
+#   Writing preferences on shutdown
+# INPUTS
+# OUTPUT
+# SOURCE
+#
+sub write_config_quick {
+    debug("Writing preferences (quick)");
+    foreach ("FrameLeft", "FrameRight") {
+        $query = "UPDATE config SET config_value = \"".$config->{$_}."\" WHERE profile = \"".$globals->{'profile'}."\" AND config_key = \"".$_."\"";
+        $sth = do_query($lyricDbh, $query, FALSE);
+    }
+}
+
+#***
+
 #****f* lyricue/write_config
 # NAME
 #   write_config
@@ -6508,8 +6543,8 @@ sub file_ok_sel {
     my $main_playlist =
       $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data};
     my @filenames = $filexml->get_object('dialogFileChooser')->get_filenames;
-    foreach (@filenames) {
-        do_add_file($_, $main_playlist);
+    foreach my $file (@filenames) {
+        do_add_file(@$file[0], $main_playlist);
     }
     update_playlist();
     close_dialog($widget);
@@ -7813,7 +7848,7 @@ sub on_iconviewBack_drag_data_get {
     my @list     = $widget->get_selected_items;
     if (defined $list[0]) {
         my $model = $widget->get_model;
-        my $iter  = $model->get_iter($list[0]);
+        my $iter  = $model->get_iter($list[0][0]);
         $selected = $model->get($iter, 2);
     }
     if ($selected ne "") {
@@ -7846,7 +7881,7 @@ sub on_iconviewImage_drag_data_get {
     my @list     = $widget->get_selected_items;
     if (defined $list[0]) {
         my $model = $widget->get_model;
-        my $iter  = $model->get_iter($list[0]);
+        my $iter  = $model->get_iter($list[0][0]);
         $selected = $model->get($iter, 2);
     }
     if ($selected ne "") {
@@ -9122,11 +9157,14 @@ sub create_pixbuf {
               Gtk3::Gdk::Pixbuf->new_from_file_at_scale($thumbpath, $width,
                 $height, TRUE);
         } else {
-            $pixbuf = $globals->{'thumbnail_factory'}
-              ->generate_thumbnail($gfile->get_uri());
-            $globals->{'thumbnail_factory'}
-              ->save_thumbnail($pixbuf, $gfile->get_uri(), (stat($id))[9]);
-            $pixbuf = $pixbuf->scale_simple($width, $height, 'bilinear');
+            my $mimetype = globs($id);
+            if ($mimetype && $globals->{'thumbnail_factory'}->can_thumbnail($gfile->get_uri(),$mimetype,$mtime)) {
+                $pixbuf = $globals->{'thumbnail_factory'}
+                  ->generate_thumbnail($gfile->get_uri(),$mimetype);
+                $globals->{'thumbnail_factory'}
+                  ->save_thumbnail($pixbuf, $gfile->get_uri(), $mtime);
+                $pixbuf = $pixbuf->scale_simple($width, $height, 'bilinear');
+            }
         }
         return $pixbuf;
     } else {
