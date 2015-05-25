@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.18.1 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
-  <!-- interface-naming-policy project-wide -->
   <object class="GtkAdjustment" id="adjustment1">
     <property name="lower">640</property>
     <property name="upper">1920</property>
@@ -16,16 +16,27 @@
     <property name="step_increment">10</property>
     <property name="page_increment">100</property>
   </object>
+  <object class="GtkListStore" id="modelFRBible">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">None selected</col>
+      </row>
+    </data>
+  </object>
   <object class="GtkAssistant" id="assistantFirstRun">
     <property name="can_focus">False</property>
     <property name="modal">True</property>
     <property name="window_position">center</property>
     <property name="type_hint">dialog</property>
     <property name="deletable">False</property>
-    <signal name="close" handler="firstrun_close" swapped="no"/>
     <signal name="apply" handler="firstrun_apply" swapped="no"/>
-    <signal name="prepare" handler="firstrun_prepare" swapped="no"/>
     <signal name="cancel" handler="firstrun_cancel" swapped="no"/>
+    <signal name="close" handler="firstrun_close" swapped="no"/>
+    <signal name="prepare" handler="firstrun_prepare" swapped="no"/>
     <child>
       <object class="GtkLabel" id="labelFRIntro">
         <property name="visible">True</property>
@@ -35,7 +46,6 @@
       </object>
       <packing>
         <property name="page_type">intro</property>
-        <property name="sidebar_image">Lyricue-first-run-sidebar.png</property>
         <property name="complete">True</property>
       </packing>
     </child>
@@ -43,6 +53,7 @@
       <object class="GtkBox" id="vboxFRHost">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkLabel" id="labelFRHostDesc">
             <property name="visible">True</property>
@@ -58,44 +69,33 @@ You can set the hostname where the database is run here.
           </packing>
         </child>
         <child>
-          <object class="GtkExpander" id="expanderFRHost">
+          <object class="GtkBox" id="box1">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <child>
-              <object class="GtkTable" id="tableFRHostnames">
+              <object class="GtkLabel" id="labelFRHostDB">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="n_rows">1</property>
-                <property name="n_columns">2</property>
-                <child>
-                  <object class="GtkLabel" id="labelFRHostDB">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Database hostname</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entryFRHostDB">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="primary_icon_activatable">False</property>
-                    <property name="secondary_icon_activatable">False</property>
-                    <property name="primary_icon_sensitive">True</property>
-                    <property name="secondary_icon_sensitive">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                  </packing>
-                </child>
+                <property name="label" translatable="yes">Database hostname</property>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
-            <child type="label">
-              <object class="GtkLabel" id="labelFRHostAdv">
+            <child>
+              <object class="GtkEntry" id="entryFRHostDB">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Advanced</property>
+                <property name="can_focus">True</property>
+                <property name="primary_icon_activatable">False</property>
+                <property name="secondary_icon_activatable">False</property>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
             </child>
           </object>
           <packing>
@@ -106,15 +106,90 @@ You can set the hostname where the database is run here.
         </child>
       </object>
       <packing>
-        <property name="sidebar_image">Lyricue-first-run-sidebar.png</property>
+        <property name="title" translatable="yes">Host</property>
       </packing>
     </child>
     <child>
-      <object class="GtkTable" id="tableFRDB">
+      <object class="GtkGrid" id="gridFRSql">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="n_rows">5</property>
-        <property name="n_columns">2</property>
+        <child>
+          <object class="GtkLabel" id="labelFRDBCheck">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">&lt;i&gt;Username/Password failed&lt;/i&gt;</property>
+            <property name="use_markup">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">4</property>
+            <property name="width">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label18">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Password:</property>
+            <property name="justify">right</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label17">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Username:</property>
+            <property name="justify">right</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entryFRPassword">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="visibility">False</property>
+            <property name="activates_default">True</property>
+            <property name="primary_icon_activatable">False</property>
+            <property name="secondary_icon_activatable">False</property>
+            <signal name="changed" handler="firstrun_pw_changed" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSeparator" id="hseparatorFR1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">1</property>
+            <property name="width">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entryFRUsername">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">root</property>
+            <property name="primary_icon_activatable">False</property>
+            <property name="secondary_icon_activatable">False</property>
+            <signal name="changed" handler="firstrun_pw_changed" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
         <child>
           <object class="GtkLabel" id="label19">
             <property name="visible">True</property>
@@ -127,255 +202,30 @@ To do this I need your mysql root users password.
             <property name="wrap">True</property>
           </object>
           <packing>
-            <property name="right_attach">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label17">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Username:</property>
-            <property name="justify">right</property>
-          </object>
-          <packing>
-            <property name="top_attach">2</property>
-            <property name="bottom_attach">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label18">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Password:</property>
-            <property name="justify">right</property>
-          </object>
-          <packing>
-            <property name="top_attach">3</property>
-            <property name="bottom_attach">4</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="entryFRUsername">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="text" translatable="yes">root</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
-            <property name="primary_icon_sensitive">True</property>
-            <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="firstrun_pw_changed" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
-            <property name="top_attach">2</property>
-            <property name="bottom_attach">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="entryFRPassword">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="visibility">False</property>
-            <property name="activates_default">True</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
-            <property name="primary_icon_sensitive">True</property>
-            <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="firstrun_pw_changed" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
-            <property name="top_attach">3</property>
-            <property name="bottom_attach">4</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkSeparator" id="hseparatorFR1">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-          </object>
-          <packing>
-            <property name="right_attach">2</property>
-            <property name="top_attach">1</property>
-            <property name="bottom_attach">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="labelFRDBCheck">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">&lt;i&gt;Username/Password failed&lt;/i&gt;</property>
-            <property name="use_markup">True</property>
-          </object>
-          <packing>
-            <property name="right_attach">2</property>
-            <property name="top_attach">4</property>
-            <property name="bottom_attach">5</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">0</property>
+            <property name="width">2</property>
           </packing>
         </child>
       </object>
       <packing>
-        <property name="sidebar_image">Lyricue-first-run-sidebar.png</property>
+        <property name="title" translatable="yes">MySQL Login</property>
       </packing>
     </child>
     <child>
-      <object class="GtkTable" id="tableFRServer">
+      <object class="GtkGrid" id="gridFRServer">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="n_rows">7</property>
-        <property name="n_columns">2</property>
-        <child>
-          <object class="GtkLabel" id="labelFRWidth">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="xalign">0</property>
-            <property name="label" translatable="yes">Width</property>
-          </object>
-          <packing>
-            <property name="top_attach">2</property>
-            <property name="bottom_attach">3</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="labelFRHeight">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="xalign">0</property>
-            <property name="label" translatable="yes">Height</property>
-          </object>
-          <packing>
-            <property name="top_attach">3</property>
-            <property name="bottom_attach">4</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkSpinButton" id="spinFRWidth">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
-            <property name="primary_icon_sensitive">True</property>
-            <property name="secondary_icon_sensitive">True</property>
-            <property name="adjustment">adjustment1</property>
-            <property name="climb_rate">1</property>
-            <property name="numeric">True</property>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
-            <property name="top_attach">2</property>
-            <property name="bottom_attach">3</property>
-            <property name="y_options"></property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkSpinButton" id="spinFRHeight">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
-            <property name="primary_icon_sensitive">True</property>
-            <property name="secondary_icon_sensitive">True</property>
-            <property name="adjustment">adjustment2</property>
-            <property name="climb_rate">10</property>
-            <property name="numeric">True</property>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
-            <property name="top_attach">3</property>
-            <property name="bottom_attach">4</property>
-            <property name="y_options"></property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label22">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="xalign">0</property>
-            <property name="label" translatable="yes">Vertical Text Location</property>
-          </object>
-          <packing>
-            <property name="top_attach">4</property>
-            <property name="bottom_attach">5</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkComboBox" id="comboFRVertical">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="model">modelFRVertical</property>
-            <child>
-              <object class="GtkCellRendererText" id="renderer1"/>
-              <attributes>
-                <attribute name="text">0</attribute>
-              </attributes>
-            </child>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
-            <property name="top_attach">4</property>
-            <property name="bottom_attach">5</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options">GTK_FILL</property>
-          </packing>
-        </child>
         <child>
           <object class="GtkLabel" id="label20">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="xalign">0</property>
             <property name="label" translatable="yes">Text Justification</property>
-          </object>
-          <packing>
-            <property name="top_attach">6</property>
-            <property name="bottom_attach">7</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label21">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="xalign">0</property>
-            <property name="label" translatable="yes">Horizontal Text Location</property>
           </object>
           <packing>
-            <property name="top_attach">5</property>
-            <property name="bottom_attach">6</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkComboBox" id="comboFRHorizontal">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="model">modelFRHorizontal</property>
-            <child>
-              <object class="GtkCellRendererText" id="renderer2"/>
-              <attributes>
-                <attribute name="text">0</attribute>
-              </attributes>
-            </child>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
-            <property name="top_attach">5</property>
-            <property name="bottom_attach">6</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options">GTK_FILL</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">6</property>
           </packing>
         </child>
         <child>
@@ -392,22 +242,65 @@ To do this I need your mysql root users password.
           </object>
           <packing>
             <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
             <property name="top_attach">6</property>
-            <property name="bottom_attach">7</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options">GTK_FILL</property>
           </packing>
         </child>
         <child>
-          <object class="GtkSeparator" id="hseparator2">
+          <object class="GtkLabel" id="label21">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Horizontal Text Location</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
-            <property name="right_attach">2</property>
-            <property name="top_attach">1</property>
-            <property name="bottom_attach">2</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label22">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Vertical Text Location</property>
+            <property name="xalign">0</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBox" id="comboFRHorizontal">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="model">modelFRHorizontal</property>
+            <child>
+              <object class="GtkCellRendererText" id="renderer2"/>
+              <attributes>
+                <attribute name="text">0</attribute>
+              </attributes>
+            </child>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBox" id="comboFRVertical">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="model">modelFRVertical</property>
+            <child>
+              <object class="GtkCellRendererText" id="renderer1"/>
+              <attributes>
+                <attribute name="text">0</attribute>
+              </attributes>
+            </child>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">4</property>
           </packing>
         </child>
         <child>
@@ -419,12 +312,83 @@ Here you can tell me what resolution your projector runs at and where you want t
             <property name="wrap">True</property>
           </object>
           <packing>
-            <property name="right_attach">2</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">0</property>
+            <property name="width">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="spinFRHeight">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">768</property>
+            <property name="primary_icon_activatable">False</property>
+            <property name="secondary_icon_activatable">False</property>
+            <property name="adjustment">adjustment2</property>
+            <property name="climb_rate">10</property>
+            <property name="numeric">True</property>
+            <property name="value">768</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="labelFRHeight">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Height</property>
+            <property name="xalign">0</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="labelFRWidth">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Width</property>
+            <property name="xalign">0</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="spinFRWidth">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">1024</property>
+            <property name="primary_icon_activatable">False</property>
+            <property name="secondary_icon_activatable">False</property>
+            <property name="adjustment">adjustment1</property>
+            <property name="climb_rate">1</property>
+            <property name="numeric">True</property>
+            <property name="value">1024</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSeparator" id="hseparator2">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">1</property>
+            <property name="width">2</property>
           </packing>
         </child>
       </object>
       <packing>
-        <property name="sidebar_image">Lyricue-first-run-sidebar.png</property>
+        <property name="title" translatable="yes">Server</property>
       </packing>
     </child>
     <child>
@@ -490,11 +454,11 @@ Here you can tell me what resolution your projector runs at and where you want t
         </child>
         <child>
           <object class="GtkFontButton" id="fontFRHeader">
+            <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
-            <property name="use_action_appearance">False</property>
-            <property name="font_name">Sans 20</property>
+            <property name="font">Sans 12</property>
             <property name="use_font">True</property>
           </object>
           <packing>
@@ -506,11 +470,11 @@ Here you can tell me what resolution your projector runs at and where you want t
         </child>
         <child>
           <object class="GtkFontButton" id="fontFRMain">
+            <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
-            <property name="use_action_appearance">False</property>
-            <property name="font_name">Sans 30</property>
+            <property name="font">Sans 12</property>
             <property name="use_font">True</property>
           </object>
           <packing>
@@ -522,11 +486,11 @@ Here you can tell me what resolution your projector runs at and where you want t
         </child>
         <child>
           <object class="GtkFontButton" id="fontFRFooter">
+            <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
-            <property name="use_action_appearance">False</property>
-            <property name="font_name">Sans 20</property>
+            <property name="font">Sans 12</property>
             <property name="use_font">True</property>
           </object>
           <packing>
@@ -538,11 +502,11 @@ Here you can tell me what resolution your projector runs at and where you want t
         </child>
         <child>
           <object class="GtkFontButton" id="fontFROSD">
+            <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
-            <property name="use_action_appearance">False</property>
-            <property name="font_name">Sans 30</property>
+            <property name="font">Sans 12</property>
             <property name="use_font">True</property>
           </object>
           <packing>
@@ -565,7 +529,7 @@ Here you can tell me what resolution your projector runs at and where you want t
         </child>
       </object>
       <packing>
-        <property name="sidebar_image">Lyricue-first-run-sidebar.png</property>
+        <property name="title" translatable="yes">Fonts</property>
       </packing>
     </child>
     <child>
@@ -578,36 +542,36 @@ Here you can tell me what resolution your projector runs at and where you want t
           <object class="GtkLabel" id="label33">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="xalign">0</property>
             <property name="label" translatable="yes">Image Directory</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="top_attach">2</property>
             <property name="bottom_attach">3</property>
             <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
           <object class="GtkLabel" id="label29">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="xalign">0</property>
             <property name="label" translatable="yes">Backgrounds Directory</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="top_attach">3</property>
             <property name="bottom_attach">4</property>
             <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
           <object class="GtkButton" id="fileFRImagedir">
+            <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
-            <property name="use_action_appearance">False</property>
             <signal name="clicked" handler="open_dirchooser" swapped="no"/>
             <child>
               <object class="GtkAlignment" id="alignment1">
@@ -656,15 +620,15 @@ Here you can tell me what resolution your projector runs at and where you want t
             <property name="top_attach">2</property>
             <property name="bottom_attach">3</property>
             <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
           <object class="GtkButton" id="fileFRBGdir">
+            <property name="use_action_appearance">False</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
-            <property name="use_action_appearance">False</property>
             <signal name="clicked" handler="open_dirchooser" swapped="no"/>
             <child>
               <object class="GtkAlignment" id="alignment2">
@@ -713,7 +677,7 @@ Here you can tell me what resolution your projector runs at and where you want t
             <property name="top_attach">3</property>
             <property name="bottom_attach">4</property>
             <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
@@ -743,7 +707,7 @@ Please select a suitable directory for each.</property>
         </child>
       </object>
       <packing>
-        <property name="sidebar_image">Lyricue-first-run-sidebar.png</property>
+        <property name="title" translatable="yes">Directories</property>
       </packing>
     </child>
     <child>
@@ -755,40 +719,40 @@ Please select a suitable directory for each.</property>
         <child>
           <object class="GtkLabel" id="label38">
             <property name="can_focus">False</property>
-            <property name="xalign">0</property>
             <property name="label" translatable="yes">Available songs</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="top_attach">2</property>
             <property name="bottom_attach">3</property>
             <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
           <object class="GtkLabel" id="label34">
             <property name="can_focus">False</property>
-            <property name="xalign">0</property>
             <property name="label" translatable="yes">Images</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="top_attach">3</property>
             <property name="bottom_attach">4</property>
             <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
           <object class="GtkLabel" id="label35">
             <property name="can_focus">False</property>
-            <property name="xalign">0</property>
             <property name="label" translatable="yes">Backgrounds</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="top_attach">4</property>
             <property name="bottom_attach">5</property>
             <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
@@ -797,15 +761,13 @@ Please select a suitable directory for each.</property>
             <property name="text" translatable="yes">Today's Announcements</property>
             <property name="primary_icon_activatable">False</property>
             <property name="secondary_icon_activatable">False</property>
-            <property name="primary_icon_sensitive">True</property>
-            <property name="secondary_icon_sensitive">True</property>
           </object>
           <packing>
             <property name="left_attach">1</property>
             <property name="right_attach">2</property>
             <property name="top_attach">2</property>
             <property name="bottom_attach">3</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
@@ -814,15 +776,13 @@ Please select a suitable directory for each.</property>
             <property name="text" translatable="yes">Main</property>
             <property name="primary_icon_activatable">False</property>
             <property name="secondary_icon_activatable">False</property>
-            <property name="primary_icon_sensitive">True</property>
-            <property name="secondary_icon_sensitive">True</property>
           </object>
           <packing>
             <property name="left_attach">1</property>
             <property name="right_attach">2</property>
             <property name="top_attach">3</property>
             <property name="bottom_attach">4</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
@@ -831,15 +791,13 @@ Please select a suitable directory for each.</property>
             <property name="text" translatable="yes">Main</property>
             <property name="primary_icon_activatable">False</property>
             <property name="secondary_icon_activatable">False</property>
-            <property name="primary_icon_sensitive">True</property>
-            <property name="secondary_icon_sensitive">True</property>
           </object>
           <packing>
             <property name="left_attach">1</property>
             <property name="right_attach">2</property>
             <property name="top_attach">4</property>
             <property name="bottom_attach">5</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
@@ -869,8 +827,8 @@ You can install other bibles frm within Lyricue later.</property>
           <object class="GtkLabel" id="label37">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="xalign">0</property>
             <property name="label" translatable="yes">Bible</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="top_attach">5</property>
@@ -900,7 +858,7 @@ You can install other bibles frm within Lyricue later.</property>
         </child>
       </object>
       <packing>
-        <property name="sidebar_image">Lyricue-first-run-sidebar.png</property>
+        <property name="title" translatable="yes">Defaults</property>
       </packing>
     </child>
     <child>
@@ -913,20 +871,14 @@ If you need to make any changes, or for more options, select Preferences from th
       </object>
       <packing>
         <property name="page_type">confirm</property>
-        <property name="sidebar_image">Lyricue-first-run-sidebar.png</property>
+        <property name="title" translatable="yes">Completed</property>
       </packing>
     </child>
-  </object>
-  <object class="GtkListStore" id="modelFRBible">
-    <columns>
-      <!-- column-name gchararray -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">None selected</col>
-      </row>
-    </data>
+    <child internal-child="action_area">
+      <object class="GtkBox" id="assistant-action_area2">
+        <property name="can_focus">False</property>
+      </object>
+    </child>
   </object>
   <object class="GtkListStore" id="modelFRHorizontal">
     <columns>

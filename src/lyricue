@@ -7818,8 +7818,12 @@ sub on_treeAvailable_drag_data_get {
     my $selection = $widget->get_selection;
     my ($sel, $model) = $selection->get_selected_rows;
     my $iter = $model->get_iter(@$sel[0]);
+print "iter - ".$iter."\n";
     if ($iter) {
-        $data->set($data->target, 8, $model->get($iter, 3));
+print "data".$data->get_target."\n";
+print "get".$model->get($iter, 3)."\n";
+        #$data->set($data->get_target, 8, $model->get($iter, 3));
+        $data->set($data->get_target, 8, 410);
     }
 }
 
@@ -12979,23 +12983,9 @@ sub firstrun_prepare {
           ->set_value($config->{'Width'});
         $widgets->{'firstrunxml'}->get_object('spinFRHeight')
           ->set_value($config->{'Height'});
-        if ($config->{'VerticalLocation'}) {
-            $widgets->{'firstrunxml'}->get_object('comboFRVertical')
-              ->prepend_text($config->{'VerticalLocation'});
-        }
-        $widgets->{'firstrunxml'}->get_object('comboFRVertical')->set_active(0);
-        if ($config->{'HorizontalLocation'}) {
-            $widgets->{'firstrunxml'}->get_object('comboFRHorizontal')
-              ->prepend_text($config->{'HorizontalLocation'});
-        }
-        $widgets->{'firstrunxml'}->get_object('comboFRHorizontal')
-          ->set_active(0);
-        if ($config->{'Justification'}) {
-            $widgets->{'firstrunxml'}->get_object('comboFRJustification')
-              ->prepend_text($config->{'Justification'});
-        }
-        $widgets->{'firstrunxml'}->get_object('comboFRJustification')
-          ->set_active(0);
+        combo_set_active($widgets->{'firstrunxml'}->get_object('comboFRVertical'),$config->{'VerticalLocation'});
+        combo_set_active($widgets->{'firstrunxml'}->get_object('comboFRHorizontal'),$config->{'HorizontalLocation'});
+        combo_set_active($widgets->{'firstrunxml'}->get_object('comboFRJustification'),$config->{'Justification'});
         $widgets->{'firstrun'}->set_page_complete($page, TRUE);
     } elsif ($widgets->{'firstrun'}->get_current_page == 4) {
 
@@ -13035,7 +13025,7 @@ sub firstrun_prepare {
           ->set_text($config->{'SpecialBack'});
         my $bibles = $config->{'Bibles'};
         my $store = Gtk3::ListStore->new('Glib::String', 'Glib::String');
-        $widgets->{'firstrunxml'}->get_object('comboFRBible')->remove_text(0);
+        #$widgets->{'firstrunxml'}->get_object('comboFRBible')->remove_text(0);
         my ($iter, $activeiter);
 
         foreach (sort keys %$bibles) {
@@ -13162,60 +13152,10 @@ sub firstrun_apply {
       $widgets->{'firstrunxml'}->get_object('spinFRWidth')->get_value();
     my $set = "";
 
-    foreach my $value ("Top", "Bottom", "Centre") {
+    $config->{'VerticalLocation'} = $widgets->{'firstrunxml'}->get_object('comboFRVertical')->get_active_id();
+    $config->{'HorizontalLocation'} = $widgets->{'firstrunxml'}->get_object('comboFRHorizontal')->get_active_id();
+    $config->{'Justification'}      = $widgets->{'firstrunxml'}->get_object('comboFRJustification')->get_active_id();
 
-        if (
-            fromutf(gettext($value)) eq ucfirst(
-                $widgets->{'firstrunxml'}->get_object('comboFRVertical')
-                  ->get_active_text()
-            )
-          )
-        {
-            $set = $value;
-        }
-    }
-    if ($set eq "") {
-        $set =
-          $widgets->{'firstrunxml'}->get_object('comboFRVertical')
-          ->get_active_text();
-    }
-    $config->{'VerticalLocation'} = $set;
-    $set = "";
-    my $set2 = "";
-    foreach my $value ("Left", "Right", "Centre") {
-        if (
-            fromutf(gettext($value)) eq ucfirst(
-                $widgets->{'firstrunxml'}->get_object('comboFRHorizontal')
-                  ->get_active_text()
-            )
-          )
-        {
-            $set = $value;
-        }
-        if (
-            fromutf(gettext($value)) eq ucfirst(
-                $widgets->{'firstrunxml'}->get_object('comboFRJustification')
-                  ->get_active_text()
-            )
-          )
-        {
-            $set2 = $value;
-        }
-    }
-    if ($set eq "") {
-        $set =
-          $widgets->{'firstrunxml'}->get_object('comboFRHorizontal')
-          ->get_active_text();
-    }
-    if ($set2 eq "") {
-        $set2 =
-          $widgets->{'firstrunxml'}->get_object('comboFRJustification')
-          ->get_active_text();
-    }
-    $config->{'HorizontalLocation'} = $set;
-    $config->{'Justification'}      = $set2;
-
-#$config->{'BGImage'} = $widgets->{'prefs'}->get_object('imagePrefBG')->{user_data};
     $config->{'SpecialSong'} =
       $widgets->{'firstrunxml'}->get_object('entryFRSong')->get_text();
     $config->{'SpecialImage'} =
@@ -13224,7 +13164,7 @@ sub firstrun_apply {
       $widgets->{'firstrunxml'}->get_object('entryFRBack')->get_text();
     my $iter =
       $widgets->{'firstrunxml'}->get_object('comboFRBible')->get_active_iter;
-    if ($iter) {
+    if (defined $iter) {
         $config->{'DefBible'} =
           $widgets->{'firstrunxml'}->get_object('comboFRBible')
           ->get_model->get($iter, 1);
