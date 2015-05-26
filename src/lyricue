@@ -6221,8 +6221,10 @@ sub load_config {
     $sth = do_query($lyricDbh, $query, FALSE);
     my @row = $sth->fetchrow_array();
     if (!defined $row[0]) {
+        $globals->{'firstrun'}    = TRUE;
         firstrun_wizard();
         Gtk3->main();
+        $globals->{'firstrun'}    = FALSE;
         $conf = load_config($globals->{'profile'});
         load_profile_menu();
         return $conf;
@@ -6420,7 +6422,7 @@ sub save_preferences {
     $config->{'BGDirectory'} =~ s/^\~/$ENV{'HOME'}/;
     my $iter =
       $widgets->{'prefs'}->get_object('comboPrefBible')->get_active_iter;
-    if (defined $iter) {
+    if ((defined $iter) && $widgets->{'prefs'}->get_object('comboPrefBible')->get_model->iter_is_valid($iter)){
         $config->{'DefBible'} =
           $widgets->{'prefs'}->get_object('comboPrefBible')
           ->get_model->get($iter, 1);
@@ -12885,7 +12887,6 @@ sub biblebrowser_loaditems {
 sub firstrun_wizard {
     debug("First Run Wizard");
     $config                   = load_config('');
-    $globals->{'firstrun'}    = TRUE;
     $widgets->{'firstrunxml'} = load_window('assistantFirstRun');
     $widgets->{'firstrun'} =
       $widgets->{'firstrunxml'}->get_object('assistantFirstRun');
@@ -12977,31 +12978,6 @@ sub firstrun_prepare {
         }
     } elsif ($widgets->{'firstrun'}->get_current_page == 3) {
 
-        # Server
-        $header = gettext("Projector settings");
-        $widgets->{'firstrunxml'}->get_object('spinFRWidth')
-          ->set_value($config->{'Width'});
-        $widgets->{'firstrunxml'}->get_object('spinFRHeight')
-          ->set_value($config->{'Height'});
-        combo_set_active($widgets->{'firstrunxml'}->get_object('comboFRVertical'),$config->{'VerticalLocation'});
-        combo_set_active($widgets->{'firstrunxml'}->get_object('comboFRHorizontal'),$config->{'HorizontalLocation'});
-        combo_set_active($widgets->{'firstrunxml'}->get_object('comboFRJustification'),$config->{'Justification'});
-        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
-    } elsif ($widgets->{'firstrun'}->get_current_page == 4) {
-
-        # Fonts
-        $header = gettext("Fonts");
-        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
-        $widgets->{'firstrunxml'}->get_object('fontFRMain')
-          ->set_font_name($config->{'Main'});
-        $widgets->{'firstrunxml'}->get_object('fontFRHeader')
-          ->set_font_name($config->{'Header'});
-        $widgets->{'firstrunxml'}->get_object('fontFRFooter')
-          ->set_font_name($config->{'Footer'});
-        $widgets->{'firstrunxml'}->get_object('fontFROSD')
-          ->set_font_name($config->{'OSD'});
-    } elsif ($widgets->{'firstrun'}->get_current_page == 5) {
-
         # Directories
         $header = gettext("Image Directories");
         $widgets->{'firstrunxml'}->get_object('fileFRBGdir')
@@ -13013,46 +12989,11 @@ sub firstrun_prepare {
         $widgets->{'firstrunxml'}->get_object('fileFRImagedir')->{'user_data'}
           = "fr_img";
         $widgets->{'firstrun'}->set_page_complete($page, TRUE);
-    } elsif ($widgets->{'firstrun'}->get_current_page == 6) {
-
-        # Special items
-        $header = gettext("Most-used items");
-        $widgets->{'firstrunxml'}->get_object('entryFRSong')
-          ->set_text($config->{'SpecialSong'});
-        $widgets->{'firstrunxml'}->get_object('entryFRImage')
-          ->set_text($config->{'SpecialImage'});
-        $widgets->{'firstrunxml'}->get_object('entryFRBack')
-          ->set_text($config->{'SpecialBack'});
-        my $bibles = $config->{'Bibles'};
-        my $store = Gtk3::ListStore->new('Glib::String', 'Glib::String');
-        #$widgets->{'firstrunxml'}->get_object('comboFRBible')->remove_text(0);
-        my ($iter, $activeiter);
-
-        foreach (sort keys %$bibles) {
-            my ($type, $bible) = split(/;/, $config->{'Bibles'}->{$_});
-            $iter = $store->append;
-            $store->set($iter, 0, $bible, 1,
-                $_ . ":" . $config->{'Bibles'}->{$_});
-            if ($config->{'DefBible'} eq $_ . ":" . $config->{'Bibles'}->{$_}) {
-                $activeiter = $iter;
-            }
-        }
-        $widgets->{'firstrunxml'}->get_object('comboFRBible')
-          ->set_model($store);
-        if (defined $activeiter) {
-            $widgets->{'firstrunxml'}->get_object('comboFRBible')
-              ->set_active_iter($activeiter);
-        }
-        $widgets->{'firstrun'}->set_page_complete($page, TRUE);
-    } elsif ($widgets->{'firstrun'}->get_current_page == 7) {
+    } elsif ($widgets->{'firstrun'}->get_current_page == 4) {
 
         # Confirm
-        $header = gettext("Confirm");
         $widgets->{'firstrun'}->set_page_complete($page, TRUE);
     }
-
-    $header = fromutf($header);
-    #$widgets->{'firstrun'}->set_page_title($page, $header);
 }
 
 #***
@@ -13137,37 +13078,6 @@ sub firstrun_apply {
     debug("Apply Wizard");
 
     # Confirmed changes - so save them
-
-    $config->{'Main'} =
-      $widgets->{'firstrunxml'}->get_object('fontFRMain')->get_font_name();
-    $config->{'Header'} =
-      $widgets->{'firstrunxml'}->get_object('fontFRHeader')->get_font_name();
-    $config->{'Footer'} =
-      $widgets->{'firstrunxml'}->get_object('fontFRFooter')->get_font_name();
-    $config->{'OSD'} =
-      $widgets->{'firstrunxml'}->get_object('fontFROSD')->get_font_name();
-    $config->{'Height'} =
-      $widgets->{'firstrunxml'}->get_object('spinFRHeight')->get_value();
-    $config->{'Width'} =
-      $widgets->{'firstrunxml'}->get_object('spinFRWidth')->get_value();
-
-    $config->{'VerticalLocation'} = $widgets->{'firstrunxml'}->get_object('comboFRVertical')->get_active_id();
-    $config->{'HorizontalLocation'} = $widgets->{'firstrunxml'}->get_object('comboFRHorizontal')->get_active_id();
-    $config->{'Justification'}      = $widgets->{'firstrunxml'}->get_object('comboFRJustification')->get_active_id();
-
-    $config->{'SpecialSong'} =
-      $widgets->{'firstrunxml'}->get_object('entryFRSong')->get_text();
-    $config->{'SpecialImage'} =
-      $widgets->{'firstrunxml'}->get_object('entryFRImage')->get_text();
-    $config->{'SpecialBack'} =
-      $widgets->{'firstrunxml'}->get_object('entryFRBack')->get_text();
-    my $iter =
-      $widgets->{'firstrunxml'}->get_object('comboFRBible')->get_active_iter;
-    if ((defined $iter) && $widgets->{'firstrunxml'}->get_object('comboFRBible')->get_model->iter_is_valid($iter)){
-        $config->{'DefBible'} =
-          $widgets->{'firstrunxml'}->get_object('comboFRBible')
-          ->get_model->get($iter, 1);
-    }
     $config->{'ImageDirectory'} =
       $widgets->{'firstrunxml'}->get_object('fileFRImagedir')->get_label();
     $config->{'BGDirectory'} =
@@ -13187,6 +13097,7 @@ sub firstrun_apply {
         update_display("reconfig", "", "");
         preview_display("display", "current", "", "MINI");
         update_display("display", "current", "");
+        create_dialog_prefs();
     }
 }
 
