@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
   <object class="GtkAdjustment" id="adjustment1">
@@ -24,6 +24,57 @@
     <data>
       <row>
         <col id="0" translatable="yes">None selected</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="modelFRHorizontal">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Left</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Centre</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Right</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="modelFRJustification">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Left</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Centre</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Right</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="modelFRVertical">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Top</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Centre</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Bottom</col>
       </row>
     </data>
   </object>
@@ -220,8 +271,8 @@ To do this I need your mysql root users password.
           <object class="GtkLabel" id="label20">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Text Justification</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Text Justification</property>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -233,6 +284,7 @@ To do this I need your mysql root users password.
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="model">modelFRJustification</property>
+            <property name="active">1</property>
             <child>
               <object class="GtkCellRendererText" id="renderer3"/>
               <attributes>
@@ -249,8 +301,8 @@ To do this I need your mysql root users password.
           <object class="GtkLabel" id="label21">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Horizontal Text Location</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Horizontal Text Location</property>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -261,8 +313,8 @@ To do this I need your mysql root users password.
           <object class="GtkLabel" id="label22">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Vertical Text Location</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Vertical Text Location</property>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -274,6 +326,7 @@ To do this I need your mysql root users password.
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="model">modelFRHorizontal</property>
+            <property name="active">1</property>
             <child>
               <object class="GtkCellRendererText" id="renderer2"/>
               <attributes>
@@ -291,6 +344,7 @@ To do this I need your mysql root users password.
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="model">modelFRVertical</property>
+            <property name="active">1</property>
             <child>
               <object class="GtkCellRendererText" id="renderer1"/>
               <attributes>
@@ -338,8 +392,8 @@ Here you can tell me what resolution your projector runs at and where you want t
           <object class="GtkLabel" id="labelFRHeight">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Height</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Height</property>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -350,8 +404,8 @@ Here you can tell me what resolution your projector runs at and where you want t
           <object class="GtkLabel" id="labelFRWidth">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Width</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Width</property>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -542,8 +596,8 @@ Here you can tell me what resolution your projector runs at and where you want t
           <object class="GtkLabel" id="label33">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Image Directory</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Image Directory</property>
           </object>
           <packing>
             <property name="top_attach">2</property>
@@ -556,8 +610,8 @@ Here you can tell me what resolution your projector runs at and where you want t
           <object class="GtkLabel" id="label29">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Backgrounds Directory</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Backgrounds Directory</property>
           </object>
           <packing>
             <property name="top_attach">3</property>
@@ -719,8 +773,8 @@ Please select a suitable directory for each.</property>
         <child>
           <object class="GtkLabel" id="label38">
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Available songs</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Available songs</property>
           </object>
           <packing>
             <property name="top_attach">2</property>
@@ -732,8 +786,8 @@ Please select a suitable directory for each.</property>
         <child>
           <object class="GtkLabel" id="label34">
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Images</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Images</property>
           </object>
           <packing>
             <property name="top_attach">3</property>
@@ -745,8 +799,8 @@ Please select a suitable directory for each.</property>
         <child>
           <object class="GtkLabel" id="label35">
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Backgrounds</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Backgrounds</property>
           </object>
           <packing>
             <property name="top_attach">4</property>
@@ -827,8 +881,8 @@ You can install other bibles frm within Lyricue later.</property>
           <object class="GtkLabel" id="label37">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Bible</property>
             <property name="xalign">0</property>
+            <property name="label" translatable="yes">Bible</property>
           </object>
           <packing>
             <property name="top_attach">5</property>
@@ -879,56 +933,5 @@ If you need to make any changes, or for more options, select Preferences from th
         <property name="can_focus">False</property>
       </object>
     </child>
-  </object>
-  <object class="GtkListStore" id="modelFRHorizontal">
-    <columns>
-      <!-- column-name gchararray -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Left</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Centre</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Right</col>
-      </row>
-    </data>
-  </object>
-  <object class="GtkListStore" id="modelFRJustification">
-    <columns>
-      <!-- column-name gchararray -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Left</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Centre</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Right</col>
-      </row>
-    </data>
-  </object>
-  <object class="GtkListStore" id="modelFRVertical">
-    <columns>
-      <!-- column-name gchararray -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Top</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Centre</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Bottom</col>
-      </row>
-    </data>
   </object>
 </interface>

@@ -13052,7 +13052,7 @@ sub firstrun_prepare {
     }
 
     $header = fromutf($header);
-    $widgets->{'firstrun'}->set_page_title($page, $header);
+    #$widgets->{'firstrun'}->set_page_title($page, $header);
 }
 
 #***
@@ -13150,7 +13150,6 @@ sub firstrun_apply {
       $widgets->{'firstrunxml'}->get_object('spinFRHeight')->get_value();
     $config->{'Width'} =
       $widgets->{'firstrunxml'}->get_object('spinFRWidth')->get_value();
-    my $set = "";
 
     $config->{'VerticalLocation'} = $widgets->{'firstrunxml'}->get_object('comboFRVertical')->get_active_id();
     $config->{'HorizontalLocation'} = $widgets->{'firstrunxml'}->get_object('comboFRHorizontal')->get_active_id();
@@ -13164,7 +13163,7 @@ sub firstrun_apply {
       $widgets->{'firstrunxml'}->get_object('entryFRBack')->get_text();
     my $iter =
       $widgets->{'firstrunxml'}->get_object('comboFRBible')->get_active_iter;
-    if (defined $iter) {
+    if ((defined $iter) && $widgets->{'firstrunxml'}->get_object('comboFRBible')->get_model->iter_is_valid($iter)){
         $config->{'DefBible'} =
           $widgets->{'firstrunxml'}->get_object('comboFRBible')
           ->get_model->get($iter, 1);
