@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-my $ID = q$Id: lyricue,v 1.403 2010/08/09 05:01:05 cjdebenh Exp $;
 
 #****** lyricue/pod
 # NAME
@@ -459,7 +458,7 @@ rename($logname, $logname . ".old")
   or system("mv", $logname, $logname . ".old");
 open(LOG, ">" . $logname);
 binmode LOG, ":utf8";
-debug("Lyricue Interface version " . $globals->{'version'} . "\n" . $ID);
+debug("Lyricue Interface version " . $globals->{'version'});
 debug("Running from " . $globals->{'execdir'});
 use Data::Dumper;
 $globals->{'thumbnail_factory'} = GnomeDesktop::DesktopThumbnailFactory->new(
@@ -1181,6 +1180,7 @@ sub popup_avail_menu {
                 ]
               );
         }
+        ##TODO
         my $factory =
           Gtk3::ItemFactory->new('Gtk3::Menu', "<availpopup>", undef);
         $factory->create_items(1, @items);
@@ -1247,6 +1247,7 @@ sub popup_backdrop_menu {
 
     push @items,
       [fromutf(gettext("/Set font colours")), undef, 'manage_bg', undef];
+    ##TODO
     my $factory =
       Gtk3::ItemFactory->new('Gtk3::Menu', "<backdroppopup>", undef);
     $factory->create_items(1, @items);
@@ -1379,9 +1380,13 @@ sub popup_play_menu {
         my $item = fromutf(gettext("/Move to sublist/")) . $_->{'title'};
         push @items, [$item, undef, 'move_item_to_sublist', $_->{'data'}],;
     }
-    my $factory = Gtk3::ItemFactory->new('Gtk3::Menu', '<playpopup>', undef);
-    $factory->create_items(undef, @items);
-    $factory->popup($event->x_root, $event->y_root, 0, $event->time);
+    ##TODO
+    $widgets->{'main'}->get_object('menuPlaylist')->popup($event->x_root, $event->y_root, 0, $event->time);
+    #my $ui = Gtk3::UIManager->new();
+    #my $actions = Gtk3::ActionGroup->new('Actions');
+    #$actions->add_actions(\@items, undef);
+    #$ui->insert_action_group($actions,0);
+    #$ui->get_widget('/Menu')->popup($event->x_root, $event->y_root, 0, $event->time);
 }
 
 #***
@@ -4045,7 +4050,7 @@ sub apply_font {
 sub changeVerseStatus {
     my ($widget, $event, $max) = @_;
 
-    #debug("Change verse status");
+    debug("Change verse status".$globals->{'verseStart'}."-".$globals->{'verseEnd'});
 
     my $number = $widget->get_label;
     if (defined($event->type)) {
@@ -4079,8 +4084,9 @@ sub changeVerseStatus {
             my $verse = "";
             $book =~ s/:.*$//g;
             $verse = $book . ":" . $begin . "-" . $end;
-            $widgets->{'main'}->get_object('entryNavVerseText')
+            $widgets->{'main'}->get_object('entryNavVerse')->get_child
               ->set_text($verse);
+            navigator_update();
         } elsif ($event->type eq 'enter-notify') {
             $begin = 0;
             if (   (defined $globals->{'verseStart'})
@@ -10283,7 +10289,7 @@ sub navigator_changed {
     debug("Navigator changed");
     reset_timer($globals->{'nav_update_timer'});
     $globals->{'nav_update_timer'} =
-      Glib::Timeout->add(500, \&navigator_update);
+      Glib::Timeout->add(500, \&navigator_timeout);
 }
 
 #***
@@ -10299,6 +10305,10 @@ sub navigator_changed {
 # OUTPUT
 # SOURCE
 #
+sub navigator_timeout {
+    $globals->{'nav_update_timer'}=NULL;
+    navigator_update();
+}
 sub navigator_update {
     debug("Updating navigator");
     reset_timer($globals->{'nav_update_timer'});
@@ -10378,9 +10388,8 @@ sub navigator_update {
         my $text =
           $widgets->{'main'}->get_object('entryNavVerse')->get_active_text();
         $text =~ s/$book[ :\-]/$newbook /i;
-        $widgets->{'main'}->get_object('entryNavVerseText')->set_text($text);
-        $widgets->{'main'}->get_object('entryNavVerseText')->set_position(-1);
-        biblebrowser_verse(NULL, 0, "entry");
+        $widgets->{'main'}->get_object('entryNavVerse')->get_child->set_text($text);
+        #biblebrowser_verse(NULL, 0, "entry");
         foreach my $num ($startverse .. $endverse) {
             my $button = "button" . ($num - 1);
             if (defined $widgets->{'bibleBrowser'}{$button}) {
@@ -10581,7 +10590,7 @@ sub navigator_next {
     }
 
     $verse = $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
-    $widgets->{'main'}->get_object('entryNavVerseText')->set_text($verse);
+    $widgets->{'main'}->get_object('entryNavVerse')->get_child->set_text($verse);
     navigator_update();
     navigator_show();
 }
@@ -10613,7 +10622,7 @@ sub navigator_prev {
     }
     $endverse = get_max_verse($book, $chapter, $startverse, $endverse);
     $verse = $book . " " . $chapter . ":" . $startverse . "-" . $endverse;
-    $widgets->{'main'}->get_object('entryNavVerseText')->set_text($verse);
+    $widgets->{'main'}->get_object('entryNavVerse')->get_child->($verse);
     navigator_update();
     navigator_show();
 }
@@ -12667,6 +12676,9 @@ sub biblebrowser_book {
 #
 sub biblebrowser_chapter {
     my ($widget, $book, $source) = @_;
+    if (!defined $source) {
+        $source="button";
+    }
     debug("Looking up book " . $book);
     my $translated_book = gettext($book);
     my $cont            = FALSE;
@@ -12741,6 +12753,9 @@ sub biblebrowser_chapter {
 #
 sub biblebrowser_verse {
     my ($widget, $chapter, $source) = @_;
+    if (!defined $source) {
+        $source="button";
+    }
     debug("biblebrowser_verse called from " . $source . ":" . $chapter);
     my $book =
       $widgets->{'main'}->get_object('entryNavVerse')->get_active_text();
@@ -12757,9 +12772,7 @@ sub biblebrowser_verse {
         }
     }
     if ($source ne "entry") {
-        $widgets->{'main'}->get_object('entryNavVerseText')
-          ->set_text($book . " " . $chapter);
-        $widgets->{'main'}->get_object('entryNavVerseText')->set_position(-1);
+        $widgets->{'main'}->get_object('entryNavVerse')->get_child->set_text($book . " " . $chapter);
     }
     debug("Looking up book " . $book . " chapter " . $chapter);
     my $maxverse = 0;
@@ -12794,10 +12807,8 @@ sub biblebrowser_verse {
         }
         biblebrowser_loaditems("verses", \@items, 8);
         if ($source ne "entry") {
-            $widgets->{'main'}->get_object('entryNavVerseText')
+            $widgets->{'main'}->get_object('entryNavVerse')->get_child
               ->set_text($book . " " . $chapter);
-            $widgets->{'main'}->get_object('entryNavVerseText')
-              ->set_position(-1);
         }
     }
 }
@@ -12831,6 +12842,8 @@ sub biblebrowser_loaditems {
     my $buffer = Gtk3::TextBuffer->new();
     $widgets->{'main'}->get_object('textBible')->set_buffer($buffer);
     my $sizegroup = Gtk3::SizeGroup->new('both');
+    $globals->{'verseStart'} = 0;
+    $globals->{'verseEnd'}   = 0;
     foreach my $itemnum (0 .. ($size - 1)) {
         if ($section eq "verses") {
             $widgets->{'bibleBrowser'}{'button' . $itemnum} =
@@ -13011,7 +13024,7 @@ sub firstrun_prepare {
 #
 sub firstrun_pw_changed {
     debug("Firstrun login changed");
-    reset_timer($globals->{'nav_update_timer'});
+    reset_timer($globals->{'fr_update_timer'});
     $globals->{'fr_update_timer'} =
       Glib::Timeout->add(500, \&firstrun_pw_check);
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
+<!-- Generated with glade 3.18.1 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
   <object class="GtkAdjustment" id="adjustmentFade">
@@ -616,6 +616,7 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="position">214</property>
+            <property name="wide_handle">True</property>
             <child>
               <object class="GtkFrame" id="frameMainLeft">
                 <property name="width_request">200</property>
@@ -1093,7 +1094,8 @@
                                 <property name="has_entry">True</property>
                                 <child internal-child="entry">
                                   <object class="GtkEntry" id="comboboxtext-entry">
-                                    <property name="can_focus">False</property>
+                                    <property name="can_focus">True</property>
+                                    <signal name="changed" handler="navigator_changed" swapped="no"/>
                                   </object>
                                 </child>
                               </object>
@@ -1130,31 +1132,26 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="orientation">vertical</property>
+                            <property name="wide_handle">True</property>
                             <child>
                               <object class="GtkScrolledWindow" id="scrollBible">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="shadow_type">in</property>
                                 <child>
-                                  <object class="GtkViewport" id="viewport1">
+                                  <object class="GtkTextView" id="textBible">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="resize_mode">queue</property>
-                                    <child>
-                                      <object class="GtkTextView" id="textBible">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="editable">False</property>
-                                        <property name="wrap_mode">char</property>
-                                        <property name="justification">fill</property>
-                                        <property name="cursor_visible">False</property>
-                                        <property name="accepts_tab">False</property>
-                                      </object>
-                                    </child>
+                                    <property name="can_focus">True</property>
+                                    <property name="editable">False</property>
+                                    <property name="wrap_mode">char</property>
+                                    <property name="justification">fill</property>
+                                    <property name="cursor_visible">False</property>
+                                    <property name="accepts_tab">False</property>
                                   </object>
                                 </child>
                               </object>
                               <packing>
-                                <property name="resize">False</property>
+                                <property name="resize">True</property>
                                 <property name="shrink">True</property>
                               </packing>
                             </child>
@@ -1904,6 +1901,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="position">200</property>
+                <property name="wide_handle">True</property>
                 <signal name="move-handle" handler="resize_preview" swapped="no"/>
                 <child>
                   <object class="GtkFrame" id="frameMainCentre">
@@ -2304,6 +2302,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="orientation">vertical</property>
+                            <property name="wide_handle">True</property>
                             <child>
                               <object class="GtkBox" id="vboxStatus">
                                 <property name="visible">True</property>
@@ -2684,6 +2683,28 @@
             <property name="position">3</property>
           </packing>
         </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkMenu" id="menuPlaylist">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkMenuItem" id="menuitem1">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Duplicate Item</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="copy_item" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="menuitem2">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Remove from Playlist</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="remove_from_playlist" swapped="no"/>
       </object>
     </child>
   </object>
