@@ -1140,9 +1140,6 @@ sub popup_avail_menu {
     my ($widget, $event) = @_;
     debug("Button clicked on available songs list");
     if ($event->button == 3) {
-        my $path = $widget->get_path_at_pos($event->x, $event->y);
-        $widget->get_selection->select_path($path);
-        debug($path . " path");
         my @items = ();
 
         if ($globals->{'access'} =~ /e/) {
@@ -1180,32 +1177,23 @@ sub popup_avail_menu {
                 ]
               );
         }
-        ##TODO
-        my $factory =
-          Gtk3::ItemFactory->new('Gtk3::Menu', "<availpopup>", undef);
-        $factory->create_items(1, @items);
-        $factory->popup($event->x_root, $event->y_root, $event->button,
-            $event->time);
+        my $menu = create_menu(@items);
+        $menu->attach_to_widget($widgets->{'main'}->get_object('treeAvailable'));
+        $menu->popup(undef, undef, undef, undef, $event->button, $event->time);
+
         return (TRUE);
-    } else {
-debug ($event->x.", ".$event->y);
-        my ($x1,$y1) = $widgets->{'main'}->get_object('treeAvailable')->convert_widget_to_bin_window_coords($event->x, $event->y);
-        #my $path = $widgets->{'main'}->get_object('treeAvailable')->get_path_at_pos($event->x, $event->y);
-        my $path = $widgets->{'main'}->get_object('treeAvailable')->get_path_at_pos($x1, $y1);
-        if (!defined $path) {
-            return FALSE;
-        }
-        debug("song selected");
-        my $model  = $widgets->{'main'}->get_object('treeAvailable')->get_model;
-debug ($model);
-debug ($path);
-        my $pstr = Gtk3::TreePath->new($path);
-debug ($pstr);
-        my $iter   = $model->get_iter($pstr);
-print $iter;
-debug ($iter);
+    }
+
+    # Tell calling code that we have not handled this event; pass it on.
+    return (FALSE);
+}
+
+sub treeAvailable_cursor_changed_cb {
+    my $selection = $widgets->{'main'}->get_object('treeAvailable')->get_selection;
+    my ($sel, $model) = $selection->get_selected_rows;
+    my $iter = $model->get_iter(@$sel[0]);
+    if ($iter) {
         my $songid = $model->get($iter, 3);
-debug ("c");
         my $query =
             "SELECT pageid FROM page WHERE songid="
           . $songid
@@ -1217,14 +1205,8 @@ debug ("c");
             my $pageid = $row[0];
             preview_pageid($pageid);
         }
-
-        return (FALSE);
     }
-
-    # Tell calling code that we have not handled this event; pass it on.
-    return (FALSE);
 }
-
 #***
 
 #****f* lyricue/popup_backdrop_menu
@@ -1241,18 +1223,16 @@ debug ("c");
 # SOURCE
 #
 sub popup_backdrop_menu {
-    my ($event, $selected) = @_;
+    my ($widget, $event, $selected) = @_;
     debug("Button clicked on Backdrops");
     my @items = ();
 
     push @items,
       [fromutf(gettext("/Set font colours")), undef, 'manage_bg', undef];
-    ##TODO
-    my $factory =
-      Gtk3::ItemFactory->new('Gtk3::Menu', "<backdroppopup>", undef);
-    $factory->create_items(1, @items);
-    $factory->popup($event->x_root, $event->y_root, $event->button,
-        $event->time);
+    my $menu = create_menu(@items);
+    $menu->attach_to_widget($widget);
+    $menu->popup(undef, undef, undef, undef, $event->button, $event->time);
+
 }
 
 sub manage_bg {
@@ -1380,15 +1360,43 @@ sub popup_play_menu {
         my $item = fromutf(gettext("/Move to sublist/")) . $_->{'title'};
         push @items, [$item, undef, 'move_item_to_sublist', $_->{'data'}],;
     }
-    ##TODO
-    $widgets->{'main'}->get_object('menuPlaylist')->popup($event->x_root, $event->y_root, 0, $event->time);
-    #my $ui = Gtk3::UIManager->new();
-    #my $actions = Gtk3::ActionGroup->new('Actions');
-    #$actions->add_actions(\@items, undef);
-    #$ui->insert_action_group($actions,0);
-    #$ui->get_widget('/Menu')->popup($event->x_root, $event->y_root, 0, $event->time);
+    my $menu = create_menu(@items);
+    $menu->attach_to_widget($widgets->{'main'}->get_object('treePlaylist'));
+    $menu->popup(undef, undef, undef, undef, $event->button, $event->time);
 }
 
+sub create_menu {
+    my @items = @_;
+    my $menu = Gtk3::Menu->new();
+    my $subname = "";
+    my $submenu = NULL;
+    foreach my $item (@items) {
+        my $label = @$item[0];
+        $label =~ s/^\///g;
+        if ($label =~ /\//) {
+            my $menuname = $label;
+            $menuname =~ s/\/.*$//g;
+            if ($menuname ne $subname) {
+                $subname = $menuname;
+                $submenu = Gtk3::Menu->new();
+                my $menuitem = Gtk3::MenuItem->new_with_label($menuname);
+                $menuitem->set_submenu($submenu);
+                $menu->append($menuitem);
+            }
+            my $subitem = $label;
+            $subitem =~ s/$menuname\///g;
+            my $menuitem = Gtk3::MenuItem->new_with_label($subitem);
+            $menuitem->signal_connect(activate => \&{@$item[2]}, @$item[3]);
+            $submenu->append($menuitem);
+        } else {
+            my $menuitem = Gtk3::MenuItem->new_with_label($label);
+            $menuitem->signal_connect(activate => \&{@$item[2]}, @$item[3]);
+            $menu->append($menuitem);
+        }
+    }
+    $menu->show_all();
+    return $menu;
+}
 #***
 
 #****f* lyricue/add_song
@@ -4391,7 +4399,7 @@ sub backdrop_clicked {
 
     # Right-click menu
     if ($event->button == 3) {
-        popup_backdrop_menu($event);
+        popup_backdrop_menu($widget, $event);
         return TRUE;
     }
     if ($event->type eq '2button-press') {
