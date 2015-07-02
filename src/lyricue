@@ -6521,7 +6521,8 @@ sub write_config {
             $sth = do_query($lyricDbh, $query, FALSE);
         }
     }
-    foreach (keys $config->{'Apps'}) {
+    my $apps = $config->{'Apps'};
+    foreach (keys %$apps) {
         $query =
           "INSERT INTO config ( profile, config_key, config_value ) VALUES ( \""
           . $globals->{'profile'}
@@ -7074,7 +7075,8 @@ sub init_mainWindow {
     # Update the application menu
     my $menutop2 = Gtk3::Menu->new();
     my $group2   = 0;
-    foreach (keys $config->{'Apps'}) {
+    my $apps = $config->{'Apps'};
+    foreach (keys %$apps) {
         my $appMenuItem = Gtk3::MenuItem->new_with_label($_);
         $appMenuItem->signal_connect(
             activate => \&execute_app,
@@ -8914,7 +8916,8 @@ sub init_miniview {
         }
     } else {
         if (defined $widgets->{'miniview'}) {
-            foreach my $display (keys $widgets->{'miniview'}) {
+            my $miniviews = $widgets->{'miniview'};
+            foreach my $display (keys %$miniviews) {
                 close_miniview($display);
             }
         }
@@ -13471,7 +13474,8 @@ sub select_profile {
 
             update_display("profile", $globals->{'profile'}, "");
             preview_display("profile", $globals->{'profile'}, "");
-            foreach my $display (keys $widgets->{'miniview'}) {
+            my $miniviews = $widgets->{'miniview'};
+            foreach my $display (keys %$miniviews) {
                 if (defined $widgets->{'miniview'}->{$display}) {
                     $widgets->{'miniview'}->{$display}->destroy;
                     delete $widgets->{'miniview'}->{$display};
