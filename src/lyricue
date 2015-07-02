@@ -7836,12 +7836,8 @@ sub on_treeAvailable_drag_data_get {
     my $selection = $widget->get_selection;
     my ($sel, $model) = $selection->get_selected_rows;
     my $iter = $model->get_iter(@$sel[0]);
-print "iter - ".$iter."\n";
     if ($iter) {
-print "data".$data->get_target."\n";
-print "get".$model->get($iter, 3)."\n";
-        #$data->set($data->get_target, 8, $model->get($iter, 3));
-        $data->set($data->get_target, 8, 410);
+        $data->set_text($model->get($iter, 3),-1);
     }
 }
 
@@ -7874,7 +7870,7 @@ sub on_iconviewBack_drag_data_get {
         $selected = $model->get($iter, 2);
     }
     if ($selected ne "") {
-        $data->set($data->target, 8, "bg:" . $selected);
+        $data->set_text("bg:" . $selected,-1);
     }
 }
 
@@ -7907,7 +7903,7 @@ sub on_iconviewImage_drag_data_get {
         $selected = $model->get($iter, 2);
     }
     if ($selected ne "") {
-        $data->set($data->target, 8, "img:" . $selected);
+        $data->set_text("img:" . $selected,-1);
     }
 }
 
@@ -7935,7 +7931,7 @@ sub on_treeSearch_drag_data_get {
     my $selection = $widget->get_selection;
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
-        $data->set($data->target, 8, $model->get($iter, 4));
+        $data->set_text($model->get($iter, 4),-1);
     }
 }
 
@@ -7963,7 +7959,7 @@ sub on_treePlaylist_drag_data_get {
     my $selection = $widget->get_selection;
     my ($model, $iter) = $selection->get_selected;
     if ($iter) {
-        $data->set($data->target, 8, "song:" . $model->get($iter, 2));
+        $data->set_text("song:" . $model->get($iter, 2),-1);
         return TRUE;
     }
     return FALSE;
@@ -8001,10 +7997,10 @@ sub on_treePlaylist_drag_data_received {
     }
     $globals->{'drop_time'} = $time;
 
-    if (($data->length >= 0) && ($data->format == 8)) {
-        debug("Received: " . $data->data);
-        if ($data->data =~ /^file:/i) {
-            for my $uri (split(/\n/, $data->data)) {
+    if (($data->get_text()) ne "") {
+        debug("Received: " . $data->get_text());
+        if ($data->get_text() =~ /^file:/i) {
+            for my $uri (split(/\n/, $data->get_text())) {
                 $u1 = URI->new($uri);
                 debug("received URI: " . $uri);
                 $file = fromutf("UTF-8", $u1->file);
@@ -8015,16 +8011,16 @@ sub on_treePlaylist_drag_data_received {
                 do_add_file($file, $main_playlist);
                 update_playlist();
             }
-        } elsif ($data->data =~ /^img:/) {
-            my $selected = $data->data;
+        } elsif ($data->get_text() =~ /^img:/) {
+            my $selected = $data->get_text();
             $selected =~ s/^img://g;
             my $playlist =
               $widgets->{'main'}->get_object('labelCurrentPlaylist')
               ->{user_data};
             add_image_item($playlist, $selected);
             update_playlist();
-        } elsif ($data->data =~ /^bg:/) {
-            my $selected = fromutf($data->data);
+        } elsif ($data->get_text() =~ /^bg:/) {
+            my $selected = fromutf($data->get_text());
             $selected =~ s/^bg://g;
             my $playlist =
               $widgets->{'main'}->get_object('labelCurrentPlaylist')
@@ -8040,8 +8036,8 @@ sub on_treePlaylist_drag_data_received {
                 associate_bg($selected);
                 update_playlist();
             }
-        } elsif ($data->data =~ /^song:/) {
-            my $song = $data->data;
+        } elsif ($data->get_text() =~ /^song:/) {
+            my $song = $data->get_text();
             $song =~ s/^song://g;
             my ($path, $drop) = $widget->get_dest_row_at_pos($x, $y);
             my $iter = $widget->get_model->get_iter($path);
@@ -8049,8 +8045,8 @@ sub on_treePlaylist_drag_data_received {
             debug($song . " - " . $drop . " - " . $item);
             move_item($song, $drop, $item);
         } else {
-            if ($data->data != 0) {
-                add_single_song($data->data);
+            if ($data->get_text() != 0) {
+                add_single_song($data->get_text());
                 update_playlist();
             }
         }
@@ -11943,10 +11939,10 @@ sub on_hboxBackImage_drag_data_received {
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
     my $category = $globals->{'category'};
 
-    if (($category ne "") && ($data->length >= 0) && ($data->format == 8)) {
-        debug("Recieved " . $data->data);
-        if ($data->data) {
-            my @uris = split(/\n/, $data->data);
+    if (($category ne "") && ($data->get_text ne "")) {
+        debug("Recieved " . $data->get_text());
+        if ($data->get_text()) {
+            my @uris = split(/\n/, $data->get_text());
             my ($filename, $format, $description);
             my $owner = getpwuid($<);
             my @date  = localtime(time);
