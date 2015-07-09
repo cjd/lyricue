@@ -7988,7 +7988,6 @@ sub on_treePlaylist_drag_data_get {
 sub on_treePlaylist_drag_data_received {
     my ($widget, $context, $x, $y, $data, $info, $time) = @_;
     my ($u1, $file);
-    debug("Dropped on playlist");
 
     # Catch duplicate events
     if (defined($globals->{'drop_time'}) && ($globals->{'drop_time'} == $time))
@@ -7996,6 +7995,7 @@ sub on_treePlaylist_drag_data_received {
         return;
     }
     $globals->{'drop_time'} = $time;
+    debug("Dropped on playlist");
 
     if (($data->get_text()) ne "") {
         debug("Received: " . $data->get_text());
@@ -8050,10 +8050,10 @@ sub on_treePlaylist_drag_data_received {
                 update_playlist();
             }
         }
-        $context->finish(1, 0, $time);
+        #$context->finish(1, 0, $time);
         return;
     }
-    $context->finish(0, 0, $time);
+    #$context->finish(0, 0, $time);
 }
 
 #***
@@ -11615,24 +11615,29 @@ sub check_displays {
             } else {
                 $displays{$index} = TRUE;
             }
+            my $frame_label = $row->{'host'};
             if ($row->{'title'} =~ /^blank_bg/) {
-                if (defined($widgets->{'miniview_frame'}->{$index})) {
-                    $widgets->{'miniview_frame'}->{$index}
-                      ->set_label($row->{'host'} . "- blanked");
-                }
+                
+                $frame_label .= " - blanked";
             } elsif ($row->{'title'} =~ /^blank_text/) {
-                if (defined($widgets->{'miniview_frame'}->{$index})) {
-                    $widgets->{'miniview_frame'}->{$index}
-                      ->set_label($row->{'host'} . "- text cleared");
-                }
+                $frame_label .= " - text cleared";
             } else {
-                if (defined($widgets->{'miniview_frame'}->{$index})) {
-                    $widgets->{'miniview_frame'}->{$index}
-                      ->set_label($row->{'host'});
-                }
                 if ($row->{'title'} ne "0;0;0") {
                     $status = $row->{'title'};
                 }
+            }
+            if (!$displays{$index}) {
+                $frame_label = gettext("inactive")." - ".$frame_label;
+            }
+            if (defined($widgets->{'miniview_frame'}->{$index})) {
+                if ($displays{$index}) {
+                    $widgets->{'miniview_frame'}->{$index}->override_background_color('GTK_STATE_FLAG_NORMAL', NULL)
+                } else {
+                    my $rgba = Gtk3::Gdk::RGBA->new(0,0,0,1);
+                    $widgets->{'miniview_frame'}->{$index}->override_background_color('GTK_STATE_FLAG_NORMAL', 'red');
+                    $widgets->{'miniview_event'}->{$index}->override_background_color('GTK_STATE_FLAG_NORMAL', 'red');
+                }
+                $widgets->{'miniview_frame'}->{$index}->set_label($frame_label);
             }
         } elsif ($row->{'type'} =~ /^miniview/) {
             my $extra_data = $row->{'type'};
@@ -11979,7 +11984,7 @@ q{INSERT INTO media(category, subcategory, type, format, insertedby, insertdate,
             bgdir_change($widget, $category);
         }
 
-        $context->finish(1, 0, $time);
+        #$context->finish(1, 0, $time);
         return;
     } else {
         debug("global category=$category");
@@ -13515,7 +13520,7 @@ sub toggle_server_active {
         debug("Set server inactive for " . $display);
         $displays{$display} = FALSE;
         $widgets->{'miniview_frame'}->{$display}
-          ->set_label($display . " - " . gettext("inactive"));
+          ->set_label(gettext("inactive"). " - ". $display );
     } else {
         debug("Set server active for " . $display);
         $displays{$display} = TRUE;
