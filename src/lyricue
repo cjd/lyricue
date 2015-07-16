@@ -102,8 +102,6 @@ Lyric_interface Version ##VERSION##
 use strict;
 use Time::HiRes qw(tv_interval gettimeofday);
 use warnings;
-use threads;
-use threads::shared;
 use DBI;
 use POSIX;
 use locale;
@@ -218,7 +216,7 @@ $globals->{'usesword'}    = TRUE;
 $globals->{'mediadb'}     = "mediaDb";
 $globals->{'sortby'}      = "title";
 $globals->{'bg_previews'} = TRUE;
-my (%previews, %miniviews, %displays, $local_preview) : shared;
+my ($previews, $miniviews, $displays, $local_preview);
 
 if ($^O eq 'MSWin32') {
     $globals->{'diatheke'} = "";
@@ -561,7 +559,7 @@ sub close_main {
         kill 9, $globals->{'preview_pid'};
     }
     my $miniviews = $globals->{'miniview_pid'};
-    foreach my $display (keys %miniviews) {
+    foreach my $display (keys %$miniviews) {
         debug("Killing $globals->{'miniview_pid'}->{$display}");
         kill 9, $globals->{'miniview_pid'}->{$display};
     }
@@ -3755,12 +3753,12 @@ sub update_display {
     $secondary =~ s/:/#SEMI#/g;
     debug("Command: " . $command . ":" . $primary . ":" . $secondary);
 
-    if (keys(%displays) == 0) {
+    if (keys(%$displays) == 0) {
         debug("No displays running");
         return;
     }
-    foreach my $display (keys %displays) {
-        if ($displays{$display}) {
+    foreach my $display (keys %$displays) {
+        if ($displays->{$display}) {
             my @display_items = split(/:/, $display);
             debug("Updating " . $display);
             if (
@@ -3846,11 +3844,11 @@ sub preview_display {
     debug("Preview command: " . $command . ":" . $primary . ":" . $secondary);
 
     my $display = 0;
-    if (scalar keys %previews == 0) {
+    if (scalar keys %$previews == 0) {
         debug("No preview displays running");
         return;
     }
-    foreach my $display (keys %previews) {
+    foreach my $display (keys %$previews) {
         my @display_items = split(/:/, $display);
         debug("Updating Preview " . $display);
         if (
@@ -8847,25 +8845,28 @@ sub init_miniview {
     if ($config->{'Miniview'}) {
         $widgets->{'main'}->get_object('vboxCurrent')->show();
         $widgets->{'main'}->get_object('checkCurrent')->set_active(TRUE);
-        foreach my $display (keys %displays) {
-            if (($displays{$display} & GONE) == GONE) {
+        foreach my $display (keys %$displays) {
+            if (($displays->{$display}->{'active'} & GONE) == GONE) {
                 close_miniview($display);
-                delete $displays{$display};
+                delete $displays->{$display};
             } elsif (!defined($widgets->{'miniview'}->{$display})) {
                 $widgets->{'miniview'}->{$display} = Gtk3::Socket->new;
                 $widgets->{'miniview'}->{$display}->set_size_request(100, 75);
-                $widgets->{'miniview_event'}->{$display} = Gtk3::EventBox->new;
+                $widgets->{'miniview_check'}->{$display} = Gtk3::CheckButton->new($display);
+                $widgets->{'miniview_check'}->{$display}->set_active(TRUE);
+                $widgets->{'miniview_check'}->{$display}->set_halign("end");
                 $widgets->{'miniview_frame'}->{$display} =
-                  Gtk3::AspectFrame->new($display, 0.5, 0.5,
+                  Gtk3::AspectFrame->new("", 0.5, 0.5,
                     $config->{'Width'} / $config->{'Height'}, FALSE);
                 $widgets->{'miniview_frame'}->{$display}
                   ->add($widgets->{'miniview'}->{$display});
-                $widgets->{'miniview_event'}->{$display}
-                  ->add($widgets->{'miniview_frame'}->{$display});
                 $widgets->{'main'}->get_object('vboxCurrent')
-                  ->pack_end($widgets->{'miniview_event'}->{$display},
+                  ->pack_end($widgets->{'miniview_frame'}->{$display},
                     TRUE, TRUE, 0);
-                $widgets->{'miniview_event'}->{$display}->show;
+                $widgets->{'main'}->get_object('vboxCurrent')
+                  ->pack_end($widgets->{'miniview_check'}->{$display},
+                    FALSE, FALSE, 0);
+                $widgets->{'miniview_check'}->{$display}->show;
                 $widgets->{'miniview_frame'}->{$display}->show;
                 $widgets->{'miniview'}->{$display}->show;
                 $widgets->{'miniview_frame'}->{$display}
@@ -8877,7 +8878,7 @@ sub init_miniview {
                     $widgets->{'miniview'}->{$display}->get_id,
                     $globals->{'preview_port'},
                     $globals->{'profile'},
-                    $display
+                    $displays->{$display}->{'host'}
                 );
                 debug($command);
 
@@ -8901,13 +8902,13 @@ sub init_miniview {
                         1;
                     }
                 );
-                $widgets->{'miniview_event'}->{$display}->signal_connect(
-                    button_release_event => \&toggle_server_active,
+                $widgets->{'miniview_check'}->{$display}->signal_connect(
+                    toggled => \&toggle_server_active,
                     $display
                 );
             }
-            if ($miniviews{$display}) {
-                $miniviews{$display} &= 1;    # Clear check bit
+            if ($miniviews->{$display}) {
+                $miniviews->{$display}->{'active'} &= TRUE;    # Clear check bit
             }
         }
     } else {
@@ -11590,11 +11591,11 @@ sub check_displays {
     #debug("Check Displays");
 
     $local_preview = FALSE;
-    foreach my $display (keys %displays) {
-        $displays{$display} |= GONE;
+    foreach (keys %$displays) {
+        $displays->{$_}->{'active'} = GONE;
     }
-    for (keys %previews) {
-        delete $previews{$_};
+    for (keys %$previews) {
+        delete $previews->{$_};
     }
 
     my $query =
@@ -11610,41 +11611,18 @@ sub check_displays {
             || ($row->{'type'} eq "simple")
             || ($row->{'type'} eq "headless"))
         {
-            if (defined $displays{$index}) {
-                $displays{$index} &= TRUE;
+            if (defined $displays->{$index}) {
+                $displays->{$index}->{'active'} &= TRUE; #clears GONE bit
             } else {
-                $displays{$index} = TRUE;
+                $displays->{$index}->{'active'} = TRUE;
             }
-            my $frame_label = $row->{'host'};
-            if ($row->{'title'} =~ /^blank_bg/) {
-                
-                $frame_label .= " - blanked";
-            } elsif ($row->{'title'} =~ /^blank_text/) {
-                $frame_label .= " - text cleared";
-            } else {
-                if ($row->{'title'} ne "0;0;0") {
-                    $status = $row->{'title'};
-                }
-            }
-            if (!$displays{$index}) {
-                $frame_label = gettext("inactive")." - ".$frame_label;
-            }
-            if (defined($widgets->{'miniview_frame'}->{$index})) {
-                if ($displays{$index}) {
-                    $widgets->{'miniview_frame'}->{$index}->override_background_color('GTK_STATE_FLAG_NORMAL', NULL)
-                } else {
-                    my $rgba = Gtk3::Gdk::RGBA->new(0,0,0,1);
-                    $widgets->{'miniview_frame'}->{$index}->override_background_color('GTK_STATE_FLAG_NORMAL', 'red');
-                    $widgets->{'miniview_event'}->{$index}->override_background_color('GTK_STATE_FLAG_NORMAL', 'red');
-                }
-                $widgets->{'miniview_frame'}->{$index}->set_label($frame_label);
-            }
+            $displays->{$index}->{'host'} = $row->{'host'};
         } elsif ($row->{'type'} =~ /^miniview/) {
             my $extra_data = $row->{'type'};
             $extra_data =~ s/^miniview//;
-            $miniviews{$extra_data} = TRUE;
+            $miniviews->{$extra_data}->{'active'} = TRUE;
         } elsif ($row->{'type'} eq "preview") {
-            $previews{$index} = TRUE;
+            $previews->{$index}->{'active'} = TRUE;
             if ($row->{'host'} =~ /^$globals->{'local_hostname'}/) {
                 $local_preview = TRUE;
             }
@@ -13475,8 +13453,8 @@ sub select_profile {
 
             update_display("profile", $globals->{'profile'}, "");
             preview_display("profile", $globals->{'profile'}, "");
-            my $miniviews = $widgets->{'miniview'};
-            foreach my $display (keys %$miniviews) {
+            my $miniview_widgets = $widgets->{'miniview'};
+            foreach my $display (keys %$miniview_widgets) {
                 if (defined $widgets->{'miniview'}->{$display}) {
                     $widgets->{'miniview'}->{$display}->destroy;
                     delete $widgets->{'miniview'}->{$display};
@@ -13515,24 +13493,28 @@ sub toggle_preview {
 }
 
 sub toggle_server_active {
-    my ($widget, $event, $display) = @_;
-    if ($displays{$display}) {
-        debug("Set server inactive for " . $display);
-        $displays{$display} = FALSE;
-        $widgets->{'miniview_frame'}->{$display}
-          ->set_label(gettext("inactive"). " - ". $display );
-    } else {
+    my ($widget, $display) = @_;
+    if ($widget->get_active) {
         debug("Set server active for " . $display);
-        $displays{$display} = TRUE;
-        $widgets->{'miniview_frame'}->{$display}->set_label($display);
+        $displays->{$display} = TRUE;
+        #$widgets->{'miniview_check'}->{$display}->set_label($display);
+    } else {
+        debug("Set server inactive for " . $display);
+        $displays->{$display} = FALSE;
+        #$widgets->{'miniview_check'}->{$display}
+        #  ->set_label(gettext("inactive"). " - ". $display );
     }
 }
 
 sub close_miniview {
     my ($display) = @_;
     debug("Removing miniview for " . $display);
-    if (defined $miniviews{$display}) {
-        undef $miniviews{$display};
+    if (defined $miniviews->{$display}) {
+        undef $miniviews->{$display};
+    }
+    if (defined $widgets->{'miniview_check'}->{$display}) {
+        $widgets->{'miniview_check'}->{$display}->destroy;
+        undef $widgets->{'miniview_check'}->{$display};
     }
     if (defined $widgets->{'miniview_frame'}->{$display}) {
         $widgets->{'miniview_frame'}->{$display}->destroy;
