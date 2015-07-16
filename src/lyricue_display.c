@@ -253,7 +253,7 @@ main (int argc, char *argv[])
 
     // Setup tracker entry in DB
     do_query (FALSE, lyricDb, "DELETE FROM status WHERE host='%s:%d'",hostname, server_port);
-    do_query (FALSE, lyricDb, "INSERT INTO status SET host='%s:%d',ref=0,title='', profile='%s', type='%s%s', ip='%s'",hostname, server_port, profile, server_type, extra_data, ipaddr);
+    do_query (FALSE, lyricDb, "INSERT INTO status SET host='%s:%d',ref=0,title='', profile='%s', type='%s#%s', ip='%s'",hostname, server_port, profile, server_type, extra_data, ipaddr);
     if (server_mode==NORMAL_SERVER) {
         clutter_main ();
     } else {

@@ -77,3 +77,4 @@ GString * take_snapshot (const char *filename, int width);
 gboolean take_dbsnapshot (int playorder);
 gboolean playlist_snapshot (int playlist);
 GString * do_get(const gchar* item);
+extern gchar *extra_data;

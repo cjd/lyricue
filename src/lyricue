@@ -8841,7 +8841,7 @@ sub init_miniview {
             } elsif (!defined($widgets->{'miniview'}->{$display})) {
                 $widgets->{'miniview'}->{$display} = Gtk3::Socket->new;
                 $widgets->{'miniview'}->{$display}->set_size_request(100, 75);
-                $widgets->{'miniview_check'}->{$display} = Gtk3::CheckButton->new($display);
+                $widgets->{'miniview_check'}->{$display} = Gtk3::CheckButton->new($displays->{$display}->{'title'});
                 $widgets->{'miniview_check'}->{$display}->set_active(TRUE);
                 $widgets->{'miniview_check'}->{$display}->set_halign("end");
                 $widgets->{'miniview_frame'}->{$display} =
@@ -11596,9 +11596,10 @@ sub check_displays {
     while ($row = $sth->fetchrow_hashref()) {
         my @keys = split(/:/, $row->{'host'});
         my $index = $row->{'ip'} . ":" . $keys[1];
-        if (   ($row->{'type'} eq "normal")
-            || ($row->{'type'} eq "simple")
-            || ($row->{'type'} eq "headless"))
+        my @type = split(/#/, $row->{'type'},2);
+        if (   ($type[0] eq "normal")
+            || ($type[0] eq "simple")
+            || ($type[0] eq "headless"))
         {
             if (defined $displays->{$index}) {
                 $displays->{$index}->{'active'} &= TRUE; #clears GONE bit
@@ -11606,11 +11607,16 @@ sub check_displays {
                 $displays->{$index}->{'active'} = TRUE;
             }
             $displays->{$index}->{'host'} = $row->{'host'};
-        } elsif ($row->{'type'} =~ /^miniview/) {
+            if (defined $type[1] && ($type[1] ne "")) {
+                $displays->{$index}->{'title'} = $type[1];
+            } else {
+                $displays->{$index}->{'title'} = $row->{'host'};
+            }
+        } elsif ($type[0] eq "miniview") {
             my $extra_data = $row->{'type'};
             $extra_data =~ s/^miniview//;
             $miniviews->{$extra_data}->{'active'} = TRUE;
-        } elsif ($row->{'type'} eq "preview") {
+        } elsif ($type[0] eq "preview") {
             $previews->{$index}->{'active'} = TRUE;
             if ($row->{'host'} =~ /^$globals->{'local_hostname'}/) {
                 $local_preview = TRUE;

@@ -134,6 +134,9 @@ create_main_window (int argc, char *argv[])
     }
     if (windowid == 0) {
         window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+        gchar *title = g_strconcat("Lyricue Display - ", extra_data, NULL);
+        gtk_window_set_title(GTK_WINDOW(window), title);
+        g_free(title);
         clutter_widget = gtk_clutter_embed_new ();
         gtk_container_add (GTK_CONTAINER (window), clutter_widget);
         gtk_widget_show_all (window);
