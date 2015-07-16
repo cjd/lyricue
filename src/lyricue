@@ -131,17 +131,6 @@ Glib::Object::Introspection->setup(
     package  => 'GnomeDesktop'
 );
 
-#use B::Concise;
-#no strict 'refs';
-#for my $k (keys %{"GnomeDesktop\::"}) {
-#    print "found GnomeDesktop\::$k():\n";
-#    if (*{${"GnomeDesktop\::"}{$k}}{CODE}) {
-#        my $sub = \&{${"GnomeDesktop\::"}{$k}};
-#        print "Dump of GnomeDesktop\::$k():\n";
-#        B::Concise::compile($sub)->();
-#    }
-#}
-
 eval { require Locale::gettext };
 
 if ($@) {
