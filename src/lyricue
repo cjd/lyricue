@@ -192,7 +192,7 @@ use constant GONE  => 2;
 
 $globals->{'version'}    = "##VERSION##";
 $globals->{'accessfile'} = $globals->{'etcdir'} . "access.conf";
-$globals->{'gladefile'}  = $globals->{'sharedir'} . "lyricue.glade";
+$globals->{'conffile'} = $globals->{'etcdir'} . "default.conf";
 
 $globals->{'profile'}     = "";
 $globals->{'mysqlhost'}   = "localhost";
@@ -4748,6 +4748,7 @@ sub create_dialog_prefs {
         $config->{'Justification'});
     combo_set_active($widgets->{'prefs'}->get_object('comboPrefInfoLoc'),
         $config->{'ShowInfoLocation'});
+debug("showinfo = ".$config->{'ShowInfoPages'});
     combo_set_active($widgets->{'prefs'}->get_object('comboPrefInfoPages'),
         $config->{'ShowInfoPages'});
     $widgets->{'prefs'}->get_object('spinPrefOverscanV')
@@ -6210,12 +6211,23 @@ sub load_config {
     my ($hostname) = @_;
     my ($conf);
     debug("Loading Preferences for $hostname");
+    eval { open(CONF, $globals->{'conffile'}); };
+    if ($@) {
+        debug("No existing default.conf");
+    } else {
+        while (<CONF>) {
+            chomp;
+            my ($key, $val) = split(/=/, $_, 2);
+            $key =~ s/ *$//g;
+            $val =~ s/^ *//g;
+            $conf->{$key} = $val;
+        }
+        close CONF;
+    }
     my $bibleCount = 0;
     $conf->{'Apps'}->{gettext("Load Lyricue Display")} = "lyricue_display";
     $conf->{'Apps'}->{gettext("Close Lyricue Display")} =
       "lyricue_remote close";
-    $conf->{'Width'}  = 0;
-    $conf->{'Height'} = 0;
 
     my $query = "SELECT config_key, config_value FROM config WHERE profile='"
       . $hostname . "'";
@@ -6268,16 +6280,29 @@ sub load_config {
         $globals->{'mysqlhost'} = $conf->{'DBHost'};
     }
 
-    # Set icon sizes according to aspect ratio
-    if (($conf->{'Width'} != 0) && ($conf->{'Height'} != 0)) {
-        $globals->{'display_aspect'} = $conf->{'Width'} / $conf->{'Height'};
-        $globals->{'icon_height'} =
-          $globals->{'icon_width'} / $globals->{'display_aspect'};
-        $globals->{'thumb_height'} =
-          $globals->{'thumb_width'} / $globals->{'display_aspect'};
-        $globals->{'snapshot_height'} =
-          $globals->{'snapshot_width'} / $globals->{'display_aspect'};
+    # Migrate from Lyricue 3 to Lyricue 4 items
+    if (!defined $conf->{'Aspect'}) {
+        my $aspect = $conf->{'Width'} / $conf->{'Height'};
+        if ($aspect > 1.7) {
+            $conf->{'Aspect'} = "16:9";
+        } else {
+            $conf->{'Aspect'} = "4:3";
+        }
     }
+
+    if ($conf->{'Aspect'} eq "4:3") {
+        $conf->{'Width'} = 1024;
+        $conf->{'Height'} = 768;
+    } else {
+        $conf->{'Width'} = 1280;
+        $conf->{'Height'} = 720;
+    }
+
+    # Set icon sizes according to aspect ratio
+    $globals->{'display_aspect'} = $conf->{'Width'} / $conf->{'Height'};
+    $globals->{'icon_height'} = $globals->{'icon_width'} / $globals->{'display_aspect'};
+    $globals->{'thumb_height'} = $globals->{'thumb_width'} / $globals->{'display_aspect'};
+    $globals->{'snapshot_height'} = $globals->{'snapshot_width'} / $globals->{'display_aspect'};
 
     if (defined $widgets->{'main'}) {
         $widgets->{'main'}->get_object('windowMain')
