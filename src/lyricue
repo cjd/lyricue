@@ -9462,9 +9462,9 @@ sub update_quickedit {
                         $query =
                             "SELECT chapternum,versenum,verse FROM "
                           . $table
-                          . " WHERE book=\""
+                          . " WHERE book LIKE \""
                           . $line[0]
-                          . "\" AND chapternum="
+                          . "%\" AND chapternum="
                           . $line[1]
                           . " AND versenum>="
                           . $startv
@@ -10571,9 +10571,9 @@ sub navigator_next {
         my $query =
             "SELECT MAX(versenum) FROM "
           . $table
-          . " WHERE book=\""
+          . " WHERE book LIKE \""
           . $book
-          . "\" AND chapternum="
+          . "%\" AND chapternum="
           . $chapter;
         my $sth = do_query($bibleDbh, $query, FALSE);
         my @row = $sth->fetchrow_array();
@@ -10715,9 +10715,9 @@ sub get_max_verse {
         $query =
             "SELECT * FROM "
           . $table
-          . " WHERE book=\""
+          . " WHERE book LIKE \""
           . $book
-          . "\" AND chapternum="
+          . "%\" AND chapternum="
           . $chapter
           . " AND versenum>="
           . $startverse
@@ -12774,9 +12774,9 @@ sub biblebrowser_verse {
         my $query =
             "SELECT MAX(versenum) FROM "
           . $table
-          . " WHERE book=\""
+          . " WHERE book LIKE \""
           . toutf($book)
-          . "\" AND chapternum=\""
+          . "%\" AND chapternum=\""
           . $chapter . "\"";
         $sth = do_query($bibleDbh, $query, FALSE);
 
