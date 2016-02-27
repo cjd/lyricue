@@ -11709,7 +11709,7 @@ sub check_status {
 
     # Check for playlist items of simple/normal displays
     my $query =
-"SELECT host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE (st.type='normal' OR st.type='simple' or st.type='headless') AND st.profile='"
+"SELECT host,p1.playorder AS pl1,p2.playorder AS pl2 FROM playlist AS p1 LEFT JOIN playlist AS p2 ON p1.data=p2.playlist LEFT JOIN status AS st ON st.ref=p2.playorder WHERE (st.type LIKE '%normal%' OR st.type LIKE '%simple%' or st.type LIKE '%headless%') AND st.profile='"
       . $globals->{'profile'} . "'";
 
     my $sth = do_query($lyricDbh, $query, TRUE);
