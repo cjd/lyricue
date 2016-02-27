@@ -1402,7 +1402,7 @@ sub add_song {
     my $i;
     debug("Add clicked");
     if ($widgets->{'add'} && $widgets->{'add'}->get_object('windowEditSong')) {
-        if (!$widgets->{'add'}->get_object('windowEditSong')->visible) {
+        if (!$widgets->{'add'}->get_object('windowEditSong')->get_visible()) {
             $widgets->{'add'}->get_object('windowEditSong')->destroy;
         } else {
             return;
@@ -2085,7 +2085,7 @@ sub edit_song {
         if (   $widgets->{'add'}
             && $widgets->{'add'}->get_object('windowEditSong'))
         {
-            if (!$widgets->{'add'}->get_object('windowEditSong')->visible) {
+            if (!$widgets->{'add'}->get_object('windowEditSong')->get_visible()) {
                 $widgets->{'add'}->get_object('windowEditSong')->destroy;
                 $widgets->{'add'} = undef;
 
