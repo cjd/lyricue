@@ -139,7 +139,7 @@ create_main_window (int argc, char *argv[])
         g_free(title);
         clutter_widget = gtk_clutter_embed_new ();
         gtk_container_add (GTK_CONTAINER (window), clutter_widget);
-        gtk_widget_show_all (window);
+        gtk_widget_show_all (clutter_widget);
         if (!windowed)
             gtk_window_fullscreen (GTK_WINDOW (window));
         int base_height=200;
@@ -151,6 +151,7 @@ create_main_window (int argc, char *argv[])
                 l_debug ("Geometry '%s'", geometry);
             }
         }
+        gtk_widget_show_all (window);
     } else {
         window = gtk_plug_new (windowid);
         clutter_widget = gtk_clutter_embed_new ();
