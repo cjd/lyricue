@@ -508,7 +508,6 @@ $globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
 Gtk3->main();
 
-# Should never get here
 exit(0);
 
 #***
@@ -553,7 +552,7 @@ sub close_main {
         kill 9, $globals->{'miniview_pid'}->{$display};
     }
     close LOG;
-    exit();
+    Gtk3->main_quit;
     return FALSE;
 }
 
