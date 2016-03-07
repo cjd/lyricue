@@ -9169,11 +9169,16 @@ sub create_pixbuf {
         if (($width > $globals->{'thumb_width'}) || ($width == 0)) {
 
             # Bigger than cache value so just send new pixbuf
-            $pixbuf =
-              Gtk3::Gdk::Pixbuf->new_from_file_at_scale($id, $width, $height,
-                TRUE);
-            if (defined $pixbuf) {
-                return $pixbuf;
+            my $type = globs($id);
+            if ($type =~ /^image/){ # Pixbuf only works for images
+                $pixbuf =
+                  Gtk3::Gdk::Pixbuf->new_from_file_at_scale($id, $width, $height,
+                    TRUE);
+                if (defined $pixbuf) {
+                    return $pixbuf;
+                }
+            }else {
+                return NULL;
             }
         }
         my $mtime = (stat($id))[9];
