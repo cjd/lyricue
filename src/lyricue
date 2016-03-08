@@ -10415,13 +10415,16 @@ sub navigator_update {
           $widgets->{'main'}->get_object('entryNavVerse')->get_active_text();
         $text =~ s/$book[ :\-]/$newbook /i;
         $widgets->{'main'}->get_object('entryNavVerse')->get_child->set_text($text);
+        $widgets->{'main'}->get_object('entryNavVerse')->get_child->set_position(-1);
         #biblebrowser_verse(NULL, 0, "entry");
+        $globals->{'ignore_signals'} = TRUE;
         foreach my $num ($startverse .. $endverse) {
             my $button = "button" . ($num - 1);
             if (defined $widgets->{'bibleBrowser'}{$button}) {
                 $widgets->{'bibleBrowser'}{$button}->set_active(TRUE);
             }
         }
+        $globals->{'ignore_signals'} = FALSE;
     }
     if ($globals->{'usesword'}) {
         my $command = sprintf(
@@ -12767,6 +12770,9 @@ sub biblebrowser_chapter {
 #
 sub biblebrowser_verse {
     my ($widget, $chapter, $source) = @_;
+    if (defined ($globals->{'ignore_signals'}) && $globals->{'ignore_signals'}) {
+        return;
+    }
     if (!defined $source) {
         $source="button";
     }
@@ -12867,7 +12873,7 @@ sub biblebrowser_loaditems {
             $widgets->{'bibleBrowser'}{'button' . $itemnum}->show();
         } else {
             $widgets->{'bibleBrowser'}{'button' . $itemnum} =
-              Gtk3::Button->new(fromutf(gettext(@$items[$itemnum])));
+              Gtk3::ToggleButton->new(fromutf(gettext(@$items[$itemnum])));
             if ($section eq "book") {
                 $widgets->{'bibleBrowser'}{'button' . $itemnum}
                   ->signal_connect(
