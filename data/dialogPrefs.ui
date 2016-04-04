@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.1 -->
+<!-- Generated with glade 3.19.0 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
   <object class="GtkAdjustment" id="adjustment5">
@@ -32,72 +32,6 @@
     <property name="value">2</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-  </object>
-  <object class="GtkListStore" id="liststore1"/>
-  <object class="GtkListStore" id="model6">
-    <columns>
-      <!-- column-name gchararray -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Top</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Centre</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Bottom</col>
-      </row>
-    </data>
-  </object>
-  <object class="GtkListStore" id="model7">
-    <columns>
-      <!-- column-name gchararray -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Left</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Centre</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Right</col>
-      </row>
-    </data>
-  </object>
-  <object class="GtkListStore" id="model8">
-    <columns>
-      <!-- column-name gchararray -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Left</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Centre</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Right</col>
-      </row>
-    </data>
-  </object>
-  <object class="GtkListStore" id="model9">
-    <columns>
-      <!-- column-name gchararray -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">None</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Fade</col>
-      </row>
-    </data>
   </object>
   <object class="GtkDialog" id="dialogPrefs">
     <property name="visible">True</property>
@@ -840,23 +774,6 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkComboBox" id="comboPrefDefTrans">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="model">model9</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="renderer9"/>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">2</property>
-                      </packing>
-                    </child>
-                    <child>
                       <object class="GtkLabel" id="label5">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -905,6 +822,20 @@
                       <packing>
                         <property name="left_attach">1</property>
                         <property name="top_attach">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="comboPrefDefTrans">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <items>
+                          <item id="none" translatable="yes">None</item>
+                          <item id="fade" translatable="yes">Fade</item>
+                        </items>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">2</property>
                       </packing>
                     </child>
                   </object>
@@ -1424,5 +1355,71 @@
       <action-widget response="-6">cancelbutton3</action-widget>
       <action-widget response="-5">okbutton4</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkListStore" id="liststore1"/>
+  <object class="GtkListStore" id="model6">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Top</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Centre</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Bottom</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="model7">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Left</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Centre</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Right</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="model8">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Left</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Centre</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Right</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="model9">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">None</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Fade</col>
+      </row>
+    </data>
   </object>
 </interface>
