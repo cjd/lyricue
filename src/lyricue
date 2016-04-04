@@ -10734,10 +10734,18 @@ sub get_max_verse {
     my $layout =
       $widgets->{'main'}->get_object('windowMain')->create_pango_layout("");
     $layout->set_wrap('word');
-    ##FIXME $layout->set_width(
-    ##FIXME    ($config->{'Width'} - $config->{'OverscanH'}) * PANGO_SCALE);
-    $layout->set_font_description(
-        Pango::FontDescription->from_string($config->{'Main'}));
+    $layout->set_width($config->{'Width'} - $config->{'OverscanH'});
+
+#FIXME    $layout->set_font_description(
+        #Pango::FontDescription->from_string($config->{'Main'}));
+    my $fontdesc = Pango::FontDescription->new;
+    my $family = $config->{'Main'};
+    $family =~ s/ [0-9]*$//;
+    my $size = $config->{'Main'};
+    $size =~ s/^.* ([0-9]*)$/$1/;
+    $fontdesc->set_family($family);
+    $fontdesc->set_size($size * (1024 / 10));
+    $layout->set_font_description($fontdesc);
     my $page = "";
     my (@command_out);
 
