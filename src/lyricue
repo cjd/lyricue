@@ -3432,6 +3432,31 @@ sub add_image_pl {
 
 #***
 
+#****f* lyricue/add_file_pl
+# NAME
+#   add_file_pl
+# SYNOPSIS
+#   add_file_pl()
+# FUNCTION
+#   Add a file to the playlist
+# INPUTS
+# OUTPUT
+#   New item on playlist
+# SOURCE
+#
+sub add_file_pl {
+    debug("Add file to playlist clicked");
+    my $main_playlist =
+      $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data};
+    my $filenames = $widgets->{'main'}->get_object('fileAddFile')->get_filenames;
+    foreach my $file (@$filenames) {
+        do_add_file($file, $main_playlist);
+    }
+    update_playlist();
+}
+
+#***
+
 #****f* lyricue/add_image
 # NAME
 #   add_image
@@ -6570,9 +6595,9 @@ sub file_ok_sel {
     debug("Add filename to playlist");
     my $main_playlist =
       $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data};
-    my @filenames = $filexml->get_object('dialogFileChooser')->get_filenames;
-    foreach my $file (@filenames) {
-        do_add_file(@$file[0], $main_playlist);
+    my $filenames = $filexml->get_object('dialogFileChooser')->get_filenames;
+    foreach my $file (@$filenames) {
+        do_add_file($file, $main_playlist);
     }
     update_playlist();
     close_dialog($widget);
