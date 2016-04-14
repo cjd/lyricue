@@ -10759,18 +10759,7 @@ sub get_max_verse {
     my $layout =
       $widgets->{'main'}->get_object('windowMain')->create_pango_layout("");
     $layout->set_wrap('word');
-    $layout->set_width($config->{'Width'} - $config->{'OverscanH'});
-
-#FIXME    $layout->set_font_description(
-        #Pango::FontDescription->from_string($config->{'Main'}));
-    my $fontdesc = Pango::FontDescription->new;
-    my $family = $config->{'Main'};
-    $family =~ s/ [0-9]*$//;
-    my $size = $config->{'Main'};
-    $size =~ s/^.* ([0-9]*)$/$1/;
-    $fontdesc->set_family($family);
-    $fontdesc->set_size($size * (1024 / 10));
-    $layout->set_font_description($fontdesc);
+    $layout->set_width(($config->{'Width'} - $config->{'OverscanH'}) * 1024);
     my $page = "";
     my (@command_out);
 
@@ -10820,7 +10809,7 @@ sub get_max_verse {
             }
         }
 
-        $layout->set_text($page . "\n" . $line);
+        $layout->set_markup("<span font=\"".$config->{'Main'}."\">".$page . "\n" . $line."</span>",-1);
         my ($pageWidth, $pageHeight) = $layout->get_pixel_size;
 
         if ($pageHeight > $config->{'Height'} - (100 + $config->{'OverscanV'}))
