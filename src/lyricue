@@ -11666,6 +11666,9 @@ sub check_displays {
             } else {
                 $displays->{$index}->{'title'} = $row->{'host'};
             }
+            if ($row->{'title'} ne "0;0;0") {
+                $status=$row->{'title'};
+            }
         } elsif ($type[0] eq "miniview") {
             my $extra_data = $row->{'type'};
             $extra_data =~ s/^miniview//;
