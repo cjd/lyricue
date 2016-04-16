@@ -8191,7 +8191,6 @@ sub transition_type_changed {
     my ($widget) = @_;
     debug("Transition type changed");
     if ($widget eq $widgets->{'main'}->get_object('radioTransFade')) {
-    } elsif ($widget eq $widgets->{'main'}->get_object('radioTransWipe')) {
     } elsif ($widget eq $widgets->{'main'}->get_object('radioTransSlide')) {
         if ($widget->get_active) {
             $widgets->{'main'}->get_object('tableTransDir')->show_all();
