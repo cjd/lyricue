@@ -7395,7 +7395,6 @@ sub imgdir_load {
         if ($ret) {
             foreach $file (sort readdir(DIR)) {
                 if ((!($file =~ /^\./)) && (!(-d $dirname . "/" . $file))) {
-                    print $type . ";" . $dirname . "/" . $file . "\n";
                     do_pending();
                     my $iter = $store->append;
                     $file = fromutf($file);
