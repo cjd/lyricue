@@ -9527,8 +9527,11 @@ sub update_quickedit {
                         $sth = do_query($bibleDbh, $query, FALSE);
 
                         while (@row = $sth->fetchrow_array()) {
+                            if ($quicktext ne "") {
+                                $quicktext .= "\n";
+                            }
                             $quicktext .=
-                              $row[0] . ":" . $row[1] . "   " . $row[2] . "\n";
+                              $row[0] . ":" . $row[1] . "   " . $row[2];
                         }
                         $quicktext = fromutf($quicktext);
                     }
@@ -10503,7 +10506,10 @@ sub navigator_update {
             $sth = do_query($bibleDbh, $query, FALSE);
             my $mark = 0;
             while (my @row = $sth->fetchrow_array()) {
-                my $verse = $row[1] . ":" . $row[2] . " " . $row[3] . "\n";
+                my $verse = $row[1] . ":" . $row[2] . " " . $row[3];
+                if ($buffer->get_char_count()>0) {
+                    $verse .= "\n";
+                }
                 $buffer->create_mark($mark, $iter, TRUE);
                 insert_link($buffer, $iter, $mark, $verse);
                 $mark++;
