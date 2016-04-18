@@ -9200,9 +9200,7 @@ sub create_pixbuf {
                 if (defined $pixbuf) {
                     return $pixbuf;
                 }
-            }else {
-                return NULL;
-            }
+            } # Otherwise drop to thumbnailing
         }
         my $mtime = (stat($id))[9];
         $id =~ s/\/+/\//g;
