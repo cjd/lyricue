@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.19.0 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
   <object class="GtkAdjustment" id="adjustmentFade">
@@ -627,7 +627,6 @@
                   <object class="GtkNotebook" id="notebookSources">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="margin_bottom">9</property>
                     <property name="scrollable">True</property>
                     <property name="enable_popup">True</property>
                     <signal name="switch-page" handler="change_notebook_page" after="yes" swapped="no"/>
@@ -1020,70 +1019,6 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkBox" id="vboxFiles">
-                        <property name="can_focus">False</property>
-                        <property name="orientation">vertical</property>
-                        <child>
-                          <object class="GtkFileChooserWidget" id="fileAddFile">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="create_folders">False</property>
-                            <property name="preview_widget_active">False</property>
-                            <property name="select_multiple">True</property>
-                            <property name="use_preview_label">False</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkToolbar" id="toolbarAddFile">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="toolbar_style">both-horiz</property>
-                            <child>
-                              <object class="GtkToolButton" id="buttonAddFile">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Remove the current item from the playlist</property>
-                                <property name="is_important">True</property>
-                                <property name="label" translatable="yes">Add to playlist</property>
-                                <property name="use_underline">True</property>
-                                <property name="stock_id">gtk-add</property>
-                                <signal name="clicked" handler="add_file_pl" swapped="no"/>
-                              </object>
-                              <packing>
-                                <property name="expand">True</property>
-                                <property name="homogeneous">True</property>
-                              </packing>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="menu_label">Files</property>
-                        <property name="position">3</property>
-                      </packing>
-                    </child>
-                    <child type="tab">
-                      <object class="GtkLabel" id="label5">
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Files</property>
-                      </object>
-                      <packing>
-                        <property name="position">3</property>
-                        <property name="tab_fill">False</property>
-                      </packing>
-                    </child>
-                    <child>
                       <object class="GtkBox" id="vboxBibleNav1">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -1274,7 +1209,7 @@
                       </object>
                       <packing>
                         <property name="menu_label">Bible</property>
-                        <property name="position">4</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                     <child type="tab">
@@ -1282,6 +1217,70 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Bible</property>
+                      </object>
+                      <packing>
+                        <property name="position">3</property>
+                        <property name="tab_fill">False</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="vboxFiles">
+                        <property name="can_focus">False</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkFileChooserWidget" id="fileAddFile">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="create_folders">False</property>
+                            <property name="preview_widget_active">False</property>
+                            <property name="select_multiple">True</property>
+                            <property name="use_preview_label">False</property>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkToolbar" id="toolbarAddFile">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="toolbar_style">both-horiz</property>
+                            <child>
+                              <object class="GtkToolButton" id="buttonAddFile">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="has_tooltip">True</property>
+                                <property name="tooltip_text" translatable="yes">Remove the current item from the playlist</property>
+                                <property name="is_important">True</property>
+                                <property name="label" translatable="yes">Add to playlist</property>
+                                <property name="use_underline">True</property>
+                                <property name="stock_id">gtk-add</property>
+                                <signal name="clicked" handler="add_file_pl" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">True</property>
+                                <property name="homogeneous">True</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="menu_label">Files</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child type="tab">
+                      <object class="GtkLabel" id="label5">
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Files</property>
                       </object>
                       <packing>
                         <property name="position">4</property>

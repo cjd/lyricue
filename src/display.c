@@ -893,8 +893,8 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
                 break;
             case CLUTTER_KEY_PRESS:
                 switch (clutter_event_get_key_symbol (event)) {
-                    case CLUTTER_Q:
-                    case CLUTTER_Escape:
+                    case CLUTTER_KEY_Q:
+                    case CLUTTER_KEY_Escape:
                         close_log ();
                         clear_group (stage);
                         if (server_mode == NORMAL_SERVER) {
@@ -904,80 +904,80 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
                         }
                         handled = TRUE;
                         break;
-                    case CLUTTER_Left:
-                    case CLUTTER_KP_Left:
-                    case CLUTTER_Page_Up:
+                    case CLUTTER_KEY_Left:
+                    case CLUTTER_KEY_KP_Left:
+                    case CLUTTER_KEY_Page_Up:
                         handle_command (NULL, "display:prev_page:");
                         break;
-                    case CLUTTER_Right:
-                    case CLUTTER_KP_Right:
-                    case CLUTTER_Page_Down:
+                    case CLUTTER_KEY_Right:
+                    case CLUTTER_KEY_KP_Right:
+                    case CLUTTER_KEY_Page_Down:
                         handle_command (NULL, "display:next_page:");
                         break;
-                    case CLUTTER_Up:
-                    case CLUTTER_KP_Up:
+                    case CLUTTER_KEY_Up:
+                    case CLUTTER_KEY_KP_Up:
                         handle_command (NULL, "display:prev_song:");
                         break;
-                    case CLUTTER_Down:
-                    case CLUTTER_KP_Down:
+                    case CLUTTER_KEY_Down:
+                    case CLUTTER_KEY_KP_Down:
                         handle_command (NULL, "display:next_song:");
                         break;
-                    case CLUTTER_0:
-                    case CLUTTER_KP_0:
-                    case CLUTTER_KP_Insert:
-                    case CLUTTER_c:
-                    case CLUTTER_x:
+                    case CLUTTER_KEY_0:
+                    case CLUTTER_KEY_KP_0:
+                    case CLUTTER_KEY_KP_Insert:
+                    case CLUTTER_KEY_c:
+                    case CLUTTER_KEY_x:
                         if (blanked_state == BLANK_NONE) {
                             handle_command (NULL, "blank::");
                         } else {
                             handle_command (NULL, "display:current:");
                         }
                         break;
-                    case CLUTTER_b:
+                    case CLUTTER_KEY_b:
                         if (blanked_state == BLANK_NONE) {
                             handle_command (NULL, "blank:solid;black:");
                         } else {
                             handle_command (NULL, "display:current:");
                         }
                         break;
-                    case CLUTTER_p:
-                    case CLUTTER_space:
+                    case CLUTTER_KEY_p:
+                    case CLUTTER_KEY_space:
                         handle_command (NULL, "media:pause:");
                         break;
-                    case CLUTTER_1:
-                    case CLUTTER_KP_1:
+                    case CLUTTER_KEY_1:
+                    case CLUTTER_KEY_KP_1:
                         handle_command (NULL, "display:page:1");
                         break;
-                    case CLUTTER_2:
-                    case CLUTTER_KP_2:
+                    case CLUTTER_KEY_2:
+                    case CLUTTER_KEY_KP_2:
                         handle_command (NULL, "display:page:2");
                         break;
-                    case CLUTTER_3:
-                    case CLUTTER_KP_3:
+                    case CLUTTER_KEY_3:
+                    case CLUTTER_KEY_KP_3:
                         handle_command (NULL, "display:page:3");
                         break;
-                    case CLUTTER_4:
-                    case CLUTTER_KP_4:
+                    case CLUTTER_KEY_4:
+                    case CLUTTER_KEY_KP_4:
                         handle_command (NULL, "display:page:4");
                         break;
-                    case CLUTTER_5:
-                    case CLUTTER_KP_5:
+                    case CLUTTER_KEY_5:
+                    case CLUTTER_KEY_KP_5:
                         handle_command (NULL, "display:page:5");
                         break;
-                    case CLUTTER_6:
-                    case CLUTTER_KP_6:
+                    case CLUTTER_KEY_6:
+                    case CLUTTER_KEY_KP_6:
                         handle_command (NULL, "display:page:6");
                         break;
-                    case CLUTTER_7:
-                    case CLUTTER_KP_7:
+                    case CLUTTER_KEY_7:
+                    case CLUTTER_KEY_KP_7:
                         handle_command (NULL, "display:page:7");
                         break;
-                    case CLUTTER_8:
-                    case CLUTTER_KP_8:
+                    case CLUTTER_KEY_8:
+                    case CLUTTER_KEY_KP_8:
                         handle_command (NULL, "display:page:8");
                         break;
-                    case CLUTTER_9:
-                    case CLUTTER_KP_9:
+                    case CLUTTER_KEY_9:
+                    case CLUTTER_KEY_KP_9:
                         handle_command (NULL, "display:page:9");
                         break;
                     default:
@@ -998,8 +998,8 @@ input_cb (ClutterStage * mystage, ClutterEvent * event, gpointer user_data)
     } else {
         if (event->type == CLUTTER_KEY_PRESS) {
             switch (clutter_event_get_key_symbol (event)) {
-                case CLUTTER_Q:
-                case CLUTTER_Escape:
+                case CLUTTER_KEY_Q:
+                case CLUTTER_KEY_Escape:
                     close_log ();
                     clear_group (stage);
                     if (server_mode == NORMAL_SERVER) {
