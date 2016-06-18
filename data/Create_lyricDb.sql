@@ -14,7 +14,7 @@ CREATE TABLE `associations` (
 CREATE TABLE `audit` (
   `id` int(11) NOT NULL auto_increment,
   `songid` int(11) NOT NULL default '0',
-  `playdate` datetime NOT NULL default '0000-00-00 00:00:00',
+  `playdate` datetime NOT NULL default '1000-01-01 00:00:00',
   PRIMARY KEY  (`id`)
 ) DEFAULT CHARSET=utf8;
 
@@ -25,9 +25,9 @@ CREATE TABLE `lyricMain` (
   `songnum` int(11) default '0',
   `book` varchar(100) default '',
   `artist` varchar(100) default '',
-  `written` timestamp NOT NULL default '0000-00-00 00:00:00',
+  `written` datetime NOT NULL default '1000-01-01 00:00:00',
   `keywords` text,
-  `entered` timestamp NOT NULL default '0000-00-00 00:00:00',
+  `entered` timestamp NOT NULL,
   `copyright` varchar(100) default '',
   PRIMARY KEY  (`id`)
 ) DEFAULT CHARSET=utf8;
@@ -84,7 +84,7 @@ CREATE TABLE `config_old` (
 CREATE TABLE `status` (
   `host` varchar(50) NOT NULL default '',
   `title` varchar(50) NOT NULL default '',
-  `lastupdate` timestamp NOT NULL default '0000-00-00 00:00:00',
+  `lastupdate` timestamp NOT NULL,
   `profile` varchar(50) NOT NULL default '',
   `type` varchar(50) NOT NULL default 'normal',
   `ip` varchar(16) NOT NULL default '',
@@ -102,9 +102,9 @@ CREATE TABLE `profiles` (
 
 
 -- Baseline Data
-INSERT INTO lyricMain VALUES (1,'Today\'s Announcements',0,'Not Songs','',20040307192037 ,'',00000000000000,'');
+INSERT INTO lyricMain VALUES (1,'Today\'s Announcements',0,'Not Songs','',20040307192037 ,'',NOW(),'');
 INSERT INTO page VALUES (1,1,1,'', 'Here are todays announcements');
-INSERT INTO lyricMain VALUES (2,'Sample Song',0,'Sample Songbook','',20040307192037 ,'',00000000000000,'');
+INSERT INTO lyricMain VALUES (2,'Sample Song',0,'Sample Songbook','',20040307192037 ,'',NOW(),'');
 INSERT INTO page VALUES (2,2,1,'Verse 1', 'This is a sample song');
 INSERT INTO page VALUES (3,2,2,'Chorus', 'This is the second page of the a sample song');
 INSERT INTO playlists VALUES (1,'Main Playlist','','Default');

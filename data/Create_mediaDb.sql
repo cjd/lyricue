@@ -13,7 +13,7 @@ CREATE TABLE media (
   type varchar(10) NOT NULL default '',
   format varchar(10) NOT NULL default '',
   insertedby varchar(100) NOT NULL default '',
-  insertdate datetime NOT NULL default '0000-00-00 00:00:00',
+  insertdate datetime NOT NULL default '1000-01-01 00:00:00',
   description varchar(100) default '',
   textcolour varchar(10) DEFAULT 'NULL',
   shadowcolour varchar(10) DEFAULT 'NULL',

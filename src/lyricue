@@ -8583,7 +8583,7 @@ sub load_access {
         open(ACCESS, $globals->{'accessfile'})
           || display_fatal(
             $errorcodes->{'fileopenread'} . $globals->{'accessfile'},
-            $! . "\nSQL: " . $query);
+            $! . "\n");
         my $username = getpwuid($<);
         while (<ACCESS>) {
             chomp;
@@ -11332,17 +11332,13 @@ sub db_install_user {
         debug("User already setup\n");
     } else {
         debug("Creating mysql user..");
-        $sth = do_query(
-            $dbh,
-"insert into user set Host='%',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'",
-            FALSE
-        );
-        $sth = do_query(
-            $dbh,
-"insert into user set Host='localhost',User='lyric',Password='',Select_priv='Y',Insert_priv='Y', Update_priv='Y',Delete_priv='Y',Lock_tables_priv='Y'",
-            FALSE
-        );
-        $sth = do_query($dbh, "flush privileges", FALSE);
+        for my $host ("%", "localhost") {
+            $sth = do_query($dbh, "CREATE USER 'lyric'\@'".$host."' IDENTIFIED BY ''", FALSE);
+            for my $table ("lyricDb", "mediaDb", "bibleDb") {
+                $sth = do_query($dbh, "GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, EXECUTE ON ".$table.".* TO 'lyric'\@'".$host."'", FALSE);
+            }
+        }
+        $sth = do_query($dbh, "FLUSH PRIVILEGES", FALSE);
         debug("Done\n");
     }
     db_check_databases();
