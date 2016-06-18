@@ -11334,9 +11334,7 @@ sub db_install_user {
         debug("Creating mysql user..");
         for my $host ("%", "localhost") {
             $sth = do_query($dbh, "CREATE USER 'lyric'\@'".$host."' IDENTIFIED BY ''", FALSE);
-            for my $table ("lyricDb", "mediaDb", "bibleDb") {
-                $sth = do_query($dbh, "GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, EXECUTE ON ".$table.".* TO 'lyric'\@'".$host."'", FALSE);
-            }
+            $sth = do_query($dbh, "GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, EXECUTE ON *.* TO 'lyric'\@'".$host."'", FALSE);
         }
         $sth = do_query($dbh, "FLUSH PRIVILEGES", FALSE);
         debug("Done\n");
