@@ -498,13 +498,13 @@ check_displays();
 init_mainWindow();
 $widgets->{'main'}->get_object('labelCurrentPlaylist')->{user_data} = -1;
 choose_playlist();
+clean_database();
 
 # Don't let them cancel out of the playlist chooser yet
 $widgets->{'main'}->get_object('toolbuttonPlayCancel')->hide;
 
 # Setup background tasks
 $globals->{'status_timer'} = Glib::Timeout->add(1000, \&check_status);
-$globals->{'clean_idle'} = Glib::Idle->add(\&clean_database);
 
 Gtk3->main();
 
