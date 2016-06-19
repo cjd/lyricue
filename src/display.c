@@ -601,9 +601,13 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
             || g_content_type_is_a (g_file_info_get_content_type (info),
                                     "audio/*")) {
             l_debug ("Backdrop is media");
+#if CLUTTER_GST_MAJOR_VERSION >= 3
             background = clutter_actor_new();
             background_video = clutter_gst_content_new();
             clutter_actor_set_content(background, background_video);
+#else
+            background = clutter_gst_video_texture_new ();
+#endif
             clutter_media_set_filename (CLUTTER_MEDIA (background), line[1]);
             clutter_actor_set_anchor_point_from_gravity (background,
                                                          CLUTTER_GRAVITY_CENTER);
@@ -679,9 +683,13 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
         g_object_unref (info);
     } else if (g_strcmp0 (line[0], "dvd") == 0) {
         l_debug ("playing DVD Video");
+#if CLUTTER_GST_MAJOR_VERSION >= 3
         background = clutter_actor_new();
         background_video = clutter_gst_content_new();
         clutter_actor_set_content(background, background_video);
+#else
+        background = clutter_gst_video_texture_new ();
+#endif
         clutter_media_set_uri (CLUTTER_MEDIA (background), "dvd://");
         clutter_actor_set_anchor_point_from_gravity (background,
                                                      CLUTTER_GRAVITY_CENTER);
@@ -731,9 +739,13 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
 
     } else if (g_strcmp0 (line[0], "uri") == 0) {
         l_debug ("playing direct uri %s", line[1]);
+#if CLUTTER_GST_MAJOR_VERSION >= 3
         background = clutter_actor_new();
         background_video = clutter_gst_content_new();
         clutter_actor_set_content(background, background_video);
+#else
+        background = clutter_gst_video_texture_new ();
+#endif
         clutter_media_set_uri (CLUTTER_MEDIA (background), line[1]);
         clutter_actor_set_anchor_point_from_gravity (background,
                                                      CLUTTER_GRAVITY_CENTER);
