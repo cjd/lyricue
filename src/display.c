@@ -63,8 +63,10 @@ ClutterActor *foottext = NULL;
 ClutterActor *foottext_old = NULL;
 ClutterActor *background = NULL;
 ClutterActor *background_old = NULL;
+#if CLUTTER_GST_MAJOR_VERSION >= 3
 ClutterContent *background_video = NULL;
 ClutterContent *background_video_old = NULL;
+#endif
 ClutterActor *osdtext = NULL;
 ClutterActor *osdtext_bg = NULL;
 ClutterShader *shader = NULL;
