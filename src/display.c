@@ -608,73 +608,9 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
             || g_content_type_is_a (g_file_info_get_content_type (info),
                                     "audio/*")) {
             l_debug ("Backdrop is media");
-#if CLUTTER_GST_MAJOR_VERSION >= 3
-            background = clutter_actor_new();
-            background_video = clutter_gst_aspectratio_new();
-            if (gstplayer == NULL) {
-                gstplayer = clutter_gst_playback_new();
-            }
-            clutter_gst_content_set_player(CLUTTER_GST_CONTENT(background_video), CLUTTER_GST_PLAYER(gstplayer));
-            clutter_gst_playback_set_filename(gstplayer,line[1]);
-            clutter_actor_set_content(background, background_video);
-            clutter_actor_set_size (background,stage_width,stage_height);
-#else
-            background = clutter_gst_video_texture_new ();
-            clutter_media_set_filename (CLUTTER_MEDIA (background), line[1]);
-            clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
-                                                   (background), TRUE);
-            gint w, h;
-            clutter_texture_get_base_size (CLUTTER_TEXTURE (background), &w,
-                                           &h);
-            if (((gfloat) w / (gfloat) h) < (stage_width / stage_height)) {
-                clutter_actor_set_size (background, (w * (stage_height / h)),
-                                        stage_height);
-            } else {
-                clutter_actor_set_size (background, stage_width,
-                                        (h * (stage_width / w)));
-            }
-#endif
-            clutter_actor_set_anchor_point_from_gravity (background,
-                                                         CLUTTER_GRAVITY_CENTER);
-            clutter_actor_set_position (background, stage_width / 2,
-                                        stage_height / 2);
-#if CLUTTER_GST_MAJOR_VERSION >= 3
-            clutter_gst_player_set_playing (CLUTTER_GST_PLAYER(gstplayer), TRUE);
-#endif
             video_loop = loop;
-#if CLUTTER_GST_MAJOR_VERSION >= 3
-            GstElement *playbin =
-              clutter_gst_player_get_pipeline
-              (clutter_gst_content_get_player((ClutterGstContent *)background_video));
-            g_signal_connect (gstplayer, "eos", G_CALLBACK (loop_video),
-                              NULL);
-#elif CLUTTER_GST_MAJOR_VERSION >= 1
-            GstElement *playbin =
-              clutter_gst_video_texture_get_pipeline
-              (CLUTTER_GST_VIDEO_TEXTURE (background));
-            g_signal_connect (background, "eos", G_CALLBACK (loop_video),
-                              NULL);
-#else
-            GstElement *playbin =
-              clutter_gst_video_texture_get_playbin (CLUTTER_GST_VIDEO_TEXTURE
-                                                     (background));
-            g_signal_connect (background, "eos", G_CALLBACK (loop_video),
-                              NULL);
-#endif
-            if (server_mode != NORMAL_SERVER) {
-                g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
-                bg_is_video =
-                  g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
-            } else {
-                bg_is_video = TRUE;
-            }
-#if CLUTTER_GST_MAJOR_VERSION >= 3
-            clutter_gst_player_set_playing (CLUTTER_GST_PLAYER(gstplayer), TRUE);
-#else
-            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
-#endif
-
-        } else
+            play_video(line[1], FALSE);
+        } else 
           if (g_content_type_is_a
               (g_file_info_get_content_type (info), "image/*")) {
             l_debug ("Backdrop is an image");
@@ -706,109 +642,12 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
         g_object_unref (info);
     } else if (g_strcmp0 (line[0], "dvd") == 0) {
         l_debug ("playing DVD Video");
-#if CLUTTER_GST_MAJOR_VERSION >= 3
-        background = clutter_actor_new();
-        background_video = clutter_gst_content_new();
-        clutter_actor_set_content(background, background_video);
-#else
-        background = clutter_gst_video_texture_new ();
-#endif
-        clutter_media_set_uri (CLUTTER_MEDIA (background), "dvd://");
-        clutter_actor_set_anchor_point_from_gravity (background,
-                                                     CLUTTER_GRAVITY_CENTER);
-        clutter_actor_set_position (background, stage_width / 2,
-                                    stage_height / 2);
-        clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
-                                               (background), TRUE);
-        gint w, h;
-        clutter_texture_get_base_size (CLUTTER_TEXTURE (background), &w, &h);
-        if (((gfloat) w / (gfloat) h) < (stage_width / stage_height)) {
-            clutter_actor_set_size (background, (w * (stage_height / h)),
-                                    stage_height);
-        } else {
-            clutter_actor_set_size (background, stage_width,
-                                    (h * (stage_width / w)));
-        }
-        clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
         video_loop = loop;
-#if CLUTTER_GST_MAJOR_VERSION >= 3
-            GstElement *playbin =
-              clutter_gst_player_get_pipeline
-              (clutter_gst_content_get_player((ClutterGstContent *)background_video));
-#elif CLUTTER_GST_MAJOR_VERSION >= 1
-        GstElement *playbin =
-          clutter_gst_video_texture_get_pipeline (CLUTTER_GST_VIDEO_TEXTURE
-                                                  (background));
-#else
-        GstElement *playbin =
-          clutter_gst_video_texture_get_playbin (CLUTTER_GST_VIDEO_TEXTURE
-                                                 (background));
-#endif
-
-        GstElement *resindvd =
-          gst_bin_get_by_name (GST_BIN (playbin), "dvdsrc");
-        int title = atoi (line[1] + 6);
-        gst_element_seek_simple (resindvd, gst_format_get_by_nick ("title"),
-                                 GST_SEEK_FLAG_NONE, title);
-        l_debug ("Playing DVD title:%d", title);
-
-        if (server_mode != NORMAL_SERVER) {
-            g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
-            bg_is_video =
-              g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
-        } else {
-            bg_is_video  = TRUE;
-        }
-
+        play_video("dvd://", TRUE);
     } else if (g_strcmp0 (line[0], "uri") == 0) {
         l_debug ("playing direct uri %s", line[1]);
-#if CLUTTER_GST_MAJOR_VERSION >= 3
-        background = clutter_actor_new();
-        background_video = clutter_gst_content_new();
-        clutter_actor_set_content(background, background_video);
-#else
-        background = clutter_gst_video_texture_new ();
-#endif
-        clutter_media_set_uri (CLUTTER_MEDIA (background), line[1]);
-        clutter_actor_set_anchor_point_from_gravity (background,
-                                                     CLUTTER_GRAVITY_CENTER);
-        clutter_actor_set_position (background, stage_width / 2,
-                                    stage_height / 2);
-        clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
-                                               (background), TRUE);
-        gint w, h;
-        clutter_texture_get_base_size (CLUTTER_TEXTURE (background), &w, &h);
-        if (((gfloat) w / (gfloat) h) < (stage_width / stage_height)) {
-            clutter_actor_set_size (background, (w * (stage_height / h)),
-                                    stage_height);
-        } else {
-            clutter_actor_set_size (background, stage_width,
-                                    (h * (stage_width / w)));
-        }
-        clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
         video_loop = loop;
-#if CLUTTER_GST_MAJOR_VERSION >= 3
-            GstElement *playbin =
-              clutter_gst_player_get_pipeline
-              (clutter_gst_content_get_player((ClutterGstContent *)background_video));
-#elif CLUTTER_GST_MAJOR_VERSION >= 1
-        GstElement *playbin =
-          clutter_gst_video_texture_get_pipeline (CLUTTER_GST_VIDEO_TEXTURE
-                                                  (background));
-#else
-        GstElement *playbin =
-          clutter_gst_video_texture_get_playbin (CLUTTER_GST_VIDEO_TEXTURE
-                                                 (background));
-#endif
-
-        if (server_mode != NORMAL_SERVER) {
-            g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
-            bg_is_video =
-              g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
-        } else {
-            bg_is_video = TRUE;
-        }
-
+        play_video(line[1], TRUE);
     }
     if (background) {
         clutter_container_add (CLUTTER_CONTAINER (actors), background, NULL);
@@ -1382,7 +1221,11 @@ stop_media ()
 {
     l_debug ("Stop media");
     if (bg_is_video) {
+#if CLUTTER_GST_MAJOR_VERSION >= 3
+        clutter_gst_player_set_playing (CLUTTER_GST_PLAYER(gstplayer), FALSE);
+#else
         clutter_media_set_playing (CLUTTER_MEDIA (background), FALSE);
+#endif
         g_source_remove (bg_is_video);
     }
     return FALSE;
@@ -1548,3 +1391,74 @@ do_get (const gchar * item)
     return ret;
 }
 
+void
+play_video(const gchar * uri, gboolean is_uri) {
+#if CLUTTER_GST_MAJOR_VERSION >= 3
+            background = clutter_actor_new();
+            background_video = clutter_gst_aspectratio_new();
+            if (gstplayer == NULL) {
+                gstplayer = clutter_gst_playback_new();
+            }
+            clutter_gst_content_set_player(CLUTTER_GST_CONTENT(background_video), CLUTTER_GST_PLAYER(gstplayer));
+            if (is_uri) {
+                clutter_gst_playback_set_uri(gstplayer,uri);
+            } else {
+                clutter_gst_playback_set_filename(gstplayer,uri);
+            }
+            clutter_actor_set_content(background, background_video);
+            clutter_actor_set_size (background,stage_width,stage_height);
+#else
+            background = clutter_gst_video_texture_new ();
+            clutter_media_set_filename (CLUTTER_MEDIA (background), line[1]);
+            clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
+                                                   (background), TRUE);
+            gint w, h;
+            clutter_texture_get_base_size (CLUTTER_TEXTURE (background), &w,
+                                           &h);
+            if (((gfloat) w / (gfloat) h) < (stage_width / stage_height)) {
+                clutter_actor_set_size (background, (w * (stage_height / h)),
+                                        stage_height);
+            } else {
+                clutter_actor_set_size (background, stage_width,
+                                        (h * (stage_width / w)));
+            }
+#endif
+            clutter_actor_set_anchor_point_from_gravity (background,
+                                                         CLUTTER_GRAVITY_CENTER);
+            clutter_actor_set_position (background, stage_width / 2,
+                                        stage_height / 2);
+#if CLUTTER_GST_MAJOR_VERSION >= 3
+            clutter_gst_player_set_playing (CLUTTER_GST_PLAYER(gstplayer), TRUE);
+#endif
+#if CLUTTER_GST_MAJOR_VERSION >= 3
+            GstElement *playbin =
+              clutter_gst_player_get_pipeline
+              (clutter_gst_content_get_player((ClutterGstContent *)background_video));
+            g_signal_connect (gstplayer, "eos", G_CALLBACK (loop_video),
+                              NULL);
+#elif CLUTTER_GST_MAJOR_VERSION >= 1
+            GstElement *playbin =
+              clutter_gst_video_texture_get_pipeline
+              (CLUTTER_GST_VIDEO_TEXTURE (background));
+            g_signal_connect (background, "eos", G_CALLBACK (loop_video),
+                              NULL);
+#else
+            GstElement *playbin =
+              clutter_gst_video_texture_get_playbin (CLUTTER_GST_VIDEO_TEXTURE
+                                                     (background));
+            g_signal_connect (background, "eos", G_CALLBACK (loop_video),
+                              NULL);
+#endif
+            if (server_mode != NORMAL_SERVER) {
+                g_object_set (G_OBJECT (playbin), "flags", 1, NULL);
+                bg_is_video =
+                  g_timeout_add_seconds (3, (GSourceFunc) stop_media, NULL);
+            } else {
+                bg_is_video = TRUE;
+            }
+#if CLUTTER_GST_MAJOR_VERSION >= 3
+            clutter_gst_player_set_playing (CLUTTER_GST_PLAYER(gstplayer), TRUE);
+#else
+            clutter_media_set_playing (CLUTTER_MEDIA (background), TRUE);
+#endif
+}

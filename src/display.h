@@ -78,3 +78,4 @@ gboolean take_dbsnapshot (int playorder);
 gboolean playlist_snapshot (int playlist);
 GString * do_get(const gchar* item);
 extern gchar *extra_data;
+void play_video(const gchar * uri, gboolean is_uri) ;
