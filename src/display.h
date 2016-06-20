@@ -60,7 +60,7 @@ void media_skip (gint duration);
 void load_font_defaults ();
 
 void clear_group(ClutterActor *actor);
-void destroy_actor(ClutterActor *actor);
+ClutterActor* destroy_actor(ClutterActor *actor);
 
 void do_transition(ClutterActor *new,
                    ClutterActor *old,

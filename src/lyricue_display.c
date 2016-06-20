@@ -33,7 +33,7 @@ extern gfloat stage_width;
 extern gfloat stage_height;
 extern gint bg_is_video;
 extern ClutterActor *background;
-
+extern ClutterGstPlayback *gstplayer;
 gint blanked_state = BLANK_NONE;
 gchar *default_bg = NULL;
 gchar *current_bg = NULL;
@@ -540,7 +540,7 @@ do_backdrop (const char *options)
         change_backdrop (default_bg, TRUE, DEFAULT);
         g_strfreev (line);
     } else {
-        if (background != NULL) destroy_actor(background);
+        if (background != NULL) background = destroy_actor(background);
     }
 }
 
@@ -1008,6 +1008,14 @@ update_tracker ()
         g_string_assign (title, "blank_text");
     }
     if (bg_is_video) {
+#if CLUTTER_GST_MAJOR_VERSION >= 3
+        g_string_append_printf (title, "%.0f;%.0f;%d",
+                                clutter_gst_playback_get_progress (gstplayer)
+                                *
+                                clutter_gst_playback_get_duration (gstplayer),
+                                clutter_gst_playback_get_duration (gstplayer),
+                                clutter_gst_player_get_playing (CLUTTER_GST_PLAYER(gstplayer)));
+#else
         g_string_append_printf (title, "%.0f;%.0f;%d",
                                 clutter_media_get_progress (CLUTTER_MEDIA
                                                             (background))
@@ -1018,6 +1026,7 @@ update_tracker ()
                                                             (background)),
                                 clutter_media_get_playing (CLUTTER_MEDIA
                                                            (background)));
+#endif
     } else {
         g_string_append (title, "0;0;0");
     }
