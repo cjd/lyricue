@@ -23,7 +23,7 @@ AC_HEADER_STDC
 
 
 dnl ***************************************************************************
-dnl Internatinalization
+dnl Internationalization
 dnl ***************************************************************************
 GETTEXT_PACKAGE=lyricue
 AC_SUBST(GETTEXT_PACKAGE)
@@ -32,6 +32,8 @@ AM_GLIB_GNU_GETTEXT
 IT_PROG_INTLTOOL([0.35.0])
 
 AM_PROG_LIBTOOL
+
+YELP_HELP_INIT
 
 PKG_CHECK_MODULES(CLUTTER, clutter-1.0)
 PKG_CHECK_MODULES(CLUTTERGTK, clutter-gtk-1.0)
