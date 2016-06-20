@@ -646,6 +646,8 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
             GstElement *playbin =
               clutter_gst_player_get_pipeline
               (clutter_gst_content_get_player((ClutterGstContent *)background_video));
+            g_signal_connect (gstplayer, "eos", G_CALLBACK (loop_video),
+                              NULL);
 #elif CLUTTER_GST_MAJOR_VERSION >= 1
             GstElement *playbin =
               clutter_gst_video_texture_get_pipeline
@@ -1091,8 +1093,13 @@ void
 loop_video (ClutterActor * video)
 {
     if (video_loop) {
+#if CLUTTER_GST_MAJOR_VERSION >= 3
+        clutter_gst_playback_set_progress (gstplayer, 0.0);
+        clutter_gst_player_set_playing (CLUTTER_GST_PLAYER(gstplayer), TRUE); 
+#else
         clutter_media_set_progress (CLUTTER_MEDIA (video), 0.0);
         clutter_media_set_playing (CLUTTER_MEDIA (video), 1);
+#endif
     } else {
         if (bg_is_video)
             g_source_remove (bg_is_video);
