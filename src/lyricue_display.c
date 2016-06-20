@@ -33,7 +33,9 @@ extern gfloat stage_width;
 extern gfloat stage_height;
 extern gint bg_is_video;
 extern ClutterActor *background;
+#if CLUTTER_GST_MAJOR_VERSION >= 3
 extern ClutterGstPlayback *gstplayer;
+#endif
 gint blanked_state = BLANK_NONE;
 gchar *default_bg = NULL;
 gchar *current_bg = NULL;
