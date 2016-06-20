@@ -498,9 +498,11 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
     background_old = destroy_actor (background_old);
     background_old = background;
     background = NULL;
+#if CLUTTER_GST_MAJOR_VERSION >= 3
     if (gstplayer != NULL) {
         clutter_gst_player_set_playing(CLUTTER_GST_PLAYER(gstplayer),FALSE);
     }
+#endif
 
     if (g_ascii_strncasecmp (line[0], "dvd", 3) == 0) {
         line[1] = line[0];
@@ -648,7 +650,7 @@ change_backdrop (const gchar * id, gboolean loop, gint transition)
             GstElement *playbin =
               clutter_gst_video_texture_get_pipeline
               (CLUTTER_GST_VIDEO_TEXTURE (background));
-            g_signal_connect (gstplayer, "eos", G_CALLBACK (loop_video),
+            g_signal_connect (background, "eos", G_CALLBACK (loop_video),
                               NULL);
 #else
             GstElement *playbin =
