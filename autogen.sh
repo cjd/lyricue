@@ -14,6 +14,11 @@ if [ -n "$GNOME2_DIR" ]; then
 	export LD_LIBRARY_PATH
 fi
 
+which yelp-build || {
+    echo "You need to install yelp-tools"
+    exit 1
+}
+
 (test -f $srcdir/configure.ac) || {
     echo -n "**Error**: Directory "\`$srcdir\'" does not look like the"
     echo " top-level package directory"
