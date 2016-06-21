@@ -1,4 +1,4 @@
-AC_INIT(lyricue, 4.0.0, http://www.lyricue.org)
+AC_INIT(lyricue, 4.0.8, http://www.lyricue.org)
 AC_CONFIG_AUX_DIR([build-aux])
 
 LIBS=`mysql_config --libs`
@@ -9,7 +9,7 @@ AC_SUBST(CFLAGS)
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
-AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
+AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_MAINTAINER_MODE
