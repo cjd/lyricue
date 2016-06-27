@@ -1410,9 +1410,9 @@ play_video(const gchar * uri, gboolean is_uri) {
 #else
             background = clutter_gst_video_texture_new ();
             if (is_uri) {
-                clutter_media_set_filename (CLUTTER_MEDIA (background), uri);
-            } else {
                 clutter_media_set_uri (CLUTTER_MEDIA (background), uri);
+            } else {
+                clutter_media_set_filename (CLUTTER_MEDIA (background), uri);
             }
             clutter_texture_set_keep_aspect_ratio (CLUTTER_TEXTURE
                                                    (background), TRUE);
