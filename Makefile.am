@@ -9,7 +9,6 @@ lyricuedoc_DATA = \
 	COPYING\
 	AUTHORS\
 	ChangeLog\
-	INSTALL\
 	NEWS \
 	Development.txt \
     song_template.txt \
