@@ -1259,19 +1259,22 @@ sub manage_bg {
 
 sub reset_font_colour {
     my ($widget, $object) = @_;
+    my $rgba = Gtk3::GDK::RGBA->new(0,0,0,0);
     if ($widget eq $widgets->{'image'}->get_object('buttonFontColourDefault')) {
         $widgets->{'image'}->get_object('entryImageFontColour')
           ->set_text("Default");
+        $rgba->parse($config->{'Colour'});
         $widgets->{'image'}->get_object('colorbuttonFontColour')
-          ->set_color(Gtk3::Gdk::Color->parse($config->{'Colour'}));
+          ->set_rgba($rgba);
         change_colour_media();
     } elsif (
         $widget eq $widgets->{'image'}->get_object('buttonShadowColourDefault'))
     {
         $widgets->{'image'}->get_object('entryImageShadowColour')
           ->set_text("Default");
+        $rgba->parse($config->{'ShadowColour'});
         $widgets->{'image'}->get_object('colorbuttonShadowColour')
-          ->set_color(Gtk3::Gdk::Color->parse($config->{'ShadowColour'}));
+          ->set_rgba($rgba);
         change_colour_media();
     }
 
@@ -3687,12 +3690,15 @@ sub update_imagedir {
     $widgets->{'image'}->get_object('treeImage')->set_model($store);
     $widgets->{'image'}->get_object('entryImageFontColour')
       ->set_text("Default");
+    my $rgba = Gtk3::Gdk::RGBA->new(0,0,0,0);
+    $rgba->parse($config->{'Colour'});
     $widgets->{'image'}->get_object('colorbuttonFontColour')
-      ->set_color(Gtk3::Gdk::Color->parse($config->{'Colour'}));
+      ->set_rgba($rgba);
     $widgets->{'image'}->get_object('entryImageShadowColour')
       ->set_text("Default");
+    $rgba->parse($config->{'ShadowColour'});
     $widgets->{'image'}->get_object('colorbuttonShadowColour')
-      ->set_color(Gtk3::Gdk::Color->parse($config->{'ShadowColour'}));
+      ->set_rgba($rgba);
 }
 
 #***
@@ -3920,9 +3926,9 @@ sub open_dialogColour {
     } elsif ($item eq "Shadow") {
         $colour->parse($widgets->{'prefs'}->get_object('entryPrefShadowColour')->get_text());
     } elsif ($item eq "ImageFont") {
-        $colour=$widget->get_color();
+        $colour=$widget->get_rgba();
     } elsif ($item eq "ImageShadow") {
-        $colour=$widget->get_color();
+        $colour=$widget->get_rgba();
     }
     $d->set_rgba($colour);
     my $response = $d->run();
@@ -3981,9 +3987,8 @@ sub open_dialogFont {
 sub change_font_colour {
     my ($item, $colour) = @_;
     debug("change_font_colour: item=" . $item);
+    my $rgba = Gtk3::Gdk::RGBA->new(0,0,0,0);
     if ($item eq "Shadow") {
-        $widgets->{'prefs'}->get_object('entryPrefShadowColour')
-          ->set_text($colour);
         $widgets->{'prefs'}->get_object('entryPrefShadowColour')
           ->set_text($colour);
     } elsif ($item eq "Font") {
@@ -3991,14 +3996,16 @@ sub change_font_colour {
     } elsif ($item eq "ImageShadow") {
         $widgets->{'image'}->get_object('entryImageShadowColour')
           ->set_text($colour);
+        $rgba->parse($colour);
         $widgets->{'image'}->get_object('colorbuttonShadowColour')
-          ->set_color(Gtk3::Gdk::Color->parse($colour));
+          ->set_rgba($rgba);
         change_colour_media();
     } elsif ($item eq "ImageFont") {
+        $rgba->parse($colour);
         $widgets->{'image'}->get_object('entryImageFontColour')
           ->set_text($colour);
         $widgets->{'image'}->get_object('colorbuttonFontColour')
-          ->set_color(Gtk3::Gdk::Color->parse($colour));
+          ->set_rgba($rgba);
         change_colour_media();
     }
 }
@@ -4143,10 +4150,8 @@ sub change_preview {
         foreach $tmp (@$selecteditems) {
             my $iter2 = $model->get_iter($tmp);
             my $data2 = $model->get($iter2, 1);
-            if (!defined @$selecteditems{$data2}) {
-                $data = $data2;
-                ($type, $id) = split /;/, $data;
-            }
+            $data = $data2;
+            ($type, $id) = split /;/, $data;
         }
         %selectedimages = ();
         foreach $tmp (@$selecteditems) {
@@ -4183,12 +4188,7 @@ sub change_preview {
                     $row->{'shadowcolour'} = "Default";
                 }
 
-                #    $widgets->{'image'}->get_object('buttonImageDelete')
-                #      ->set_sensitive(FALSE);
-                #    $widgets->{'image'}->get_object('buttonImageChange')
-                #      ->set_sensitive(FALSE);
-                #    $widgets->{'image'}->get_object('hboxImageColour')->hide;
-                #}
+                my $rgba = Gtk3::Gdk::RGBA->new(0,0,0,0);
                 my $fg_span = "";
                 my $bg_span = "";
                 if (   ($row->{'textcolour'} ne "")
@@ -4197,15 +4197,16 @@ sub change_preview {
                 {
                     $widgets->{'image'}->get_object('entryImageFontColour')
                       ->set_text($row->{'textcolour'});
+                    $rgba->parse($row->{'textcolour'});
                     $widgets->{'image'}->get_object('colorbuttonFontColour')
-                      ->set_color(
-                        Gtk3::Gdk::Color->parse($row->{'textcolour'}));
+                      ->set_rgba($rgba);
                     $fg_span = "<span color=\"" . $row->{'textcolour'} . "\">";
                 } else {
                     $widgets->{'image'}->get_object('entryImageFontColour')
                       ->set_text("Default");
+                    $rgba->parse($config->{'Colour'});
                     $widgets->{'image'}->get_object('colorbuttonFontColour')
-                      ->set_color(Gtk3::Gdk::Color->parse($config->{'Colour'}));
+                      ->set_rgba($rgba);
                     $fg_span = "<span color=\"" . $config->{'Colour'} . "\">";
                 }
                 if (   ($row->{'shadowcolour'} ne "")
@@ -4214,45 +4215,45 @@ sub change_preview {
                 {
                     $widgets->{'image'}->get_object('entryImageShadowColour')
                       ->set_text($row->{'shadowcolour'});
+                    $rgba->parse($row->{'shadowcolour'});
                     $widgets->{'image'}->get_object('colorbuttonShadowColour')
-                      ->set_color(
-                        Gtk3::Gdk::Color->parse($row->{'shadowcolour'}));
+                      ->set_rgba($rgba);
                     $bg_span =
                       "<span color=\"" . $row->{'shadowcolour'} . "\">";
                 } else {
                     $widgets->{'image'}->get_object('entryImageShadowColour')
                       ->set_text("Default");
+                    $rgba->parse($config->{'ShadowColour'});
                     $widgets->{'image'}->get_object('colorbuttonShadowColour')
-                      ->set_color(
-                        Gtk3::Gdk::Color->parse($config->{'ShadowColour'}));
+                      ->set_rgba($rgba);
                     $bg_span =
                       "<span color=\"" . $config->{'ShadowColour'} . "\">";
                 }
 
                 # Add text overlay to $scaled
-                my $pixmap = $scaled->render_pixmap_and_mask(127);
-                my $pango_layout =
-                  $widgets->{'image'}->get_object('imageImage')
-                  ->create_pango_layout("");
-                $pango_layout->set_font_description(
-                    Pango::FontDescription->from_string($config->{'Main'}));
-                my $gc = Gtk3::Gdk::GC->new($pixmap);
-                $pango_layout->set_markup(
-                    $bg_span . fromutf(gettext("Song Contents")) . "</span>");
-                my ($text_w, $text_h) = $pango_layout->get_pixel_size();
-                my $text_x = (480 - $text_w) / 2;
-                my $text_y = (360 - $text_h) / 2;
-                $pixmap->draw_layout(
-                    $gc,
-                    $text_x + 2,
-                    $text_y + 2,
-                    $pango_layout
-                );
-                $pango_layout->set_markup(
-                    $fg_span . fromutf(gettext("Song Contents")) . "</span>");
-                $pixmap->draw_layout($gc, $text_x, $text_y, $pango_layout);
-                $widgets->{'image'}->get_object('imageImage')
-                  ->set_from_pixmap($pixmap, undef);
+                #my $pixmap = $scaled->render_pixmap_and_mask(127);
+                #my $pango_layout =
+                #  $widgets->{'image'}->get_object('imageImage')
+                #  ->create_pango_layout("");
+                #$pango_layout->set_font_description(
+                #    Pango::FontDescription->from_string($config->{'Main'}));
+                #my $gc = Gtk3::Gdk::GC->new($pixmap);
+                #$pango_layout->set_markup(
+                #    $bg_span . fromutf(gettext("Song Contents")) . "</span>");
+                #my ($text_w, $text_h) = $pango_layout->get_pixel_size();
+                #my $text_x = (480 - $text_w) / 2;
+                #my $text_y = (360 - $text_h) / 2;
+                #$pixmap->draw_layout(
+                #    $gc,
+                #    $text_x + 2,
+                #    $text_y + 2,
+                #    $pango_layout
+                #);
+                #$pango_layout->set_markup(
+                #    $fg_span . fromutf(gettext("Song Contents")) . "</span>");
+                #$pixmap->draw_layout($gc, $text_x, $text_y, $pango_layout);
+                #$widgets->{'image'}->get_object('imageImage')
+                #  ->set_from_pixmap($pixmap, undef);
                 $widgets->{'image'}->get_object('imageImage')->{user_data} =
                   $data;
             }
