@@ -3911,44 +3911,26 @@ sub open_dialogColour {
     debug("Opening Colour dialog");
     debug("open_dialogColour: item=" . $item);
     debug("open_dialogColour: widget=" . $widget->get_name());
-    my $colourxml = load_window("dialogColour");
-    $colourxml->get_object('dialogColour')
-      ->set_title(
-        fromutf(gettext("Select ")) . $item . fromutf(gettext(" Colour")));
-    $colourxml->get_object('dialogColour')->{'user_data'} = $item;
+    my $d = Gtk3::ColorChooserDialog->new(fromutf(gettext("Select ")) . $item . fromutf(gettext(" Colour")));
+    $d->set_use_alpha(FALSE);
+    my $colour=Gtk3::Gdk::RGBA->new(0,0,0,0);
 
-    if ($item eq "Font") {
-        $colourxml->get_object('colourSelect')->set_current_color(
-            Gtk3::Gdk::Color->parse(
-                $widgets->{'prefs'}->get_object('entryPrefColour')->get_text()
-            )
-        );
+    if ($item eq "Font"){
+        $colour->parse($widgets->{'prefs'}->get_object('entryPrefColour')->get_text());
+    } elsif ($item eq "Shadow") {
+        $colour->parse($widgets->{'prefs'}->get_object('entryPrefShadowColour')->get_text());
+    } elsif ($item eq "ImageFont") {
+        $colour=$widget->get_color();
+    } elsif ($item eq "ImageShadow") {
+        $colour=$widget->get_color();
     }
-    if ($item eq "Shadow") {
-        $colourxml->get_object('colourSelect')->set_current_color(
-            Gtk3::Gdk::Color->parse(
-                $widgets->{'prefs'}->get_object('entryPrefShadowColour')
-                  ->get_text()
-            )
-        );
+    $d->set_rgba($colour);
+    my $response = $d->run();
+    if ($response eq "ok") {
+        my $colour_out=sprintf("#%02x%02x%02x",$d->get_rgba->red * 255,$d->get_rgba->green * 255,$d->get_rgba->blue * 255);
+        change_font_colour($item, $colour_out);
     }
-    if ($item eq "ImageFont") {
-
-#$colourxml->get_object('colourSelect')->set_current_color(Gtk3::Gdk::Color->parse($widgets->{'image'}->get_object('entryImageFontColour')->get_text()));
-        $colourxml->get_object('colourSelect')
-          ->set_current_color($widget->get_color());
-    }
-    if ($item eq "ImageShadow") {
-
-#$colourxml->get_object('colourSelect')->set_current_color(Gtk3::Gdk::Color->parse($widgets->{'image'}->get_object('entryImageShadowColour')->get_text()));
-        $colourxml->get_object('colourSelect')
-          ->set_current_color($widget->get_color());
-    }
-    $colourxml->get_object('buttonColourOK')
-      ->signal_connect("clicked" => \&change_font_colour, $colourxml);
-    $colourxml->get_object('buttonColourCancel')
-      ->signal_connect(clicked => \&close_dialog);
-    my $response = $colourxml->get_object('dialogColour')->run();
+    $d->destroy;
 }
 
 #***
@@ -3986,48 +3968,39 @@ sub open_dialogFont {
 # NAME
 #   change_font_colour
 # SYNOPSIS
-#   change_font_colour ($widget, $colourxml)
+#   change_font_colour ($item, $colour)
 # FUNCTION
 #   Change the font colour
 # INPUTS
-#   $widget - Calling widget
-#   $colourxml - The Colour dialog
+#   $item - Item to change
+#   $colour - The Colour to set
 # OUTPUT
 #   Updated config file and server
 # SOURCE
 #
 sub change_font_colour {
-    my ($widget, $colourxml) = @_;
-    debug("Change font colour");
-    my $item   = $colourxml->get_object('dialogColour')->{'user_data'};
-    my $colour = $colourxml->get_object('colourSelect')->get_current_color();
-    my $color2 =
-        sprintf("#%2.2x", ($colour->red / 256))
-      . sprintf("%2.2x", ($colour->green / 256))
-      . sprintf("%2.2x", ($colour->blue / 256));
-
+    my ($item, $colour) = @_;
     debug("change_font_colour: item=" . $item);
     if ($item eq "Shadow") {
         $widgets->{'prefs'}->get_object('entryPrefShadowColour')
-          ->set_text($color2);
+          ->set_text($colour);
         $widgets->{'prefs'}->get_object('entryPrefShadowColour')
-          ->set_text($color2);
+          ->set_text($colour);
     } elsif ($item eq "Font") {
-        $widgets->{'prefs'}->get_object('entryPrefColour')->set_text($color2);
+        $widgets->{'prefs'}->get_object('entryPrefColour')->set_text($colour);
     } elsif ($item eq "ImageShadow") {
         $widgets->{'image'}->get_object('entryImageShadowColour')
-          ->set_text($color2);
+          ->set_text($colour);
         $widgets->{'image'}->get_object('colorbuttonShadowColour')
-          ->set_color(Gtk3::Gdk::Color->parse($color2));
+          ->set_color(Gtk3::Gdk::Color->parse($colour));
         change_colour_media();
     } elsif ($item eq "ImageFont") {
         $widgets->{'image'}->get_object('entryImageFontColour')
-          ->set_text($color2);
+          ->set_text($colour);
         $widgets->{'image'}->get_object('colorbuttonFontColour')
-          ->set_color(Gtk3::Gdk::Color->parse($color2));
+          ->set_color(Gtk3::Gdk::Color->parse($colour));
         change_colour_media();
     }
-    close_dialog($widget);
 }
 
 #***
