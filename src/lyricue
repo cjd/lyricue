@@ -1669,10 +1669,14 @@ sub do_save_song {
           quote(
             toutf($widgets->{'add'}->get_object('entryEditName')->get_text()))
           . ",";
-        $query .=
-          quote(
-            toutf($widgets->{'add'}->get_object('entryEditNumber')->get_text()))
-          . ",";
+        if($widgets->{'add'}->get_object('entryEditNumber')->get_text() eq "") {
+            $query .= "0,";
+        } else {
+            $query .=
+              quote(
+                toutf($widgets->{'add'}->get_object('entryEditNumber')->get_text()))
+                . ",";
+        }
         $query .=
           quote(
             toutf($widgets->{'add'}->get_object('entryEditBook')->get_text()))
