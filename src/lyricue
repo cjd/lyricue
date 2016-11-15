@@ -1259,7 +1259,7 @@ sub manage_bg {
 
 sub reset_font_colour {
     my ($widget, $object) = @_;
-    my $rgba = Gtk3::GDK::RGBA->new(0,0,0,0);
+    my $rgba = Gtk3::Gdk::RGBA->new(0,0,0,0);
     if ($widget eq $widgets->{'image'}->get_object('buttonFontColourDefault')) {
         $widgets->{'image'}->get_object('entryImageFontColour')
           ->set_text("Default");
