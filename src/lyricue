@@ -10275,7 +10275,7 @@ sub get_bibles {
                 my $tmpfields =
                   $db->selectall_arrayref("describe " . $tablename);
                 if (!defined $tmpfields) {
-                    next;
+                    last;
                 }
                 my @fields = @{$tmpfields};
                 my $a      = $fields[0]->[0];
@@ -13237,7 +13237,7 @@ sub clean_database {
     $sth = do_query($lyricDbh, $query, FALSE);
 
     # Remove old status entries
-    $query = "DELETE FROM status WHERE TIMEDIFF(NOW(),lastupdate) > '00:10:00'";
+    $query = "DELETE FROM status WHERE TIMESTAMPDIFF(SECOND, NOW(), lastupdate) < 120";
     $sth = do_query($lyricDbh, $query, FALSE);
 
     return FALSE;
