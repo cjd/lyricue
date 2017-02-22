@@ -3962,10 +3962,12 @@ sub open_dialogFont {
     $widgets->{'font'} = load_window("dialogFont");
     my $fontname = $config->{$font};
     $widgets->{'font'}->get_object('dialogFont')->set_font($fontname);
-    $widgets->{'font'}->get_object('buttonFontOK')
-      ->signal_connect("clicked" => \&apply_font, $font);
-    $widgets->{'font'}->get_object('dialogFont')->show;
-    return TRUE;
+    my $confirm = $widgets->{'font'}->get_object('dialogFont')->run();
+    if ($confirm eq "ok") {
+        $widgets->{'prefs'}->get_object('entryPref' . $font)
+          ->set_text($widgets->{'font'}->get_object('dialogFont')->get_font);
+    }
+    close_dialog($widgets->{'font'}->get_object('dialogFont'));
 }
 
 #***
@@ -4008,29 +4010,6 @@ sub change_font_colour {
           ->set_rgba($rgba);
         change_colour_media();
     }
-}
-
-#***
-
-#****f* lyricue/apply_font
-# NAME
-#   apply_font
-# SYNOPSIS
-#   apply_font ()
-# FUNCTION
-#   Apply font changes to the config file and server
-# INPUTS
-# OUTPUT
-#   Updated file and server
-# SOURCE
-#
-sub apply_font {
-    my ($widget, $type) = @_;
-    debug("Applying font: "
-          . $widgets->{'font'}->get_object('dialogFont')->get_font);
-    $widgets->{'prefs'}->get_object('entryPref' . $type)
-      ->set_text($widgets->{'font'}->get_object('dialogFont')->get_font);
-    close_dialog($widget);
 }
 
 #***
