@@ -3961,7 +3961,7 @@ sub open_dialogFont {
     debug("Opening Font dialog");
     $widgets->{'font'} = load_window("dialogFont");
     my $fontname = $config->{$font};
-    $widgets->{'font'}->get_object('selectFont')->set_font_name($fontname);
+    $widgets->{'font'}->get_object('dialogFont')->set_font($fontname);
     $widgets->{'font'}->get_object('buttonFontOK')
       ->signal_connect("clicked" => \&apply_font, $font);
     $widgets->{'font'}->get_object('dialogFont')->show;
@@ -4027,9 +4027,9 @@ sub change_font_colour {
 sub apply_font {
     my ($widget, $type) = @_;
     debug("Applying font: "
-          . $widgets->{'font'}->get_object('selectFont')->get_font_name);
+          . $widgets->{'font'}->get_object('dialogFont')->get_font);
     $widgets->{'prefs'}->get_object('entryPref' . $type)
-      ->set_text($widgets->{'font'}->get_object('selectFont')->get_font_name);
+      ->set_text($widgets->{'font'}->get_object('dialogFont')->get_font);
     close_dialog($widget);
 }
 
@@ -11869,7 +11869,7 @@ sub db_select {
 
     # Open lyricDB, bibleDB and mediaDb
     my $sqldb =
-      DBI->connect("DBI:mysql:mysql:" . $globals->{'mysqlhost'}, "lyric", "")
+      DBI->connect("DBI:mysql:lyricDb:" . $globals->{'mysqlhost'}, "lyric", "")
       || db_install_user();
     if (defined $sqldb && ($sqldb != NULL)) {
         $sqldb->disconnect();
