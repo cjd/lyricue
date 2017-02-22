@@ -1,4 +1,4 @@
-AC_INIT(lyricue, 4.0.10, http://www.lyricue.org)
+AC_INIT(lyricue, 4.0.11, http://www.lyricue.org)
 AC_CONFIG_AUX_DIR([build-aux])
 
 LIBS=`mysql_config --libs`
