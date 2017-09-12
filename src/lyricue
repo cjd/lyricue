@@ -13216,7 +13216,7 @@ sub clean_database {
     $sth = do_query($lyricDbh, $query, FALSE);
 
     # Remove old status entries
-    $query = "DELETE FROM status WHERE TIMESTAMPDIFF(SECOND, NOW(), lastupdate) < 120";
+    $query = "DELETE FROM status WHERE TIMESTAMPDIFF(SECOND, NOW(), lastupdate) > 120";
     $sth = do_query($lyricDbh, $query, FALSE);
 
     return FALSE;
