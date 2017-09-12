@@ -269,16 +269,16 @@ set_maintext (const gchar * text, int transition, gboolean wrap)
     gfloat final_x = stage_width / 2;
     gfloat final_y = stage_height / 2;
 
-    if (horiloc[0] == 'L') {
+    if ((horiloc[0] == 'L') || (horiloc[0] == 'l')) {
         final_x = clutter_actor_get_width (maintext) / 2;
-    } else if (horiloc[0] == 'R') {
+    } else if ((horiloc[0] == 'R') || (horiloc[0] == 'r')) {
         final_x = stage_width - (clutter_actor_get_width (maintext) / 2);
     }
-    if (vertloc[0] == 'T') {
+    if ((vertloc[0] == 'T') || (vertloc[0] == 't')) {
         final_y =
           (clutter_actor_get_height (maintext) / 2) +
           clutter_actor_get_height (foottext);
-    } else if (vertloc[0] == 'B') {
+    } else if ((vertloc[0] == 'B') || (vertloc[0] == 'b')) {
         final_y =
           stage_height - ((clutter_actor_get_height (maintext) / 2) +
                           clutter_actor_get_height (foottext));
