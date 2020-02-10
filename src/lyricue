@@ -5978,7 +5978,7 @@ sub delete_playlist {
     my $sth = do_query($lyricDbh, $query, FALSE);
 
     $query =
-      "DELETE FROM playlist WHERE data=" . $playlist . " AND type=\"play\"";
+      "DELETE FROM playlist WHERE data=\"" . $playlist . "\" AND type=\"play\"";
     $sth = do_query($lyricDbh, $query, FALSE);
 
     $query = "SELECT playorder FROM playlist WHERE playlist=" . $playlist;
